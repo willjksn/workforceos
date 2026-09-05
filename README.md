@@ -1,57 +1,131 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WorkforceOS
+
+Internal operating system for a Workforce & Talent Solutions firm. This repository is in Phase 1: a tested technical foundation for later CRM, Talent Network, Recruiting, Military Talent, Workforce Development, Legal, Finance, and AI modules.
+
+WorkforceOS is not a generic ATS and not a public SaaS product in V1.
+
+## Stack
+
+- Next.js App Router + TypeScript
+- Vercel
+- Neon PostgreSQL
+- Drizzle ORM
+- Clerk authentication
+- Inngest background jobs
+- Cloudflare R2 / S3-compatible storage abstraction
+- pgvector and pg_trgm
+- Server-side authorization in PostgreSQL
+
+Firebase/Firestore, temp staffing, payroll, public job marketplaces, and cap-table/ownership features are out of scope.
+
+## Architecture
+
+PostgreSQL is the system of record. Clerk authenticates; local `users`, `roles`, and `user_roles` authorize. AI agents draft and recommend with provenance; they do not own data or approve their own material output. External providers connect through the Integration Hub.
+
+Canonical documents:
+
+- `docs/architecture/WORKFORCEOS_MASTER_SPEC.md`
+- `docs/architecture/DEPLOYMENT.md`
+- `docs/business/SERVICE_CATALOG.md`
+- `docs/database/DATA_DICTIONARY.md`
+- `docs/database/SCHEMA_SPEC.md`
+- `docs/database/MIGRATIONS.md`
+- `docs/decisions/DECISION_LOG.md`
+- `docs/integrations/INTEGRATION_PLAN.md`
+- `docs/requirements/REQUIREMENTS_REGISTRY.md`
+- `docs/workflows/SERVICE_WORKFLOWS.md`
+
+Project rules: `.cursor/rules/`.
+
+## Local setup
+
+```bash
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). `/app` is protected.
 
 ## Environment variables
 
-Copy `.env.example` to `.env.local`. Do not commit `.env`, `.env.local`, or `.env.*.local`.
+Copy `.env.example` to `.env.local`. Never commit `.env`, `.env.local`, or `.env.*.local`.
 
-Required later for database work:
+Required for database commands:
 
-- `DATABASE_URL` — Neon PostgreSQL connection string
+- `DATABASE_URL`
 
-Required later for sign-in:
+Required to sign in:
 
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
 - `CLERK_SECRET_KEY`
 
-Optional until the related feature is enabled:
+Optional until the feature is enabled:
 
 - `INNGEST_EVENT_KEY`, `INNGEST_SIGNING_KEY`
-- `STORAGE_PROVIDER`, `S3_*` storage credentials
+- `STORAGE_PROVIDER`, `S3_*`
 - `AI_PROVIDER`, `AI_API_KEY`
+- `SENTRY_DSN`
 
-Local app startup does not require every value. Database scripts fail clearly if `DATABASE_URL` is missing. See `.env.example` for the full list.
+`next dev` and `next build` do not require every value. Database scripts fail clearly without `DATABASE_URL`.
 
-## Getting Started
+## Neon setup
 
-First, run the development server:
+1. Create a Neon project.
+2. Enable the `vector` and `pg_trgm` extensions via migrations, not ad-hoc production SQL.
+3. Put the connection string in `DATABASE_URL`.
+4. Run `npm run db:migrate` then `npm run db:seed`.
+
+## Clerk setup
+
+1. Create a Clerk application.
+2. Disable public sign-ups; use invitations.
+3. Add the API keys to `.env.local`.
+4. Sign-in lives at `/sign-in`. Local PostgreSQL permissions remain authoritative.
+
+## Drizzle commands
+
+```bash
+npm run db:generate
+npm run db:migrate
+npm run db:check
+npm run db:seed
+npm run db:verify-core
+npm run db:verify-extensions
+```
+
+Schema changes: edit `db/schema/`, generate a migration, review SQL, migrate, update the data dictionary.
+
+## Inngest
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run inngest:dev
+npx tsx scripts/inngest-health.ts
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The serve handler is `/api/inngest`. The development function is `workforceos/health-test`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Testing
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm test
+npm run test:db-acceptance
+npm run lint
+npm run typecheck
+npm run build
+```
 
-## Learn More
+`npm test` is deterministic and does not require Neon. `npm run test:db-acceptance` requires `DATABASE_URL` and a migrated, seeded database. It stops on the first failure.
 
-To learn more about Next.js, take a look at the following resources:
+## Security principles
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Server-side authorization on every mutation
+- Candidate data is Restricted PII
+- No secrets in client bundles
+- Append-only audit events for material changes
+- No ownership/cap-table data in this application
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See `docs/architecture/DEPLOYMENT.md`. Verify `npm run build`, set Vercel env vars, use Neon HTTP in serverless, and send background work through Inngest.

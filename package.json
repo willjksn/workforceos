@@ -6,9 +6,26 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:db-acceptance": "tsx scripts/test-db-acceptance.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:check": "tsx scripts/db-check.ts",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:verify-core": "tsx scripts/verify-core-identity.ts",
+    "db:verify-extensions": "tsx scripts/verify-extensions.ts",
+    "inngest:dev": "npx inngest-cli@latest dev",
+    "inngest:health": "tsx scripts/inngest-health.ts"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.9.1",
+    "@neondatabase/serverless": "^1.1.0",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.2",
+    "inngest": "^4.20.0",
     "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -17,12 +34,16 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^24.13.3",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4.23.13",
+    "typescript": "^5",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^5.0.0"
   }
 }
