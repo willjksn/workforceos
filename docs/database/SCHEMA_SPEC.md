@@ -1,6 +1,6 @@
 # Schema Specification
 
-Status: Phase 4 service engines, proposals, contracts, and delivery schema  
+Status: Phase 5 workforce development and workforce intelligence schema  
 Implementation: `db/schema/`  
 Migrations: `drizzle/`
 
@@ -29,7 +29,7 @@ Migrations: `drizzle/`
 | `db/schema/talent/` | candidates and pools |
 | `db/schema/recruiting/` | jobs, job_skills, matches, screenings, search_projects, submissions, interviews, offers, placements, placement_guarantees |
 | `db/schema/military/` | occupations, installations, mappings, bridge training, translations, occupation data imports |
-| `db/schema/workforce/` | occupation/skill foundations used by workforce services |
+| `db/schema/workforce/` | canonical `skills` / `civilian_occupations` / `occupation_skills`, plus Phase 5 planning tables |
 | `db/schema/services/` | services, versions, workflow definitions, workflows, discoveries, solution plans, proposals |
 | `db/schema/projects/` | project templates, delivery projects, phases, tasks, deliverables, risks, issues, KPIs, closeout, expansion |
 | `db/schema/legal/` | templates, contracts, e-sign envelopes, legal packages |
@@ -59,6 +59,16 @@ Migrations: `drizzle/`
 - `project_status` adds `at_risk`. `task_status` adds `not_started`, `waiting_client`, and `review` while keeping `pending`.
 - `projects.contract_id` is stored without a Drizzle circular FK to `contracts`; `contracts.project_id` is the declared foreign key.
 - Delivery `projects` are distinct from recruiting `search_projects`.
+
+## Phase 5 schema notes
+
+- Migration `drizzle/0004_melted_stryfe.sql` adds workforce assessments, roles, baselines, forecasts, supply, gaps, pipelines, education/training, career paths, skills-gap analyses, scenarios, recommendations, pipeline plans, KPIs, risks, labor-market metadata/observations, and geographies. Do not rewrite `0000`–`0003`.
+- `skills.skill_family` is a column on the existing skills table. Do not add a second skills taxonomy.
+- `workforce_roles` are planning-level and optional-linked to `civilian_occupations`. They are not recruiting `jobs`.
+- Intelligence tables carry provenance: source, source date/version, internal assumption, analyst override, model, confidence, reviewer, generated at, data quality, fixture flag.
+- `workforce_assessments` unique on `(company_id, version_number)`. Forecasts unique on `(assessment_id, version_number, horizon_months)`.
+- `skills_gap_analyses.candidate_id` is a UUID without a Drizzle FK to avoid a circular `workforce` ↔ `talent` import.
+- Approved roadmap items write `project_tasks` on existing delivery `projects`. There is no parallel workforce project table.
 
 ## Semantic search
 

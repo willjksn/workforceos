@@ -319,7 +319,7 @@ async function main() {
   const next = await createServiceVersion({
     actor,
     serviceId: SERVICE_IDS["professional-search"],
-    version: "v2-test",
+    version: `v2-test-${randomUUID().slice(0, 8)}`,
     definition: "New draft version",
     copyFromVersionId: workflow.version.id,
   });

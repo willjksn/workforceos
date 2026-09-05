@@ -1,6 +1,6 @@
 # Requirements Registry
 
-Status: Phase 4 locked set  
+Status: Phase 5 locked set  
 Database mirror: `requirements` table.
 
 ## Locked requirements
@@ -228,3 +228,43 @@ Database mirror: `requirements` table.
 - Priority: locked
 - Status: approved
 - Acceptance: project and contract events create `billing_events` without creating QuickBooks invoices unless that integration is configured.
+
+### WFOS-WF-001
+
+- Title: Workforce roles are planning-level
+- Module: workforce
+- Priority: locked
+- Status: approved
+- Acceptance: `workforce_roles` do not duplicate recruiting `jobs`. Activating search still uses `jobs` and `search_projects`.
+
+### WFOS-WF-002
+
+- Title: Forecasts, gaps, and scenarios are estimates with provenance
+- Module: workforce
+- Priority: locked
+- Status: approved
+- Acceptance: each intelligence result stores source, assumptions, confidence, version, and reviewer and is never presented as certain. Delivered assessments are not overwritten.
+
+### WFOS-WF-003
+
+- Title: Human approval for client-facing workforce recommendations
+- Module: workforce
+- Priority: locked
+- Status: approved
+- Acceptance: AI drafts start pending. A human with `workforce.approve` records approval. Agents cannot approve their own material output.
+
+### WFOS-WF-004
+
+- Title: One canonical skills and occupation taxonomy
+- Module: workforce
+- Priority: locked
+- Status: approved
+- Acceptance: Phase 5 joins `skills` and `civilian_occupations`. Skill families are a column on `skills`.
+
+### WFOS-WF-005
+
+- Title: Labor-market sources are adapters and labeled fixtures
+- Module: workforce
+- Priority: locked
+- Status: approved
+- Acceptance: unconfigured BLS/Census/O\*NET lookups return labeled fixtures with null values. The application does not invent provider statistics.

@@ -132,9 +132,28 @@ const NAV: NavGroup[] = [
     ],
   },
   {
+    label: "Workforce",
+    items: [
+      { href: "/app/workforce", label: "Overview", icon: "network", permission: "workforce.read" },
+      { href: "/app/workforce/assessments", label: "Assessments", icon: "clipboard", permission: "workforce.read" },
+      { href: "/app/workforce/roles", label: "Workforce Roles", icon: "users", permission: "workforce.read" },
+      { href: "/app/workforce/skills", label: "Skills", icon: "layers", permission: "workforce.read" },
+      { href: "/app/workforce/forecasts", label: "Forecasts", icon: "dashboard", permission: "forecasts.read" },
+      { href: "/app/workforce/gaps", label: "Workforce Gaps", icon: "bell", permission: "workforce.read" },
+      { href: "/app/workforce/supply", label: "Talent Supply", icon: "sprout", permission: "workforce.read" },
+      { href: "/app/workforce/pipelines", label: "Talent Pipelines", icon: "rotate", permission: "pipelines.read" },
+      { href: "/app/workforce/career-pathways", label: "Career Pathways", icon: "medal", permission: "career_paths.read" },
+      { href: "/app/workforce/training-programs", label: "Training Programs", icon: "checks", permission: "training_programs.read" },
+      { href: "/app/workforce/education-partners", label: "Education Partners", icon: "building", permission: "education_partners.read" },
+      { href: "/app/workforce/apprenticeships", label: "Apprenticeships", icon: "folder", permission: "workforce.read" },
+      { href: "/app/workforce/military-supply", label: "Military Supply", icon: "shield", anyPermission: ["workforce.read", "military.read"] },
+      { href: "/app/workforce/scenarios", label: "Scenario Modeling", icon: "sparkles", permission: "scenario_models.read" },
+      { href: "/app/workforce/analytics", label: "Workforce Analytics", icon: "dashboard", permission: "workforce.read" },
+    ],
+  },
+  {
     label: "",
     items: [
-      { href: "/app/workforce", label: "Workforce", icon: "network", permission: "solutions.read" },
       { href: "/app/finance", label: "Finance", icon: "wallet", anyPermission: ["finance.read", "billing.read"] },
     ],
   },
@@ -173,5 +192,6 @@ export function isNavActive(href: string, pathname: string) {
   if (href === "/app/talent") {
     return pathname === "/app/talent" || /^\/app\/talent\/[0-9a-f-]{36}/i.test(pathname);
   }
+  if (href === "/app/workforce") return pathname === "/app/workforce";
   return pathname === href || pathname.startsWith(`${href}/`);
 }

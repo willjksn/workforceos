@@ -29,7 +29,7 @@ export const ROLE_GUIDE: Record<
   },
   "workforce-consultant": {
     audience: "Workforce delivery",
-    access: "Workforce assessments, companies, and projects. No admin screens.",
+    access: "Workforce assessments, forecasts, pipelines, career paths, and client-facing recommendation approval. No admin screens.",
   },
   "military-talent-specialist": {
     audience: "Military talent practice",

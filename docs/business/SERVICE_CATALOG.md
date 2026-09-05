@@ -1,6 +1,6 @@
 # Service Catalog
 
-Status: Phase 4 launch service engines  
+Status: Phase 5 workforce intelligence on the five launch services  
 These are the five launch service engines WorkforceOS supports. Definitions are stored as approved `service_versions`. Application code loads those records; it does not invent material service rules.
 
 ## 1. Professional Search
@@ -44,7 +44,17 @@ This is an engagement model, not temp staffing or payroll. Scope is never unlimi
 
 Code: `workforce-pipeline-assessment`  
 Purpose: assess current and future workforce supply against demand and recommend pipeline actions.  
-Primary records: occupations, skills, forecasts, solution plans, projects.
+Primary records: `workforce_assessments`, `workforce_roles`, baselines, forecasts, supply, gaps, talent pipelines, education partners, career paths, scenarios, `workforce_pipeline_plans`, delivery `projects`.
+
+Operating path: opportunity → discovery → solution plan → proposal/contract → delivery project, then Phase 5 intelligence on that engagement:
+
+1. Capture planning-level workforce roles (not recruiting requisitions) and baseline headcount/assumptions.
+2. Generate versioned 12/24/36-month demand forecasts from configurable components.
+3. Model supply (internal mobility, military overlay, Talent Network aggregates, education, apprenticeships, external recruiting).
+4. Calculate structured gaps and allocate pipeline capacity. Warn when planned capacity does not cover the gap.
+5. Draft a PierOne Workforce Pipeline Plan. Human approval is required before client delivery. Approved roadmaps create `project_tasks` on the existing delivery project.
+
+Locked rules: WFOS-WF-001 through WFOS-WF-005. Forecasts are estimates with provenance. BLS/Census/O\*NET values are never invented.
 
 ## Delivery commercial model (Phase 4)
 

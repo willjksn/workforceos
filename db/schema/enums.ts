@@ -466,3 +466,149 @@ export const taskPriorityEnum = pgEnum("task_priority", [
   "high",
   "urgent",
 ]);
+
+export const skillFamilyEnum = pgEnum("skill_family", [
+  "technical",
+  "leadership",
+  "business",
+  "digital",
+  "safety_compliance",
+  "other",
+]);
+
+export const workforceAssessmentStatusEnum = pgEnum("workforce_assessment_status", [
+  "draft",
+  "data_collection",
+  "analysis",
+  "human_review",
+  "client_ready",
+  "delivered",
+  "completed",
+  "superseded",
+]);
+
+export const workforceCriticalityEnum = pgEnum("workforce_criticality", [
+  "critical",
+  "high",
+  "moderate",
+  "low",
+]);
+
+export const workforceDataQualityEnum = pgEnum("workforce_data_quality", [
+  "unknown",
+  "estimated",
+  "internal_only",
+  "sourced",
+  "reviewed",
+]);
+
+export const workforceImportSourceEnum = pgEnum("workforce_import_source", [
+  "csv",
+  "excel",
+  "manual",
+  "integration",
+]);
+
+export const workforceSupplySourceTypeEnum = pgEnum("workforce_supply_source_type", [
+  "internal_mobility",
+  "labor_market",
+  "military",
+  "apprenticeship",
+  "community_college",
+  "university",
+  "technical_school",
+  "training_program",
+  "talent_network",
+  "workforce_board",
+  "external_recruiting",
+  "other",
+]);
+
+export const workforcePipelineStatusEnum = pgEnum("workforce_pipeline_status", [
+  "planned",
+  "active",
+  "at_risk",
+  "paused",
+  "completed",
+  "cancelled",
+]);
+
+export const educationPartnerTypeEnum = pgEnum("education_partner_type", [
+  "community_college",
+  "university",
+  "technical_school",
+  "training_provider",
+  "workforce_board",
+  "other",
+]);
+
+export const partnershipStatusEnum = pgEnum("partnership_status", [
+  "exploratory",
+  "active",
+  "paused",
+  "ended",
+]);
+
+export const apprenticeshipStatusEnum = pgEnum("apprenticeship_status", [
+  "planned",
+  "active",
+  "paused",
+  "completed",
+  "cancelled",
+]);
+
+export const careerPathEdgeTypeEnum = pgEnum("career_path_edge_type", [
+  "sequential",
+  "lateral",
+]);
+
+export const skillsGapScopeEnum = pgEnum("skills_gap_scope", [
+  "individual",
+  "aggregate",
+  "military_transition",
+]);
+
+export const workforceRecommendationStatusEnum = pgEnum("workforce_recommendation_status", [
+  "draft",
+  "pending_approval",
+  "approved",
+  "rejected",
+  "changes_requested",
+]);
+
+export const workforceRoadmapPeriodEnum = pgEnum("workforce_roadmap_period", [
+  "0_90_days",
+  "3_6_months",
+  "6_12_months",
+  "12_24_months",
+]);
+
+export const workforceRiskCategoryEnum = pgEnum("workforce_risk_category", [
+  "skills_shortage",
+  "retirement",
+  "attrition",
+  "capacity",
+  "geographic_scarcity",
+  "credential_shortage",
+  "education_capacity",
+  "training_capacity",
+  "military_availability",
+  "pipeline_conversion",
+  "compensation",
+  "competition",
+]);
+
+export const laborMarketProviderEnum = pgEnum("labor_market_provider", [
+  "bls",
+  "census",
+  "onet",
+]);
+
+export const talentScarcityClassEnum = pgEnum("talent_scarcity_class", [
+  "unknown",
+  "estimated",
+  "internal_only",
+  "scarce",
+  "moderate",
+  "abundant",
+]);

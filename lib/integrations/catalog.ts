@@ -18,7 +18,19 @@ export const INTEGRATION_CATALOG: IntegrationCatalogEntry[] = [
     id: "onet",
     name: "O*NET",
     group: "Occupation reference",
-    summary: "Civilian occupation and skill reference used in military talent mapping.",
+    summary: "Civilian occupation and skill reference. Unconfigured sources stay labeled fixtures, never invented official values.",
+  },
+  {
+    id: "bls",
+    name: "Bureau of Labor Statistics",
+    group: "Labor market",
+    summary: "Employment and wage statistics. Unconfigured: adapter and labeled fixtures only. Never presented as live BLS data.",
+  },
+  {
+    id: "census",
+    name: "Census / LEHD / LODES",
+    group: "Labor market",
+    summary: "Geographic employment flows. Unconfigured: adapter and labeled fixtures only. Never presented as live Census data.",
   },
   {
     id: "linkedin-recruiter",

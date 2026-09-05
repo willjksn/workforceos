@@ -11,6 +11,7 @@ import {
 import { requireAppPermission } from "@/lib/auth/guard";
 import { OPPORTUNITY_STAGES } from "@/lib/crm/stages";
 import { getCompanyGraph, listActivities } from "@/lib/repositories/crm";
+import { getCompanyWorkforceSnapshot } from "@/lib/repositories/workforce";
 import { listJobs } from "@/lib/repositories/recruiting";
 import { companyDeliverySnapshot } from "@/lib/delivery/engine";
 import { can } from "@/lib/rbac/permissions";
@@ -57,6 +58,10 @@ export default async function CompanyDetailPage({
   const delivery =
     ["solutions", "proposals", "legal", "finance", "projects"].includes(tab)
       ? await companyDeliverySnapshot(company.id, principal.organizationId)
+      : null;
+  const workforce =
+    tab === "workforce" && can(principal, "workforce.read")
+      ? await getCompanyWorkforceSnapshot(company.id, principal.organizationId)
       : null;
 
   const tabs = [
@@ -446,8 +451,65 @@ export default async function CompanyDetailPage({
         </section>
       ) : null}
 
-      {tab === "talent" || tab === "workforce" ? (
+      {tab === "talent" ? (
         <p className="mt-6 text-sm text-muted-foreground">Not yet implemented in this phase.</p>
+      ) : null}
+
+      {tab === "workforce" ? (
+        <section className="mt-6 space-y-6 text-sm">
+          {!workforce ? (
+            <p className="text-muted-foreground">Workforce access requires workforce.read.</p>
+          ) : (
+            <>
+              <div>
+                <h2 className="section-title">Assessments</h2>
+                <ul>
+                  {workforce.assessments.map((row) => (
+                    <li key={row.id}>
+                      <Link className="underline" href={`/app/workforce/assessments/${row.id}`}>{row.title}</Link>
+                      {" · "}{row.status}
+                    </li>
+                  ))}
+                  {workforce.assessments.length === 0 ? <li>None yet.</li> : null}
+                </ul>
+              </div>
+              <div>
+                <h2 className="section-title">Critical roles</h2>
+                <ul>
+                  {workforce.criticalRoles.map((role) => (
+                    <li key={role.id}>{role.title} · {role.criticality} · headcount {role.currentHeadcount}</li>
+                  ))}
+                  {workforce.criticalRoles.length === 0 ? <li>None classified critical/high.</li> : null}
+                </ul>
+              </div>
+              <div>
+                <h2 className="section-title">Forecasts</h2>
+                <ul>
+                  {workforce.forecasts.slice(0, 8).map((row) => (
+                    <li key={row.id}>{row.name} · {row.horizonMonths} mo · {row.status} · estimate only</li>
+                  ))}
+                  {workforce.forecasts.length === 0 ? <li>None generated.</li> : null}
+                </ul>
+              </div>
+              <div>
+                <h2 className="section-title">Military opportunity</h2>
+                <p className="text-muted-foreground">Planning overlay reuses Phase 3 mappings. Open an assessment for occupation and installation counts. Candidate PII is not shown here.</p>
+              </div>
+              <div>
+                <h2 className="section-title">Gaps</h2>
+                <ul>
+                  {workforce.gaps.slice(0, 8).map((row) => (
+                    <li key={row.gap.id}>{row.roleTitle} · {row.gap.horizonMonths} mo · gap {row.gap.gap}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h2 className="section-title">Pipelines / career paths / partners / risks</h2>
+                <p>{workforce.pipelines.length} pipelines · {workforce.careerPaths.length} career paths · {workforce.educationPartners.length} education partners · {workforce.risks.length} risks</p>
+              </div>
+            </>
+          )}
+        </section>
       ) : null}
     </PageShell>
   );

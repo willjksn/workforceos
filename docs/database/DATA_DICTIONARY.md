@@ -1,6 +1,6 @@
 # Data Dictionary
 
-Status: Phase 4 service engines, proposals, contracts, and delivery  
+Status: Phase 5 workforce development and workforce intelligence  
 Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 
 ## Conventions
@@ -65,7 +65,7 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 
 | Table | Purpose |
 | --- | --- |
-| `skills` | Canonical skills. |
+| `skills` | Canonical skills. `skill_family` classifies technical, leadership, business, digital, and safety/compliance skills. There is no second taxonomy. |
 | `civilian_occupations` | Civilian occupation records with O\*NET source fields. |
 | `occupation_skills` | Occupation-to-skill links. |
 
@@ -117,6 +117,32 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | `military_civilian_mappings` | Military-to-civilian translations, including reverse search, provenance, and review status. |
 | `bridge_training_recommendations` | Skill-gap and credential recommendations. Do not promise employment. |
 | `occupation_data_imports` | Repeatable importer run log. Approved mappings are not silently deleted. |
+
+## Workforce planning (Phase 5)
+
+Workforce roles are planning-level. They do not duplicate recruiting `jobs`. Forecasts, gaps, and scenarios are versioned estimates with provenance and are never presented as certain. Delivered assessments are not overwritten.
+
+| Table | Purpose |
+| --- | --- |
+| `workforce_assessments` | Client workforce assessment versions. Unique on `(company_id, version_number)`. |
+| `workforce_roles` | Planning-level occupations/job families for a client. May link to a canonical civilian occupation. |
+| `workforce_role_skills` | Role skill requirements through the canonical `skills` table. |
+| `workforce_baselines` | Headcount, vacancies, attrition, retirement, and related assumptions. |
+| `workforce_forecasts` / `workforce_forecast_results` / `workforce_forecast_components` / `workforce_forecast_overrides` | Versioned 12/24/36-month demand models with configurable components and audited overrides. |
+| `workforce_supply_entries` | Expected supply by source type (internal, military, education, Talent Network, recruiting). |
+| `workforce_gaps` / `workforce_gap_thresholds` | Demand minus supply with stored severity thresholds. |
+| `talent_scarcity_indicators` | Scarcity classification from available evidence; unknown/estimated/internal-only when labor-market APIs are unconfigured. |
+| `talent_pipelines` / `talent_pipeline_allocations` | Pipeline strategy and gap allocation across sources. Warns when planned capacity is below the gap. |
+| `education_partners` / `training_programs` / `apprenticeships` | Education and training planning records. Outcome rates are stored only when supplied. |
+| `career_paths` / `career_path_levels` / `career_path_edges` | Sequential and lateral career pathways. |
+| `skills_gap_analyses` | Individual, aggregate, or military-transition skill gap output. |
+| `workforce_scenarios` / `workforce_scenario_inputs` / `workforce_scenario_outputs` | Planning scenarios. Not guaranteed forecasts. |
+| `workforce_recommendations` | AI or analyst drafts. Client-facing use requires human approval. |
+| `workforce_pipeline_plans` | Expanded Phase 4 WPA deliverable (PierOne HTML). Human approval before client delivery. |
+| `workforce_roadmap_items` | 0–90 day through 12–24 month actions; may link to existing `project_tasks`. |
+| `workforce_kpis` / `workforce_risks` | Stored KPI and risk records. Financial KPIs are omitted without source data. |
+| `labor_market_source_metadata` / `labor_market_observations` | Integration Hub source status and labeled fixtures. Never invent BLS/Census/O\*NET values. |
+| `workforce_geographies` | List/region geography. Interactive installation maps remain deferred to Phase 3.5. |
 
 ## Services and delivery
 

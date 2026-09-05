@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/page";
 import { requireCurrentPrincipal } from "@/lib/auth/session";
 import { getCommandCenterSnapshot } from "@/lib/repositories/command-center";
+import { getWorkforceCommandSnapshot } from "@/lib/repositories/workforce";
 import { phase4CommandSnapshot } from "@/lib/delivery/engine";
 import { can } from "@/lib/rbac/permissions";
 
@@ -18,6 +19,9 @@ export default async function CommandCenterPage() {
   const principal = await requireCurrentPrincipal();
   const snapshot = await getCommandCenterSnapshot(principal.organizationId);
   const delivery = await phase4CommandSnapshot(principal.organizationId);
+  const workforce = can(principal, "workforce.read")
+    ? await getWorkforceCommandSnapshot(principal.organizationId)
+    : null;
   const canOpportunities = can(principal, "opportunities.read");
   const canCandidates = can(principal, "candidates.read");
   const canJobs = can(principal, "jobs.read");
@@ -76,6 +80,15 @@ export default async function CommandCenterPage() {
         ) : null}
         {can(principal, "opportunities.read") ? (
           <MetricCard href="/app/solutions" label="Expansion opportunities" value={delivery.expansionOpportunities} />
+        ) : null}
+        {workforce ? (
+          <>
+            <MetricCard href="/app/workforce/gaps" label="Critical workforce gaps" value={workforce.criticalGaps.length} />
+            <MetricCard href="/app/workforce/assessments" label="Assessments in progress" value={workforce.assessmentsInProgress.length} />
+            <MetricCard href="/app/workforce/pipelines" label="Pipeline capacity risk" value={workforce.pipelineCapacityRisk.length} />
+            <MetricCard href="/app/admin/approvals" label="Workforce recommendations awaiting approval" value={workforce.recommendationsAwaitingApproval.length} />
+            <MetricCard href="/app/workforce/roles" label="High-risk roles" value={workforce.highRiskRoles.length} />
+          </>
         ) : null}
       </section>
 

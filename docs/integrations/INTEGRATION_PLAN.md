@@ -1,6 +1,6 @@
 # Integration Plan
 
-Status: Phase 1 abstraction only  
+Status: Phase 5 labor-market adapters on the Phase 1 hub  
 Requirement: WFOS-INT-001
 
 ## Principle
@@ -32,7 +32,9 @@ Adapters return a common result type. Missing credentials yield `not_configured`
 | Provider | Intended use | Phase 1 |
 | --- | --- | --- |
 | Apollo | company/contact discovery | placeholder |
-| O\*NET | occupation/skill reference | placeholder + source fields on occupation/skill tables |
+| O\*NET | occupation/skill reference | placeholder + source fields on occupation/skill tables; labeled fixture observations in Phase 5 |
+| BLS | labor-market employment/wage reference | Integration Hub adapter; unconfigured lookups return labeled fixtures, never invented values |
+| Census / LEHD / LODES | geographic labor supply | Integration Hub adapter; unconfigured lookups return labeled fixtures, never invented values |
 | LinkedIn Recruiter | recruiter operating source | hook only; no scrape; blocked until internal search completes |
 | SeekOut | sourcing | placeholder hook |
 | hireEZ | sourcing | placeholder hook |

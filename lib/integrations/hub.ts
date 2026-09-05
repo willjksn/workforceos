@@ -20,6 +20,8 @@ export type IntegrationAdapter = {
 export const INTEGRATION_PROVIDERS = [
   "apollo",
   "onet",
+  "bls",
+  "census",
   "linkedin-recruiter",
   "seekout",
   "hireez",

@@ -11,6 +11,7 @@ const EXPECTED_MIGRATIONS = [
   "0001_useful_frog_thor",
   "0002_fancy_pretty_boy",
   "0003_vengeful_tyger_tiger",
+  "0004_melted_stryfe",
 ];
 
 const KEY_TABLES = [
@@ -23,6 +24,7 @@ const KEY_TABLES = [
   "jobs",
   "military_occupations",
   "services",
+  "workforce_assessments",
   "audit_events",
 ];
 

@@ -43,6 +43,7 @@ import {
 } from "../schema";
 import { PERMISSIONS, ROLE_PERMISSIONS, type RoleSlug } from "../../lib/rbac/permissions";
 import { seedPhase4Fixtures } from "./phase4";
+import { seedPhase5Fixtures } from "./phase5";
 import { seedLaunchServiceCatalog } from "./phase4-catalog";
 import { seedPhase3OperatingFixtures } from "./phase3";
 import {
@@ -782,6 +783,7 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
     .onConflictDoNothing();
 
   await seedPhase4Fixtures(db);
+  await seedPhase5Fixtures(db);
 }
 
 async function seedAdditionalOperatingFixtures(
@@ -1047,6 +1049,11 @@ async function seedRequirementsAndDecisions(db: ReturnType<typeof getDb>) {
     ["WFOS-SVC-003", "services", "Client-facing proposals, pricing, contracts, and deliverables require human approval."],
     ["WFOS-SVC-004", "projects", "Delivery project creation requires an executed contract unless a Managing Partner override is audited."],
     ["WFOS-FIN-001", "finance", "Phase 4 billing events are operational triggers only and do not create QuickBooks invoices unless configured."],
+    ["WFOS-WF-001", "workforce", "Workforce roles are planning-level occupation records and do not duplicate recruiting jobs."],
+    ["WFOS-WF-002", "workforce", "Forecasts, gaps, and scenarios store provenance, assumptions, confidence, version, and reviewer and are never presented as certain."],
+    ["WFOS-WF-003", "workforce", "Client-facing workforce recommendations require human approval; agents cannot approve their own material output."],
+    ["WFOS-WF-004", "workforce", "Canonical skills and civilian occupations are reused; Phase 5 does not create a second taxonomy."],
+    ["WFOS-WF-005", "workforce", "Unconfigured BLS/Census/O*NET sources are adapters and labeled fixtures only; values are never invented."],
   ] as const;
 
   for (const [code, module, description] of requirementSeed) {
@@ -1088,6 +1095,13 @@ async function seedRequirementsAndDecisions(db: ReturnType<typeof getDb>) {
     ["DEC-SVC-004", "Contract execution gate for delivery projects", "Managing Partner override is audited when a contract is not executed."],
     ["DEC-FIN-001", "Billing events are operational triggers only", "No QuickBooks invoices unless that integration is configured."],
     ["DEC-LEGAL-001", "Legal templates are not attorney-authoritative by default", "Placeholder language is not treated as approved counsel text."],
+    ["DEC-WF-001", "Workforce roles are planning-level, not recruiting jobs", "workforce_roles do not duplicate jobs."],
+    ["DEC-WF-002", "One canonical skills and occupation taxonomy", "Skill families are a column on skills."],
+    ["DEC-WF-003", "Forecasts, gaps, and scenarios are estimates with provenance", "Delivered assessments are not overwritten."],
+    ["DEC-WF-004", "Labor-market data stays behind the Integration Hub", "Unconfigured sources are labeled fixtures only."],
+    ["DEC-WF-005", "Expand the Phase 4 WPA engine; no second project system", "Roadmap items create project_tasks on existing projects."],
+    ["DEC-WF-006", "Talent Network overlay uses aggregates by default", "Workforce views do not expose candidate PII."],
+    ["DEC-WF-007", "Military overlay reuses Phase 3 mappings", "Installation map remains deferred to Phase 3.5."],
   ] as const;
 
   for (const [code, title, decision] of decisions) {

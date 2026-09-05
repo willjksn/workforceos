@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Phase 5 — Workforce Development + Workforce Intelligence
+
+- Expanded Workforce Pipeline Assessment into planning-level workforce roles, baselines, versioned 12/24/36-month forecasts, supply, structured gaps, pipelines, education/training, career pathways, skills-gap analysis, and scenario modeling.
+- Forecasts, gaps, and scenarios store provenance, assumptions, confidence, version, and reviewer. They are never presented as certain. Delivered assessments are not overwritten.
+- Military overlay reuses Phase 3 mappings. Talent Network overlay uses aggregate counts (no unnecessary PII). BLS/Census/O\*NET stay behind the Integration Hub as unconfigured adapters plus labeled fixtures.
+- Client-facing Workforce Pipeline Plans and AI drafts require human approval. Approved roadmaps create `project_tasks` on existing delivery projects.
+- Added schema migration `drizzle/0004_melted_stryfe.sql` and `npm run test:phase5`.
+- Development fixture: Cedar Ridge Energy. Harbor, Taylor Ellis, and Navy EM remain development fixtures. Do not run `db:seed:dev` against real production.
+
 ### Phase 4 — Service Engines + Proposals + Contracts + Project Delivery
 
 - Added a reusable service workflow engine for the five launch services. Approved versions and workflows are loaded from PostgreSQL.

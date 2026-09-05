@@ -1,6 +1,6 @@
 # WorkforceOS Master Specification
 
-Status: Phase 3 recruiting operations and military talent translator  
+Status: Phase 5 workforce development and workforce intelligence  
 Audience: engineering agents and maintainers  
 Canonical: this file is the architecture source of truth for implementation.
 
@@ -10,7 +10,7 @@ WorkforceOS is an internal operating system for a Workforce & Talent Solutions f
 
 It will eventually manage company CRM, Talent CRM, recruiting/search, military talent translation, workforce development, legal document operations, finance/AR workflow, integrations, background AI agents, audit history, approvals, and institutional knowledge.
 
-Phase 1 builds only the technical foundation required for those later modules. Phase 4 activates service engines, proposals, contracts, and project delivery on that foundation.
+Phase 1 built the technical foundation. Phase 4 activates service engines, proposals, contracts, and project delivery. Phase 5 expands Workforce Pipeline Assessment into workforce development and intelligence on that same foundation.
 
 ## Product boundaries
 
@@ -64,13 +64,13 @@ Server-only modules live under `db/` and `lib/`. Client components must not impo
 
 ## Domain map (future modules)
 
-Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Talent Network, Professional Search, and Military Talent Opportunity Assessment. Phase 3 activates recruiting operations and the military talent translator on that foundation. Phase 4 activates the five launch service engines, proposals, contracts, and delivery projects.
+Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Talent Network, Professional Search, and Military Talent Opportunity Assessment. Phase 3 activates recruiting operations and the military talent translator. Phase 4 activates the five launch service engines, proposals, contracts, and delivery projects. Phase 5 adds workforce development and workforce intelligence without a second taxonomy or project system.
 
 - CRM: companies, contacts, opportunities, signals
 - Talent Network: candidates, pools, rediscovery
 - Recruiting: jobs, internal-first search projects, job-specific matches, pipeline, submissions, interviews, offers, placements, guarantees
 - Military Talent: occupation library, skills translator, reverse search, installations, bridge training, human mapping review
-- Workforce Development: assessments, forecasts, pipeline planning (placeholder after Phase 4 except the Workforce Pipeline Assessment service engine)
+- Workforce Development: planning-level workforce roles, baselines, versioned forecasts, supply, gaps, pipelines, career paths, scenarios, and the expanded Workforce Pipeline Assessment deliverable
 - Services: five launch service engines, versioned workflows, discovery, solution plans, proposals
 - Legal: templates, contract packages, execution, e-sign abstraction
 - Finance: billing-trigger foundations (not QuickBooks invoicing)
@@ -84,6 +84,7 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 | Companies, contacts, opportunities | WorkforceOS PostgreSQL |
 | Candidates and talent pools | WorkforceOS PostgreSQL |
 | Jobs and matches | WorkforceOS PostgreSQL |
+| Workforce assessments, roles, forecasts, gaps, pipelines | WorkforceOS PostgreSQL; labor-market APIs are references only |
 | Military mappings | WorkforceOS PostgreSQL; external occupation systems are references |
 | Files | Object storage metadata in PostgreSQL; binaries in the storage provider |
 | Identity credentials | Clerk for authentication only |
@@ -117,6 +118,19 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 - Delivery project creation requires an executed contract unless a Managing Partner override is recorded and audited.
 - Billing events are operational triggers. They do not create QuickBooks invoices unless that integration is already configured.
 - Seeded legal templates are not attorney-authoritative unless `attorney_approved` is true.
+
+## Workforce development rules (Phase 5)
+
+- `workforce_roles` are planning-level occupation records. They do not duplicate recruiting `jobs`. Activating search still uses `jobs` and `search_projects`.
+- Skills and civilian occupations remain canonical. Skill families are a column on `skills`. Do not create a second taxonomy.
+- Demand forecasts use configurable components (current required + growth + replacement + backlog − expected internal supply). Analysts may include, exclude, or override components with an audited reason.
+- Forecasts, supply, gaps, and scenarios store source, source date/version, assumptions, confidence, version, reviewer, and fixture labeling. They are never presented as certain. Delivered assessments are not overwritten; changes create a new version.
+- Gap severity uses stored thresholds. Pipeline allocation warns when planned capacity is below the gap. Scarcity is unknown/estimated/internal-only when labor-market APIs are unconfigured.
+- Military overlay reuses Phase 3 mappings. Talent Network overlay uses aggregate counts by default (no candidate PII on executive workforce views).
+- BLS, Census, and O\*NET stay behind the Integration Hub. Unconfigured sources are adapters plus labeled fixtures. Values are never invented.
+- Client-facing workforce recommendations and Workforce Pipeline Plans require human approval. Agents cannot approve their own material output.
+- Approved roadmaps create `project_tasks` on the existing delivery `projects` row. There is no second project system.
+- Installation interactive maps remain deferred to Phase 3.5. List/region geography is sufficient.
 
 ## Related documents
 

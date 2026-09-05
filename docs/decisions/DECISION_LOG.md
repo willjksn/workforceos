@@ -222,3 +222,73 @@ Database mirror: `decision_log` table, seeded from this file.
 - Reason: Invented legal language would create liability.
 - Affected modules: legal
 - Reconsideration: after counsel provides approved text, templates are versioned and the attorney-approved flag is set.
+
+## DEC-WF-001 — Workforce roles are planning-level, not recruiting jobs
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: `workforce_roles` are client occupation/job-family planning records. They do not duplicate `jobs` requisitions. A recruiting job may later reference a workforce role, but activating search still uses `jobs` and `search_projects`.
+- Reason: Mixing strategic headcount planning with requisition execution would break Professional Search and invent demand from open reqs.
+- Affected modules: workforce, recruiting
+- Reconsideration: if a later phase needs a formal job-to-role link, add a junction table without merging the entities.
+
+## DEC-WF-002 — One canonical skills and occupation taxonomy
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Phase 5 reuses `skills`, `civilian_occupations`, and `occupation_skills`. Skill families are a column on `skills`, not a second taxonomy. Workforce role skills, training programs, and career-path levels join to the same `skills` rows.
+- Reason: Duplicate taxonomies would drift military, recruiting, and workforce intelligence apart.
+- Affected modules: workforce, military, recruiting, talent
+- Reconsideration: only if an official O*NET extract requires a versioned import table; canonical rows would still be the join target.
+
+## DEC-WF-003 — Forecasts, gaps, and scenarios are estimates with provenance
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Demand forecasts, supply models, gaps, and scenarios store source, source date/version, assumptions, confidence, version, reviewer, and fixture labeling. They are never presented as certain. Delivered assessments are not overwritten; changes create a new version or `superseded` status.
+- Reason: Opaque or invented workforce numbers would create client liability.
+- Affected modules: workforce, AI, audit
+- Reconsideration: none for V1.
+
+## DEC-WF-004 — Labor-market data stays behind the Integration Hub
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: BLS, Census/LEHD/LODES, and O*NET are Integration Hub adapters. Unconfigured sources expose interfaces, import metadata, and labeled fixtures only. Fixture observations must not be presented as real labor-market intelligence. Do not invent BLS/Census/O*NET values.
+- Reason: WFOS-INT-001. Hardcoding provider logic into the Workforce module would contaminate planning records.
+- Affected modules: integrations, workforce
+- Reconsideration: when credentials exist, adapters can import into `labor_market_observations` with source metadata.
+
+## DEC-WF-005 — Expand the Phase 4 WPA engine; no second project system
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Workforce Pipeline Assessment remains a launch service. Phase 5 expands its analysis, deliverable, and roadmap. Approved roadmap items create `project_tasks` on existing delivery `projects`. Do not add a parallel workforce project table.
+- Reason: A second project system would split delivery, billing, and approvals.
+- Affected modules: workforce, projects, services
+- Reconsideration: none for V1.
+
+## DEC-WF-006 — Talent Network overlay uses aggregates by default
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Workforce executive views show Talent Network coverage as counts (matching candidates, silver medalists, military candidates, geography, readiness). Candidate PII is not shown unless the user has `candidate_pii.read` and opens a talent record.
+- Reason: Restricted PII does not belong on workforce planning dashboards.
+- Affected modules: workforce, talent, security
+- Reconsideration: if a named-candidate drill-in is required, it must reuse Talent Network pages and PII guards.
+
+## DEC-WF-007 — Military overlay reuses Phase 3 mappings
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Workforce military supply is computed from existing `military_civilian_mappings`, installations, bridge training, and Talent Network military filters. Phase 5 does not duplicate occupation libraries. Installation interactive maps remain deferred to Phase 3.5; list/region geography is sufficient.
+- Reason: Duplicate military data would diverge from the translator of record.
+- Affected modules: workforce, military
+- Reconsideration: Phase 3.5 map may consume stored coordinates; it still must not fabricate them.
