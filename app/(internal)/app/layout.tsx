@@ -7,6 +7,21 @@ import { getCurrentPrincipal } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
+const productLinks = [
+  { href: "/app/companies", label: "Companies" },
+  { href: "/app/talent", label: "Talent" },
+  { href: "/app/jobs", label: "Jobs" },
+  { href: "/app/services", label: "Services" },
+];
+
+const adminLinks = [
+  { href: "/app/admin/system-health", label: "System health" },
+  { href: "/app/admin/agents", label: "Agents" },
+  { href: "/app/admin/approvals", label: "Approvals" },
+  { href: "/app/admin/integrations", label: "Integrations" },
+  { href: "/app/admin/requirements", label: "Requirements" },
+];
+
 export default async function InternalAppLayout({
   children,
 }: LayoutProps<"/app">) {
@@ -29,17 +44,25 @@ export default async function InternalAppLayout({
 
   return (
     <div className="min-h-full">
-      <header className="flex items-center justify-between border-b px-6 py-3 text-sm">
-        <Link href="/app" className="font-semibold">
-          WorkforceOS
-        </Link>
-        <nav className="flex items-center gap-4">
-          <Link href="/app/admin/system-health">System health</Link>
-          <Link href="/app/admin/agents">Agents</Link>
-          <Link href="/app/admin/approvals">Approvals</Link>
-          <Link href="/app/admin/integrations">Integrations</Link>
-          <Link href="/app/admin/requirements">Requirements</Link>
+      <header className="border-b px-6 py-3 text-sm">
+        <div className="flex items-center justify-between gap-4">
+          <Link href="/app" className="font-semibold">
+            WorkforceOS
+          </Link>
           <AuthControls />
+        </div>
+        <nav className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+          {productLinks.map((link) => (
+            <Link key={link.href} href={link.href}>
+              {link.label}
+            </Link>
+          ))}
+          <span className="text-zinc-300">|</span>
+          {adminLinks.map((link) => (
+            <Link key={link.href} href={link.href}>
+              {link.label}
+            </Link>
+          ))}
         </nav>
       </header>
       {children}

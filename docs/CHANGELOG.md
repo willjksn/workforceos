@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Phase 2 — operating UI
+
+- Added company CRM screens for companies, locations, contacts, signals, and opportunities.
+- Added Talent Network screens for candidates and pools, with Restricted PII redaction.
+- Added Professional Search jobs UI that always creates an internal Talent Network search project and scores job-specific matches.
+- Seeded versioned workflow steps for all five launch services.
+
 ### Phase 1 — technical foundation
 
 - Stabilized the existing Next.js App Router application.
@@ -14,4 +21,4 @@
 - Added initial CRM, talent, recruiting, military, service, project, and search schemas.
 - Added tests, database acceptance script, system health page, and deployment notes.
 
-Later phases add full CRM and Talent Network UI, not additional architecture replacement.
+Later phases add additional CRM depth, military translation UI, and delivery project execution, not an architecture replacement.

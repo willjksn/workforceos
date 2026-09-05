@@ -23,6 +23,7 @@ import {
   opportunities,
   opportunitySignals,
   organizations,
+  searchProjects,
   permissions,
   requirements,
   rolePermissions,
@@ -39,6 +40,7 @@ import {
   users,
 } from "../schema";
 import { PERMISSIONS, ROLE_PERMISSIONS, type RoleSlug } from "../../lib/rbac/permissions";
+import { LAUNCH_SERVICE_WORKFLOWS } from "./service-workflows";
 import {
   CANDIDATE_ID,
   COMPANY_ID,
@@ -561,6 +563,14 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
         pipelineStatus: "sourced",
       })
       .onConflictDoNothing();
+    await db
+      .insert(searchProjects)
+      .values({
+        id: `00000000-0000-4000-8710-${String(index + 1).padStart(12, "0")}`,
+        jobId: id,
+        name: `Internal Talent Network: ${title}`,
+      })
+      .onConflictDoNothing();
   }
 
   await db
@@ -692,27 +702,20 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
         reviewStatus: "approved",
       })
       .onConflictDoNothing();
-  }
 
-  const mtoaSteps = [
-    "Capture civilian roles and constraints",
-    "Translate to military occupations",
-    "Map skills, gaps, and training",
-    "Identify likely installations",
-    "Draft recommendations with provenance",
-    "Human approval of client-facing output",
-  ];
-  for (const [index, name] of mtoaSteps.entries()) {
-    await db
-      .insert(serviceWorkflows)
-      .values({
-        serviceVersionId: MTOA_VERSION_ID,
-        stepNumber: index + 1,
-        name,
-        instructions: name,
-        requiresHumanApproval: index === mtoaSteps.length - 1,
-      })
-      .onConflictDoNothing();
+    const steps = LAUNCH_SERVICE_WORKFLOWS[service.code] ?? [];
+    for (const [index, step] of steps.entries()) {
+      await db
+        .insert(serviceWorkflows)
+        .values({
+          serviceVersionId: versionId,
+          stepNumber: index + 1,
+          name: step.name,
+          instructions: step.instructions,
+          requiresHumanApproval: step.requiresHumanApproval,
+        })
+        .onConflictDoNothing();
+    }
   }
 
   await db

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
@@ -19,6 +19,28 @@ const MTOA_PHASES = [
   "Client Presentation",
 ] as const;
 
+export async function listLaunchServices() {
+  const db = getDb();
+  const rows = await db.select().from(services).orderBy(services.name);
+  const result = [];
+  for (const service of rows) {
+    const versions = await db
+      .select()
+      .from(serviceVersions)
+      .where(eq(serviceVersions.serviceId, service.id));
+    const approved = versions.find((version) => version.reviewStatus === "approved") ?? versions[0];
+    const workflows = approved
+      ? await db
+          .select()
+          .from(serviceWorkflows)
+          .where(eq(serviceWorkflows.serviceVersionId, approved.id))
+          .orderBy(asc(serviceWorkflows.stepNumber))
+      : [];
+    result.push({ service, versions, approvedVersion: approved ?? null, workflows });
+  }
+  return result;
+}
+
 export async function getServiceBundle(serviceCode: string) {
   const db = getDb();
   const [service] = await db.select().from(services).where(eq(services.code, serviceCode)).limit(1);
@@ -27,13 +49,22 @@ export async function getServiceBundle(serviceCode: string) {
     .select()
     .from(serviceVersions)
     .where(eq(serviceVersions.serviceId, service.id));
-  const workflows = versions.length
+  const approved = versions.find((version) => version.reviewStatus === "approved") ?? versions[0];
+  const workflows = approved
     ? await db
         .select()
         .from(serviceWorkflows)
-        .where(eq(serviceWorkflows.serviceVersionId, versions[0].id))
+        .where(eq(serviceWorkflows.serviceVersionId, approved.id))
+        .orderBy(asc(serviceWorkflows.stepNumber))
     : [];
-  return { service, versions, workflows };
+  const plans = approved
+    ? await db
+        .select({ plan: solutionPlans, opportunity: opportunities })
+        .from(solutionPlans)
+        .innerJoin(opportunities, eq(solutionPlans.opportunityId, opportunities.id))
+        .where(eq(solutionPlans.serviceVersionId, approved.id))
+    : [];
+  return { service, versions, approvedVersion: approved ?? null, workflows, plans };
 }
 
 export async function createProjectFromSolutionPlan(solutionPlanId: string) {

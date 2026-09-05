@@ -1,6 +1,6 @@
 # WorkforceOS
 
-Internal operating system for a Workforce & Talent Solutions firm. This repository is in Phase 1: a tested technical foundation for later CRM, Talent Network, Recruiting, Military Talent, Workforce Development, Legal, Finance, and AI modules.
+Internal operating system for a Workforce & Talent Solutions firm. Phase 1 is the technical foundation. Phase 2 adds operating UI for company CRM, the Talent Network, and Professional Search.
 
 WorkforceOS is not a generic ATS and not a public SaaS product in V1.
 
@@ -45,7 +45,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). `/app` is protected.
+Open [http://localhost:3000](http://localhost:3000). `/app` is protected. Signed-in operators can use Companies, Talent, Jobs, and Services.
 
 ## Environment variables
 
