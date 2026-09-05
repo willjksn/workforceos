@@ -766,3 +766,10 @@ export const circuitBreakerStateEnum = pgEnum("circuit_breaker_state", [
   "open",
   "half_open",
 ]);
+
+export const privacyDeletionStatusEnum = pgEnum("privacy_deletion_status", [
+  "requested",
+  "approved",
+  "completed",
+  "rejected",
+]);

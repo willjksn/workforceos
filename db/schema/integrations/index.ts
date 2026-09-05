@@ -75,6 +75,7 @@ export const integrationEvents = pgTable("integration_events", {
   ...createdAtOnly(),
 }, (table) => [
   index("integration_events_organization_id_idx").on(table.organizationId),
+  index("integration_events_org_status_idx").on(table.organizationId, table.status),
   index("integration_events_connection_id_idx").on(table.connectionId),
   unique("integration_events_idempotency_uq").on(table.organizationId, table.provider, table.idempotencyKey),
 ]);

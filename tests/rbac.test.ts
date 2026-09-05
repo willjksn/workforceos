@@ -25,6 +25,9 @@ describe("RBAC", () => {
     const reader = principalFor("read-only");
     expect(can(reader, "companies.read")).toBe(true);
     expect(can(reader, "companies.write")).toBe(false);
+    expect(can(reader, "reports.read")).toBe(true);
+    expect(can(reader, "reports.export")).toBe(false);
+    expect(can(reader, "reports.export_pii")).toBe(false);
     expect(can(reader, "candidates.write")).toBe(false);
     expect(can(reader, "candidate_pii.read")).toBe(false);
     expect(() => requirePermission(reader, "jobs.write")).toThrow(AuthorizationError);

@@ -1,6 +1,6 @@
 # Schema Specification
 
-Status: Phase 7 AI operations and automation schema  
+Status: Phase 8 executive reporting and production hardening  
 Implementation: `db/schema/`  
 Migrations: `drizzle/`
 
@@ -24,7 +24,7 @@ Migrations: `drizzle/`
 | --- | --- |
 | `db/schema/enums.ts` | Postgres enums |
 | `db/schema/core.ts` | organizations, users, roles, user_roles, agents, system_settings |
-| `db/schema/system/` | audit, approvals, files, requirements, decision log, semantic documents |
+| `db/schema/system/` | audit, approvals, files, privacy deletion requests, rate-limit buckets, requirements, decision log, semantic documents |
 | `db/schema/crm/` | companies through opportunities and opportunity_scores |
 | `db/schema/talent/` | candidates and pools |
 | `db/schema/recruiting/` | jobs, job_skills, matches, screenings, search_projects, submissions, interviews, offers, placements, placement_guarantees |
@@ -82,6 +82,12 @@ Migrations: `drizzle/`
 - Approved `prompt_versions` are immutable. Changes create a new version.
 - Knowledge retrieval applies privacy class and required permission before returning content. Knowledge records do not store Restricted candidate PII.
 - Automation is a closed named-ruleset (`automation_rules`), not a general-purpose workflow builder.
+
+## Phase 8 schema notes
+
+- Migration `drizzle/0007_chemical_quasar.sql` adds `privacy_deletion_requests`, `rate_limit_buckets`, `users.last_login_at`, `candidates.privacy_deleted_at`, `files.retention_until`, and composite indexes for reports/alerts. Do not rewrite `0000`–`0006`.
+- Privacy deletion is not a foreign key from `privacy_deletion_requests.candidate_id` to `candidates` (avoids a circular schema import). Application code scopes by organization.
+- Reports reuse `saved_views` with module `reports:{category}`. There is no separate BI schema.
 
 ## Semantic search
 

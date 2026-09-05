@@ -45,11 +45,14 @@ export const candidates = pgTable("candidates", {
   lastContactedAt: timestamp("last_contacted_at", { withTimezone: true, mode: "date" }),
   lastProfileReviewAt: timestamp("last_profile_review_at", { withTimezone: true, mode: "date" }),
   doNotContact: boolean("do_not_contact").notNull().default(false),
+  privacyDeletedAt: timestamp("privacy_deleted_at", { withTimezone: true, mode: "date" }),
   ...timestamps(),
 }, (table) => [
   index("candidates_organization_id_idx").on(table.organizationId),
   index("candidates_owner_user_id_idx").on(table.ownerUserId),
   index("candidates_current_resume_file_id_idx").on(table.currentResumeFileId),
+  index("candidates_org_availability_idx").on(table.organizationId, table.availability),
+  index("candidates_org_military_status_idx").on(table.organizationId, table.militaryStatus),
   index("candidates_full_name_trgm_idx").using("gin", sql`${table.fullName} gin_trgm_ops`),
   index("candidates_current_title_trgm_idx").using("gin", sql`${table.currentTitle} gin_trgm_ops`),
 ]);

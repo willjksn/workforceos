@@ -50,6 +50,13 @@
       "when": 1788644533670,
       "tag": "0006_mushy_iron_lad",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788646764403,
+      "tag": "0007_chemical_quasar",
+      "breakpoints": true
     }
   ]
 }

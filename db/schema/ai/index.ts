@@ -62,6 +62,7 @@ export const agentRuns = pgTable("agent_runs", {
   ...createdAtOnly(),
 }, (table) => [
   index("agent_runs_organization_id_idx").on(table.organizationId),
+  index("agent_runs_org_status_idx").on(table.organizationId, table.status),
   index("agent_runs_agent_id_idx").on(table.agentId),
   index("agent_runs_invoked_by_user_id_idx").on(table.invokedByUserId),
   index("agent_runs_parent_run_id_idx").on(table.parentRunId),

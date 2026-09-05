@@ -166,11 +166,16 @@ export async function updateCompanyName(params: {
   actorUserId?: string;
 }) {
   const db = getDb();
-  const [before] = await db.select().from(companies).where(eq(companies.id, params.companyId)).limit(1);
+  const [before] = await db
+    .select()
+    .from(companies)
+    .where(and(eq(companies.id, params.companyId), eq(companies.organizationId, params.organizationId)))
+    .limit(1);
+  if (!before) return null;
   const [after] = await db
     .update(companies)
     .set({ name: params.name, updatedAt: new Date() })
-    .where(eq(companies.id, params.companyId))
+    .where(and(eq(companies.id, params.companyId), eq(companies.organizationId, params.organizationId)))
     .returning();
   await recordAuditEvent({
     organizationId: params.organizationId,

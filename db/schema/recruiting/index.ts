@@ -90,6 +90,7 @@ export const jobs = pgTable("jobs", {
   index("jobs_location_id_idx").on(table.locationId),
   index("jobs_hiring_manager_contact_id_idx").on(table.hiringManagerContactId),
   index("jobs_search_owner_user_id_idx").on(table.searchOwnerUserId),
+  index("jobs_org_status_idx").on(table.organizationId, table.status),
   index("jobs_title_trgm_idx").using("gin", sql`${table.title} gin_trgm_ops`),
 ]);
 

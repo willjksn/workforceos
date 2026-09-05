@@ -1,4 +1,4 @@
-export const PUBLIC_PATH_PREFIXES = ["/sign-in", "/sign-up", "/api/inngest"] as const;
+export const PUBLIC_PATH_PREFIXES = ["/sign-in", "/sign-up", "/api/inngest", "/api/integrations/webhooks"] as const;
 
 export const PROTECTED_ROUTE_SAMPLES = [
   "/app",

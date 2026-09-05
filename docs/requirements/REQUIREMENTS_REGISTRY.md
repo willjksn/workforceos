@@ -301,3 +301,19 @@ Database mirror: `requirements` table.
 - Status: approved
 - Acceptance: named automation rules may trigger internal Talent Network search, draft opportunities, project creation after contract execution, and billing events from stored terms. No agent can execute a contract, send a proposal, or submit a candidate.
 
+### WFOS-RPT-001
+
+- Title: Executive reporting uses live aggregates
+- Module: reports
+- Priority: locked
+- Status: approved
+- Acceptance: Command Center and Reports module metrics are PostgreSQL aggregates. Missing values stay empty. There is no dashboard builder.
+
+### WFOS-SEC-003
+
+- Title: Elevated PII export and distinct privacy deletion
+- Module: security
+- Priority: locked
+- Status: approved
+- Acceptance: Candidate PII exports require `reports.export_pii` and an audit event. Privacy deletion anonymizes Restricted PII and is not ordinary archive.
+

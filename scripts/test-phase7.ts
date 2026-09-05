@@ -9,6 +9,7 @@ import {
   agentRuns,
   agents,
   billingEvents,
+  candidateJobMatches,
   companies,
   jobs,
   opportunities,
@@ -221,6 +222,7 @@ async function main() {
     searchRuns.some((row) => row.run.status === "completed"),
     "Internal talent search automation failed",
   );
+  await db.delete(candidateJobMatches).where(eq(candidateJobMatches.jobId, jobId));
 
   console.log("TEST 10 — contract execution triggers project creation");
   const client = await createClient("workforce-pipeline-assessment");

@@ -4,6 +4,7 @@ import { requireAppPermission } from "@/lib/auth/guard";
 import { presentCandidate } from "@/lib/privacy/present-candidate";
 import { searchActiveCandidates } from "@/lib/repositories/talent";
 import { can } from "@/lib/rbac/permissions";
+import { RATE_LIMITS, RateLimitError, assertRateLimit } from "@/lib/security/rate-limit";
 import {
   DataTable,
   EmptyState,
@@ -34,6 +35,25 @@ export default async function TalentSearchPage({
   const principal = await requireAppPermission("candidates.read");
   const canReadPii = can(principal, "candidate_pii.read");
   const { q, availability } = await searchParams;
+  if (q) {
+    try {
+      await assertRateLimit({ key: `search:${principal.id}`, ...RATE_LIMITS.search });
+    } catch (error) {
+      if (error instanceof RateLimitError) {
+        return (
+          <PageShell>
+            <PageHeader
+              eyebrow="Talent Network / Search"
+              title="Talent Search"
+              description="Search the internal Talent Network. Restricted PII is hidden without candidate_pii.read."
+            />
+            <EmptyState title="Too many searches.">Wait a moment and try again. Ordinary browsing is not limited.</EmptyState>
+          </PageShell>
+        );
+      }
+      throw error;
+    }
+  }
   const availabilityFilter = AVAILABILITY.includes(availability as (typeof AVAILABILITY)[number])
     ? (availability as (typeof AVAILABILITY)[number])
     : undefined;

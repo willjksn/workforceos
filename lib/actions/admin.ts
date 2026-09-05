@@ -61,6 +61,8 @@ export async function setUserAccessStatusAction(
 ): Promise<ActionState> {
   try {
     const principal = await requireAppPermission("admin.users");
+    const { assertRateLimit, RATE_LIMITS } = await import("@/lib/security/rate-limit");
+    await assertRateLimit({ key: `auth:${principal.id}`, ...RATE_LIMITS.authSensitive });
     const parsed = z
       .object({
         userId: z.string().uuid(),

@@ -13,6 +13,8 @@ const EXPECTED_MIGRATIONS = [
   "0003_vengeful_tyger_tiger",
   "0004_melted_stryfe",
   "0005_unknown_satana",
+  "0006_mushy_iron_lad",
+  "0007_chemical_quasar",
 ];
 
 const KEY_TABLES = [
@@ -29,6 +31,8 @@ const KEY_TABLES = [
   "invoices",
   "billing_schedules",
   "audit_events",
+  "privacy_deletion_requests",
+  "rate_limit_buckets",
 ];
 
 function redact(value: string) {

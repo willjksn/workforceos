@@ -94,7 +94,7 @@ npx tsx scripts/grant-managing-partner.ts --email you@company.com
 
 ## Forward migrations only
 
-Future schema changes get a new `0006_*.sql` (or later) file. Never modify `0000`–`0005` after they have been applied. `0005_unknown_satana.sql` is the Phase 6 finance and integrations migration.
+Future schema changes get a new `0008_*.sql` (or later) file. Never modify `0000`–`0007` after they have been applied. `0007_chemical_quasar.sql` is the Phase 8 privacy, rate-limit, and index migration.
 
 ## Neon branch layout
 
@@ -107,3 +107,17 @@ Do not point development, preview, and production at one database.
 | Vercel production | protected `production` branch | `db:seed:prod` only |
 
 The current Neon default branch is named `production` and already contains development fixtures. Treat that branch as **development data** until a clean production branch is created and Vercel production `DATABASE_URL` is switched to it.
+
+## Backup, PITR, rollback, and disaster recovery
+
+Neon manages backups and point-in-time restore (PITR) in the console. The application does not store backup credentials.
+
+**Production branch:** protected Neon branch with `db:seed:prod` only. Preview strategy: Vercel preview deployments use a Neon preview branch (or a durable `preview` branch), never the protected production branch.
+
+**Before a production migration:** create a child branch or checkpoint.
+
+**PITR recovery:** restore the production branch (or a new branch) to a timestamp before the incident, point Vercel `DATABASE_URL` / `DATABASE_URL_UNPOOLED` at the restored compute, run `npm run db:check`, then smoke-test sign-in and Command Center.
+
+**Application rollback:** redeploy the last good Vercel production deployment. If that release applied a new Drizzle migration, restore the database to before the migration. Do not edit applied SQL. Do not use `drizzle-kit push`.
+
+**Disaster recovery test:** at least once before go-live, fork or restore a throwaway branch, run `npm run db:check` and `npm run test:smoke`, and record the date. See `docs/operations/WORKFORCEOS_OPERATING_PLAYBOOK.md`.

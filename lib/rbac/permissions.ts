@@ -83,6 +83,12 @@ export const PERMISSIONS = [
   "training_programs.write",
   "scenario_models.read",
   "scenario_models.write",
+  "reports.read",
+  "reports.export",
+  "reports.export_pii",
+  "data_quality.read",
+  "alerts.read",
+  "privacy.delete",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -165,6 +171,10 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "education_partners.read",
     "training_programs.read",
     "scenario_models.read",
+    "reports.read",
+    "reports.export",
+    "data_quality.read",
+    "alerts.read",
   ],
   "strategy-technology-administrator": [
     "companies.read",
@@ -211,6 +221,10 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "education_partners.read",
     "training_programs.read",
     "scenario_models.read",
+    "reports.read",
+    "reports.export",
+    "data_quality.read",
+    "alerts.read",
   ],
   "talent-partner": [
     "companies.read",
@@ -263,6 +277,8 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "education_partners.read",
     "training_programs.read",
     "scenario_models.read",
+    "reports.read",
+    "reports.export",
   ],
   recruiter: [
     "companies.read",
@@ -296,6 +312,7 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "workforce.read",
     "agents.read",
     "knowledge.read",
+    "reports.read",
   ],
   "workforce-consultant": [
     "companies.read",
@@ -346,6 +363,7 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "agents.read",
     "knowledge.read",
     "knowledge.write",
+    "reports.read",
   ],
   "military-talent-specialist": [
     "companies.read",
@@ -378,6 +396,7 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "pipelines.read",
     "agents.read",
     "knowledge.read",
+    "reports.read",
   ],
   "read-only": READ_ONLY,
 };

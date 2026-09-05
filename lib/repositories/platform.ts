@@ -14,6 +14,7 @@ export async function listOrganizationUsers(organizationId: string) {
       fullName: users.fullName,
       email: users.email,
       status: users.status,
+      lastLoginAt: users.lastLoginAt,
       roleName: roles.name,
       roleSlug: roles.slug,
     })
@@ -30,6 +31,7 @@ export async function listOrganizationUsers(organizationId: string) {
       fullName: string;
       email: string;
       status: string;
+      lastLoginAt: Date | null;
       roles: Array<{ name: string; slug: string }>;
     }
   >();
@@ -41,6 +43,7 @@ export async function listOrganizationUsers(organizationId: string) {
         fullName: row.fullName,
         email: row.email,
         status: row.status,
+        lastLoginAt: row.lastLoginAt,
         roles: row.roleName && row.roleSlug ? [{ name: row.roleName, slug: row.roleSlug }] : [],
       });
     } else if (row.roleName && row.roleSlug && !existing.roles.some((role) => role.slug === row.roleSlug)) {

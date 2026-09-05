@@ -5,6 +5,7 @@ import {
   addCandidateToPoolAction,
   addExperienceAction,
 } from "@/lib/actions/talent";
+import { requestPrivacyDeletionAction } from "@/lib/actions/privacy";
 import { ProfileSnapshot, StatusBadge, TabNav } from "@/components/ui/display";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { presentCandidate } from "@/lib/privacy/present-candidate";
@@ -227,20 +228,38 @@ export default async function CandidateDetailPage({
       ) : null}
 
       {tab === "privacy" ? (
-        <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
-          <div>
-            <dt className="text-muted-foreground">Privacy class</dt>
-            <dd>{formatLabel(candidate.privacyClass)}</dd>
-          </div>
-          <div>
-            <dt className="text-muted-foreground">Consent</dt>
-            <dd>{formatLabel(candidate.consentStatus)}</dd>
-          </div>
-          <div>
-            <dt className="text-muted-foreground">Do not contact</dt>
-            <dd>{candidate.doNotContact ? "yes" : "no"}</dd>
-          </div>
-        </dl>
+        <div className="mt-6 space-y-6">
+          <dl className="grid gap-3 text-sm sm:grid-cols-2">
+            <div>
+              <dt className="text-muted-foreground">Privacy class</dt>
+              <dd>{formatLabel(candidate.privacyClass)}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Consent</dt>
+              <dd>{formatLabel(candidate.consentStatus)}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Do not contact</dt>
+              <dd>{candidate.doNotContact ? "yes" : "no"}</dd>
+            </div>
+          </dl>
+          {can(principal, "privacy.delete") ? (
+            <section className="max-w-xl rounded-[8px] border border-danger/30 p-4">
+              <h2 className="font-medium text-navy">Privacy deletion</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                This anonymizes Restricted PII and is not the same as archive. The candidate record remains for operating history, with contact fields redacted.
+              </p>
+              <ActionForm action={requestPrivacyDeletionAction} className="mt-4 space-y-3">
+                <input type="hidden" name="candidateId" value={candidate.id} />
+                <label className="block text-sm">
+                  Reason
+                  <input className={inputClassName} name="reason" required minLength={8} placeholder="Legal request or retention rule" />
+                </label>
+                <PrimaryButton>Complete privacy deletion</PrimaryButton>
+              </ActionForm>
+            </section>
+          ) : null}
+        </div>
       ) : null}
     </PageShell>
   );

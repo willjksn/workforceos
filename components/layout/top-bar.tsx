@@ -32,6 +32,10 @@ const LABELS: Record<string, string> = {
   roles: "Roles & access",
   integrations: "Connected tools",
   "system-health": "System status",
+  "data-quality": "Data quality",
+  "access-review": "Access review",
+  reports: "Reports",
+  alerts: "Alerts",
   approvals: "Approvals",
 };
 

@@ -1,6 +1,6 @@
 # WorkforceOS Master Specification
 
-Status: Phase 7 AI operations and automation  
+Status: Phase 8 executive reporting and production hardening  
 Audience: engineering agents and maintainers  
 Canonical: this file is the architecture source of truth for implementation.
 
@@ -10,7 +10,7 @@ WorkforceOS is an internal operating system for a Workforce & Talent Solutions f
 
 It will eventually manage company CRM, Talent CRM, recruiting/search, military talent translation, workforce development, legal document operations, finance/AR workflow, integrations, background AI agents, audit history, approvals, and institutional knowledge.
 
-Phase 1 built the technical foundation. Phase 4 activates service engines, proposals, contracts, and project delivery. Phase 5 expands Workforce Pipeline Assessment into workforce development and intelligence. Phase 6 activates operational finance and Integration Hub business adapters. Phase 7 activates AI operations, prompt versioning, the Review Queue, named automation, and approved knowledge retrieval on that same foundation.
+Phase 1 built the technical foundation. Phase 4 activates service engines, proposals, contracts, and project delivery. Phase 5 expands Workforce Pipeline Assessment into workforce development and intelligence. Phase 6 activates operational finance and Integration Hub business adapters. Phase 7 activates AI operations, prompt versioning, the Review Queue, named automation, and approved knowledge retrieval. Phase 8 finishes executive reporting, the Command Center, operational alerts, data quality, and production hardening. Do not add major new business modules after Phase 8.
 
 ## Product boundaries
 
@@ -37,7 +37,7 @@ In V1, WorkforceOS:
 | Search | pgvector semantic search; pg_trgm fuzzy search; PostgreSQL full-text where useful |
 | Background jobs | Inngest |
 | AI models | Provider abstraction; agents do not own data |
-| Monitoring | Hook interface now; Sentry may be wired later |
+| Monitoring | Sentry when `SENTRY_DSN` is set; redacted server logs otherwise |
 
 Firebase and Firestore are prohibited.
 
@@ -75,7 +75,15 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 - Legal: templates, contract packages, execution, e-sign abstraction
 - Finance: operational billing, invoice expectations, AR view, revenue events (QuickBooks remains the ledger)
 - AI: agent registry, runs, outputs, prompt versions, review queue, automation, knowledge retrieval, approvals
-- Platform: users, roles, audit, integrations, files, search
+- Platform: users, roles, audit, integrations, files, search, reports, alerts, data quality
+
+## Reporting and production hardening (Phase 8)
+
+- Command Center and Reports read stored PostgreSQL aggregates. Missing values stay empty. There is no BI dashboard builder.
+- Operational alerts are derived from source records. Data Quality flags completeness and freshness only; they are not performance scores.
+- Candidate PII CSV requires `reports.export_pii` plus an audit event. Privacy deletion anonymizes Restricted PII and is distinct from archive.
+- Production seed (`db:seed:prod`) is catalog-only. Development fixtures cannot run when `NODE_ENV=production` or `VERCEL_ENV=production`.
+- Rate limits apply to AI runs, exports, search, webhooks, and auth-sensitive admin actions without blocking ordinary page loads.
 
 ## Data ownership
 
@@ -142,3 +150,6 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 - [INTEGRATION_PLAN.md](../integrations/INTEGRATION_PLAN.md)
 - [REQUIREMENTS_REGISTRY.md](../requirements/REQUIREMENTS_REGISTRY.md)
 - [DEPLOYMENT.md](./DEPLOYMENT.md)
+- [DATABASE_DEPLOYMENT.md](./DATABASE_DEPLOYMENT.md)
+- [VERCEL_DEPLOYMENT_CHECKLIST.md](./VERCEL_DEPLOYMENT_CHECKLIST.md)
+- [WORKFORCEOS_OPERATING_PLAYBOOK.md](../operations/WORKFORCEOS_OPERATING_PLAYBOOK.md)

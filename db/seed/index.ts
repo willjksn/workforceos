@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, notInArray } from "drizzle-orm";
 
 import { getDb } from "../index";
 import {
@@ -71,6 +71,10 @@ export async function seedFoundation(
   options: { includeDevelopmentFixtures?: boolean } = {},
 ) {
   const includeDevelopmentFixtures = options.includeDevelopmentFixtures ?? true;
+  if (includeDevelopmentFixtures) {
+    const { assertDevSeedAllowed } = await import("../../lib/seed/guards");
+    assertDevSeedAllowed();
+  }
   const db = getDb();
 
   await db
@@ -696,6 +700,9 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
       })
       .onConflictDoNothing();
   }
+  await db
+    .delete(candidateJobMatches)
+    .where(and(eq(candidateJobMatches.candidateId, CANDIDATE_ID), notInArray(candidateJobMatches.jobId, jobIds)));
 
   await db
     .insert(militaryOccupations)
@@ -1038,6 +1045,8 @@ async function seedRequirementsAndDecisions(db: ReturnType<typeof getDb>) {
     ["WFOS-AI-002", "ai", "Material client-facing AI outputs require human approval."],
     ["WFOS-AI-003", "ai", "Agents load approved workflow context and cannot bypass RBAC or self-approve."],
     ["WFOS-AI-004", "ai", "Automation is a closed named-ruleset; contract execution still cannot be performed by an agent."],
+    ["WFOS-RPT-001", "reports", "Executive reporting and Command Center use live PostgreSQL aggregates only."],
+    ["WFOS-SEC-003", "security", "PII exports require reports.export_pii and an audit event. Privacy deletion is distinct from archive."],
     ["WFOS-AUD-001", "platform", "Important business changes require audit events."],
     ["WFOS-SEC-001", "security", "Database authorization must be server-side."],
     ["WFOS-SEC-002", "security", "Candidate data is Restricted PII."],
@@ -1090,6 +1099,11 @@ async function seedRequirementsAndDecisions(db: ReturnType<typeof getDb>) {
     ["DEC-AI-006", "Knowledge ACL before retrieval", "Restricted PII does not leak across contexts."],
     ["DEC-AI-007", "Closed automation rules", "Not a no-code automation platform."],
     ["DEC-AI-008", "Central Review Queue", "Originating agents cannot decide approvals."],
+    ["DEC-RPT-001", "Reports are live aggregates", "No BI platform. Missing values stay empty."],
+    ["DEC-OPS-001", "Alerts derived from source records", "Completeness is not performance."],
+    ["DEC-SEC-003", "Rate limits and elevated PII export", "reports.export_pii plus audit."],
+    ["DEC-PRIV-002", "Privacy deletion is not archive", "Anonymize Restricted PII through a controlled request."],
+    ["DEC-OBS-001", "Observability without secrets", "Sentry when DSN is set; never log tokens or candidate contact fields."],
     ["DEC-BIZ-001", "No temp staffing or payroll in V1", "Out of launch scope."],
     ["DEC-SEC-002", "No ownership or cap-table data", "Not stored in normal WorkforceOS."],
     ["DEC-SEM-001", "Temporary embedding dimension", "1536-dimension vectors until a production model is selected."],

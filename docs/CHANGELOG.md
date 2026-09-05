@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Phase 8 — Executive reporting + Command Center + production hardening
+
+- Finalized the Executive Command Center with live PostgreSQL aggregates (business, sales, recruiting, talent, workforce, projects, AI, integrations). Empty values stay empty.
+- Added a Reports module (date/client/service/owner filters, saved views, CSV export). PII CSV requires `reports.export_pii` and an audit event. Not a BI dashboard builder.
+- Added Data Quality (completeness/freshness only), operational alerts, Admin access review, and a System status page that never shows secrets.
+- Hardened privacy deletion (distinct from archive), rate limits, IDOR scoping, storage upload limits/checksum, seed guards, and optional Sentry via `SENTRY_DSN`.
+- Added schema migration `drizzle/0007_chemical_quasar.sql`, `npm run test:phase2`, `npm run test:phase8`, `npm run test:smoke`, and operating playbooks under `docs/operations/`.
+
 ### Phase 7 — AI Operations + Automation
 
 - Activated the approved agent registry (plus optional Finance, Compliance, and Candidate Engagement assistants) on top of PostgreSQL, approved workflows, RBAC, audit, approvals, and provenance.

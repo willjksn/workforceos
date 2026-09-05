@@ -83,6 +83,7 @@ export const contacts = pgTable("contacts", {
 }, (table) => [
   index("contacts_organization_id_idx").on(table.organizationId),
   index("contacts_owner_user_id_idx").on(table.ownerUserId),
+  index("contacts_org_last_contacted_idx").on(table.organizationId, table.lastContactedAt),
 ]);
 
 export const companyContacts = pgTable("company_contacts", {
@@ -148,6 +149,8 @@ export const opportunities = pgTable("opportunities", {
   index("opportunities_company_id_idx").on(table.companyId),
   index("opportunities_owner_user_id_idx").on(table.ownerUserId),
   index("opportunities_primary_contact_id_idx").on(table.primaryContactId),
+  index("opportunities_org_stage_idx").on(table.organizationId, table.stage),
+  index("opportunities_org_updated_at_idx").on(table.organizationId, table.updatedAt),
 ]);
 
 export const opportunityScores = pgTable("opportunity_scores", {

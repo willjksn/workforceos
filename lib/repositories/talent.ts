@@ -27,6 +27,7 @@ export async function getCandidateWithRelationships(candidateId: string, organiz
         eq(candidates.id, candidateId),
         organizationId ? eq(candidates.organizationId, organizationId) : undefined,
         isNull(candidates.archivedAt),
+        isNull(candidates.privacyDeletedAt),
       ),
     )
     .limit(1);
@@ -63,12 +64,17 @@ export async function getCandidateWithRelationships(candidateId: string, organiz
   return { candidate, experiences, skills: skillRows, pools, matches, military };
 }
 
-export async function archiveCandidate(candidateId: string) {
+export async function archiveCandidate(candidateId: string, organizationId?: string) {
   const db = getDb();
   const [archived] = await db
     .update(candidates)
     .set({ archivedAt: new Date(), updatedAt: new Date() })
-    .where(eq(candidates.id, candidateId))
+    .where(
+      and(
+        eq(candidates.id, candidateId),
+        organizationId ? eq(candidates.organizationId, organizationId) : undefined,
+      ),
+    )
     .returning();
   return archived;
 }
@@ -87,6 +93,7 @@ export async function searchActiveCandidates(
       and(
         eq(candidates.organizationId, organizationId),
         isNull(candidates.archivedAt),
+        isNull(candidates.privacyDeletedAt),
         availability ? eq(candidates.availability, availability) : undefined,
         search
           ? or(

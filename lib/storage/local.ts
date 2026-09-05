@@ -25,6 +25,12 @@ export class LocalStorageProvider implements StorageProvider {
   }): Promise<StoredFileMetadata> {
     const filePath = this.resolve(params.key);
     await mkdir(path.dirname(filePath), { recursive: true });
+    const { assertUploadAllowed } = await import("./limits");
+    assertUploadAllowed({
+      sizeBytes: params.body.byteLength,
+      mimeType: params.mimeType,
+      filename: params.filename,
+    });
     await writeFile(filePath, params.body);
     const checksum = createHash("sha256").update(params.body).digest("hex");
     return {

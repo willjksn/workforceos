@@ -25,6 +25,9 @@ Read these canonical documents instead of inventing architecture:
 - `docs/architecture/DEPLOYMENT.md`
 - `docs/architecture/DATABASE_DEPLOYMENT.md`
 - `docs/architecture/VERCEL_DEPLOYMENT_CHECKLIST.md`
+- `docs/operations/WORKFORCEOS_OPERATING_PLAYBOOK.md`
+- `docs/operations/ADMIN_RUNBOOK.md`
+- `docs/operations/INCIDENT_RESPONSE.md`
 
 Project rules in `.cursor/rules/` are binding:
 
@@ -33,4 +36,4 @@ Project rules in `.cursor/rules/` are binding:
 - `security.mdc`
 - `workflow.mdc`
 
-Phase 1–7 are complete. Do not start Phase 8 unless explicitly asked. Do not use Firebase. Do not add temp staffing, payroll, general ledger, tax accounting, AP, benefits, public job marketplace, or cap-table features.
+Phase 1–8 are complete. Do not start major new business modules unless explicitly asked. Treat WorkforceOS as entering controlled production operation. Do not use Firebase. Do not add temp staffing, payroll, general ledger, tax accounting, AP, benefits, public job marketplace, or cap-table features.

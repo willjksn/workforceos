@@ -40,7 +40,11 @@ export type NavGroup = {
 const NAV: NavGroup[] = [
   {
     label: "",
-    items: [{ href: "/app", label: "Command Center", icon: "dashboard" }],
+    items: [
+      { href: "/app", label: "Command Center", icon: "dashboard" },
+      { href: "/app/reports", label: "Reports", icon: "clipboard", permission: "reports.read" },
+      { href: "/app/alerts", label: "Alerts", icon: "bell", anyPermission: ["alerts.read", "reports.read"] },
+    ],
   },
   {
     label: "CRM",
@@ -191,6 +195,8 @@ const NAV: NavGroup[] = [
       { href: "/app/admin/roles", label: "Roles & access", icon: "shield", permission: "admin.roles" },
       { href: "/app/admin/integrations", label: "Connected tools", icon: "network" },
       { href: "/app/admin/system-health", label: "System status", icon: "dashboard" },
+      { href: "/app/admin/data-quality", label: "Data quality", icon: "clipboard", permission: "data_quality.read" },
+      { href: "/app/admin/access-review", label: "Access review", icon: "shield", permission: "admin.users" },
       { href: "/app/admin/approvals", label: "Approvals", icon: "bell" },
     ],
   },

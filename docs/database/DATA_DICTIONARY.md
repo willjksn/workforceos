@@ -1,6 +1,6 @@
 # Data Dictionary
 
-Status: Phase 7 AI operations and automation  
+Status: Phase 8 executive reporting and production hardening  
 Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 
 ## Conventions
@@ -27,7 +27,7 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | Table | Purpose |
 | --- | --- |
 | `organizations` | Internal WorkforceOS tenant. Seed one firm organization. Do not store ownership percentages. |
-| `users` | Local application users mapped from Clerk. Authoritative status and identity for authorization. |
+| `users` | Local application users mapped from Clerk. Authoritative status and identity for authorization. `last_login_at` is updated on Clerk sync. |
 | `roles` | Named roles such as Managing Partner and Recruiter. |
 | `user_roles` | Many-to-many user/role assignments. |
 | `agents` | Registered AI agents with autonomy level and cost limits. Default was disabled in earlier phases; Phase 7 enables the approved registry. |
@@ -49,7 +49,9 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | `ai_usage_events` | Token/cost ledger. |
 | `ai_circuit_breakers` | Repeated-failure circuit breakers. |
 | `meeting_extractions` | Meeting intelligence drafts pending human approval. |
-| `files` | Object-storage metadata only. Binaries are not stored in PostgreSQL. |
+| `files` | Object-storage metadata only. Binaries are not stored in PostgreSQL. `retention_until` supports later deletion jobs. |
+| `privacy_deletion_requests` | Controlled candidate privacy deletion (anonymize Restricted PII). Distinct from `archived_at`. |
+| `rate_limit_buckets` | Per-key request windows for AI, export, search, webhook, and auth-sensitive actions. |
 | `integration_connections` | Provider connection configuration status. |
 | `external_records` | Maps external provider records to WorkforceOS records. |
 | `integration_events` | Integration sync/lookup activity. |
@@ -85,7 +87,7 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 
 | Table | Purpose |
 | --- | --- |
-| `candidates` | Permanent Talent CRM people. Restricted PII. Not requisition-specific duplicates. |
+| `candidates` | Permanent Talent CRM people. Restricted PII. Not requisition-specific duplicates. `privacy_deleted_at` marks anonymization (not ordinary archive). |
 | `candidate_experiences` | Work history. |
 | `candidate_skills` | Candidate skill links with optional proficiency and verification. |
 | `talent_pools` | Static or dynamic pools, including user-scoped watchlists. |

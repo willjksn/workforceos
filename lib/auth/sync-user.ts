@@ -45,6 +45,7 @@ export async function syncLocalUser(identity: ClerkIdentity) {
         email: identity.email,
         fullName: identity.fullName,
         status: byClerk.status === "invited" ? "active" : byClerk.status,
+        lastLoginAt: new Date(),
         updatedAt: new Date(),
       })
       .where(eq(users.id, byClerk.id))
@@ -65,6 +66,7 @@ export async function syncLocalUser(identity: ClerkIdentity) {
         clerkUserId: identity.clerkUserId,
         fullName: identity.fullName,
         status: byEmail.status === "invited" ? "active" : byEmail.status,
+        lastLoginAt: new Date(),
         updatedAt: new Date(),
       })
       .where(eq(users.id, byEmail.id))
@@ -80,6 +82,7 @@ export async function syncLocalUser(identity: ClerkIdentity) {
       email: identity.email.toLowerCase(),
       fullName: identity.fullName,
       status: "active",
+      lastLoginAt: new Date(),
     })
     .returning();
 

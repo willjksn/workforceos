@@ -32,6 +32,8 @@ function actorFrom(principal: { id: string; organizationId: string; roleSlugs: s
 export async function runAgentAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   try {
     const principal = await requireAppPermission("agents.manage");
+    const { assertRateLimit, RATE_LIMITS } = await import("@/lib/security/rate-limit");
+    await assertRateLimit({ key: `ai:${principal.id}`, ...RATE_LIMITS.ai });
     const parsed = z
       .object({
         agentSlug: z.string().min(1),

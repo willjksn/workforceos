@@ -442,3 +442,53 @@ Database mirror: `decision_log` table, seeded from this file.
 - Reason: WFOS-AI-002. Scattered per-module AI inboxes would hide pending material work.
 - Affected modules: ai, approvals, audit
 - Reconsideration: none for V1.
+
+## DEC-RPT-001 — Reports are live PostgreSQL aggregates, not a BI platform
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Phase 8 reporting and the executive Command Center read stored PostgreSQL records with server-side aggregation, date/client/service/owner filters, and saved filter configurations via `saved_views`. Do not add a dashboard builder, cube/OLAP layer, or client-side metric invention. Missing values stay empty, not estimated.
+- Reason: Operating visibility must stay auditable against the system of record. A general BI platform would duplicate WorkforceOS and invent metrics.
+- Affected modules: command center, reports, finance, recruiting, workforce, projects
+- Reconsideration: none for V1.
+
+## DEC-OPS-001 — Operational alerts are derived from source records
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: The central alert list is computed from current CRM, recruiting, workforce, project, finance, AI, and integration rows. Completeness flags live in Data Quality and are not treated as performance scores. Alerts do not become a second operating database.
+- Reason: Persisted alert rows would drift from invoices, jobs, and approvals. Operators need the current exception list.
+- Affected modules: alerts, data quality, command center
+- Reconsideration: if volume requires a materialization job, it must rebuild from source records and remain discardable.
+
+## DEC-SEC-003 — Rate limits on sensitive actions; PII export is elevated
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Apply modest per-principal (or per-webhook) rate limits to AI runs, exports, search, and unsigned webhook intake. `reports.export` covers non-PII CSV. Candidate PII exports require `reports.export_pii` plus an audit event. Limits must not block ordinary internal page loads.
+- Reason: Internal tools still need abuse protection without adding a public API gateway.
+- Affected modules: security, reports, AI, integrations
+- Reconsideration: if Inngest or Vercel WAF later covers the same paths, keep application limits as defense in depth.
+
+## DEC-PRIV-002 — Privacy deletion is anonymization, not ordinary archive
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Candidate privacy deletion is a controlled `privacy_deletion_requests` process. It anonymizes Restricted PII, sets do-not-contact, records `privacy_deleted_at`, and writes a redacted audit event. Ordinary `archived_at` remains a separate operating archive. Audit snapshots must not re-store the prohibited PII.
+- Reason: WFOS-SEC-002. Archive is reversible operating hygiene; privacy deletion is a legal/compliance action.
+- Affected modules: talent, privacy, audit, admin
+- Reconsideration: none for V1.
+
+## DEC-OBS-001 — Observability without secrets or unnecessary PII
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Application errors, integration failures, job failures, and AI run failures are recorded through a server logger. Sentry is used when `SENTRY_DSN` is set. Logs and error events omit secrets, tokens, and candidate contact fields. System health never displays credentials.
+- Reason: Production operation needs failure visibility without expanding the Restricted PII surface.
+- Affected modules: observability, admin, AI, integrations
+- Reconsideration: after a production Sentry project exists, keep the same redaction rules.

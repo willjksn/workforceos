@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { index, integer, numeric, pgTable, text, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { index, integer, numeric, pgTable, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 import { timestamps } from "./_common";
 import { userStatusEnum } from "./enums";
@@ -22,6 +22,7 @@ export const users = pgTable("users", {
   email: text("email").notNull(),
   fullName: text("full_name").notNull(),
   status: userStatusEnum("status").notNull().default("invited"),
+  lastLoginAt: timestamp("last_login_at", { withTimezone: true, mode: "date" }),
   ...timestamps(),
 }, (table) => [
   index("users_organization_id_idx").on(table.organizationId),

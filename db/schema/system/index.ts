@@ -13,7 +13,7 @@ import {
 
 import { createdAtOnly, timestamps } from "../_common";
 import { agents, organizations, users } from "../core";
-import { actorTypeEnum, approvalStatusEnum, privacyClassEnum } from "../enums";
+import { actorTypeEnum, approvalStatusEnum, privacyClassEnum, privacyDeletionStatusEnum } from "../enums";
 
 export const auditEvents = pgTable("audit_events", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -62,6 +62,7 @@ export const approvals = pgTable("approvals", {
   index("approvals_requesting_user_id_idx").on(table.requestingUserId),
   index("approvals_requesting_agent_id_idx").on(table.requestingAgentId),
   index("approvals_assigned_reviewer_user_id_idx").on(table.assignedReviewerUserId),
+  index("approvals_org_status_idx").on(table.organizationId, table.status),
 ]);
 
 export const files = pgTable("files", {
@@ -76,12 +77,41 @@ export const files = pgTable("files", {
   sizeBytes: integer("size_bytes").notNull(),
   checksum: text("checksum"),
   privacyClass: privacyClassEnum("privacy_class").notNull().default("internal"),
+  retentionUntil: timestamp("retention_until", { withTimezone: true, mode: "date" }),
   uploadedByUserId: uuid("uploaded_by_user_id").references(() => users.id, { onDelete: "set null" }),
   ...timestamps(),
 }, (table) => [
   index("files_organization_id_idx").on(table.organizationId),
   index("files_uploaded_by_user_id_idx").on(table.uploadedByUserId),
   unique("files_organization_storage_key_uq").on(table.organizationId, table.storageKey),
+]);
+
+export const privacyDeletionRequests = pgTable("privacy_deletion_requests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  candidateId: uuid("candidate_id").notNull(),
+  requestedByUserId: uuid("requested_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  status: privacyDeletionStatusEnum("status").notNull().default("requested"),
+  reason: text("reason").notNull(),
+  completedAt: timestamp("completed_at", { withTimezone: true, mode: "date" }),
+  ...timestamps(),
+}, (table) => [
+  index("privacy_deletion_requests_organization_id_idx").on(table.organizationId),
+  index("privacy_deletion_requests_candidate_id_idx").on(table.candidateId),
+  index("privacy_deletion_requests_requested_by_user_id_idx").on(table.requestedByUserId),
+]);
+
+export const rateLimitBuckets = pgTable("rate_limit_buckets", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  bucketKey: text("bucket_key").notNull(),
+  windowStartedAt: timestamp("window_started_at", { withTimezone: true, mode: "date" }).notNull(),
+  hitCount: integer("hit_count").notNull().default(0),
+  ...createdAtOnly(),
+}, (table) => [
+  unique("rate_limit_buckets_key_window_uq").on(table.bucketKey, table.windowStartedAt),
+  index("rate_limit_buckets_bucket_key_idx").on(table.bucketKey),
 ]);
 
 export const requirements = pgTable("requirements", {

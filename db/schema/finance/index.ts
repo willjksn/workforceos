@@ -172,6 +172,7 @@ export const invoices = pgTable("invoices", {
   index("invoices_schedule_id_idx").on(table.scheduleId),
   index("invoices_billing_event_id_idx").on(table.billingEventId),
   index("invoices_owner_user_id_idx").on(table.ownerUserId),
+  index("invoices_org_status_due_idx").on(table.organizationId, table.status, table.dueDate),
 ]);
 
 export const payments = pgTable("payments", {

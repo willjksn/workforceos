@@ -17,6 +17,9 @@ export async function POST(
   const eventId = request.headers.get("x-webhook-event-id");
   const organizationId = request.headers.get("x-organization-id");
   try {
+    const { assertRateLimit, RATE_LIMITS } = await import("@/lib/security/rate-limit");
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    await assertRateLimit({ key: `webhook:${provider}:${ip}`, ...RATE_LIMITS.webhook });
     const result = await receiveProviderWebhook({
       provider,
       organizationId,
@@ -39,6 +42,10 @@ export async function POST(
   } catch (error) {
     if (error instanceof WebhookError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    const { RateLimitError } = await import("@/lib/security/rate-limit");
+    if (error instanceof RateLimitError) {
+      return NextResponse.json({ error: error.message }, { status: 429 });
     }
     throw error;
   }
