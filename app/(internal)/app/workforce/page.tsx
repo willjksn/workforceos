@@ -1,10 +1,14 @@
-import { PhasePlaceholder } from "../_components/ui";
+import { ButtonLink } from "@/components/ui/button";
+import { PageHeader, PageShell } from "../_components/ui";
 
 export default function WorkforcePlaceholderPage() {
   return (
-    <PhasePlaceholder
-      title="Workforce"
-      description="Workforce Pipeline Assessment delivery stays in a later phase."
-    />
+    <PageShell>
+      <PageHeader
+        title="Workforce"
+        description="Full workforce intelligence is Phase 5. Workforce Pipeline Assessment delivery is available through the service engine."
+        actions={<ButtonLink href="/app/services/workforce-pipeline-assessment">Open Workforce Pipeline Assessment</ButtonLink>}
+      />
+    </PageShell>
   );
 }

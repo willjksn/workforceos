@@ -1,6 +1,6 @@
 # Service Workflows
 
-Status: Phase 3 recruiting and military translator workflows  
+Status: Phase 4 service engines, proposals, contracts, and delivery  
 Agents must read approved workflow records from the database. They must not improvise material workflow rules.
 
 ## Workflow versioning
@@ -11,7 +11,11 @@ Each service has:
 - `service_versions` — approved definition snapshot
 - `service_workflows` — ordered, versioned steps and gates
 
-A solution plan references a specific service version. A delivery project is created from an approved solution plan.
+A solution plan references a specific service version. A proposal is generated from an approved solution plan. A delivery project is created from an approved solution plan plus the approved workflow template, normally after contract execution.
+
+Reusable engine path:
+
+Service → Active Version → Active Workflow → Opportunity → Discovery → Solution Plan → Proposal → Contract → Project → Deliverables → Billing Events → Closeout → Expansion
 
 ## Launch workflows
 
@@ -26,6 +30,8 @@ A solution plan references a specific service version. A delivery project is cre
 7. Offers are recorded, not sent. Placement copies fee and guarantee days from the search agreement.
 8. Preserve silver medalists and prior applicants for rediscovery.
 
+Delivery project phases: Intake, Search Strategy, Sourcing, Candidate Assessment, Client Submission, Interviews, Offer, Placement, Guarantee.
+
 ### Military Talent Opportunity Assessment
 
 1. Capture client civilian roles, locations, and constraints.
@@ -35,6 +41,8 @@ A solution plan references a specific service version. A delivery project is cre
 5. Produce recommendations as drafts. Agent mappings start pending.
 6. Require a human military reviewer. The originating agent cannot approve its own mapping.
 7. Create a delivery project from the approved solution plan.
+
+Delivery project phases: Discovery, Job Inventory, Military Crosswalk, Installation Analysis, Workforce Opportunity Analysis, Recommendations, Human Review, Client Presentation, Final Report.
 
 Test fixture workflow for Phase 1 uses this service.
 
@@ -46,12 +54,16 @@ Test fixture workflow for Phase 1 uses this service.
 4. Human review of client-facing findings.
 5. Optional implementation project.
 
+Delivery project phases: Discovery, Data Collection, Process Mapping, Maturity Assessment, Root-Cause Analysis, Future State, Roadmap, Executive Presentation.
+
 ### Fractional Talent Partner
 
 1. Scope operating responsibilities and cadence.
 2. Approve engagement plan and legal package.
 3. Run recurring talent operating work inside WorkforceOS.
 4. Review outcomes with the client on a defined cadence.
+
+Delivery project phases: Onboarding, Capacity Setup, Requisition Intake, Recruiting Operations, Weekly Reporting, Monthly Review, Capacity Review, Renewal/Expansion.
 
 ### Workforce Pipeline Assessment
 
@@ -61,8 +73,14 @@ Test fixture workflow for Phase 1 uses this service.
 4. Recommend pipeline actions.
 5. Human approval of client-facing recommendations.
 
+Delivery project phases: Discovery, Workforce Data, Demand Analysis, Supply Analysis, Gap Analysis, Military Overlay, Pipeline Design, Scenario Analysis, Human Review, Executive Presentation.
+
 ## Approval gates
 
 Material AI recommendations require provenance (WFOS-AI-001).  
 Material client-facing AI outputs require human approval (WFOS-AI-002).  
-Agents cannot approve their own material output.
+Agents cannot approve their own material output.  
+Proposals cannot be sent until approved.  
+Client-facing deliverables cannot be delivered until approved.  
+Pricing outside the configured range requires `pricing.approve`.  
+Delivery projects require an executed contract unless a Managing Partner override is audited.

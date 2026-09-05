@@ -162,3 +162,63 @@ Database mirror: `decision_log` table, seeded from this file.
 - Reason: The current default Neon branch is named `production` but contains development fixtures. Sharing one database would mix Harbor/Taylor Ellis data with live operations and make rollback unsafe.
 - Affected modules: deployment, database, seed
 - Reconsideration: if Neon-Vercel preview branching is enabled, preview still must not share the production connection string.
+
+## DEC-SVC-001 — Reusable service workflow engine
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Phase 4 uses one reusable service workflow engine for all five launch services. Approved `service_versions` and `service_workflows` are loaded from PostgreSQL before service-specific work. Application code does not hardcode material process, pricing, legal-package, or project-template rules in prompts.
+- Reason: Five separate engines would drift. Version-controlled workflow records are the operating source of truth (WFOS-SVC-001).
+- Affected modules: services, discovery, solutions, proposals, legal, projects
+- Reconsideration: only if a service requires a fundamentally different state machine that cannot be expressed as versioned steps.
+
+## DEC-SVC-002 — Search projects are not delivery projects
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: `search_projects` remain Internal Talent Network search containers for Professional Search. `projects` are delivery engagements created from an approved solution plan, service workflow, and (normally) executed contract.
+- Reason: Mixing search execution with consulting delivery would break recruiting operations and billing.
+- Affected modules: recruiting, projects
+- Reconsideration: none for V1.
+
+## DEC-SVC-003 — Approved service versions are immutable
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: An approved `service_versions` row is never overwritten. Scope, pricing guidance, deliverables, or workflow changes create a new version. Solution plans and proposals continue to reference the version they were created against.
+- Reason: Client-facing scope and pricing must remain auditable against the definition that was sold.
+- Affected modules: services
+- Reconsideration: clerical typo fixes on non-material metadata would still require a new version to keep the rule simple.
+
+## DEC-SVC-004 — Contract execution gate for delivery projects
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Creating a delivery project requires an executed contract unless a Managing Partner records an override with user, reason, and date. The override is audited. Recruiting `search_projects` are unaffected.
+- Reason: Delivery work should not start without commercial coverage.
+- Affected modules: projects, legal
+- Reconsideration: if a later legal workflow supports limited notice-to-proceed, it must still be an explicit audited exception.
+
+## DEC-FIN-001 — Billing events are operational triggers only
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Phase 4 stores `billing_schedules` and `billing_events` as operating records. They do not create QuickBooks invoices unless that integration is already configured. Finance screens show triggers, not a general ledger.
+- Reason: Full accounting is out of Phase 4 scope. Contract and project events still need an auditable billing hook.
+- Affected modules: finance, projects
+- Reconsideration: when QuickBooks is configured, events can be exported through the Integration Hub without becoming the system of record for invoices.
+
+## DEC-LEGAL-001 — Legal templates are not attorney-authoritative by default
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Seeded legal templates are structural placeholders. They are not treated as attorney-approved language unless `attorney_approved` is true and status is `approved`. AI cannot mark templates or contracts approved.
+- Reason: Invented legal language would create liability.
+- Affected modules: legal
+- Reconsideration: after counsel provides approved text, templates are versioned and the attorney-approved flag is set.

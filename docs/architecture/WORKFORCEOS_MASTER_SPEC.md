@@ -10,7 +10,7 @@ WorkforceOS is an internal operating system for a Workforce & Talent Solutions f
 
 It will eventually manage company CRM, Talent CRM, recruiting/search, military talent translation, workforce development, legal document operations, finance/AR workflow, integrations, background AI agents, audit history, approvals, and institutional knowledge.
 
-Phase 1 builds only the technical foundation required for those later modules.
+Phase 1 builds only the technical foundation required for those later modules. Phase 4 activates service engines, proposals, contracts, and project delivery on that foundation.
 
 ## Product boundaries
 
@@ -64,16 +64,16 @@ Server-only modules live under `db/` and `lib/`. Client components must not impo
 
 ## Domain map (future modules)
 
-Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Talent Network, Professional Search, and Military Talent Opportunity Assessment. Phase 3 activates recruiting operations and the military talent translator on that foundation.
+Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Talent Network, Professional Search, and Military Talent Opportunity Assessment. Phase 3 activates recruiting operations and the military talent translator on that foundation. Phase 4 activates the five launch service engines, proposals, contracts, and delivery projects.
 
 - CRM: companies, contacts, opportunities, signals
 - Talent Network: candidates, pools, rediscovery
 - Recruiting: jobs, internal-first search projects, job-specific matches, pipeline, submissions, interviews, offers, placements, guarantees
 - Military Talent: occupation library, skills translator, reverse search, installations, bridge training, human mapping review
-- Workforce Development: assessments, forecasts, pipeline planning (placeholder after Phase 3)
-- Services: five launch service engines and versioned workflows
-- Legal: document packages linked to services and engagements
-- Finance: AR operating workflow (billing hook only in Phase 3)
+- Workforce Development: assessments, forecasts, pipeline planning (placeholder after Phase 4 except the Workforce Pipeline Assessment service engine)
+- Services: five launch service engines, versioned workflows, discovery, solution plans, proposals
+- Legal: templates, contract packages, execution, e-sign abstraction
+- Finance: billing-trigger foundations (not QuickBooks invoicing)
 - AI: agent registry, runs, outputs, approvals
 - Platform: users, roles, audit, integrations, files, search
 
@@ -107,6 +107,16 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 - Military mappings store source, version, confidence, origin, and review status. Agent drafts start pending. The originating agent cannot approve them.
 - Military candidates reuse Talent Network candidate records. There is no separate military candidate database.
 - Installation map rendering is deferred to Phase 3.5. List/geo fields and `coordinate_source` are the Phase 3 foundation. Coordinates are never fabricated.
+
+## Service delivery rules (Phase 4)
+
+- The five launch services share one workflow engine. Agents and application code load the approved `service_versions` / `service_workflows` records before service-specific work.
+- Approved service versions are immutable. Changes create a new version.
+- `search_projects` are recruiting containers. `projects` are delivery engagements.
+- Proposals, pricing outside the configured range, contracts, legal language, and client-facing deliverables require human approval. Agents cannot approve their own material output.
+- Delivery project creation requires an executed contract unless a Managing Partner override is recorded and audited.
+- Billing events are operational triggers. They do not create QuickBooks invoices unless that integration is already configured.
+- Seeded legal templates are not attorney-authoritative unless `attorney_approved` is true.
 
 ## Related documents
 

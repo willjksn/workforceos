@@ -1,6 +1,6 @@
 # Data Dictionary
 
-Status: Phase 3 recruiting and military translator tables  
+Status: Phase 4 service engines, proposals, contracts, and delivery  
 Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 
 ## Conventions
@@ -122,13 +122,29 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 
 | Table | Purpose |
 | --- | --- |
-| `services` | Launch service catalog. |
-| `service_versions` | Approved versioned definitions. |
-| `service_workflows` | Versioned steps agents must follow. |
-| `solution_plans` | Client-specific plans tied to a service version. |
-| `projects` | Delivery projects. |
+| `services` | Launch service catalog with practice area and pricing model. |
+| `service_versions` | Approved versioned definitions. Never overwritten once approved. |
+| `service_workflow_definitions` | Workflow metadata: discovery inputs, legal package, project template, billing and completion rules. |
+| `service_workflows` | Ordered, versioned steps agents must follow. |
+| `discoveries` | Service-specific discovery tied to company, opportunity, and recommended service. |
+| `solution_plans` | Client-specific plans tied to a service version, with pricing and provenance. |
+| `proposals` | Client proposals generated from approved solution plans. |
+| `proposal_versions` | Immutable history after a proposal is sent. |
+| `legal_templates` | Structural legal templates. Not attorney-authoritative by default. |
+| `contracts` | Service-specific contract packages and execution status. |
+| `esign_envelopes` | E-sign provider abstraction (DocuSign-ready; manual execution in Phase 4). |
+| `legal_packages` | Legal document records linked to services, engagements, and contracts. |
+| `project_templates` | Delivery templates tied to a service workflow. Distinct from `search_projects`. |
+| `projects` | Delivery projects created from plan + workflow + contract. |
 | `project_phases` | Project phases. |
 | `project_tasks` | Tasks generated from templates/plans. |
+| `project_deliverables` | Explicit deliverable records. Client-facing rows require human approval. |
+| `project_risks` / `project_issues` | Delivery risk and issue tracking. Material open risks keep a project at risk. |
+| `project_meetings` | Cadence meetings for delivery projects. |
+| `project_kpis` | Stored KPI values only; never fabricated. |
+| `billing_schedules` / `billing_events` | Operational billing triggers. Not QuickBooks invoices. |
+| `expansion_recommendations` | Suggested follow-on services. Human review required before creating revenue opportunities. |
+| `project_closeouts` | Closeout snapshot, lessons, and knowledge capture. |
 
 ## Explicitly excluded
 

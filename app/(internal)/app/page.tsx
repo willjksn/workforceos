@@ -11,11 +11,13 @@ import {
 } from "@/components/ui/page";
 import { requireCurrentPrincipal } from "@/lib/auth/session";
 import { getCommandCenterSnapshot } from "@/lib/repositories/command-center";
+import { phase4CommandSnapshot } from "@/lib/delivery/engine";
 import { can } from "@/lib/rbac/permissions";
 
 export default async function CommandCenterPage() {
   const principal = await requireCurrentPrincipal();
   const snapshot = await getCommandCenterSnapshot(principal.organizationId);
+  const delivery = await phase4CommandSnapshot(principal.organizationId);
   const canOpportunities = can(principal, "opportunities.read");
   const canCandidates = can(principal, "candidates.read");
   const canJobs = can(principal, "jobs.read");
@@ -50,6 +52,30 @@ export default async function CommandCenterPage() {
         ) : null}
         {canCandidates ? (
           <MetricCard href="/app/talent" label="Talent Network" value={snapshot.talent.candidateCount} />
+        ) : null}
+      </section>
+
+      <section className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {can(principal, "proposals.read") ? (
+          <MetricCard href="/app/proposals?status=internal_review" label="Proposals awaiting approval" value={delivery.proposalsAwaitingApproval} />
+        ) : null}
+        {can(principal, "contracts.read") ? (
+          <MetricCard href="/app/contracts" label="Contracts awaiting signature" value={delivery.contractsAwaitingSignature} />
+        ) : null}
+        {can(principal, "projects.read") ? (
+          <MetricCard href="/app/projects?filter=at_risk" label="Projects at risk" value={delivery.projectsAtRisk} />
+        ) : null}
+        {can(principal, "deliverables.read") ? (
+          <MetricCard href="/app/projects/deliverables" label="Deliverables overdue" value={delivery.deliverablesOverdue} />
+        ) : null}
+        {can(principal, "billing.read") ? (
+          <MetricCard href="/app/finance" label="Billing events upcoming" value={delivery.billingUpcoming} />
+        ) : null}
+        {can(principal, "projects.read") ? (
+          <MetricCard href="/app/projects?filter=active" label="Engagements closing soon" value={delivery.engagementsClosingSoon} />
+        ) : null}
+        {can(principal, "opportunities.read") ? (
+          <MetricCard href="/app/solutions" label="Expansion opportunities" value={delivery.expansionOpportunities} />
         ) : null}
       </section>
 

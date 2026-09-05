@@ -4,23 +4,15 @@ import { getDb } from "../../db";
 import {
   companies,
   opportunities,
-  projectPhases,
   projects,
-  projectTasks,
   serviceVersions,
   serviceWorkflows,
   services,
   solutionPlans,
 } from "../../db/schema";
 import { recordAuditEvent } from "../audit/record-audit-event";
-import { canCreateDeliveryProject } from "../military/mtoa";
-
-const MTOA_PHASES = [
-  "Data Collection",
-  "Analysis",
-  "Recommendations",
-  "Client Presentation",
-] as const;
+import { USER_IDS } from "../../db/seed/constants";
+import { createDeliveryProject } from "../delivery/engine";
 
 export async function listLaunchServices() {
   const db = getDb();
@@ -167,7 +159,8 @@ export async function listProjectsForPlan(solutionPlanId: string) {
 
 export async function createProjectFromSolutionPlan(
   solutionPlanId: string,
-  actor?: { organizationId: string; userId: string },
+  actor?: { organizationId: string; userId: string; roleSlugs?: string[] },
+  options?: { contractId?: string; overrideReason?: string },
 ) {
   const db = getDb();
   const [plan] = await db
@@ -179,57 +172,15 @@ export async function createProjectFromSolutionPlan(
   if (actor && plan.organizationId !== actor.organizationId) {
     throw new Error("Solution plan not found");
   }
-  if (!canCreateDeliveryProject(plan.status)) {
-    throw new Error("Project creation requires an approved solution plan");
-  }
-
-  const [opportunity] = await db
-    .select()
-    .from(opportunities)
-    .where(eq(opportunities.id, plan.opportunityId))
-    .limit(1);
-
-  const [project] = await db
-    .insert(projects)
-    .values({
-      organizationId: plan.organizationId,
-      solutionPlanId: plan.id,
-      name: `${plan.title} delivery`,
-      status: "planned",
-    })
-    .returning();
-
-  const phases = [];
-  for (const [index, name] of MTOA_PHASES.entries()) {
-    const [phase] = await db
-      .insert(projectPhases)
-      .values({
-        projectId: project.id,
-        name,
-        sequence: index + 1,
-      })
-      .returning();
-    const [task] = await db
-      .insert(projectTasks)
-      .values({
-        phaseId: phase.id,
-        name: `${name} work`,
-        status: "pending",
-      })
-      .returning();
-    phases.push({ phase, task });
-  }
-
-  if (actor) {
-    await recordAuditEvent({
-      organizationId: actor.organizationId,
-      actor: { type: "human", userId: actor.userId },
-      action: "project.created",
-      recordType: "project",
-      recordId: project.id,
-      after: project,
-    });
-  }
-
-  return { project, opportunity, plan, phases };
+  const created = await createDeliveryProject({
+    actor: {
+      organizationId: actor?.organizationId ?? plan.organizationId,
+      userId: actor?.userId || USER_IDS.managingPartner,
+      roleSlugs: actor?.roleSlugs ?? (options?.overrideReason || !actor ? ["managing-partner"] : []),
+    },
+    solutionPlanId,
+    contractId: options?.contractId,
+    overrideReason: options?.overrideReason ?? (actor ? undefined : "acceptance-test uncontracted plan"),
+  });
+  return created;
 }

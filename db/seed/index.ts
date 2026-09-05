@@ -33,9 +33,6 @@ import {
   requirements,
   rolePermissions,
   roles,
-  serviceVersions,
-  serviceWorkflows,
-  services,
   skills,
   solutionPlans,
   systemSettings,
@@ -45,14 +42,14 @@ import {
   users,
 } from "../schema";
 import { PERMISSIONS, ROLE_PERMISSIONS, type RoleSlug } from "../../lib/rbac/permissions";
-import { LAUNCH_SERVICE_WORKFLOWS } from "./service-workflows";
+import { seedPhase4Fixtures } from "./phase4";
+import { seedLaunchServiceCatalog } from "./phase4-catalog";
 import { seedPhase3OperatingFixtures } from "./phase3";
 import {
   CANDIDATE_ID,
   COMPANY_ID,
   ELECTRICAL_TECH_OCCUPATION_ID,
   INTERNAL_ORG_ID,
-  MTOA_SERVICE_ID,
   MTOA_VERSION_ID,
   NAVY_EM_ID,
   OPPORTUNITY_ID,
@@ -268,7 +265,7 @@ export async function seedFoundation(
   if (includeDevelopmentFixtures) {
     await seedCatalogAndTalent(db);
   } else {
-    await seedLaunchServices(db);
+    await seedLaunchServiceCatalog(db);
   }
   await seedRequirementsAndDecisions(db);
 
@@ -281,83 +278,6 @@ export async function seedFoundation(
     });
 
   return { organizationId: INTERNAL_ORG_ID, seedVersion: SEED_VERSION };
-}
-
-async function seedLaunchServices(db: ReturnType<typeof getDb>) {
-  const launchServices = [
-    {
-      id: "00000000-0000-4000-8900-000000000001",
-      code: "professional-search",
-      name: "Professional Search",
-      definition: "Internal-first retained/project search.",
-    },
-    {
-      id: MTOA_SERVICE_ID,
-      code: "military-talent-opportunity-assessment",
-      name: "Military Talent Opportunity Assessment",
-      definition:
-        "Translate civilian demand to military occupations, skills, gaps, training, and likely installations.",
-    },
-    {
-      id: "00000000-0000-4000-8900-000000000003",
-      code: "ta-performance-assessment",
-      name: "TA Performance Assessment",
-      definition: "Assess talent acquisition operating performance.",
-    },
-    {
-      id: "00000000-0000-4000-8900-000000000004",
-      code: "fractional-talent-partner",
-      name: "Fractional Talent Partner",
-      definition: "Fractional talent leadership engagement. Not temp staffing or payroll.",
-    },
-    {
-      id: "00000000-0000-4000-8900-000000000005",
-      code: "workforce-pipeline-assessment",
-      name: "Workforce Pipeline Assessment",
-      definition: "Assess workforce supply/demand and pipeline actions.",
-    },
-  ];
-
-  for (const service of launchServices) {
-    await db
-      .insert(services)
-      .values({
-        id: service.id,
-        code: service.code,
-        name: service.name,
-        status: "active",
-        description: service.definition,
-      })
-      .onConflictDoNothing();
-    const versionId =
-      service.code === "military-talent-opportunity-assessment"
-        ? MTOA_VERSION_ID
-        : service.id.replace("8900", "8910");
-    await db
-      .insert(serviceVersions)
-      .values({
-        id: versionId,
-        serviceId: service.id,
-        version: "v1",
-        definition: service.definition,
-        reviewStatus: "approved",
-      })
-      .onConflictDoNothing();
-
-    const steps = LAUNCH_SERVICE_WORKFLOWS[service.code] ?? [];
-    for (const [index, step] of steps.entries()) {
-      await db
-        .insert(serviceWorkflows)
-        .values({
-          serviceVersionId: versionId,
-          stepNumber: index + 1,
-          name: step.name,
-          instructions: step.instructions,
-          requiresHumanApproval: step.requiresHumanApproval,
-        })
-        .onConflictDoNothing();
-    }
-  }
 }
 
 async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
@@ -846,7 +766,7 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
 
   await seedPhase3OperatingFixtures(db, skillIds);
 
-  await seedLaunchServices(db);
+  await seedLaunchServiceCatalog(db);
 
   await db
     .insert(solutionPlans)
@@ -860,6 +780,8 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
       summary: "Approved development fixture solution plan",
     })
     .onConflictDoNothing();
+
+  await seedPhase4Fixtures(db);
 }
 
 async function seedAdditionalOperatingFixtures(
@@ -1121,6 +1043,10 @@ async function seedRequirementsAndDecisions(db: ReturnType<typeof getDb>) {
     ["WFOS-REC-003", "recruiting", "Pipeline, submission, and placement terms require human control and search-agreement data."],
     ["WFOS-MIL-006", "military", "Military mappings store provenance and require human review; agents cannot self-approve."],
     ["WFOS-MIL-007", "military", "Military candidate views reuse Talent Network records."],
+    ["WFOS-SVC-002", "services", "Approved service versions are immutable; changes create a new version."],
+    ["WFOS-SVC-003", "services", "Client-facing proposals, pricing, contracts, and deliverables require human approval."],
+    ["WFOS-SVC-004", "projects", "Delivery project creation requires an executed contract unless a Managing Partner override is audited."],
+    ["WFOS-FIN-001", "finance", "Phase 4 billing events are operational triggers only and do not create QuickBooks invoices unless configured."],
   ] as const;
 
   for (const [code, module, description] of requirementSeed) {
@@ -1155,6 +1081,13 @@ async function seedRequirementsAndDecisions(db: ReturnType<typeof getDb>) {
     ["DEC-REC-002", "Guarantee and fee terms come from the search agreement", "Placement terms are copied from the search project. Finance is a billing hook only."],
     ["DEC-MIL-001", "Military mappings need provenance and human review", "Agent drafts start pending. The originating agent cannot approve them."],
     ["DEC-MIL-002", "Installation map view deferred to Phase 3.5", "Phase 3 ships list/geo and coordinate_source. Coordinates are never fabricated."],
+    ["DEC-DEP-001", "Separate Neon databases per Vercel environment", "Development fixtures never seed real production."],
+    ["DEC-SVC-001", "Reusable service workflow engine", "Five launch services share one engine driven by approved workflow records."],
+    ["DEC-SVC-002", "Search projects are not delivery projects", "search_projects remain recruiting containers; projects are delivery engagements."],
+    ["DEC-SVC-003", "Approved service versions are immutable", "Changes create a new version rather than overwriting an approved snapshot."],
+    ["DEC-SVC-004", "Contract execution gate for delivery projects", "Managing Partner override is audited when a contract is not executed."],
+    ["DEC-FIN-001", "Billing events are operational triggers only", "No QuickBooks invoices unless that integration is configured."],
+    ["DEC-LEGAL-001", "Legal templates are not attorney-authoritative by default", "Placeholder language is not treated as approved counsel text."],
   ] as const;
 
   for (const [code, title, decision] of decisions) {

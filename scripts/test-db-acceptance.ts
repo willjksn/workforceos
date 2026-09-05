@@ -103,9 +103,13 @@ async function main() {
   assert(service.workflows.length >= 1, "Expected a versioned workflow");
 
   console.log("TEST 7 — project from solution plan");
-  const created = await createProjectFromSolutionPlan(SOLUTION_PLAN_ID);
+  const created = await createProjectFromSolutionPlan(SOLUTION_PLAN_ID, {
+    organizationId: INTERNAL_ORG_ID,
+    userId: USER_IDS.managingPartner,
+    roleSlugs: ["managing-partner"],
+  }, { overrideReason: "Acceptance test for uncontracted Harbor MTOA plan" });
   assert(created.project.id, "Project creation failed");
-  assert(created.phases.length === 4, "Expected four delivery phases");
+  assert(created.phases.length >= 4, "Expected delivery phases from the approved workflow template");
 
   console.log("TEST 8 — agent recommendation approval");
   const [agent] = await db.select().from(agents).limit(1);

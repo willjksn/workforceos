@@ -15,7 +15,7 @@ export default async function ServicesPage() {
       <PageHeader
         eyebrow="Recruiting / Delivery"
         title="Launch services"
-        description="Workflows are version-controlled database records. Agents and operators follow the approved steps."
+        description="Workflows are version-controlled database records. Approved versions are not overwritten; changes create a new version."
       />
       {services.length === 0 ? (
         <EmptyState title="No launch services recorded.">
@@ -28,7 +28,7 @@ export default async function ServicesPage() {
               key={service.id}
               href={`/app/services/${service.code}`}
               title={service.name}
-              meta={service.description ?? undefined}
+              meta={`${service.practiceArea ?? "Service"} · ${service.pricingModel ?? "pricing on version"}`}
               trailing={<span className="text-sm text-muted-foreground">{workflows.length} steps</span>}
             />
           ))}

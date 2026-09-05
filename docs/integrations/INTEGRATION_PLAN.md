@@ -38,7 +38,7 @@ Adapters return a common result type. Missing credentials yield `not_configured`
 | hireEZ | sourcing | placeholder hook |
 | Microsoft | identity/docs/mail | placeholder |
 | Google | identity/docs/mail | placeholder |
-| DocuSign | legal execution | placeholder |
+| DocuSign | legal execution | placeholder adapter plus manual contract execution |
 | QuickBooks | finance/AR | placeholder |
 | Checkr | background checks | placeholder |
 

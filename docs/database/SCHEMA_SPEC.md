@@ -1,6 +1,6 @@
 # Schema Specification
 
-Status: Phase 3 recruiting operations and military translator schema  
+Status: Phase 4 service engines, proposals, contracts, and delivery schema  
 Implementation: `db/schema/`  
 Migrations: `drizzle/`
 
@@ -30,10 +30,10 @@ Migrations: `drizzle/`
 | `db/schema/recruiting/` | jobs, job_skills, matches, screenings, search_projects, submissions, interviews, offers, placements, placement_guarantees |
 | `db/schema/military/` | occupations, installations, mappings, bridge training, translations, occupation data imports |
 | `db/schema/workforce/` | occupation/skill foundations used by workforce services |
-| `db/schema/services/` | services, versions, workflows, solution plans |
-| `db/schema/projects/` | projects, phases, tasks |
-| `db/schema/legal/` | reserved legal linkage foundation |
-| `db/schema/finance/` | reserved finance operating foundation |
+| `db/schema/services/` | services, versions, workflow definitions, workflows, discoveries, solution plans, proposals |
+| `db/schema/projects/` | project templates, delivery projects, phases, tasks, deliverables, risks, issues, KPIs, closeout, expansion |
+| `db/schema/legal/` | templates, contracts, e-sign envelopes, legal packages |
+| `db/schema/finance/` | billing schedules, billing events, reserved finance operating foundation |
 | `db/schema/integrations/` | integration hub tables |
 | `db/schema/ai/` | agent runs and outputs |
 | `db/schema/operating/` | activities, candidate_engagements, candidate_designations, saved views |
@@ -52,6 +52,13 @@ Migrations: `drizzle/`
 - `candidate_pipeline_status` keeps legacy values (`sourced`, `screened`, `interviewing`, `offered`, `declined`) and adds Phase 3 stages. Application code normalizes legacy values.
 - Job status includes `search_active`. Internal search timestamps live on both `jobs` and `search_projects`.
 - Mapping review uses `pending | approved | rejected | needs_review`. Agent-origin rows start pending.
+
+## Phase 4 schema notes
+
+- Migration `drizzle/0003_vengeful_tyger_tiger.sql` adds discovery, proposal, contract, project-template, deliverable, risk/issue, billing, and expansion tables. It extends `service_versions`, `service_workflows`, `solution_plans`, `projects`, and `project_tasks`.
+- `project_status` adds `at_risk`. `task_status` adds `not_started`, `waiting_client`, and `review` while keeping `pending`.
+- `projects.contract_id` is stored without a Drizzle circular FK to `contracts`; `contracts.project_id` is the declared foreign key.
+- Delivery `projects` are distinct from recruiting `search_projects`.
 
 ## Semantic search
 

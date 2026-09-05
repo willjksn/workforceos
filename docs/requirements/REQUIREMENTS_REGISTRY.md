@@ -1,6 +1,6 @@
 # Requirements Registry
 
-Status: Phase 3 locked set  
+Status: Phase 4 locked set  
 Database mirror: `requirements` table.
 
 ## Locked requirements
@@ -196,3 +196,35 @@ Database mirror: `requirements` table.
 - Priority: locked
 - Status: approved
 - Acceptance: military views filter existing candidates; they do not create a parallel military candidate database.
+
+### WFOS-SVC-002
+
+- Title: Approved service versions are immutable
+- Module: services
+- Priority: locked
+- Status: approved
+- Acceptance: changing an approved service definition creates a new `service_versions` row; the previous approved row is not overwritten.
+
+### WFOS-SVC-003
+
+- Title: Human approval for client-facing commercial artifacts
+- Module: services
+- Priority: locked
+- Status: approved
+- Acceptance: proposals cannot be sent, client-facing deliverables cannot be delivered, and pricing outside range cannot be stored without a human approver.
+
+### WFOS-SVC-004
+
+- Title: Contract execution gate for delivery projects
+- Module: projects
+- Priority: locked
+- Status: approved
+- Acceptance: project creation requires an executed contract unless a Managing Partner override with reason is audited.
+
+### WFOS-FIN-001
+
+- Title: Billing events are operational triggers
+- Module: finance
+- Priority: locked
+- Status: approved
+- Acceptance: project and contract events create `billing_events` without creating QuickBooks invoices unless that integration is configured.

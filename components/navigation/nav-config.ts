@@ -75,7 +75,6 @@ const NAV: NavGroup[] = [
       { href: "/app/placements", label: "Placements", icon: "checks", permission: "placements.read" },
       { href: "/app/guarantees", label: "Guarantees", icon: "bell", permission: "placements.read" },
       { href: "/app/recruiting/analytics", label: "Recruiting Analytics", icon: "dashboard", permission: "recruiting.analytics.read" },
-      { href: "/app/services", label: "Services", icon: "checks", anyPermission: ["solutions.read", "jobs.read"] },
     ],
   },
   {
@@ -94,12 +93,49 @@ const NAV: NavGroup[] = [
     ],
   },
   {
+    label: "Solutions",
+    items: [
+      { href: "/app/discovery", label: "Discovery", icon: "clipboard", permission: "discovery.read" },
+      { href: "/app/solutions", label: "Solution Plans", icon: "layers", permission: "solutions.read" },
+      { href: "/app/services", label: "Service Catalog", icon: "checks", anyPermission: ["services.read", "solutions.read", "jobs.read"] },
+    ],
+  },
+  {
+    label: "Proposals",
+    items: [
+      { href: "/app/proposals", label: "All Proposals", icon: "briefcase", permission: "proposals.read" },
+      { href: "/app/proposals?status=draft", label: "Drafts", icon: "clipboard", permission: "proposals.read" },
+      { href: "/app/proposals?status=internal_review", label: "Awaiting Approval", icon: "bell", permission: "proposals.read" },
+      { href: "/app/proposals?status=sent", label: "Sent", icon: "checks", permission: "proposals.read" },
+      { href: "/app/proposals?status=accepted", label: "Accepted", icon: "medal", permission: "proposals.read" },
+      { href: "/app/proposals?status=declined", label: "Declined", icon: "rotate", permission: "proposals.read" },
+    ],
+  },
+  {
+    label: "Legal & Contracts",
+    items: [
+      { href: "/app/contracts", label: "Contracts", icon: "scale", permission: "contracts.read" },
+      { href: "/app/legal/templates", label: "Templates", icon: "layers", permission: "legal.read" },
+      { href: "/app/contracts?filter=executed", label: "Executed", icon: "checks", permission: "contracts.read" },
+      { href: "/app/contracts?filter=expiring", label: "Expiring", icon: "bell", permission: "contracts.read" },
+      { href: "/app/contracts?filter=compliance", label: "Compliance", icon: "shield", permission: "contracts.read" },
+    ],
+  },
+  {
+    label: "Projects",
+    items: [
+      { href: "/app/projects", label: "All Projects", icon: "folder", permission: "projects.read" },
+      { href: "/app/projects?filter=active", label: "Active", icon: "checks", permission: "projects.read" },
+      { href: "/app/projects?filter=at_risk", label: "At Risk", icon: "bell", permission: "projects.read" },
+      { href: "/app/projects?filter=completed", label: "Completed", icon: "medal", permission: "projects.read" },
+      { href: "/app/projects/deliverables", label: "Deliverables", icon: "clipboard", permission: "deliverables.read" },
+    ],
+  },
+  {
     label: "",
     items: [
       { href: "/app/workforce", label: "Workforce", icon: "network", permission: "solutions.read" },
-      { href: "/app/projects", label: "Projects", icon: "folder", permission: "projects.read" },
-      { href: "/app/legal", label: "Legal & Contracts", icon: "scale", permission: "legal.read" },
-      { href: "/app/finance", label: "Finance", icon: "wallet", permission: "finance.read" },
+      { href: "/app/finance", label: "Finance", icon: "wallet", anyPermission: ["finance.read", "billing.read"] },
     ],
   },
   {

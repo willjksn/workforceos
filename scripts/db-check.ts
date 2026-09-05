@@ -10,6 +10,7 @@ const EXPECTED_MIGRATIONS = [
   "0000_flippant_mauler",
   "0001_useful_frog_thor",
   "0002_fancy_pretty_boy",
+  "0003_vengeful_tyger_tiger",
 ];
 
 const KEY_TABLES = [

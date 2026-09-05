@@ -12,6 +12,7 @@ import { requireAppPermission } from "@/lib/auth/guard";
 import { OPPORTUNITY_STAGES } from "@/lib/crm/stages";
 import { getCompanyGraph, listActivities } from "@/lib/repositories/crm";
 import { listJobs } from "@/lib/repositories/recruiting";
+import { companyDeliverySnapshot } from "@/lib/delivery/engine";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../_components/action-form";
 import {
@@ -28,7 +29,7 @@ import {
 } from "../../_components/ui";
 
 const CRM_TABS = ["overview", "contacts", "opportunities", "signals", "locations", "activity"] as const;
-const PLACEHOLDER_TABS = ["jobs", "legal", "finance", "projects", "talent", "workforce"] as const;
+const PLACEHOLDER_TABS = ["jobs", "legal", "finance", "projects", "talent", "workforce", "solutions", "proposals"] as const;
 
 export default async function CompanyDetailPage({
   params,
@@ -53,12 +54,18 @@ export default async function CompanyDetailPage({
   const jobs = tab === "jobs" && can(principal, "jobs.read")
     ? (await listJobs(principal.organizationId)).filter((row) => row.job.companyId === company.id)
     : [];
+  const delivery =
+    ["solutions", "proposals", "legal", "finance", "projects"].includes(tab)
+      ? await companyDeliverySnapshot(company.id, principal.organizationId)
+      : null;
 
   const tabs = [
     { id: "overview", label: "Overview" },
     { id: "contacts", label: "Contacts" },
     { id: "opportunities", label: "Opportunities" },
     { id: "signals", label: "Signals" },
+    { id: "solutions", label: "Services" },
+    { id: "proposals", label: "Proposals" },
     { id: "talent", label: "Talent" },
     { id: "workforce", label: "Workforce" },
     { id: "locations", label: "Locations" },
@@ -358,7 +365,88 @@ export default async function CompanyDetailPage({
         </section>
       ) : null}
 
-      {tab === "talent" || tab === "workforce" || tab === "legal" || tab === "finance" || tab === "projects" ? (
+      {tab === "solutions" && delivery ? (
+        <section className="mt-6 space-y-4 text-sm">
+          <h2 className="section-title">Solution plans</h2>
+          {delivery.plans.length === 0 ? <EmptyState>No solution plans.</EmptyState> : (
+            <ul className="space-y-2">
+              {delivery.plans.map((plan) => (
+                <li key={plan.id}>
+                  <Link className="font-medium text-navy" href={`/app/solutions/${plan.id}`}>{plan.title}</Link>
+                  {` · ${plan.status}`}
+                </li>
+              ))}
+            </ul>
+          )}
+          <h2 className="section-title">Expansion suggestions</h2>
+          {delivery.expansions.length === 0 ? <p className="text-muted-foreground">None suggested.</p> : (
+            <ul>
+              {delivery.expansions.map((row) => (
+                <li key={row.id}>{row.recommendedServiceCode} · {row.status}</li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
+
+      {tab === "proposals" && delivery ? (
+        <section className="mt-6 text-sm">
+          {delivery.proposals.length === 0 ? <EmptyState>No proposals.</EmptyState> : (
+            <ul className="space-y-2">
+              {delivery.proposals.map((proposal) => (
+                <li key={proposal.id}>
+                  <Link className="font-medium text-navy" href={`/app/proposals/${proposal.id}`}>{proposal.title}</Link>
+                  {` · ${proposal.status}`}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
+
+      {tab === "legal" && delivery ? (
+        <section className="mt-6 text-sm">
+          {delivery.contracts.length === 0 ? <EmptyState>No contracts.</EmptyState> : (
+            <ul className="space-y-2">
+              {delivery.contracts.map((contract) => (
+                <li key={contract.id}>
+                  <Link className="font-medium text-navy" href={`/app/contracts/${contract.id}`}>{contract.title}</Link>
+                  {` · ${contract.status}`}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
+
+      {tab === "projects" && delivery ? (
+        <section className="mt-6 text-sm">
+          {delivery.projects.length === 0 ? <EmptyState>No delivery projects.</EmptyState> : (
+            <ul className="space-y-2">
+              {delivery.projects.map((project) => (
+                <li key={project.id}>
+                  <Link className="font-medium text-navy" href={`/app/projects/${project.id}`}>{project.name}</Link>
+                  {` · ${project.status}`}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
+
+      {tab === "finance" && delivery ? (
+        <section className="mt-6 text-sm">
+          {delivery.billing.length === 0 ? <EmptyState>No billing events.</EmptyState> : (
+            <ul className="space-y-2">
+              {delivery.billing.map((event) => (
+                <li key={event.id}>{event.sourceMilestone} · {event.amount} · {event.status}</li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
+
+      {tab === "talent" || tab === "workforce" ? (
         <p className="mt-6 text-sm text-muted-foreground">Not yet implemented in this phase.</p>
       ) : null}
     </PageShell>

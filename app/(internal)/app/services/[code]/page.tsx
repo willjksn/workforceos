@@ -54,7 +54,21 @@ export default async function ServiceDetailPage({
       />
       <p className="mt-3 text-sm text-muted-foreground">
         Version {bundle.approvedVersion?.version ?? "none"} · {bundle.approvedVersion?.reviewStatus ?? "missing"}
+        {bundle.approvedVersion?.practiceArea ? ` · ${bundle.approvedVersion.practiceArea}` : ""}
+        {bundle.approvedVersion?.pricingModel ? ` · ${bundle.approvedVersion.pricingModel}` : ""}
       </p>
+      <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
+        <div>
+          <dt className="text-muted-foreground">Price range</dt>
+          <dd>
+            {bundle.approvedVersion?.minPrice ?? "—"} – {bundle.approvedVersion?.maxPrice ?? "—"}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-muted-foreground">Default duration</dt>
+          <dd>{bundle.approvedVersion?.defaultDurationDays ? `${bundle.approvedVersion.defaultDurationDays} days` : "—"}</dd>
+        </div>
+      </dl>
       <section className="mt-8">
         <h2 className="section-title">Approved workflow</h2>
         <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm">

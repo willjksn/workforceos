@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Phase 4 — Service Engines + Proposals + Contracts + Project Delivery
+
+- Added a reusable service workflow engine for the five launch services. Approved versions and workflows are loaded from PostgreSQL.
+- Added discovery, solution plans, proposals (with versioning and HTML export), legal templates, contract packages, manual e-sign, delivery projects, deliverables, billing triggers, closeout, and expansion suggestions.
+- Search projects remain recruiting containers. Delivery projects require an executed contract unless a Managing Partner override is audited.
+- Added schema migration `drizzle/0003_vengeful_tyger_tiger.sql`.
+- Added `npm run test:phase4`.
+- Installation interactive map remains deferred to Phase 3.5. QuickBooks invoicing is not implemented.
+
 ### Deployment readiness
 
 - Split production-safe seed (`db:seed:prod`) from development fixtures (`db:seed:dev`). Harbor, Taylor Ellis, and Navy EM test mappings are excluded from production seed.

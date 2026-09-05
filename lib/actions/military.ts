@@ -93,6 +93,7 @@ export async function createMtoaProjectAction(
     await createProjectFromSolutionPlan(parsed.solutionPlanId, {
       organizationId: principal.organizationId,
       userId: principal.id,
+      roleSlugs: principal.roleSlugs,
     });
     redirect(`/app/services/${MTOA_SERVICE_CODE}`);
   } catch (error) {
