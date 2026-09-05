@@ -140,3 +140,19 @@ Database mirror: `requirements` table.
 - Priority: locked
 - Status: approved
 - Acceptance: provider adapters implement a shared interface; core modules do not call provider SDKs directly.
+
+### WFOS-CRM-001
+
+- Title: Command Center uses live aggregates
+- Module: crm
+- Priority: locked
+- Status: approved
+- Acceptance: Command Center cards query PostgreSQL; they do not hardcode pipeline or talent counts.
+
+### WFOS-CRM-002
+
+- Title: Opportunity scores are stored 100-point records
+- Module: crm
+- Priority: locked
+- Status: approved
+- Acceptance: scores persist component values and total; a human override requires a reason and is audited.

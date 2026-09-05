@@ -32,6 +32,7 @@ export default async function CompaniesPage({
               <th className="py-2">Name</th>
               <th>Type</th>
               <th>Status</th>
+              <th>Industry</th>
             </tr>
           </thead>
           <tbody>
@@ -44,6 +45,7 @@ export default async function CompaniesPage({
                 </td>
                 <td>{company.companyType}</td>
                 <td>{company.clientStatus}</td>
+                <td>{company.industry ?? "—"}</td>
               </tr>
             ))}
           </tbody>
@@ -88,6 +90,9 @@ export default async function CompaniesPage({
             </Field>
             <Field label="Website" name="website">
               <input className={inputClassName} id="website" name="website" />
+            </Field>
+            <Field label="Industry" name="industry">
+              <input className={inputClassName} id="industry" name="industry" />
             </Field>
             <Field label="Notes" name="notes">
               <textarea className={inputClassName} id="notes" name="notes" rows={3} />

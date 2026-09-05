@@ -5,31 +5,17 @@ import { AuthControls } from "@/app/auth-controls";
 import { AuthorizationError } from "@/lib/rbac/permissions";
 import { getCurrentPrincipal } from "@/lib/auth/session";
 
+import { AppNav, MobileAppNav } from "./_components/app-nav";
+import { navGroupsForPrincipal } from "./_components/nav-config";
+
 export const dynamic = "force-dynamic";
-
-const productLinks = [
-  { href: "/app/companies", label: "Companies" },
-  { href: "/app/talent", label: "Talent" },
-  { href: "/app/jobs", label: "Jobs" },
-  { href: "/app/services", label: "Services" },
-];
-
-const adminLinks = [
-  { href: "/app/admin/system-health", label: "System health" },
-  { href: "/app/admin/agents", label: "Agents" },
-  { href: "/app/admin/approvals", label: "Approvals" },
-  { href: "/app/admin/integrations", label: "Integrations" },
-  { href: "/app/admin/requirements", label: "Requirements" },
-];
 
 export default async function InternalAppLayout({
   children,
 }: LayoutProps<"/app">) {
+  let principal;
   try {
-    const principal = await getCurrentPrincipal();
-    if (!principal) {
-      redirect("/sign-in");
-    }
+    principal = await getCurrentPrincipal();
   } catch (error) {
     if (error instanceof AuthorizationError) {
       return (
@@ -42,30 +28,35 @@ export default async function InternalAppLayout({
     throw error;
   }
 
+  if (!principal) {
+    redirect("/sign-in");
+  }
+
+  const groups = navGroupsForPrincipal(principal);
+
   return (
-    <div className="min-h-full">
-      <header className="border-b px-6 py-3 text-sm">
-        <div className="flex items-center justify-between gap-4">
-          <Link href="/app" className="font-semibold">
-            WorkforceOS
-          </Link>
-          <AuthControls />
+    <div className="flex min-h-full">
+      <aside className="hidden w-56 shrink-0 border-r px-3 py-6 md:block">
+        <Link href="/app" className="block px-2 text-sm font-semibold">
+          WorkforceOS
+        </Link>
+        <div className="mt-6">
+          <AppNav groups={groups} />
         </div>
-        <nav className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-          {productLinks.map((link) => (
-            <Link key={link.href} href={link.href}>
-              {link.label}
+      </aside>
+      <div className="min-w-0 flex-1">
+        <header className="border-b px-6 py-3 text-sm">
+          <div className="flex items-center justify-between gap-4">
+            <Link href="/app" className="font-semibold md:hidden">
+              WorkforceOS
             </Link>
-          ))}
-          <span className="text-zinc-300">|</span>
-          {adminLinks.map((link) => (
-            <Link key={link.href} href={link.href}>
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-      </header>
-      {children}
+            <p className="hidden text-zinc-500 md:block">Internal operating system</p>
+            <AuthControls />
+          </div>
+          <MobileAppNav groups={groups} />
+        </header>
+        {children}
+      </div>
     </div>
   );
 }

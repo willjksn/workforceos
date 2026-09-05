@@ -39,9 +39,13 @@ export const relationshipStrengthEnum = pgEnum("relationship_strength", [
 
 export const opportunityStageEnum = pgEnum("opportunity_stage", [
   "identified",
+  "target",
   "qualified",
+  "discovery_scheduled",
+  "discovery_complete",
   "proposal",
   "negotiation",
+  "nurture",
   "won",
   "lost",
   "abandoned",
@@ -80,6 +84,7 @@ export const talentPoolTypeEnum = pgEnum("talent_pool_type", [
 export const talentPoolScopeEnum = pgEnum("talent_pool_scope", [
   "organization",
   "global_template",
+  "user",
 ]);
 
 export const poolMembershipSourceEnum = pgEnum("pool_membership_source", [
@@ -194,4 +199,62 @@ export const privacyClassEnum = pgEnum("privacy_class", [
   "internal",
   "confidential",
   "restricted_pii",
+]);
+
+export const activityTypeEnum = pgEnum("activity_type", [
+  "note",
+  "email",
+  "phone",
+  "meeting",
+  "task",
+  "research",
+  "outreach",
+  "status_change",
+  "system",
+  "other",
+]);
+
+export const signalReviewStatusEnum = pgEnum("signal_review_status", [
+  "draft",
+  "pending_review",
+  "approved",
+  "dismissed",
+  "converted",
+]);
+
+export const opportunityScoreBandEnum = pgEnum("opportunity_score_band", [
+  "priority",
+  "active_qualified",
+  "nurture",
+  "monitor",
+]);
+
+export const militaryStatusEnum = pgEnum("candidate_military_status", [
+  "unknown",
+  "none",
+  "veteran",
+  "active_duty",
+  "reserve",
+  "national_guard",
+]);
+
+export const designationTypeEnum = pgEnum("designation_type", [
+  "silver_medalist",
+]);
+
+export const engagementTypeEnum = pgEnum("engagement_type", [
+  "email",
+  "phone",
+  "linkedin",
+  "interview_prep",
+  "nurture",
+  "note",
+  "check_in",
+  "other",
+]);
+
+export const engagementDirectionEnum = pgEnum("engagement_direction", [
+  "inbound",
+  "outbound",
+  "internal",
 ]);

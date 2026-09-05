@@ -102,3 +102,13 @@ Database mirror: `decision_log` table, seeded from this file.
 - Reason: Application permissions must survive provider changes and remain auditable in PostgreSQL.
 - Affected modules: auth, rbac
 - Reconsideration: if Clerk Organizations become the multi-tenant model; local permission records would still remain required.
+
+## DEC-CRM-001 — First-class CRM records and stored opportunity scores
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Contacts, opportunities, and signals are first-class operating records with their own routes. Opportunity scores use a stored 100-point model (ICP 20, trigger 25, demonstrated pain 20, service fit 15, buyer access 10, timing/budget 10) with optional human override and reason. Company `annual_revenue` and `employee_count` are operating-size fields, not ownership or cap-table data. Command Center metrics are live PostgreSQL aggregates.
+- Reason: Nested company-only CRM cannot support pipeline, signal review, or role-aware operating snapshots. Scores must be persisted so the UI cannot invent them at render time.
+- Affected modules: crm, command center, audit
+- Reconsideration: if a later phase replaces the scoring model; existing `opportunity_scores` rows would need a versioned migration.

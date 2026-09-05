@@ -83,3 +83,69 @@ export function TextLink({ href, children }: { href: string; children: React.Rea
     </Link>
   );
 }
+
+export function formatDate(value?: Date | string | null) {
+  if (!value) return "—";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString();
+}
+
+export function formatLabel(value?: string | null) {
+  if (!value) return "—";
+  return value.replaceAll("_", " ");
+}
+
+export function PhasePlaceholder({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <main className="mx-auto max-w-4xl px-6 py-10">
+      <PageHeader title={title} description={description} />
+      <p className="mt-6 text-sm text-zinc-600">Not yet implemented in this phase.</p>
+    </main>
+  );
+}
+
+export function MetricCard({
+  href,
+  label,
+  value,
+}: {
+  href: string;
+  label: string;
+  value: number | string;
+}) {
+  return (
+    <Link href={href} className="rounded border p-4">
+      <p className="text-sm text-zinc-500">{label}</p>
+      <p className="mt-2 text-2xl font-semibold">{value}</p>
+    </Link>
+  );
+}
+
+export function TabNav({
+  items,
+  activeId,
+}: {
+  items: Array<{ id: string; href: string; label: string }>;
+  activeId: string;
+}) {
+  return (
+    <nav className="mt-6 flex flex-wrap gap-3 border-b pb-2 text-sm">
+      {items.map((item) => (
+        <Link
+          key={item.id}
+          href={item.href}
+          className={item.id === activeId ? "font-semibold" : "text-zinc-600"}
+        >
+          {item.label}
+        </Link>
+      ))}
+    </nav>
+  );
+}

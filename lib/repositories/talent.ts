@@ -1,13 +1,16 @@
-import { and, eq, ilike, isNull, or } from "drizzle-orm";
+import { and, eq, ilike, isNull, lt, or } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
   candidateExperiences,
   candidateJobMatches,
+  candidateMilitaryExperiences,
   candidateSkills,
   candidateTalentPools,
+  candidateDesignations,
   candidates,
   jobs,
+  militaryOccupations,
   skills,
   talentPools,
 } from "../../db/schema";
@@ -48,8 +51,16 @@ export async function getCandidateWithRelationships(candidateId: string, organiz
     .from(candidateJobMatches)
     .innerJoin(jobs, eq(candidateJobMatches.jobId, jobs.id))
     .where(eq(candidateJobMatches.candidateId, candidateId));
+  const military = await db
+    .select({ experience: candidateMilitaryExperiences, occupation: militaryOccupations })
+    .from(candidateMilitaryExperiences)
+    .innerJoin(
+      militaryOccupations,
+      eq(candidateMilitaryExperiences.militaryOccupationId, militaryOccupations.id),
+    )
+    .where(eq(candidateMilitaryExperiences.candidateId, candidateId));
 
-  return { candidate, experiences, skills: skillRows, pools, matches };
+  return { candidate, experiences, skills: skillRows, pools, matches, military };
 }
 
 export async function archiveCandidate(candidateId: string) {
@@ -62,7 +73,11 @@ export async function archiveCandidate(candidateId: string) {
   return archived;
 }
 
-export async function searchActiveCandidates(organizationId: string, query?: string) {
+export async function searchActiveCandidates(
+  organizationId: string,
+  query?: string,
+  availability?: typeof candidates.$inferSelect.availability,
+) {
   const db = getDb();
   const search = sanitizeSearchQuery(query);
   return db
@@ -72,6 +87,7 @@ export async function searchActiveCandidates(organizationId: string, query?: str
       and(
         eq(candidates.organizationId, organizationId),
         isNull(candidates.archivedAt),
+        availability ? eq(candidates.availability, availability) : undefined,
         search
           ? or(
               ilike(candidates.fullName, `%${search}%`),
@@ -248,4 +264,89 @@ export async function anonymizeCandidateForPrivacyTest(candidateId: string) {
     .where(eq(candidates.id, candidateId))
     .returning();
   return updated;
+}
+
+export async function listSilverMedalists(organizationId: string) {
+  const db = getDb();
+  const designated = await db
+    .select({ candidate: candidates })
+    .from(candidateDesignations)
+    .innerJoin(candidates, eq(candidateDesignations.candidateId, candidates.id))
+    .where(
+      and(
+        eq(candidates.organizationId, organizationId),
+        isNull(candidates.archivedAt),
+        eq(candidateDesignations.designationType, "silver_medalist"),
+        eq(candidateDesignations.active, true),
+      ),
+    );
+  const poolMembers = await db
+    .select({ candidate: candidates })
+    .from(candidateTalentPools)
+    .innerJoin(talentPools, eq(candidateTalentPools.talentPoolId, talentPools.id))
+    .innerJoin(candidates, eq(candidateTalentPools.candidateId, candidates.id))
+    .where(
+      and(
+        eq(candidates.organizationId, organizationId),
+        isNull(candidates.archivedAt),
+        eq(talentPools.slug, "silver-medalists"),
+        isNull(candidateTalentPools.removedAt),
+      ),
+    );
+  const byId = new Map<string, typeof candidates.$inferSelect>();
+  for (const row of [...designated, ...poolMembers]) {
+    byId.set(row.candidate.id, row.candidate);
+  }
+  return [...byId.values()].sort((a, b) => a.fullName.localeCompare(b.fullName));
+}
+
+export async function listWatchlists(organizationId: string, userId: string) {
+  const db = getDb();
+  return db
+    .select()
+    .from(talentPools)
+    .where(
+      and(
+        eq(talentPools.organizationId, organizationId),
+        eq(talentPools.scope, "user"),
+        eq(talentPools.ownerUserId, userId),
+        isNull(talentPools.archivedAt),
+      ),
+    )
+    .orderBy(talentPools.name);
+}
+
+export async function listNurtureCandidates(organizationId: string) {
+  const db = getDb();
+  return db
+    .select({ candidate: candidates, pool: talentPools })
+    .from(candidateTalentPools)
+    .innerJoin(talentPools, eq(candidateTalentPools.talentPoolId, talentPools.id))
+    .innerJoin(candidates, eq(candidateTalentPools.candidateId, candidates.id))
+    .where(
+      and(
+        eq(candidates.organizationId, organizationId),
+        isNull(candidates.archivedAt),
+        eq(talentPools.slug, "nurture"),
+        isNull(candidateTalentPools.removedAt),
+      ),
+    )
+    .orderBy(candidates.fullName);
+}
+
+export async function listRediscoveryCandidates(organizationId: string) {
+  const db = getDb();
+  const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+  return db
+    .select()
+    .from(candidates)
+    .where(
+      and(
+        eq(candidates.organizationId, organizationId),
+        isNull(candidates.archivedAt),
+        eq(candidates.doNotContact, false),
+        or(isNull(candidates.lastContactedAt), lt(candidates.lastContactedAt, cutoff)),
+      ),
+    )
+    .orderBy(candidates.fullName);
 }

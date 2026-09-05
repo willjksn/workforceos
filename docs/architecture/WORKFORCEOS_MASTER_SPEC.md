@@ -64,7 +64,7 @@ Server-only modules live under `db/` and `lib/`. Client components must not impo
 
 ## Domain map (future modules)
 
-Phase 1 implemented schema and service foundations. Phase 2 adds operating UI for CRM, Talent Network, and Professional Search on that foundation.
+Phase 1 implemented schema and service foundations. Phase 2 adds operating UI for CRM, Talent Network, Professional Search, and Military Talent Opportunity Assessment on that foundation.
 
 - CRM: companies, contacts, opportunities, signals
 - Talent Network: candidates, pools, rediscovery

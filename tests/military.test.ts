@@ -19,4 +19,13 @@ describe("military schema support", () => {
       "specialty",
     ]);
   });
+
+  it("treats reverse search as civilian-to-military, not a universal score", () => {
+    const hits = [
+      { civilianTitle: "Electrical Technician", militaryCode: "EM" },
+      { civilianTitle: "Maintenance Electrician", militaryCode: "EM" },
+    ];
+    expect(new Set(hits.map((hit) => hit.militaryCode)).size).toBe(1);
+    expect(new Set(hits.map((hit) => hit.civilianTitle)).size).toBe(2);
+  });
 });

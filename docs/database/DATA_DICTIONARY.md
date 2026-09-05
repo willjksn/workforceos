@@ -53,12 +53,13 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 
 | Table | Purpose |
 | --- | --- |
-| `companies` | Prospect/client companies. |
+| `companies` | Prospect/client companies. Operating size fields (`employee_count`, `annual_revenue`) are not ownership data. |
 | `company_locations` | Company sites. |
-| `contacts` | People at companies. |
+| `contacts` | People at companies. First-class records, not nested-only. |
 | `company_contacts` | Company/contact relationships. |
-| `opportunity_signals` | Workforce or commercial signals. |
-| `opportunities` | Commercial opportunities. |
+| `opportunity_signals` | Workforce or commercial signals with review status and optional resulting opportunity. |
+| `opportunities` | Commercial opportunities with stage, service, and stored score/band. |
+| `opportunity_scores` | 100-point component scores and optional human override. |
 
 ## Skills and occupations
 
@@ -74,10 +75,19 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | --- | --- |
 | `candidates` | Permanent Talent CRM people. Restricted PII. Not requisition-specific duplicates. |
 | `candidate_experiences` | Work history. |
-| `candidate_skills` | Candidate skill links. |
-| `talent_pools` | Static or dynamic pools. |
+| `candidate_skills` | Candidate skill links with optional proficiency and verification. |
+| `talent_pools` | Static or dynamic pools, including user-scoped watchlists. |
 | `talent_pool_rules` | Rules for dynamic pools. |
 | `candidate_talent_pools` | Many-to-many membership. |
+| `candidate_designations` | Job-agnostic designations such as silver medalist. |
+| `candidate_engagements` | Outreach/engagement history. |
+
+## Operating
+
+| Table | Purpose |
+| --- | --- |
+| `activities` | Notes, calls, meetings, and follow-ups linked to CRM or talent records. |
+| `saved_views` | User-owned list filters and column sets. |
 
 ## Recruiting
 

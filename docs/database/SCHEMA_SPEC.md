@@ -1,6 +1,6 @@
 # Schema Specification
 
-Status: Phase 1  
+Status: Phase 2 CRM/Talent operating schema  
 Implementation: `db/schema/`  
 Migrations: `drizzle/`
 
@@ -25,7 +25,7 @@ Migrations: `drizzle/`
 | `db/schema/enums.ts` | Postgres enums |
 | `db/schema/core.ts` | organizations, users, roles, user_roles, agents, system_settings |
 | `db/schema/system/` | audit, approvals, files, requirements, decision log, semantic documents |
-| `db/schema/crm/` | companies through opportunities |
+| `db/schema/crm/` | companies through opportunities and opportunity_scores |
 | `db/schema/talent/` | candidates and pools |
 | `db/schema/recruiting/` | jobs through placements |
 | `db/schema/military/` | military translation tables |
@@ -36,6 +36,7 @@ Migrations: `drizzle/`
 | `db/schema/finance/` | reserved finance operating foundation |
 | `db/schema/integrations/` | integration hub tables |
 | `db/schema/ai/` | agent runs and outputs |
+| `db/schema/operating/` | activities, candidate_engagements, candidate_designations, saved views |
 
 ## Key uniqueness rules
 

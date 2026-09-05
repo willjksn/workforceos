@@ -1,10 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import {
+  approveMtoaPlanAction,
+  createMtoaPlanAction,
+  createMtoaProjectAction,
+} from "@/lib/actions/military";
 import { requireCurrentPrincipal } from "@/lib/auth/session";
-import { getServiceBundle } from "@/lib/repositories/services";
+import { canCreateDeliveryProject, mappingIsClientFacingDraft, MTOA_SERVICE_CODE } from "@/lib/military/mtoa";
+import { listOpportunities } from "@/lib/repositories/crm";
+import { getServiceBundle, listProjectsForPlan } from "@/lib/repositories/services";
 import { AuthorizationError, can } from "@/lib/rbac/permissions";
-import { PageHeader } from "../../_components/ui";
+import { ActionForm } from "../../_components/action-form";
+import { Field, PageHeader, PrimaryButton, inputClassName } from "../../_components/ui";
 
 export default async function ServiceDetailPage({
   params,
@@ -18,6 +26,18 @@ export default async function ServiceDetailPage({
   const { code } = await params;
   const bundle = await getServiceBundle(code);
   if (!bundle) notFound();
+  const isMtoa = bundle.service.code === MTOA_SERVICE_CODE;
+  const canWriteSolutions = can(principal, "solutions.write");
+  const canWriteProjects = can(principal, "projects.write");
+  const opportunities = isMtoa && canWriteSolutions
+    ? await listOpportunities(principal.organizationId)
+    : [];
+  const plansWithProjects = await Promise.all(
+    bundle.plans.map(async (row) => ({
+      ...row,
+      projects: await listProjectsForPlan(row.plan.id),
+    })),
+  );
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-10">
@@ -28,6 +48,10 @@ export default async function ServiceDetailPage({
           bundle.service.code === "professional-search" ? (
             <Link className="rounded-full border px-4 py-2 text-sm" href="/app/jobs">
               Open jobs
+            </Link>
+          ) : isMtoa ? (
+            <Link className="rounded-full border px-4 py-2 text-sm" href="/app/military">
+              Open translation
             </Link>
           ) : undefined
         }
@@ -49,16 +73,75 @@ export default async function ServiceDetailPage({
           ))}
         </ol>
       </section>
-      {bundle.plans.length > 0 ? (
+      {plansWithProjects.length > 0 ? (
         <section className="mt-10">
           <h2 className="text-lg font-semibold">Solution plans</h2>
-          <ul className="mt-3 space-y-2 text-sm">
-            {bundle.plans.map(({ plan, opportunity }) => (
-              <li key={plan.id}>
-                {plan.title} · {plan.status} · opportunity {opportunity.name}
+          <ul className="mt-3 space-y-4 text-sm">
+            {plansWithProjects.map(({ plan, opportunity, companyName, projects }) => (
+              <li key={plan.id} className="rounded border p-4">
+                <div className="font-medium">{plan.title}</div>
+                <p className="mt-1 text-zinc-600">
+                  {plan.status} · {companyName} · {opportunity.name}
+                </p>
+                {plan.summary ? <p className="mt-2">{plan.summary}</p> : null}
+                {projects.length > 0 ? (
+                  <ul className="mt-2 list-disc pl-5">
+                    {projects.map((project) => (
+                      <li key={project.id}>
+                        Delivery project: {project.name} · {project.status}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                <div className="mt-3 flex flex-wrap gap-3">
+                  {isMtoa && canWriteSolutions && mappingIsClientFacingDraft(plan.status) ? (
+                    <ActionForm action={approveMtoaPlanAction}>
+                      <input type="hidden" name="solutionPlanId" value={plan.id} />
+                      <PrimaryButton>Approve plan</PrimaryButton>
+                    </ActionForm>
+                  ) : null}
+                  {isMtoa && canWriteProjects && canCreateDeliveryProject(plan.status) && projects.length === 0 ? (
+                    <ActionForm action={createMtoaProjectAction}>
+                      <input type="hidden" name="solutionPlanId" value={plan.id} />
+                      <button className="rounded-full border px-4 py-2 text-sm" type="submit">
+                        Create delivery project
+                      </button>
+                    </ActionForm>
+                  ) : null}
+                </div>
               </li>
             ))}
           </ul>
+        </section>
+      ) : null}
+      {isMtoa && canWriteSolutions ? (
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold">Draft a solution plan</h2>
+          <p className="mt-2 text-sm text-zinc-600">
+            Recommendations stay drafts until a human approves them. Agents cannot approve this output.
+          </p>
+          {opportunities.length === 0 ? (
+            <p className="mt-3 text-sm text-zinc-600">Create a company opportunity first.</p>
+          ) : (
+            <ActionForm action={createMtoaPlanAction} className="mt-4 max-w-xl space-y-3">
+              <Field label="Opportunity" name="opportunityId">
+                <select className={inputClassName} id="opportunityId" name="opportunityId">
+                  {opportunities.map(({ opportunity, companyName }) => (
+                    <option key={opportunity.id} value={opportunity.id}>
+                      {companyName} · {opportunity.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Title" name="title">
+                <input className={inputClassName} id="title" name="title" required />
+              </Field>
+              <Field label="Summary" name="summary">
+                <textarea className={inputClassName} id="summary" name="summary" rows={4} />
+              </Field>
+              <PrimaryButton>Create draft plan</PrimaryButton>
+            </ActionForm>
+          )}
         </section>
       ) : null}
     </main>

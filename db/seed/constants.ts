@@ -1,4 +1,4 @@
-export const SEED_VERSION = "phase2-operating-ui-v1";
+export const SEED_VERSION = "phase2-crm-command-center-v1";
 export const INTERNAL_ORG_SLUG = "workforceos";
 export const INTERNAL_ORG_ID = "00000000-0000-4000-8000-000000000001";
 

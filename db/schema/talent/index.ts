@@ -1,11 +1,13 @@
 import { relations, sql } from "drizzle-orm";
-import { index, pgTable, text, unique, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, integer, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 
 import { timestamps } from "../_common";
-import { organizations } from "../core";
+import { organizations, users } from "../core";
+import { files } from "../system";
 import {
   candidateAvailabilityEnum,
   consentStatusEnum,
+  militaryStatusEnum,
   poolMembershipSourceEnum,
   privacyClassEnum,
   talentPoolScopeEnum,
@@ -20,13 +22,34 @@ export const candidates = pgTable("candidates", {
   }),
   fullName: text("full_name").notNull(),
   email: text("email"),
+  phone: text("phone"),
   currentTitle: text("current_title"),
+  currentCompany: text("current_company"),
+  city: text("city"),
+  region: text("region"),
+  yearsExperience: integer("years_experience"),
   availability: candidateAvailabilityEnum("availability").notNull().default("unknown"),
   consentStatus: consentStatusEnum("consent_status").notNull().default("unknown"),
   privacyClass: privacyClassEnum("privacy_class").notNull().default("restricted_pii"),
+  militaryStatus: militaryStatusEnum("military_status").notNull().default("unknown"),
+  compensationExpectations: text("compensation_expectations"),
+  careerInterests: text("career_interests"),
+  remotePreference: text("remote_preference"),
+  relocationWillingness: text("relocation_willingness"),
+  source: text("source"),
+  linkedinUrl: text("linkedin_url"),
+  ownerUserId: uuid("owner_user_id").references(() => users.id, { onDelete: "set null" }),
+  currentResumeFileId: uuid("current_resume_file_id").references(() => files.id, {
+    onDelete: "set null",
+  }),
+  lastContactedAt: timestamp("last_contacted_at", { withTimezone: true, mode: "date" }),
+  lastProfileReviewAt: timestamp("last_profile_review_at", { withTimezone: true, mode: "date" }),
+  doNotContact: boolean("do_not_contact").notNull().default(false),
   ...timestamps(),
 }, (table) => [
   index("candidates_organization_id_idx").on(table.organizationId),
+  index("candidates_owner_user_id_idx").on(table.ownerUserId),
+  index("candidates_current_resume_file_id_idx").on(table.currentResumeFileId),
   index("candidates_full_name_trgm_idx").using("gin", sql`${table.fullName} gin_trgm_ops`),
   index("candidates_current_title_trgm_idx").using("gin", sql`${table.currentTitle} gin_trgm_ops`),
 ]);
@@ -50,6 +73,11 @@ export const candidateSkills = pgTable("candidate_skills", {
     onDelete: "cascade",
   }),
   skillId: uuid("skill_id").notNull().references(() => skills.id, { onDelete: "restrict" }),
+  yearsExperience: integer("years_experience"),
+  proficiency: text("proficiency"),
+  source: text("source"),
+  confidence: integer("confidence"),
+  humanVerified: boolean("human_verified").notNull().default(false),
   ...timestamps(),
 }, (table) => [
   index("candidate_skills_candidate_id_idx").on(table.candidateId),
@@ -67,9 +95,12 @@ export const talentPools = pgTable("talent_pools", {
   poolType: talentPoolTypeEnum("pool_type").notNull().default("static"),
   scope: talentPoolScopeEnum("scope").notNull().default("organization"),
   description: text("description"),
+  ownerUserId: uuid("owner_user_id").references(() => users.id, { onDelete: "set null" }),
+  lastEvaluatedAt: timestamp("last_evaluated_at", { withTimezone: true, mode: "date" }),
   ...timestamps(),
 }, (table) => [
   index("talent_pools_organization_id_idx").on(table.organizationId),
+  index("talent_pools_owner_user_id_idx").on(table.ownerUserId),
   unique("talent_pools_organization_slug_uq").on(table.organizationId, table.slug),
 ]);
 
@@ -94,6 +125,8 @@ export const candidateTalentPools = pgTable("candidate_talent_pools", {
     onDelete: "cascade",
   }),
   source: poolMembershipSourceEnum("source").notNull().default("manual"),
+  matchScore: integer("match_score"),
+  removedAt: timestamp("removed_at", { withTimezone: true, mode: "date" }),
   ...timestamps(),
 }, (table) => [
   index("candidate_talent_pools_candidate_id_idx").on(table.candidateId),

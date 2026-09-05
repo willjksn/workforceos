@@ -8,6 +8,7 @@ describe("candidate PII presentation", () => {
     organizationId: "org",
     fullName: "Taylor Ellis",
     email: "taylor.ellis@talent.example.test",
+    phone: "555-0100",
     currentTitle: "Navy Electrician's Mate",
     availability: "available_now" as const,
     consentStatus: "granted" as const,
@@ -20,6 +21,7 @@ describe("candidate PII presentation", () => {
   it("hides email without candidate_pii.read", () => {
     const presented = presentCandidate(candidate, false);
     expect(presented.email).toBeNull();
+    expect(presented.phone).toBeNull();
     expect(presented.emailHidden).toBe(true);
     expect(presented.fullName).toBe("Taylor Ellis");
   });

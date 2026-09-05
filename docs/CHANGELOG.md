@@ -2,12 +2,21 @@
 
 ## Unreleased
 
+### Phase 2 — CRM Command Center
+
+- Added Command Center aggregates from live PostgreSQL counts.
+- Recast internal navigation around CRM, Talent Network, Recruiting, Military, and later-phase placeholders.
+- Added first-class Contacts, Opportunities, and Signals routes with scoring, review, conversion, and activity logging.
+- Expanded CRM/Talent schema for scoring, signals review, designations, and activities (`drizzle/0001_useful_frog_thor.sql`).
+- Seeded additional demo companies and candidates without changing Harbor graph acceptance counts.
+
 ### Phase 2 — operating UI
 
 - Added company CRM screens for companies, locations, contacts, signals, and opportunities.
 - Added Talent Network screens for candidates and pools, with Restricted PII redaction.
 - Added Professional Search jobs UI that always creates an internal Talent Network search project and scores job-specific matches.
 - Seeded versioned workflow steps for all five launch services.
+- Added Military Talent Opportunity Assessment UI: occupation translation, reverse civilian search, human-approved solution plans, and delivery projects.
 
 ### Phase 1 — technical foundation
 

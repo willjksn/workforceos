@@ -1,6 +1,10 @@
+import { eq } from "drizzle-orm";
+
 import { getDb } from "../index";
 import {
+  activities,
   agents,
+  candidateDesignations,
   candidateExperiences,
   candidateJobMatches,
   candidateMilitaryExperiences,
@@ -21,6 +25,7 @@ import {
   militaryOccupations,
   occupationSkills,
   opportunities,
+  opportunityScores,
   opportunitySignals,
   organizations,
   searchProjects,
@@ -361,10 +366,30 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
       clientStatus: "prospect",
       relationshipStrength: "moderate",
       website: "https://harbor.example.test",
+      industry: "advanced manufacturing",
+      subIndustry: "industrial electrical",
+      employeeCount: 420,
+      annualRevenue: "85000000.00",
+      accountOwnerUserId: USER_IDS.managingPartner,
+      militaryFitScore: 82,
+      workforceOpportunityScore: 74,
+      nextAction: "Schedule discovery with plant manager",
+      nextActionAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
     })
     .onConflictDoUpdate({
       target: companies.id,
-      set: { name: "Harbor Manufacturing", updatedAt: now() },
+      set: {
+        name: "Harbor Manufacturing",
+        industry: "advanced manufacturing",
+        employeeCount: 420,
+        annualRevenue: "85000000.00",
+        accountOwnerUserId: USER_IDS.managingPartner,
+        militaryFitScore: 82,
+        workforceOpportunityScore: 74,
+        nextAction: "Schedule discovery with plant manager",
+        nextActionAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+        updatedAt: now(),
+      },
     });
 
   const locationNames = ["Norfolk HQ", "Hampton Shop", "Virginia Beach Field Office"];
@@ -399,6 +424,9 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
         fullName,
         title,
         email: `${fullName.toLowerCase().replace(" ", ".")}@harbor.example.test`,
+        department: index === 1 ? "Human Resources" : "Operations",
+        buyerPersona: index === 0 ? "economic_buyer" : "influencer",
+        ownerUserId: USER_IDS.managingPartner,
       })
       .onConflictDoNothing();
     await db
@@ -415,15 +443,37 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
         companyId: COMPANY_ID,
         signalType: "hiring",
         title: "Electrician hiring surge",
+        details: "Plant is posting multiple electrician requisitions.",
+        evidence: "Public job postings and plant-manager conversation notes.",
+        source: "seed",
+        reviewStatus: "pending_review",
+        confidence: 80,
       },
       {
         id: "00000000-0000-4000-8400-000000000002",
         companyId: COMPANY_ID,
         signalType: "workforce_need",
         title: "Military talent exploration",
+        details: "Leadership asked about Navy electrician pipelines.",
+        evidence: "Discovery notes from Harbor HR.",
+        source: "seed",
+        reviewStatus: "approved",
+        confidence: 70,
       },
     ])
     .onConflictDoNothing();
+
+  await db
+    .update(opportunitySignals)
+    .set({
+      details: "Plant is posting multiple electrician requisitions.",
+      evidence: "Public job postings and plant-manager conversation notes.",
+      source: "seed",
+      reviewStatus: "pending_review",
+      confidence: 80,
+      updatedAt: now(),
+    })
+    .where(eq(opportunitySignals.id, "00000000-0000-4000-8400-000000000001"));
 
   await db
     .insert(opportunities)
@@ -433,6 +483,38 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
       companyId: COMPANY_ID,
       name: "Military electrician pipeline",
       stage: "qualified",
+      serviceCode: "military-talent-opportunity-assessment",
+      opportunityScore: 78,
+      scoreBand: "active_qualified",
+      ownerUserId: USER_IDS.managingPartner,
+      primaryContactId: "00000000-0000-4000-8300-000000000001",
+      problemStatement: "Harbor cannot fill electrician roles from local civilian supply.",
+    })
+    .onConflictDoUpdate({
+      target: opportunities.id,
+      set: {
+        serviceCode: "military-talent-opportunity-assessment",
+        opportunityScore: 78,
+        scoreBand: "active_qualified",
+        ownerUserId: USER_IDS.managingPartner,
+        primaryContactId: "00000000-0000-4000-8300-000000000001",
+        problemStatement: "Harbor cannot fill electrician roles from local civilian supply.",
+        updatedAt: now(),
+      },
+    });
+
+  await db
+    .insert(opportunityScores)
+    .values({
+      id: "00000000-0000-4000-8000-000000000811",
+      opportunityId: OPPORTUNITY_ID,
+      icpFit: 16,
+      triggerScore: 20,
+      demonstratedPain: 16,
+      serviceFit: 12,
+      buyerAccess: 8,
+      timingBudget: 6,
+      total: 78,
     })
     .onConflictDoNothing();
 
@@ -481,13 +563,28 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
       fullName: "Taylor Ellis",
       email: "taylor.ellis@talent.example.test",
       currentTitle: "Navy Electrician's Mate",
+      currentCompany: "U.S. Navy",
+      city: "Norfolk",
+      region: "VA",
+      yearsExperience: 8,
       availability: "available_now",
       consentStatus: "granted",
       privacyClass: "restricted_pii",
+      militaryStatus: "veteran",
+      source: "seed",
+      ownerUserId: USER_IDS.recruiter,
     })
     .onConflictDoUpdate({
       target: candidates.id,
-      set: { fullName: "Taylor Ellis", archivedAt: null, updatedAt: now() },
+      set: {
+        fullName: "Taylor Ellis",
+        currentCompany: "U.S. Navy",
+        city: "Norfolk",
+        region: "VA",
+        militaryStatus: "veteran",
+        archivedAt: null,
+        updatedAt: now(),
+      },
     });
 
   await db
@@ -537,6 +634,20 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
       })
       .onConflictDoNothing();
   }
+
+  await db
+    .insert(candidateDesignations)
+    .values({
+      id: "00000000-0000-4000-8000-000000000421",
+      candidateId: CANDIDATE_ID,
+      designationType: "silver_medalist",
+      reason: "Finalist on a prior electrician search",
+      createdByUserId: USER_IDS.recruiter,
+      active: true,
+    })
+    .onConflictDoNothing();
+
+  await seedAdditionalOperatingFixtures(db, poolIds, skillIds);
 
   const jobTitles = ["Plant Electrician", "Maintenance Electrician", "Controls Technician"];
   const jobIds: string[] = [];
@@ -732,6 +843,239 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
     .onConflictDoNothing();
 }
 
+async function seedAdditionalOperatingFixtures(
+  db: ReturnType<typeof getDb>,
+  poolIds: Record<string, string>,
+  skillIds: Record<string, string>,
+) {
+  const extraCompanies = [
+    {
+      id: "00000000-0000-4000-8000-000000000302",
+      name: "Tidewater Logistics",
+      companyType: "client" as const,
+      clientStatus: "active" as const,
+      relationshipStrength: "strong" as const,
+      industry: "logistics",
+      employeeCount: 900,
+      nextAction: "Quarterly talent review",
+      nextActionAt: new Date(Date.now() + 9 * 24 * 60 * 60 * 1000),
+    },
+    {
+      id: "00000000-0000-4000-8000-000000000303",
+      name: "Piedmont Health Systems",
+      companyType: "prospect" as const,
+      clientStatus: "prospect" as const,
+      relationshipStrength: "weak" as const,
+      industry: "healthcare",
+      employeeCount: 2100,
+    },
+    {
+      id: "00000000-0000-4000-8000-000000000304",
+      name: "Blue Ridge Energy",
+      companyType: "prospect" as const,
+      clientStatus: "prospect" as const,
+      relationshipStrength: "unknown" as const,
+      industry: "utilities",
+      employeeCount: 650,
+    },
+  ];
+
+  for (const company of extraCompanies) {
+    await db
+      .insert(companies)
+      .values({
+        ...company,
+        organizationId: INTERNAL_ORG_ID,
+        website: `https://${company.name.toLowerCase().replaceAll(" ", "")}.example.test`,
+        accountOwnerUserId: USER_IDS.managingPartner,
+      })
+      .onConflictDoUpdate({
+        target: companies.id,
+        set: { name: company.name, industry: company.industry, updatedAt: now() },
+      });
+  }
+
+  const extraContacts = [
+    ["00000000-0000-4000-8300-000000000005", "Morgan Blake", "VP Operations", extraCompanies[0].id],
+    ["00000000-0000-4000-8300-000000000006", "Casey Wright", "CHRO", extraCompanies[1].id],
+    ["00000000-0000-4000-8300-000000000007", "Riley Brooks", "Workforce Director", extraCompanies[2].id],
+  ] as const;
+  for (const [id, fullName, title, companyId] of extraContacts) {
+    await db
+      .insert(contacts)
+      .values({
+        id,
+        organizationId: INTERNAL_ORG_ID,
+        fullName,
+        title,
+        email: `${fullName.toLowerCase().replace(" ", ".")}@example.test`,
+        ownerUserId: USER_IDS.managingPartner,
+      })
+      .onConflictDoNothing();
+    await db
+      .insert(companyContacts)
+      .values({ companyId, contactId: id, isPrimary: true })
+      .onConflictDoNothing();
+  }
+
+  await db
+    .insert(opportunitySignals)
+    .values([
+      {
+        id: "00000000-0000-4000-8400-000000000003",
+        companyId: extraCompanies[0].id,
+        signalType: "expansion",
+        title: "New distribution hub hiring",
+        reviewStatus: "pending_review",
+        source: "seed",
+      },
+      {
+        id: "00000000-0000-4000-8400-000000000004",
+        companyId: extraCompanies[1].id,
+        signalType: "leadership_change",
+        title: "New CHRO evaluating TA model",
+        reviewStatus: "draft",
+        source: "seed",
+      },
+    ])
+    .onConflictDoNothing();
+
+  const extraOpportunities = [
+    {
+      id: "00000000-0000-4000-8000-000000000803",
+      companyId: extraCompanies[0].id,
+      name: "Maintenance technician retained search",
+      stage: "proposal" as const,
+      serviceCode: "professional-search",
+      opportunityScore: 84,
+      scoreBand: "priority" as const,
+      updatedAt: now(),
+    },
+    {
+      id: "00000000-0000-4000-8000-000000000804",
+      companyId: extraCompanies[1].id,
+      name: "TA performance diagnostic",
+      stage: "target" as const,
+      serviceCode: "ta-performance-assessment",
+      opportunityScore: 61,
+      scoreBand: "nurture" as const,
+      updatedAt: now(),
+    },
+    {
+      id: "00000000-0000-4000-8000-000000000805",
+      companyId: extraCompanies[2].id,
+      name: "Lineworker pipeline assessment",
+      stage: "identified" as const,
+      serviceCode: "workforce-pipeline-assessment",
+      opportunityScore: 44,
+      scoreBand: "monitor" as const,
+      updatedAt: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000),
+    },
+  ];
+  for (const opportunity of extraOpportunities) {
+    await db.insert(opportunities).values({
+      ...opportunity,
+      organizationId: INTERNAL_ORG_ID,
+      ownerUserId: USER_IDS.managingPartner,
+    }).onConflictDoNothing();
+  }
+
+  await db
+    .insert(opportunityScores)
+    .values({
+      id: "00000000-0000-4000-8000-000000000812",
+      opportunityId: extraOpportunities[0].id,
+      icpFit: 18,
+      triggerScore: 22,
+      demonstratedPain: 16,
+      serviceFit: 13,
+      buyerAccess: 8,
+      timingBudget: 7,
+      total: 84,
+    })
+    .onConflictDoNothing();
+
+  await db
+    .insert(activities)
+    .values({
+      id: "00000000-0000-4000-8a00-000000000001",
+      organizationId: INTERNAL_ORG_ID,
+      activityType: "meeting",
+      subject: "Harbor discovery prep",
+      companyId: COMPANY_ID,
+      opportunityId: OPPORTUNITY_ID,
+      createdByUserId: USER_IDS.managingPartner,
+      nextAction: "Send agenda to Alex Rivera",
+      followUpAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+    })
+    .onConflictDoNothing();
+
+  await db
+    .insert(talentPools)
+    .values({
+      id: "00000000-0000-4000-8500-000000000010",
+      organizationId: INTERNAL_ORG_ID,
+      slug: "partner-watchlist",
+      name: "Partner watchlist",
+      poolType: "static",
+      scope: "user",
+      ownerUserId: USER_IDS.managingPartner,
+    })
+    .onConflictDoNothing();
+
+  const extraCandidates = [
+    ["Casey Nguyen", "Controls Technician", "available_now", "none"],
+    ["Jordan Hale", "Maintenance Supervisor", "passive", "veteran"],
+    ["Avery Cole", "Power Plant Operator", "available_now", "veteran"],
+    ["Sam Ortiz", "HRBP", "passive", "none"],
+    ["Quinn Patel", "Electrical Engineer", "not_looking", "none"],
+    ["Reese Dalton", "Reliability Tech", "available_now", "reserve"],
+    ["Morgan Singh", "Plant Electrician", "passive", "veteran"],
+    ["Jamie Cross", "Talent Acquisition Lead", "passive", "none"],
+    ["Drew Fontaine", "Facilities Electrician", "available_now", "none"],
+    ["Harper Solis", "Operations Manager", "not_looking", "none"],
+    ["Logan Brooks", "Maintenance Electrician", "available_now", "national_guard"],
+  ] as const;
+
+  for (const [index, [fullName, title, availability, militaryStatus]] of extraCandidates.entries()) {
+    const id = `00000000-0000-4000-8000-${String(402 + index).padStart(12, "0")}`;
+    await db
+      .insert(candidates)
+      .values({
+        id,
+        organizationId: INTERNAL_ORG_ID,
+        fullName,
+        email: `${fullName.toLowerCase().replace(" ", ".")}@talent.example.test`,
+        currentTitle: title,
+        availability,
+        militaryStatus,
+        privacyClass: "restricted_pii",
+        consentStatus: "granted",
+        city: "Norfolk",
+        region: "VA",
+        source: "seed",
+        ownerUserId: USER_IDS.recruiter,
+      })
+      .onConflictDoNothing();
+    await db
+      .insert(candidateSkills)
+      .values({ candidateId: id, skillId: skillIds["electrical-troubleshooting"] })
+      .onConflictDoNothing();
+    if (index === 0) {
+      await db
+        .insert(candidateTalentPools)
+        .values({ candidateId: id, talentPoolId: poolIds.nurture, source: "system" })
+        .onConflictDoNothing();
+    }
+    if (militaryStatus !== "none") {
+      await db
+        .insert(candidateTalentPools)
+        .values({ candidateId: id, talentPoolId: poolIds["military-talent"], source: "system" })
+        .onConflictDoNothing();
+    }
+  }
+}
+
 async function seedRequirementsAndDecisions(db: ReturnType<typeof getDb>) {
   const requirementSeed = [
     ["WFOS-TAL-001", "talent", "Candidate may belong to multiple talent pools."],
@@ -751,6 +1095,8 @@ async function seedRequirementsAndDecisions(db: ReturnType<typeof getDb>) {
     ["WFOS-SEC-001", "security", "Database authorization must be server-side."],
     ["WFOS-SEC-002", "security", "Candidate data is Restricted PII."],
     ["WFOS-INT-001", "integrations", "External providers must connect through an Integration Hub abstraction."],
+    ["WFOS-CRM-001", "crm", "Command Center cards must use live PostgreSQL aggregates, not hardcoded metrics."],
+    ["WFOS-CRM-002", "crm", "Opportunity scores use the stored 100-point model and may be human-overridden with a reason."],
   ] as const;
 
   for (const [code, module, description] of requirementSeed) {
@@ -780,6 +1126,7 @@ async function seedRequirementsAndDecisions(db: ReturnType<typeof getDb>) {
     ["DEC-SEC-002", "No ownership or cap-table data", "Not stored in normal WorkforceOS."],
     ["DEC-SEM-001", "Temporary embedding dimension", "1536-dimension vectors until a production model is selected."],
     ["DEC-AUTH-001", "Clerk authenticates; PostgreSQL authorizes", "Local roles remain authoritative."],
+    ["DEC-CRM-001", "Phase 2 CRM scoring and first-class records", "Opportunities use a stored 100-point score. Contacts, opportunities, and signals are first-class records. Company annual revenue is operating size, not ownership."],
   ] as const;
 
   for (const [code, title, decision] of decisions) {

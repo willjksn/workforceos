@@ -12,3 +12,4 @@ export * from "./projects";
 export * from "./legal";
 export * from "./finance";
 export * from "./integrations";
+export * from "./operating";

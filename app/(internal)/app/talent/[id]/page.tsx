@@ -39,6 +39,26 @@ export default async function CandidateDetailPage({
       </p>
       <p className="mt-1 text-sm text-zinc-600">Consent: {candidate.consentStatus}</p>
 
+      {record.military.length > 0 ? (
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold">Military history</h2>
+          <ul className="mt-3 space-y-1 text-sm">
+            {record.military.map(({ experience, occupation }) => (
+              <li key={experience.id}>
+                {can(principal, "military.read") ? (
+                  <Link className="underline" href={`/app/military/${occupation.id}`}>
+                    {occupation.branch} {occupation.code} · {occupation.title}
+                  </Link>
+                ) : (
+                  `${occupation.branch} ${occupation.code} · ${occupation.title}`
+                )}
+                {experience.notes ? ` — ${experience.notes}` : ""}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       <section className="mt-10">
         <h2 className="text-lg font-semibold">Experience</h2>
         <ul className="mt-3 space-y-2 text-sm">
