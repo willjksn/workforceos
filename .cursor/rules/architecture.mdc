@@ -1,0 +1,16 @@
+---
+description: Enforce the approved WorkforceOS architecture and stack.
+alwaysApply: true
+---
+
+# WorkforceOS architecture
+
+Follow `docs/architecture/WORKFORCEOS_MASTER_SPEC.md`. Do not invent a new stack.
+
+Approved: Next.js App Router, TypeScript, Vercel, Neon PostgreSQL, Drizzle, Clerk, Inngest, S3-compatible storage abstraction, pgvector, pg_trgm, server-side database access, AI provider abstraction.
+
+Forbidden: Firebase, Firestore, temp staffing/payroll product features, public job marketplace, cap-table/ownership data.
+
+PostgreSQL is the system of record. External tools are integrations. AI agents draft and recommend; they do not own data or silently overwrite approved human decisions.
+
+Keep the root-level `app/` directory unless a documented decision changes it. Record architecture drift in `docs/decisions/` before implementing it.

@@ -1,0 +1,21 @@
+---
+description: WorkforceOS database and schema rules.
+globs: db/**/*.ts,drizzle/**/*.sql,lib/**/*.ts,scripts/**/*.ts
+alwaysApply: true
+---
+
+# WorkforceOS database
+
+Follow `docs/database/DATA_DICTIONARY.md` and `docs/database/SCHEMA_SPEC.md`.
+
+- UUID primary keys on important records.
+- `timestamptz` timestamps.
+- Index every foreign key.
+- Many-to-many only through junction tables.
+- Prefer relational columns over JSONB for data that is searched, filtered, joined, sorted, aggregated, or reported.
+- Change schema through Drizzle migrations. Do not apply undocumented production SQL.
+- Do not cascade-delete organizations.
+- Candidates are permanent Talent CRM records. Never duplicate a candidate per requisition.
+- `candidate_job_matches` are job-specific and unique on `(candidate_id, job_id)`.
+- Candidate privacy deletion is a separate controlled process from ordinary archive.
+- Do not store ownership percentages or cap-table data.

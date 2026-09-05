@@ -1,0 +1,16 @@
+---
+description: WorkforceOS service workflow and requirements rules.
+alwaysApply: true
+---
+
+# WorkforceOS workflows
+
+Follow `docs/workflows/SERVICE_WORKFLOWS.md` and `docs/requirements/REQUIREMENTS_REGISTRY.md`.
+
+- Support the five launch services only as documented: Professional Search, Military Talent Opportunity Assessment, TA Performance Assessment, Fractional Talent Partner, Workforce Pipeline Assessment.
+- Service workflows are version-controlled database records. Agents must query an approved workflow rather than hardcode material process rules.
+- Do not improvise material workflow, matching, or military-mapping rules in prompts or agent code.
+- New jobs search the internal Talent Network before external sourcing.
+- Material AI recommendations need provenance. Material client-facing AI outputs need human approval. Agents cannot approve their own material output.
+- Legal packages belong inside operational workflows and must link to services/engagements.
+- External providers stay behind the Integration Hub.
