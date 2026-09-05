@@ -1,25 +1,36 @@
 import { getDb } from "@/db";
 import { requirements } from "@/db/schema";
-import { requireCurrentPrincipal } from "@/lib/auth/session";
+import { requirePlatformAdmin } from "@/lib/auth/guard";
+import { EmptyState, PageHeader, PageShell, formatLabel } from "../../_components/ui";
 
 export default async function RequirementsAdminPage() {
-  await requireCurrentPrincipal();
+  await requirePlatformAdmin();
   const db = getDb();
   const rows = await db.select().from(requirements);
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
-      <h1 className="text-2xl font-semibold">Requirements</h1>
-      <ul className="mt-6 space-y-3 text-sm">
-        {rows.map((row) => (
-          <li key={row.id} className="border-b pb-3">
-            <strong>{row.code}</strong> — {row.title}
-            <div className="text-zinc-600">
-              {row.module} / {row.status}
-            </div>
-          </li>
-        ))}
-      </ul>
-    </main>
+    <PageShell>
+      <PageHeader
+        eyebrow="Admin / Internal"
+        title="Requirements registry"
+        description="This mirrors locked product requirements for engineering. It is not part of daily firm operations."
+      />
+      {rows.length === 0 ? (
+        <EmptyState>No requirements are recorded.</EmptyState>
+      ) : (
+        <ul className="mt-8 space-y-4 text-sm">
+          {rows.map((row) => (
+            <li key={row.id} className="border-b border-border pb-3">
+              <p className="font-medium text-navy">
+                {row.code} — {row.title}
+              </p>
+              <p className="mt-1 text-muted-foreground">
+                {formatLabel(row.module)} · {formatLabel(row.status)}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </PageShell>
   );
 }

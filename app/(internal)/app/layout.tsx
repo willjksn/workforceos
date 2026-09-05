@@ -1,14 +1,23 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import { and, count, eq } from "drizzle-orm";
 
-import { AuthControls } from "@/app/auth-controls";
-import { AuthorizationError } from "@/lib/rbac/permissions";
+import { AppShell } from "@/components/layout/app-shell";
+import { navGroupsForPrincipal } from "@/components/navigation/nav-config";
+import { getDb } from "@/db";
+import { approvals } from "@/db/schema";
 import { getCurrentPrincipal } from "@/lib/auth/session";
-
-import { AppNav, MobileAppNav } from "./_components/app-nav";
-import { navGroupsForPrincipal } from "./_components/nav-config";
+import { AuthorizationError } from "@/lib/rbac/permissions";
 
 export const dynamic = "force-dynamic";
+
+async function pendingApprovalCount(organizationId: string) {
+  const db = getDb();
+  const [row] = await db
+    .select({ value: count() })
+    .from(approvals)
+    .where(and(eq(approvals.organizationId, organizationId), eq(approvals.status, "pending")));
+  return Number(row?.value ?? 0);
+}
 
 export default async function InternalAppLayout({
   children,
@@ -20,8 +29,8 @@ export default async function InternalAppLayout({
     if (error instanceof AuthorizationError) {
       return (
         <main className="mx-auto max-w-xl px-6 py-16">
-          <h1 className="text-2xl font-semibold">Access denied</h1>
-          <p className="mt-4 text-zinc-600">{error.message}</p>
+          <h1 className="page-title">Access denied</h1>
+          <p className="mt-4 text-muted-foreground">{error.message}</p>
         </main>
       );
     }
@@ -33,30 +42,11 @@ export default async function InternalAppLayout({
   }
 
   const groups = navGroupsForPrincipal(principal);
+  const pendingApprovals = await pendingApprovalCount(principal.organizationId);
 
   return (
-    <div className="flex min-h-full">
-      <aside className="hidden w-56 shrink-0 border-r px-3 py-6 md:block">
-        <Link href="/app" className="block px-2 text-sm font-semibold">
-          WorkforceOS
-        </Link>
-        <div className="mt-6">
-          <AppNav groups={groups} />
-        </div>
-      </aside>
-      <div className="min-w-0 flex-1">
-        <header className="border-b px-6 py-3 text-sm">
-          <div className="flex items-center justify-between gap-4">
-            <Link href="/app" className="font-semibold md:hidden">
-              WorkforceOS
-            </Link>
-            <p className="hidden text-zinc-500 md:block">Internal operating system</p>
-            <AuthControls />
-          </div>
-          <MobileAppNav groups={groups} />
-        </header>
-        {children}
-      </div>
-    </div>
+    <AppShell groups={groups} pendingApprovals={pendingApprovals}>
+      {children}
+    </AppShell>
   );
 }

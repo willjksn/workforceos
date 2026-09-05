@@ -3,6 +3,7 @@ import { desc } from "drizzle-orm";
 import { getDb } from "@/db";
 import { approvals } from "@/db/schema";
 import { requireCurrentPrincipal } from "@/lib/auth/session";
+import { EmptyState, PageHeader, PageShell, StatusBadge, formatLabel } from "../../_components/ui";
 
 export default async function ApprovalsAdminPage() {
   await requireCurrentPrincipal();
@@ -10,28 +11,42 @@ export default async function ApprovalsAdminPage() {
   const rows = await db.select().from(approvals).orderBy(desc(approvals.createdAt)).limit(50);
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
-      <h1 className="text-2xl font-semibold">Approvals</h1>
-      <table className="mt-6 w-full text-left text-sm">
-        <thead>
-          <tr>
-            <th className="py-2">Type</th>
-            <th>Status</th>
-            <th>Record</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.id} className="border-b">
-              <td className="py-2">{row.approvalType}</td>
-              <td>{row.status}</td>
-              <td>
-                {row.recordType}:{row.recordId}
-              </td>
+    <PageShell>
+      <PageHeader
+        eyebrow="Admin"
+        title="Approvals"
+        description="Material AI drafts and client-facing outputs wait here for a person. Agents cannot approve their own work."
+      />
+      {rows.length === 0 ? (
+        <EmptyState title="Nothing waiting">
+          When a recommendation or client-facing draft needs a human decision, it will appear here.
+        </EmptyState>
+      ) : (
+        <table className="mt-8 w-full text-left text-sm">
+          <thead>
+            <tr>
+              <th>What needs review</th>
+              <th>Status</th>
+              <th>Record</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </main>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.id}>
+                <td>{formatLabel(row.approvalType)}</td>
+                <td>
+                  <StatusBadge tone={row.status === "pending" ? "warning" : row.status === "approved" ? "success" : "neutral"}>
+                    {formatLabel(row.status)}
+                  </StatusBadge>
+                </td>
+                <td className="text-muted-foreground">
+                  {formatLabel(row.recordType)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </PageShell>
   );
 }

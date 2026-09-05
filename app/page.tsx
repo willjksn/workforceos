@@ -1,27 +1,26 @@
 import { AuthControls } from "./auth-controls";
+import { BrandMark } from "@/components/branding/brand-mark";
 
 export default function Home() {
   return (
-    <main className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-center gap-6 px-6 py-16">
+    <main className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-center gap-8 px-6 py-16">
       <div className="flex items-start justify-between gap-4">
-        <p className="text-sm uppercase tracking-[0.2em] text-zinc-500">
-          Internal operating system
-        </p>
+        <BrandMark showTagline />
         <AuthControls />
       </div>
-      <h1 className="text-4xl font-semibold tracking-tight">WorkforceOS</h1>
-      <p className="max-w-xl text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-        Foundation phase for CRM, Talent Network, recruiting, military talent,
-        workforce development, legal, finance, and internal AI operations.
-      </p>
+      <div>
+        <p className="eyebrow">Internal operating system</p>
+        <h1 className="page-title mt-3">People. Workforce. Opportunity.</h1>
+        <p className="mt-4 max-w-xl text-[16px] leading-7 text-muted-foreground">
+          WorkforceOS is the operating system behind PierOne Partners. PostgreSQL remains the system of
+          record. Agents draft; people approve.
+        </p>
+      </div>
       <div className="flex gap-3">
-        <a
-          className="rounded-full bg-foreground px-5 py-3 text-background"
-          href="/sign-in"
-        >
+        <a className="rounded-[6px] bg-navy px-5 py-2.5 text-sm text-white" href="/sign-in">
           Sign in
         </a>
-        <a className="rounded-full border px-5 py-3" href="/app">
+        <a className="rounded-[6px] border border-navy px-5 py-2.5 text-sm text-navy" href="/app">
           Open app
         </a>
       </div>

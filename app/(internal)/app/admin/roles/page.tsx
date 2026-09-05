@@ -1,27 +1,51 @@
 import { requireAppPermission } from "@/lib/auth/guard";
+import { guideForRole } from "@/lib/rbac/role-guide";
 import { listOrganizationRoles } from "@/lib/repositories/platform";
-import { EmptyState, PageHeader } from "../../_components/ui";
+import { EmptyState, PageHeader, PageShell } from "../../_components/ui";
 
 export default async function AdminRolesPage() {
   const principal = await requireAppPermission("admin.roles");
   const rows = await listOrganizationRoles(principal.organizationId);
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
-      <PageHeader title="Roles" description="Authorization roles stored in PostgreSQL, not Clerk metadata." />
+    <PageShell>
+      <PageHeader
+        eyebrow="Admin"
+        title="Roles & access"
+        description="People sign in with Clerk. Assign their WorkforceOS role on People. Managing Partner and Strategy & Technology Administrator can assign roles. Only a Managing Partner can grant Managing Partner."
+      />
       {rows.length === 0 ? (
-        <EmptyState>No roles.</EmptyState>
+        <EmptyState>No roles are configured for this organization.</EmptyState>
       ) : (
-        <ul className="mt-6 space-y-2 text-sm">
-          {rows.map((role) => (
-            <li key={role.id}>
-              <span className="font-medium">{role.name}</span>
-              <span className="text-zinc-500"> · {role.slug}</span>
-              {role.description ? <p className="text-zinc-600">{role.description}</p> : null}
-            </li>
-          ))}
-        </ul>
+        <table className="mt-8 w-full text-left text-sm">
+          <thead>
+            <tr>
+              <th>Role</th>
+              <th>Who it is for</th>
+              <th>What they can do</th>
+              <th>People</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((role) => {
+              const guide = guideForRole(role.slug);
+              return (
+                <tr key={role.id}>
+                  <td className="align-top">
+                    <p className="font-medium text-navy">{role.name}</p>
+                    {role.description ? (
+                      <p className="mt-1 text-xs text-muted-foreground">{role.description}</p>
+                    ) : null}
+                  </td>
+                  <td className="align-top text-muted-foreground">{guide.audience}</td>
+                  <td className="align-top text-muted-foreground">{guide.access}</td>
+                  <td className="align-top">{Number(role.assignedCount)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       )}
-    </main>
+    </PageShell>
   );
 }

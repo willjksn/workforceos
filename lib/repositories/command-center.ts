@@ -3,6 +3,7 @@ import { and, count, desc, eq, gte, inArray, isNull, lt, notInArray, or } from "
 import { getDb } from "../../db";
 import {
   activities,
+  approvals,
   candidateDesignations,
   candidates,
   companies,
@@ -66,6 +67,10 @@ export async function getCommandCenterSnapshot(organizationId: string) {
     profilesNeedingReview,
     rediscoveryDue,
     openJobs,
+    priorityOpportunityRows,
+    pendingApprovals,
+    recentActivities,
+    talentAttention,
   ] = await Promise.all([
     counted(
       db
@@ -239,6 +244,66 @@ export async function getCommandCenterSnapshot(organizationId: string) {
         .from(jobs)
         .where(and(eq(jobs.organizationId, organizationId), isNull(jobs.archivedAt), eq(jobs.status, "open"))),
     ),
+    db
+      .select({
+        id: opportunities.id,
+        name: opportunities.name,
+        opportunityScore: opportunities.opportunityScore,
+        scoreBand: opportunities.scoreBand,
+        serviceCode: opportunities.serviceCode,
+        companyName: companies.name,
+      })
+      .from(opportunities)
+      .innerJoin(companies, eq(opportunities.companyId, companies.id))
+      .where(
+        and(
+          opportunityScope,
+          notInArray(opportunities.stage, [...CLOSED_OPPORTUNITY_STAGES]),
+          or(eq(opportunities.scoreBand, "priority"), gte(opportunities.opportunityScore, 80)),
+        ),
+      )
+      .orderBy(desc(opportunities.opportunityScore))
+      .limit(6),
+    db
+      .select({
+        id: approvals.id,
+        approvalType: approvals.approvalType,
+        recordType: approvals.recordType,
+        status: approvals.status,
+        createdAt: approvals.createdAt,
+      })
+      .from(approvals)
+      .where(and(eq(approvals.organizationId, organizationId), eq(approvals.status, "pending")))
+      .orderBy(desc(approvals.createdAt))
+      .limit(6),
+    db
+      .select({
+        id: activities.id,
+        subject: activities.subject,
+        activityType: activities.activityType,
+        occurredAt: activities.occurredAt,
+      })
+      .from(activities)
+      .where(and(eq(activities.organizationId, organizationId), isNull(activities.archivedAt)))
+      .orderBy(desc(activities.occurredAt))
+      .limit(8),
+    db
+      .select({
+        id: candidates.id,
+        fullName: candidates.fullName,
+        currentTitle: candidates.currentTitle,
+        lastContactedAt: candidates.lastContactedAt,
+        lastProfileReviewAt: candidates.lastProfileReviewAt,
+      })
+      .from(candidates)
+      .where(
+        and(
+          candidateScope,
+          or(isNull(candidates.lastProfileReviewAt), lt(candidates.lastContactedAt, rediscoveryBefore)),
+        ),
+      )
+      .orderBy(candidates.fullName)
+      .limit(6),
   ]);
 
   return {
@@ -283,5 +348,9 @@ export async function getCommandCenterSnapshot(organizationId: string) {
     recruiting: {
       openJobs,
     },
+    pendingApprovals,
+    recentActivities,
+    talentAttention,
+    priorityOpportunities: priorityOpportunityRows,
   };
 }

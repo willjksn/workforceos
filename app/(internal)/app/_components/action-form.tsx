@@ -16,7 +16,7 @@ export function ActionForm({
   const [state, formAction] = useActionState(action, {});
   return (
     <form action={formAction} className={className}>
-      {state.error ? <p className="text-sm text-red-600">{state.error}</p> : null}
+      {state.error ? <p className="text-sm text-danger">{state.error}</p> : null}
       {children}
     </form>
   );

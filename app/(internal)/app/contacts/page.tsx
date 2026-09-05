@@ -19,7 +19,7 @@ export default async function ContactsPage({
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
-      <PageHeader title="Contacts" description="Buyer and stakeholder contacts across prospect and client companies." />
+      <PageHeader eyebrow="CRM / Contacts" title="Contacts" description="Buyer and stakeholder contacts across prospect and client companies." />
       <form action="/app/contacts" className="mt-6 flex flex-wrap gap-2">
         <input
           name="q"

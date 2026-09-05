@@ -1,4 +1,4 @@
-import { and, eq, ilike, isNull, lt, or } from "drizzle-orm";
+import { and, count, eq, ilike, isNull, lt, or } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
@@ -168,6 +168,28 @@ export async function listTalentPools(organizationId: string) {
     .from(talentPools)
     .where(and(eq(talentPools.organizationId, organizationId), isNull(talentPools.archivedAt)))
     .orderBy(talentPools.name);
+}
+
+export async function listTalentPoolSummaries(organizationId: string) {
+  const pools = await listTalentPools(organizationId);
+  const db = getDb();
+  const counts = await db
+    .select({
+      poolId: candidateTalentPools.talentPoolId,
+      value: count(),
+    })
+    .from(candidateTalentPools)
+    .innerJoin(candidates, eq(candidateTalentPools.candidateId, candidates.id))
+    .where(
+      and(
+        eq(candidates.organizationId, organizationId),
+        isNull(candidates.archivedAt),
+        isNull(candidateTalentPools.removedAt),
+      ),
+    )
+    .groupBy(candidateTalentPools.talentPoolId);
+  const countByPool = new Map(counts.map((row) => [row.poolId, Number(row.value)]));
+  return pools.map((pool) => ({ pool, memberCount: countByPool.get(pool.id) ?? 0 }));
 }
 
 export async function getTalentPool(poolId: string, organizationId: string) {

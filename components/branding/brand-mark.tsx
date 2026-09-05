@@ -1,0 +1,71 @@
+const MARK_PATH =
+  "M30 91 L19 96 L13 100 L13 149 L15 150 L23 150 L24 149 L29 150 L31 147 L31 102 L30 101 L31 99 L31 94 Z M67 75 L51 82 L49 82 L47 84 L47 149 L49 150 L66 150 L67 149 Z M163 55 L162 54 L148 54 L147 55 L131 56 L130 57 L116 59 L111 61 L107 61 L100 64 L97 64 L85 68 L84 69 L84 113 L108 113 L109 112 L115 112 L116 111 L123 110 L132 106 L134 106 L144 100 L155 89 L160 80 L161 74 L162 73 L162 69 L163 68 Z M125 53 L122 53 L121 54 L119 53 L118 54 L107 54 L106 55 L99 55 L98 56 L92 56 L91 57 L80 58 L75 60 L70 60 L66 62 L55 64 L48 67 L45 67 L36 70 L33 72 L31 72 L28 74 L26 74 L10 82 L10 90 L13 90 L23 84 L33 81 L49 74 L54 73 L57 71 L71 67 L74 65 L77 65 L84 62 L87 62 L90 60 L94 60 L99 58 L103 58 L104 57 L112 56 L113 55 L119 55 Z M26 11 L26 65 L29 65 L32 63 L35 63 L52 57 L56 57 L57 56 L65 55 L70 53 L76 53 L77 52 L82 52 L83 51 L91 51 L92 50 L104 50 L105 49 L145 49 L146 50 L158 50 L159 51 L162 50 L160 44 L155 35 L145 25 L129 16 L120 13 L111 12 L110 11 L105 11 L104 10 L34 10 L33 11 Z";
+
+export function PierOneMark({
+  className,
+  tone = "onLight",
+  title,
+}: {
+  className?: string;
+  tone?: "onLight" | "onNavy" | "mono";
+  title?: string;
+}) {
+  const gradientId = `pierone-${tone}`;
+  const start = tone === "onNavy" ? "#8FB3C0" : tone === "mono" ? "#6B7280" : "#4E7B8C";
+  const end = tone === "onNavy" ? "#F4F7F8" : tone === "mono" ? "#6B7280" : "#0F2D4A";
+
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 174 161"
+      fill="none"
+      role={title ? "img" : "presentation"}
+      aria-hidden={title ? undefined : true}
+      focusable="false"
+    >
+      {title ? <title>{title}</title> : null}
+      <defs>
+        <linearGradient id={gradientId} x1="35" y1="161" x2="130" y2="0">
+          <stop offset="0" stopColor={start} />
+          <stop offset="0.55" stopColor={end} />
+        </linearGradient>
+      </defs>
+      <path fill={`url(#${gradientId})`} fillRule="evenodd" d={MARK_PATH} />
+    </svg>
+  );
+}
+
+export function BrandMark({
+  compact = false,
+  tone = "onLight",
+  showTagline = false,
+}: {
+  compact?: boolean;
+  tone?: "onLight" | "onNavy" | "mono";
+  showTagline?: boolean;
+}) {
+  const nameColor = tone === "onNavy" ? "text-white" : tone === "mono" ? "text-slate" : "text-navy";
+  const oneColor = tone === "onNavy" ? "text-[#b7d0d8]" : tone === "mono" ? "text-slate" : "text-teal";
+  const subColor = tone === "onNavy" ? "text-sidebar-muted" : "text-muted-foreground";
+
+  return (
+    <div className={`flex items-center ${compact ? "gap-2.5" : "gap-3.5"}`}>
+      <PierOneMark className={compact ? "h-10 w-11" : "h-14 w-[3.75rem]"} tone={tone} />
+      <div className="min-w-0 leading-tight">
+        <p className={`font-serif font-semibold tracking-tight ${compact ? "text-xl" : "text-[1.7rem]"} ${nameColor}`}>
+          Pier<span className={oneColor}>One</span>
+        </p>
+        <p
+          className={`mt-0.5 font-medium uppercase ${compact ? "text-[9px] tracking-[0.28em]" : "text-[10px] tracking-[0.32em]"} ${subColor}`}
+        >
+          Partners
+        </p>
+        {showTagline ? (
+          <p className={`mt-1.5 text-[9px] font-medium uppercase tracking-[0.2em] ${subColor}`}>
+            Talent. Workforce. Opportunity.
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
+}

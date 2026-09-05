@@ -5,6 +5,8 @@ import { requireAppPermission } from "@/lib/auth/guard";
 import { listCompanies } from "@/lib/repositories/crm";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../_components/action-form";
+import { StatusBadge } from "../_components/ui";
+import { ButtonLink } from "@/components/ui/button";
 import { Field, PageHeader, PrimaryButton, SearchForm, inputClassName } from "../_components/ui";
 
 export default async function CompaniesPage({
@@ -17,10 +19,12 @@ export default async function CompaniesPage({
   const rows = await listCompanies(principal.organizationId, q);
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
+    <main className="mx-auto max-w-5xl px-6 py-10">
       <PageHeader
+        eyebrow="CRM / Account intelligence"
         title="Companies"
-        description="Prospect and client companies. This is company CRM, not a public marketplace."
+        description="Understand client relationships, workforce signals, and revenue opportunities."
+        actions={can(principal, "companies.write") ? <ButtonLink href="#add-company" variant="primary">Add company</ButtonLink> : undefined}
       />
       <SearchForm action="/app/companies" q={q} placeholder="Search company name" />
       {rows.length === 0 ? (
@@ -39,12 +43,16 @@ export default async function CompaniesPage({
             {rows.map((company) => (
               <tr key={company.id} className="border-b">
                 <td className="py-2">
-                  <Link className="underline" href={`/app/companies/${company.id}`}>
+                  <Link className="font-medium text-navy" href={`/app/companies/${company.id}`}>
                     {company.name}
                   </Link>
                 </td>
                 <td>{company.companyType}</td>
-                <td>{company.clientStatus}</td>
+                <td>
+                  <StatusBadge tone={company.clientStatus === "active" ? "success" : "navy"}>
+                    {company.clientStatus}
+                  </StatusBadge>
+                </td>
                 <td>{company.industry ?? "—"}</td>
               </tr>
             ))}
@@ -52,8 +60,8 @@ export default async function CompaniesPage({
         </table>
       )}
       {can(principal, "companies.write") ? (
-        <section className="mt-10">
-          <h2 className="text-lg font-semibold">Add company</h2>
+        <section className="mt-10" id="add-company">
+          <h2 className="section-title">Add company</h2>
           <ActionForm action={createCompanyAction} className="mt-4 max-w-xl space-y-3">
             <Field label="Name" name="name">
               <input className={inputClassName} id="name" name="name" required />

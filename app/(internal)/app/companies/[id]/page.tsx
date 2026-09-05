@@ -19,6 +19,7 @@ import {
   Field,
   PageHeader,
   PrimaryButton,
+  StatusBadge,
   TabNav,
   formatDate,
   formatLabel,
@@ -26,7 +27,7 @@ import {
 } from "../../_components/ui";
 
 const CRM_TABS = ["overview", "contacts", "opportunities", "signals", "locations", "activity"] as const;
-const PLACEHOLDER_TABS = ["jobs", "legal", "finance", "projects"] as const;
+const PLACEHOLDER_TABS = ["jobs", "legal", "finance", "projects", "talent", "workforce"] as const;
 
 export default async function CompanyDetailPage({
   params,
@@ -57,6 +58,8 @@ export default async function CompanyDetailPage({
     { id: "contacts", label: "Contacts" },
     { id: "opportunities", label: "Opportunities" },
     { id: "signals", label: "Signals" },
+    { id: "talent", label: "Talent" },
+    { id: "workforce", label: "Workforce" },
     { id: "locations", label: "Locations" },
     { id: "activity", label: "Activity" },
     { id: "jobs", label: "Jobs" },
@@ -68,14 +71,41 @@ export default async function CompanyDetailPage({
   return (
     <main className="mx-auto max-w-4xl px-6 py-10">
       <PageHeader
+        eyebrow="CRM / Company intelligence"
         title={company.name}
-        description={`${company.companyType} · ${company.clientStatus} · relationship ${company.relationshipStrength}`}
+        description={[company.industry, graph.locations.find((row) => row.isPrimary)?.city ?? graph.locations[0]?.city]
+          .filter(Boolean)
+          .join(" · ") || `${company.companyType} · ${company.clientStatus}`}
+        metadata={
+          <div className="flex flex-wrap gap-2">
+            <StatusBadge tone={company.clientStatus === "active" ? "success" : "navy"}>{company.clientStatus}</StatusBadge>
+            <StatusBadge tone="neutral">relationship {company.relationshipStrength}</StatusBadge>
+          </div>
+        }
       />
       <TabNav items={tabs} activeId={tab} />
 
       {tab === "overview" ? (
         <section className="mt-6">
-          <dl className="grid gap-3 text-sm sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-[8px] border border-card-border bg-card px-4 py-3">
+              <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Status</p>
+              <p className="mt-1 font-medium text-navy">{company.clientStatus}</p>
+            </div>
+            <div className="rounded-[8px] border border-card-border bg-card px-4 py-3">
+              <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Workforce opportunity</p>
+              <p className="mt-1 font-serif text-3xl font-semibold text-navy">{company.workforceOpportunityScore ?? "—"}</p>
+            </div>
+            <div className="rounded-[8px] border border-card-border bg-card px-4 py-3">
+              <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Military fit</p>
+              <p className="mt-1 font-serif text-3xl font-semibold text-navy">{company.militaryFitScore ?? "—"}</p>
+            </div>
+            <div className="rounded-[8px] border border-card-border bg-card px-4 py-3">
+              <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Relationship health</p>
+              <p className="mt-1 font-medium text-navy">{company.relationshipStrength}</p>
+            </div>
+          </div>
+          <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-zinc-500">Industry</dt>
               <dd>{company.industry ?? "—"}</dd>
@@ -327,8 +357,8 @@ export default async function CompanyDetailPage({
         </section>
       ) : null}
 
-      {tab === "legal" || tab === "finance" || tab === "projects" ? (
-        <p className="mt-6 text-sm text-zinc-600">Not yet implemented in this phase.</p>
+      {tab === "talent" || tab === "workforce" || tab === "legal" || tab === "finance" || tab === "projects" ? (
+        <p className="mt-6 text-sm text-muted-foreground">Not yet implemented in this phase.</p>
       ) : null}
     </main>
   );

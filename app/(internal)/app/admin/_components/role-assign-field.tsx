@@ -1,0 +1,139 @@
+"use client";
+
+import { startTransition, useActionState, useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
+
+type ActionState = { error?: string; ok?: boolean; roleSlug?: string };
+
+const selectClassName =
+  "w-full cursor-pointer appearance-none border-0 border-b border-transparent bg-transparent py-1 pr-6 text-sm text-navy hover:border-border focus:border-navy focus-visible:outline-none disabled:cursor-wait disabled:text-muted-foreground";
+
+function submitFormAction(
+  formAction: (payload: FormData) => void,
+  fields: Record<string, string>,
+) {
+  const payload = new FormData();
+  for (const [key, value] of Object.entries(fields)) {
+    payload.set(key, value);
+  }
+  startTransition(() => {
+    formAction(payload);
+  });
+}
+
+export function RoleAssignField({
+  userId,
+  fullName,
+  currentSlug,
+  roles,
+  action,
+}: {
+  userId: string;
+  fullName: string;
+  currentSlug: string;
+  roles: Array<{ id: string; slug: string; name: string }>;
+  action: (state: ActionState, formData: FormData) => Promise<ActionState>;
+}) {
+  const [state, formAction, pending] = useActionState(action, {});
+  const [value, setValue] = useState(currentSlug);
+
+  useEffect(() => {
+    if (state.roleSlug) setValue(state.roleSlug);
+  }, [state.roleSlug]);
+
+  useEffect(() => {
+    if (state.error) setValue(currentSlug);
+  }, [state.error, currentSlug]);
+
+  return (
+    <div className="max-w-[16rem]">
+      <div className="relative">
+        <select
+          value={value}
+          disabled={pending}
+          aria-label={`Role for ${fullName}`}
+          className={selectClassName}
+          onChange={(event) => {
+            const next = event.currentTarget.value;
+            setValue(next);
+            const committed = state.roleSlug ?? currentSlug;
+            if (next === committed) return;
+            submitFormAction(formAction, { userId, roleSlug: next });
+          }}
+        >
+          {!value ? (
+            <option value="" disabled>
+              Assign a role
+            </option>
+          ) : null}
+          {roles.map((role) => (
+            <option key={role.id} value={role.slug}>
+              {role.name}
+            </option>
+          ))}
+        </select>
+        <ChevronDown
+          className="pointer-events-none absolute right-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+          strokeWidth={1.5}
+          aria-hidden
+        />
+      </div>
+      {pending ? <p className="mt-1 text-[11px] text-muted-foreground">Saving…</p> : null}
+      {state.error ? <p className="mt-1 text-[11px] text-danger">{state.error}</p> : null}
+    </div>
+  );
+}
+
+export function UserStatusField({
+  userId,
+  fullName,
+  status,
+  action,
+}: {
+  userId: string;
+  fullName: string;
+  status: "active" | "invited" | "disabled";
+  action: (state: ActionState, formData: FormData) => Promise<ActionState>;
+}) {
+  const [state, formAction, pending] = useActionState(action, {});
+  const [value, setValue] = useState(status);
+
+  useEffect(() => {
+    if (state.error) setValue(status);
+  }, [state.error, status]);
+
+  return (
+    <div className="max-w-[10rem]">
+      <div className="relative">
+        <select
+          value={value}
+          disabled={pending}
+          aria-label={`Access for ${fullName}`}
+          className={selectClassName}
+          onChange={(event) => {
+            const next = event.currentTarget.value;
+            if (next === "archived") {
+              setValue(status);
+            } else {
+              setValue(next);
+            }
+            if (next === status) return;
+            submitFormAction(formAction, { userId, status: next });
+          }}
+        >
+          {status === "invited" ? <option value="invited">Invited</option> : null}
+          <option value="active">Active</option>
+          <option value="disabled">Disabled</option>
+          <option value="archived">Archived</option>
+        </select>
+        <ChevronDown
+          className="pointer-events-none absolute right-0 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+          strokeWidth={1.5}
+          aria-hidden
+        />
+      </div>
+      {pending ? <p className="mt-1 text-[11px] text-muted-foreground">Saving…</p> : null}
+      {state.error ? <p className="mt-1 text-[11px] text-danger">{state.error}</p> : null}
+    </div>
+  );
+}

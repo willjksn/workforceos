@@ -23,13 +23,10 @@ export default async function TalentPage({
   return (
     <main className="mx-auto max-w-4xl px-6 py-10">
       <PageHeader
+        eyebrow="Talent Network / Candidates"
         title="Talent Network"
         description="Permanent candidate records. One person is never duplicated per job. Email is Restricted PII."
-        actions={
-          <Link className="rounded-full border px-4 py-2 text-sm" href="/app/talent/pools">
-            Pools
-          </Link>
-        }
+        actions={<Link className="rounded-[6px] border border-navy px-4 py-2 text-sm text-navy" href="/app/talent/pools">Pools</Link>}
       />
       <SearchForm action="/app/talent" q={q} placeholder="Search name or title" />
       {rows.length === 0 ? (
@@ -48,7 +45,7 @@ export default async function TalentPage({
             {rows.map((candidate) => (
               <tr key={candidate.id} className="border-b">
                 <td className="py-2">
-                  <Link className="underline" href={`/app/talent/${candidate.id}`}>
+                  <Link className="font-medium text-navy" href={`/app/talent/${candidate.id}`}>
                     {candidate.fullName}
                   </Link>
                 </td>
@@ -64,7 +61,7 @@ export default async function TalentPage({
       )}
       {can(principal, "candidates.write") ? (
         <section className="mt-10">
-          <h2 className="text-lg font-semibold">Add candidate</h2>
+          <h2 className="section-title">Add candidate</h2>
           <ActionForm action={createCandidateAction} className="mt-4 max-w-xl space-y-3">
             <Field label="Full name" name="fullName">
               <input className={inputClassName} id="fullName" name="fullName" required />

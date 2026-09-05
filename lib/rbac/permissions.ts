@@ -149,6 +149,11 @@ export function canAny(principal: Principal, permissions: Permission[]) {
   return permissions.some((permission) => can(principal, permission));
 }
 
+/** Managing Partner and the two Administrator roles. Not recruiters or other operating staff. */
+export function isPlatformAdmin(principal: Principal) {
+  return can(principal, "admin.users") || can(principal, "admin.roles");
+}
+
 export function hasRole(principal: Principal, roleSlug: RoleSlug) {
   return principal.roleSlugs.includes(roleSlug);
 }

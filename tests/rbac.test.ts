@@ -4,9 +4,11 @@ import {
   AuthorizationError,
   ROLE_PERMISSIONS,
   can,
+  isPlatformAdmin,
   requirePermission,
   type Principal,
 } from "../lib/rbac/permissions";
+import { assertAccountAccessChange, assertRoleAssignmentAllowed, assignableRoleSlugs } from "../lib/rbac/assign-role";
 
 function principalFor(role: keyof typeof ROLE_PERMISSIONS, status: Principal["status"] = "active"): Principal {
   return {
@@ -36,15 +38,86 @@ describe("RBAC", () => {
     expect(() => requirePermission(recruiter, "admin.roles")).toThrow(AuthorizationError);
   });
 
-  it("allows Managing Partner all current operational permissions", () => {
-    const partner = principalFor("managing-partner");
-    for (const permission of ROLE_PERMISSIONS["managing-partner"]) {
-      expect(can(partner, permission)).toBe(true);
-    }
+  it("treats Managing Partner and Administrator roles as platform admins", () => {
+    expect(isPlatformAdmin(principalFor("managing-partner"))).toBe(true);
+    expect(isPlatformAdmin(principalFor("operations-administrator"))).toBe(true);
+    expect(isPlatformAdmin(principalFor("strategy-technology-administrator"))).toBe(true);
+    expect(isPlatformAdmin(principalFor("recruiter"))).toBe(false);
+    expect(isPlatformAdmin(principalFor("talent-partner"))).toBe(false);
   });
 
   it("rejects disabled users even if they still have roles", () => {
     const disabled = principalFor("managing-partner", "disabled");
     expect(can(disabled, "companies.read")).toBe(false);
+  });
+
+  it("lets Strategy & Technology Administrator assign roles except Managing Partner", () => {
+    const tech = principalFor("strategy-technology-administrator");
+    expect(assignableRoleSlugs(tech)).toContain("recruiter");
+    expect(assignableRoleSlugs(tech)).toContain("operations-administrator");
+    expect(assignableRoleSlugs(tech)).not.toContain("managing-partner");
+    expect(() =>
+      assertRoleAssignmentAllowed({
+        actor: tech,
+        nextSlug: "managing-partner",
+        currentSlugs: ["recruiter"],
+        managingPartnerCount: 1,
+      }),
+    ).toThrow(AuthorizationError);
+  });
+
+  it("prevents removing the last Managing Partner", () => {
+    const partner = principalFor("managing-partner");
+    expect(() =>
+      assertRoleAssignmentAllowed({
+        actor: partner,
+        nextSlug: "recruiter",
+        currentSlugs: ["managing-partner"],
+        managingPartnerCount: 1,
+      }),
+    ).toThrow(/at least one Managing Partner/);
+    expect(() =>
+      assertRoleAssignmentAllowed({
+        actor: partner,
+        nextSlug: "recruiter",
+        currentSlugs: ["managing-partner"],
+        managingPartnerCount: 2,
+      }),
+    ).not.toThrow();
+  });
+
+  it("does not let Operations Administrator assign roles", () => {
+    const ops = principalFor("operations-administrator");
+    expect(assignableRoleSlugs(ops)).toEqual([]);
+    expect(() =>
+      assertRoleAssignmentAllowed({
+        actor: ops,
+        nextSlug: "recruiter",
+        currentSlugs: [],
+        managingPartnerCount: 1,
+      }),
+    ).toThrow(AuthorizationError);
+  });
+
+  it("prevents a person from disabling themselves or the last Managing Partner", () => {
+    const partner = principalFor("managing-partner");
+    expect(() =>
+      assertAccountAccessChange({
+        actor: partner,
+        targetUserId: partner.id,
+        targetRoleSlugs: ["managing-partner"],
+        action: "disable",
+        activeManagingPartnerCount: 2,
+      }),
+    ).toThrow(/your own access/);
+    expect(() =>
+      assertAccountAccessChange({
+        actor: partner,
+        targetUserId: "someone-else",
+        targetRoleSlugs: ["managing-partner"],
+        action: "archive",
+        activeManagingPartnerCount: 1,
+      }),
+    ).toThrow(/at least one active Managing Partner/);
   });
 });

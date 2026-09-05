@@ -1,159 +1,188 @@
 import Link from "next/link";
 
+import { Card } from "@/components/ui/display";
+import { PageHeader, PageShell, formatDate, formatLabel } from "@/components/ui/page";
+import { ScoreBadge } from "@/components/ui/display";
 import { requireCurrentPrincipal } from "@/lib/auth/session";
 import { getCommandCenterSnapshot } from "@/lib/repositories/command-center";
 import { can } from "@/lib/rbac/permissions";
-import { EmptyState, MetricCard, PageHeader, formatDate, formatLabel } from "./_components/ui";
+import { EmptyState } from "./_components/ui";
 
 export default async function CommandCenterPage() {
   const principal = await requireCurrentPrincipal();
   const snapshot = await getCommandCenterSnapshot(principal.organizationId);
-  const canCompanies = can(principal, "companies.read");
   const canOpportunities = can(principal, "opportunities.read");
   const canCandidates = can(principal, "candidates.read");
   const canJobs = can(principal, "jobs.read");
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
+    <PageShell wide>
       <PageHeader
-        title="Command Center"
-        description="Live operating snapshot from PostgreSQL. Counts are not estimates."
+        eyebrow="WorkforceOS / Executive view"
+        title="Workforce Command Center"
+        description="Live operating snapshot from PostgreSQL. Counts are stored records, not estimates."
+        metadata={`${principal.roleSlugs.join(", ") || "no roles"} · ${snapshot.generatedAt.toLocaleString()}`}
       />
-      <p className="mt-2 text-xs text-zinc-500">
-        {principal.roleSlugs.join(", ") || "no roles"} · generated {snapshot.generatedAt.toLocaleString()}
-      </p>
 
-      {canCompanies || canOpportunities ? (
-        <section className="mt-8">
-          <h2 className="text-lg font-semibold">CRM</h2>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {canCompanies ? (
-              <>
-                <MetricCard href="/app/companies" label="Active prospects" value={snapshot.crm.activeProspects} />
-                <MetricCard href="/app/companies" label="Active clients" value={snapshot.crm.activeClients} />
-              </>
-            ) : null}
-            {canOpportunities ? (
-              <>
-                <MetricCard href="/app/opportunities" label="Open opportunities" value={snapshot.crm.openOpportunities} />
-                <MetricCard
-                  href="/app/opportunities?scoreBand=priority"
-                  label="High priority"
-                  value={snapshot.crm.highPriorityOpportunities}
-                />
-              </>
-            ) : null}
-          </div>
-          {canOpportunities ? (
-            <>
-              <h3 className="mt-6 text-sm font-semibold">Pipeline by stage</h3>
-              {Object.keys(snapshot.crm.opportunitiesByStage).length === 0 ? (
-                <EmptyState>No opportunities recorded yet.</EmptyState>
-              ) : (
-                <ul className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
-                  {Object.entries(snapshot.crm.opportunitiesByStage).map(([stage, count]) => (
-                    <li key={stage} className="flex justify-between rounded border px-3 py-2">
-                      <Link className="underline" href={`/app/opportunities?stage=${stage}`}>
-                        {formatLabel(stage)}
-                      </Link>
-                      <span>{count}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <div className="mt-6 grid gap-6 lg:grid-cols-2">
-                <div>
-                  <h3 className="text-sm font-semibold">Recent signals</h3>
-                  {snapshot.crm.recentSignals.length === 0 ? (
-                    <EmptyState>No signals detected.</EmptyState>
-                  ) : (
-                    <ul className="mt-2 space-y-2 text-sm">
-                      {snapshot.crm.recentSignals.map((signal) => (
-                        <li key={signal.id}>
-                          <Link className="underline" href="/app/signals">
-                            {signal.title}
-                          </Link>
-                          <span className="text-zinc-500">
-                            {" "}
-                            · {signal.companyName} · {formatLabel(signal.reviewStatus)}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold">Stale opportunities (14+ days)</h3>
-                  {snapshot.crm.staleOpportunities.length === 0 ? (
-                    <EmptyState>No stale open opportunities.</EmptyState>
-                  ) : (
-                    <ul className="mt-2 space-y-2 text-sm">
-                      {snapshot.crm.staleOpportunities.map((opportunity) => (
-                        <li key={opportunity.id}>
-                          <Link className="underline" href={`/app/opportunities/${opportunity.id}`}>
-                            {opportunity.name}
-                          </Link>
-                          <span className="text-zinc-500">
-                            {" "}
-                            · {opportunity.companyName} · {formatDate(opportunity.updatedAt)}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </div>
-              <h3 className="mt-6 text-sm font-semibold">Upcoming follow-ups</h3>
-              {snapshot.crm.upcomingFollowUps.length === 0 ? (
-                <EmptyState>No follow-ups scheduled in the next 14 days.</EmptyState>
-              ) : (
-                <ul className="mt-2 space-y-2 text-sm">
-                  {snapshot.crm.upcomingFollowUps.map((item) => (
-                    <li key={item.id}>
-                      <Link className="underline" href={item.href}>
-                        {item.label}
-                      </Link>
-                      <span className="text-zinc-500">
-                        {" "}
-                        · {item.nextAction ?? "follow up"} · {formatDate(item.at)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </>
-          ) : null}
-        </section>
-      ) : null}
+      <section className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {canOpportunities ? (
+          <Card>
+            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Pipeline</p>
+            <p className="mt-2 font-serif text-[34px] font-semibold text-navy">
+              {Object.values(snapshot.crm.opportunitiesByStage).reduce((sum, value) => sum + value, 0)}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {Object.entries(snapshot.crm.opportunitiesByStage)
+                .map(([stage, value]) => `${value} ${formatLabel(stage)}`)
+                .join(" · ") || "No stages recorded"}
+            </p>
+          </Card>
+        ) : null}
+        {canOpportunities ? (
+          <Link href="/app/opportunities" className="block">
+            <Card>
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Active opportunities</p>
+              <p className="mt-2 font-serif text-[34px] font-semibold text-navy">{snapshot.crm.openOpportunities}</p>
+            </Card>
+          </Link>
+        ) : null}
+        {canJobs ? (
+          <Link href="/app/jobs" className="block">
+            <Card>
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Active searches</p>
+              <p className="mt-2 font-serif text-[34px] font-semibold text-navy">{snapshot.recruiting.openJobs}</p>
+            </Card>
+          </Link>
+        ) : null}
+        {canCandidates ? (
+          <Link href="/app/talent" className="block">
+            <Card>
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">Talent Network</p>
+              <p className="mt-2 font-serif text-[34px] font-semibold text-navy">{snapshot.talent.candidateCount}</p>
+            </Card>
+          </Link>
+        ) : null}
+      </section>
 
-      {canCandidates ? (
-        <section className="mt-10">
-          <h2 className="text-lg font-semibold">Talent Network</h2>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <MetricCard href="/app/talent" label="Candidates" value={snapshot.talent.candidateCount} />
-            <MetricCard href="/app/talent" label="Added this month" value={snapshot.talent.candidatesAddedThisMonth} />
-            <MetricCard href="/app/talent/pools" label="Talent pools" value={snapshot.talent.talentPoolCount} />
-            <MetricCard
-              href="/app/talent/silver-medalists"
-              label="Silver medalists"
-              value={snapshot.talent.silverMedalistDesignations}
-            />
-            <MetricCard href="/app/talent/search?availability=available_now" label="Available now" value={snapshot.talent.availableNow} />
-            <MetricCard href="/app/talent" label="Military talent" value={snapshot.talent.militaryTalent} />
-            <MetricCard href="/app/talent" label="Profiles needing review" value={snapshot.talent.profilesNeedingReview} />
-            <MetricCard href="/app/talent/rediscovery" label="Rediscovery due" value={snapshot.talent.rediscoveryDue} />
-          </div>
-        </section>
-      ) : null}
+      <div className="mt-10 grid gap-8 lg:grid-cols-2">
+        {canOpportunities ? (
+          <section>
+            <h2 className="section-title">Priority opportunities</h2>
+            {snapshot.priorityOpportunities.length === 0 ? (
+              <EmptyState title="No priority opportunities.">
+                Opportunities scoring 80 or classified as Priority will appear here.
+              </EmptyState>
+            ) : (
+              <ul className="mt-4 divide-y divide-border rounded-[8px] border border-card-border bg-card">
+                {snapshot.priorityOpportunities.map((opportunity) => (
+                  <li key={opportunity.id} className="px-4 py-3">
+                    <Link href={`/app/opportunities/${opportunity.id}`} className="font-medium text-navy">
+                      {opportunity.name}
+                    </Link>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {opportunity.companyName}
+                      {opportunity.serviceCode ? ` · ${formatLabel(opportunity.serviceCode)}` : ""}
+                    </p>
+                    <div className="mt-2">
+                      <ScoreBadge score={opportunity.opportunityScore} band={opportunity.scoreBand} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ) : null}
 
-      {canJobs ? (
-        <section className="mt-10">
-          <h2 className="text-lg font-semibold">Recruiting</h2>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <MetricCard href="/app/jobs" label="Open jobs" value={snapshot.recruiting.openJobs} />
-          </div>
+        {canOpportunities ? (
+          <section>
+            <h2 className="section-title">Recent workforce signals</h2>
+            {snapshot.crm.recentSignals.length === 0 ? (
+              <EmptyState title="No workforce signals detected yet.">
+                Signals added manually or identified by future WorkforceOS intelligence services will appear here.
+              </EmptyState>
+            ) : (
+              <ul className="mt-4 divide-y divide-border rounded-[8px] border border-card-border bg-card">
+                {snapshot.crm.recentSignals.map((signal) => (
+                  <li key={signal.id} className="px-4 py-3 text-sm">
+                    <Link href="/app/signals" className="font-medium text-navy">
+                      {signal.title}
+                    </Link>
+                    <p className="text-muted-foreground">
+                      {signal.companyName} · {formatLabel(signal.reviewStatus)} · {formatDate(signal.detectedAt)}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ) : null}
+
+        {canCandidates ? (
+          <section>
+            <h2 className="section-title">Talent requiring attention</h2>
+            {snapshot.talentAttention.length === 0 ? (
+              <EmptyState title="No talent records need attention.">
+                Profiles without a recent review or contact will appear here.
+              </EmptyState>
+            ) : (
+              <ul className="mt-4 divide-y divide-border rounded-[8px] border border-card-border bg-card">
+                {snapshot.talentAttention.map((candidate) => (
+                  <li key={candidate.id} className="px-4 py-3 text-sm">
+                    <Link href={`/app/talent/${candidate.id}`} className="font-medium text-navy">
+                      {candidate.fullName}
+                    </Link>
+                    <p className="text-muted-foreground">
+                      {candidate.currentTitle ?? "No title"} · last contact {formatDate(candidate.lastContactedAt)}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ) : null}
+
+        <section>
+          <h2 className="section-title">Pending approvals</h2>
+          {snapshot.pendingApprovals.length === 0 ? (
+            <EmptyState title="No pending approvals.">
+              Material AI and client-facing outputs that require human review will appear here.
+            </EmptyState>
+          ) : (
+            <ul className="mt-4 divide-y divide-border rounded-[8px] border border-card-border bg-card">
+              {snapshot.pendingApprovals.map((approval) => (
+                <li key={approval.id} className="px-4 py-3 text-sm">
+                  <Link href="/app/admin/approvals" className="font-medium text-navy">
+                    {approval.approvalType}
+                  </Link>
+                  <p className="text-muted-foreground">
+                    {approval.recordType} · {formatDate(approval.createdAt)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
-      ) : null}
-    </main>
+      </div>
+
+      <section className="mt-10">
+        <h2 className="section-title">Recent activity</h2>
+        {snapshot.recentActivities.length === 0 ? (
+          <EmptyState title="No recent activity.">
+            Notes, meetings, and status changes will appear as they are logged.
+          </EmptyState>
+        ) : (
+          <ol className="mt-4 space-y-3 rounded-[8px] border border-card-border bg-card p-4">
+            {snapshot.recentActivities.map((activity) => (
+              <li key={activity.id} className="border-l border-border pl-4 text-sm">
+                <p className="font-medium text-navy">{activity.subject}</p>
+                <p className="text-muted-foreground">
+                  {formatLabel(activity.activityType)} · {formatDate(activity.occurredAt)}
+                </p>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
+    </PageShell>
   );
 }
