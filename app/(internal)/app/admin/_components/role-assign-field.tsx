@@ -1,9 +1,10 @@
 "use client";
 
-import { startTransition, useActionState, useEffect, useState } from "react";
+import { startTransition, useActionState, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 type ActionState = { error?: string; ok?: boolean; roleSlug?: string };
+type AccessStatus = "active" | "invited" | "disabled";
 
 const selectClassName =
   "w-full cursor-pointer appearance-none border-0 border-b border-transparent bg-transparent py-1 pr-6 text-sm text-navy hover:border-border focus:border-navy focus-visible:outline-none disabled:cursor-wait disabled:text-muted-foreground";
@@ -35,15 +36,13 @@ export function RoleAssignField({
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
 }) {
   const [state, formAction, pending] = useActionState(action, {});
-  const [value, setValue] = useState(currentSlug);
-
-  useEffect(() => {
-    if (state.roleSlug) setValue(state.roleSlug);
-  }, [state.roleSlug]);
-
-  useEffect(() => {
-    if (state.error) setValue(currentSlug);
-  }, [state.error, currentSlug]);
+  const [optimisticSlug, setOptimisticSlug] = useState<string | null>(null);
+  const committed = state.roleSlug ?? currentSlug;
+  const value = pending && optimisticSlug != null
+    ? optimisticSlug
+    : state.error
+      ? currentSlug
+      : committed;
 
   return (
     <div className="max-w-[16rem]">
@@ -55,8 +54,7 @@ export function RoleAssignField({
           className={selectClassName}
           onChange={(event) => {
             const next = event.currentTarget.value;
-            setValue(next);
-            const committed = state.roleSlug ?? currentSlug;
+            setOptimisticSlug(next);
             if (next === committed) return;
             submitFormAction(formAction, { userId, roleSlug: next });
           }}
@@ -92,15 +90,16 @@ export function UserStatusField({
 }: {
   userId: string;
   fullName: string;
-  status: "active" | "invited" | "disabled";
+  status: AccessStatus;
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
 }) {
   const [state, formAction, pending] = useActionState(action, {});
-  const [value, setValue] = useState(status);
-
-  useEffect(() => {
-    if (state.error) setValue(status);
-  }, [state.error, status]);
+  const [optimisticStatus, setOptimisticStatus] = useState<AccessStatus | null>(null);
+  const value = pending && optimisticStatus
+    ? optimisticStatus
+    : state.error
+      ? status
+      : (optimisticStatus ?? status);
 
   return (
     <div className="max-w-[10rem]">
@@ -113,10 +112,11 @@ export function UserStatusField({
           onChange={(event) => {
             const next = event.currentTarget.value;
             if (next === "archived") {
-              setValue(status);
-            } else {
-              setValue(next);
+              submitFormAction(formAction, { userId, status: next });
+              return;
             }
+            if (next !== "active" && next !== "invited" && next !== "disabled") return;
+            setOptimisticStatus(next);
             if (next === status) return;
             submitFormAction(formAction, { userId, status: next });
           }}

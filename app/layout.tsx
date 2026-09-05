@@ -30,10 +30,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           appearance={{
             variables: {
               colorPrimary: "#0F2D4A",
-              colorText: "#102A3A",
+              colorForeground: "#102A3A",
               colorBackground: "#FFFFFF",
-              colorInputBackground: "#FFFFFF",
-              colorInputText: "#102A3A",
+              colorInput: "#FFFFFF",
+              colorInputForeground: "#102A3A",
               borderRadius: "8px",
               fontFamily: "var(--font-inter), ui-sans-serif, system-ui, sans-serif",
             },

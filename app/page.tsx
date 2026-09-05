@@ -1,5 +1,8 @@
-import { AuthControls } from "./auth-controls";
+import Link from "next/link";
+
 import { BrandMark } from "@/components/branding/brand-mark";
+
+import { AuthControls } from "./auth-controls";
 
 export default function Home() {
   return (
@@ -17,12 +20,12 @@ export default function Home() {
         </p>
       </div>
       <div className="flex gap-3">
-        <a className="rounded-[6px] bg-navy px-5 py-2.5 text-sm text-white" href="/sign-in">
+        <Link className="rounded-[6px] bg-navy px-5 py-2.5 text-sm text-white" href="/sign-in">
           Sign in
-        </a>
-        <a className="rounded-[6px] border border-navy px-5 py-2.5 text-sm text-navy" href="/app">
+        </Link>
+        <Link className="rounded-[6px] border border-navy px-5 py-2.5 text-sm text-navy" href="/app">
           Open app
-        </a>
+        </Link>
       </div>
     </main>
   );
