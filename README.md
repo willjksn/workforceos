@@ -1,5 +1,26 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Environment variables
+
+Copy `.env.example` to `.env.local`. Do not commit `.env`, `.env.local`, or `.env.*.local`.
+
+Required later for database work:
+
+- `DATABASE_URL` — Neon PostgreSQL connection string
+
+Required later for sign-in:
+
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+- `CLERK_SECRET_KEY`
+
+Optional until the related feature is enabled:
+
+- `INNGEST_EVENT_KEY`, `INNGEST_SIGNING_KEY`
+- `STORAGE_PROVIDER`, `S3_*` storage credentials
+- `AI_PROVIDER`, `AI_API_KEY`
+
+Local app startup does not require every value. Database scripts fail clearly if `DATABASE_URL` is missing. See `.env.example` for the full list.
+
 ## Getting Started
 
 First, run the development server:

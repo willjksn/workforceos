@@ -13,6 +13,9 @@
 # testing
 /coverage
 
+# local object-storage adapter
+.data/
+
 # next.js
 /.next/
 /out/
@@ -30,8 +33,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files — keep real credentials untracked; commit the example only
 .env*
+!.env.example
 
 # vercel
 .vercel
