@@ -98,6 +98,7 @@ export const poolMembershipSourceEnum = pgEnum("pool_membership_source", [
 export const jobStatusEnum = pgEnum("job_status", [
   "draft",
   "open",
+  "search_active",
   "on_hold",
   "filled",
   "cancelled",
@@ -107,17 +108,29 @@ export const jobStatusEnum = pgEnum("job_status", [
 export const skillRequirementTypeEnum = pgEnum("skill_requirement_type", [
   "required",
   "preferred",
+  "nice_to_have",
 ]);
 
 export const candidatePipelineStatusEnum = pgEnum("candidate_pipeline_status", [
   "sourced",
+  "identified",
+  "rediscovered",
+  "contacted",
+  "interested",
   "screened",
+  "screening",
+  "qualified",
   "submitted",
   "interviewing",
+  "interview",
+  "finalist",
   "offered",
+  "offer",
   "placed",
   "declined",
+  "rejected",
   "withdrawn",
+  "nurture",
 ]);
 
 export const interviewStatusEnum = pgEnum("interview_status", [
@@ -257,4 +270,53 @@ export const engagementDirectionEnum = pgEnum("engagement_direction", [
   "inbound",
   "outbound",
   "internal",
+]);
+
+export const searchProjectStatusEnum = pgEnum("search_project_status", [
+  "draft",
+  "active",
+  "on_hold",
+  "filled",
+  "cancelled",
+  "closed",
+]);
+
+export const submissionStatusEnum = pgEnum("submission_status", [
+  "draft",
+  "pending_approval",
+  "submitted",
+  "accepted",
+  "rejected",
+  "withdrawn",
+]);
+
+export const placementStatusEnum = pgEnum("placement_status", [
+  "pending_start",
+  "active",
+  "completed",
+  "fallen_off",
+  "cancelled",
+]);
+
+export const guaranteeStatusEnum = pgEnum("guarantee_status", [
+  "active",
+  "expiring_soon",
+  "completed",
+  "replacement_required",
+  "waived",
+]);
+
+export const mappingReviewStatusEnum = pgEnum("mapping_review_status", [
+  "pending",
+  "approved",
+  "rejected",
+  "needs_review",
+]);
+
+export const mappingOriginEnum = pgEnum("mapping_origin", [
+  "reference_data",
+  "human",
+  "agent",
+  "import",
+  "system",
 ]);
