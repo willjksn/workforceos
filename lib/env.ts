@@ -22,6 +22,8 @@ const serverEnvSchema = z.object({
   CLERK_SECRET_KEY: optionalString,
   NEXT_PUBLIC_CLERK_SIGN_IN_URL: optionalString,
   NEXT_PUBLIC_CLERK_SIGN_UP_URL: optionalString,
+  NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL: optionalString,
+  NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL: optionalString,
   INNGEST_EVENT_KEY: optionalString,
   INNGEST_SIGNING_KEY: optionalString,
   STORAGE_PROVIDER: z.preprocess(

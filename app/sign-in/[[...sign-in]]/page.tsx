@@ -33,7 +33,7 @@ export default function SignInPage() {
         <p className="text-xs uppercase tracking-[0.16em] text-white/50">WorkforceOS · Internal</p>
       </section>
       <section className="flex items-center justify-center px-6 py-16">
-        <SignIn />
+        <SignIn fallbackRedirectUrl="/app" forceRedirectUrl="/app" />
       </section>
     </main>
   );

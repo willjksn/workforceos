@@ -1,10 +1,19 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
 
 import { BrandMark } from "@/components/branding/brand-mark";
 
 import { AuthControls } from "./auth-controls";
 
-export default function Home() {
+export default async function Home() {
+  if (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+    const { userId } = await auth();
+    if (userId) {
+      redirect("/app");
+    }
+  }
+
   return (
     <main className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-center gap-8 px-6 py-16">
       <div className="flex items-start justify-between gap-4">

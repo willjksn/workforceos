@@ -16,6 +16,7 @@ Production and preview deployments need:
 - `CLERK_SECRET_KEY`
 - `NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in`
 - `NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up`
+- After sign-in, users go to `/app` (set in the app; optional Vercel Config vars `NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/app` and `NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/app`)
 - `NEXT_PUBLIC_APP_URL` — origin for that environment (preview Vercel URL or `https://app.pieronepartners.com`)
 
 Recommended for migrations (run locally or in a controlled job, not during `next build`):

@@ -27,6 +27,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${inter.variable} ${cormorant.variable} h-full antialiased`}>
       <body className="min-h-full font-sans text-foreground">
         <ClerkProvider
+          signInFallbackRedirectUrl="/app"
+          signUpFallbackRedirectUrl="/app"
           appearance={{
             variables: {
               colorPrimary: "#0F2D4A",

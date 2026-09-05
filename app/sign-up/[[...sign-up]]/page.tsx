@@ -16,7 +16,7 @@ export default function SignUpPage() {
 
   return (
     <main className="flex min-h-full items-center justify-center py-16">
-      <SignUp />
+      <SignUp fallbackRedirectUrl="/app" forceRedirectUrl="/app" />
     </main>
   );
 }
