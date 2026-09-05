@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { AuthControls } from "@/app/auth-controls";
 import { AuthorizationError } from "@/lib/rbac/permissions";
 import { getCurrentPrincipal } from "@/lib/auth/session";
 
@@ -32,12 +33,13 @@ export default async function InternalAppLayout({
         <Link href="/app" className="font-semibold">
           WorkforceOS
         </Link>
-        <nav className="flex gap-4">
+        <nav className="flex items-center gap-4">
           <Link href="/app/admin/system-health">System health</Link>
           <Link href="/app/admin/agents">Agents</Link>
           <Link href="/app/admin/approvals">Approvals</Link>
           <Link href="/app/admin/integrations">Integrations</Link>
           <Link href="/app/admin/requirements">Requirements</Link>
+          <AuthControls />
         </nav>
       </header>
       {children}

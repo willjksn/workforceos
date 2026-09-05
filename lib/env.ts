@@ -16,6 +16,8 @@ const serverEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   APP_VERSION: optionalString,
   DATABASE_URL: optionalString,
+  DATABASE_URL_UNPOOLED: optionalString,
+  NEON_BRANCH: optionalString,
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: optionalString,
   CLERK_SECRET_KEY: optionalString,
   NEXT_PUBLIC_CLERK_SIGN_IN_URL: optionalString,

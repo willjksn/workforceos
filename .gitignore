@@ -40,6 +40,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Neon MCP local credentials (contains an API key)
+.cursor/mcp.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.neon
