@@ -1,6 +1,6 @@
 # Requirements Registry
 
-Status: Phase 5 locked set  
+Status: Phase 9 locked set  
 Database mirror: `requirements` table.
 
 ## Locked requirements
@@ -316,4 +316,28 @@ Database mirror: `requirements` table.
 - Priority: locked
 - Status: approved
 - Acceptance: Candidate PII exports require `reports.export_pii` and an audit event. Privacy deletion anonymizes Restricted PII and is not ordinary archive.
+
+### WFOS-AI-005
+
+- Title: Scout uses a closed command registry
+- Module: ai
+- Priority: locked
+- Status: approved
+- Acceptance: Natural-language prompts parse to SEARCH, SUMMARIZE, DRAFT, CREATE, UPDATE, ASSIGN, ADD_TO_POOL, ADD_TO_JOB, CREATE_TASK, CREATE_FOLLOW_UP, SHOW_RECORD, SHOW_DASHBOARD, or FIND_MATCHES. Unknown commands and SQL are rejected. Execution uses Zod DTOs and existing services, never model-generated SQL.
+
+### WFOS-AI-006
+
+- Title: Scout RBAC, page context, and confirmation
+- Module: ai
+- Priority: locked
+- Status: approved
+- Acceptance: Page context comes from the route. Authorization and Restricted PII stripping happen before model context. Material internal writes confirm. Drafts never auto-send. Scout cannot self-approve, send contracts, execute offers, or reject candidates solely via AI.
+
+### WFOS-MIL-008
+
+- Title: SkillBridge people are Talent Network candidates
+- Module: military
+- Priority: locked
+- Status: approved
+- Acceptance: `skillbridge_profiles` link 1:1 to existing `candidates`. Creating a SkillBridge profile does not duplicate a person. Employer opportunities are many-to-many with stage history.
 

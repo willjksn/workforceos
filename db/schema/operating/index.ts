@@ -9,6 +9,7 @@ import {
   designationTypeEnum,
   engagementDirectionEnum,
   engagementTypeEnum,
+  inAppNotificationKindEnum,
 } from "../enums";
 import { jobs } from "../recruiting";
 import { candidates } from "../talent";
@@ -107,6 +108,26 @@ export const savedViews = pgTable("saved_views", {
   index("saved_views_organization_id_idx").on(table.organizationId),
   index("saved_views_user_id_idx").on(table.userId),
   unique("saved_views_user_module_name_uq").on(table.userId, table.module, table.name),
+]);
+
+export const inAppNotifications = pgTable("in_app_notifications", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  kind: inAppNotificationKindEnum("kind").notNull(),
+  title: text("title").notNull(),
+  body: text("body"),
+  href: text("href"),
+  recordType: text("record_type"),
+  recordId: uuid("record_id"),
+  readAt: timestamp("read_at", { withTimezone: true, mode: "date" }),
+  ...timestamps(),
+}, (table) => [
+  index("in_app_notifications_organization_id_idx").on(table.organizationId),
+  index("in_app_notifications_user_id_idx").on(table.userId),
+  index("in_app_notifications_user_read_idx").on(table.userId, table.readAt),
 ]);
 
 export const activitiesRelations = relations(activities, ({ one }) => ({

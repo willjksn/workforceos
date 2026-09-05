@@ -14,3 +14,5 @@ Follow `docs/workflows/SERVICE_WORKFLOWS.md` and `docs/requirements/REQUIREMENTS
 - Material AI recommendations need provenance. Material client-facing AI outputs need human approval. Agents cannot approve their own material output.
 - Legal packages belong inside operational workflows and must link to services/engagements.
 - External providers stay behind the Integration Hub.
+- SkillBridge people are existing Talent Network candidates. Do not duplicate a candidate per employer.
+- Scout is the official persistent assistant (tooltip: Open Scout). Commands are a closed registry. Never generate SQL. Chat is not the system of record.

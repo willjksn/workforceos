@@ -204,6 +204,37 @@ export const APPROVED_AGENTS: AgentDefinition[] = [
     tasks: ["nurture_draft", "follow_up_draft"],
     forbidden: ["send_outbound", "submit_candidate", "reject_candidate_permanently"],
   },
+  {
+    slug: "scout",
+    name: "Scout",
+    description:
+      "Persistent WorkforceOS intelligence assistant. Parses natural language into a closed command registry. Cannot generate SQL, send mail, execute contracts, or self-approve.",
+    autonomyLevel: 2,
+    permissions: [
+      "scout.use",
+      "scout.search",
+      "scout.draft",
+      "candidates.read",
+      "jobs.read",
+      "military.read",
+      "skillbridge.read",
+      "companies.read",
+      "opportunities.read",
+      "knowledge.read",
+      "services.read",
+      "projects.read",
+      "reports.read",
+    ],
+    tasks: ["scout_search", "scout_summarize", "scout_draft", "scout_daily_brief"],
+    forbidden: [
+      "send_outbound",
+      "execute_contract",
+      "submit_candidate",
+      "issue_offer",
+      "reject_candidate_permanently",
+      "approve_proposal",
+    ],
+  },
 ];
 
 export const GLOBAL_FORBIDDEN_TASKS = [

@@ -1,16 +1,17 @@
 import { TabNav } from "@/components/ui/display";
 
 const ITEMS = [
-  { href: "/app/military/translator", label: "Translator" },
-  { href: "/app/military/occupations", label: "Occupations" },
+  { href: "/app/military/translator", label: "Skills Translator" },
+  { href: "/app/military/candidates", label: "Military Candidates" },
+  { href: "/app/military/skillbridge", label: "SkillBridge" },
+  { href: "/app/military/occupations", label: "Occupation Library" },
+  { href: "/app/military/installation-mapping", label: "Installation Mapping" },
+  { href: "/app/military/bridge-training", label: "Bridge Training" },
+  { href: "/app/military/analytics", label: "Military Analytics" },
   { href: "/app/military/crosswalk", label: "Crosswalk" },
   { href: "/app/military/reverse", label: "Reverse search" },
   { href: "/app/military/installations", label: "Installations" },
-  { href: "/app/military/installation-mapping", label: "Installation mapping" },
-  { href: "/app/military/candidates", label: "Candidates" },
-  { href: "/app/military/bridge-training", label: "Bridge training" },
   { href: "/app/military/review", label: "Review" },
-  { href: "/app/military/analytics", label: "Analytics" },
 ] as const;
 
 export function MilitarySubnav({ active }: { active: string }) {

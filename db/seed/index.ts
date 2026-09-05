@@ -47,6 +47,7 @@ import { seedPhase5Fixtures } from "./phase5";
 import { seedPhase7Ai } from "./phase7";
 import { seedLaunchServiceCatalog } from "./phase4-catalog";
 import { seedPhase3OperatingFixtures } from "./phase3";
+import { seedPhase9Fixtures, seedSkillBridgeAlertRules } from "./phase9";
 import {
   CANDIDATE_ID,
   COMPANY_ID,
@@ -268,6 +269,7 @@ export async function seedFoundation(
       .onConflictDoNothing();
   }
   await seedPhase7Ai(db);
+  await seedSkillBridgeAlertRules(db);
 
   if (includeDevelopmentFixtures) {
     await seedCatalogAndTalent(db);
@@ -793,6 +795,7 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
 
   await seedPhase4Fixtures(db);
   await seedPhase5Fixtures(db);
+  await seedPhase9Fixtures(db);
 }
 
 async function seedAdditionalOperatingFixtures(
@@ -1067,6 +1070,9 @@ async function seedRequirementsAndDecisions(db: ReturnType<typeof getDb>) {
     ["WFOS-WF-003", "workforce", "Client-facing workforce recommendations require human approval; agents cannot approve their own material output."],
     ["WFOS-WF-004", "workforce", "Canonical skills and civilian occupations are reused; Phase 5 does not create a second taxonomy."],
     ["WFOS-WF-005", "workforce", "Unconfigured BLS/Census/O*NET sources are adapters and labeled fixtures only; values are never invented."],
+    ["WFOS-AI-005", "ai", "Scout parses natural language into a closed command registry and never generates SQL."],
+    ["WFOS-AI-006", "ai", "Scout enforces RBAC and Restricted PII before model context and requires confirmation for material writes."],
+    ["WFOS-MIL-008", "military", "SkillBridge profiles link to existing Talent Network candidates and do not duplicate people."],
   ] as const;
 
   for (const [code, module, description] of requirementSeed) {
@@ -1127,6 +1133,11 @@ async function seedRequirementsAndDecisions(db: ReturnType<typeof getDb>) {
     ["DEC-WF-005", "Expand the Phase 4 WPA engine; no second project system", "Roadmap items create project_tasks on existing projects."],
     ["DEC-WF-006", "Talent Network overlay uses aggregates by default", "Workforce views do not expose candidate PII."],
     ["DEC-WF-007", "Military overlay reuses Phase 3 mappings", "Installation map remains deferred to Phase 3.5."],
+    ["DEC-AI-009", "Scout is the persistent assistant", "Closed command registry. No model-generated SQL. Chat is not the system of record."],
+    ["DEC-AI-010", "Scout page context and confirmation", "RBAC and PII stripping happen before model context. Material writes confirm. Drafts do not auto-send."],
+    ["DEC-MIL-003", "SkillBridge people are Talent Network candidates", "skillbridge_profiles link to candidates. No duplicate person records."],
+    ["DEC-MIL-004", "SkillBridge matching and alerts stay human-gated", "Configurable alert rules, Inngest scans, in-app notifications. Humans connect/submit."],
+    ["DEC-OPS-002", "In-app notifications are a foundation", "Not a second inbox. Point at source records."],
   ] as const;
 
   for (const [code, title, decision] of decisions) {

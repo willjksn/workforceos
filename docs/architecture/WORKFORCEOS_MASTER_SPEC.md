@@ -1,6 +1,6 @@
 # WorkforceOS Master Specification
 
-Status: Phase 8 executive reporting and production hardening  
+Status: Phase 9 Scout + SkillBridge operations  
 Audience: engineering agents and maintainers  
 Canonical: this file is the architecture source of truth for implementation.
 
@@ -10,7 +10,7 @@ WorkforceOS is an internal operating system for a Workforce & Talent Solutions f
 
 It will eventually manage company CRM, Talent CRM, recruiting/search, military talent translation, workforce development, legal document operations, finance/AR workflow, integrations, background AI agents, audit history, approvals, and institutional knowledge.
 
-Phase 1 built the technical foundation. Phase 4 activates service engines, proposals, contracts, and project delivery. Phase 5 expands Workforce Pipeline Assessment into workforce development and intelligence. Phase 6 activates operational finance and Integration Hub business adapters. Phase 7 activates AI operations, prompt versioning, the Review Queue, named automation, and approved knowledge retrieval. Phase 8 finishes executive reporting, the Command Center, operational alerts, data quality, and production hardening. Do not add major new business modules after Phase 8.
+Phase 1 built the technical foundation. Phase 4 activates service engines, proposals, contracts, and project delivery. Phase 5 expands Workforce Pipeline Assessment into workforce development and intelligence. Phase 6 activates operational finance and Integration Hub business adapters. Phase 7 activates AI operations, prompt versioning, the Review Queue, named automation, and approved knowledge retrieval. Phase 8 finishes executive reporting, the Command Center, operational alerts, data quality, and production hardening. Phase 9 adds Scout (the persistent in-app assistant) and SkillBridge operations as a first-class Military Talent workflow. Do not start Phase 10 unless explicitly asked.
 
 ## Product boundaries
 
@@ -69,7 +69,8 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 - CRM: companies, contacts, opportunities, signals
 - Talent Network: candidates, pools, rediscovery
 - Recruiting: jobs, internal-first search projects, job-specific matches, pipeline, submissions, interviews, offers, placements, guarantees
-- Military Talent: occupation library, skills translator, reverse search, installations, bridge training, human mapping review
+- Military Talent: occupation library, skills translator, reverse search, installations, bridge training, human mapping review, SkillBridge operations
+- Scout: persistent page-aware assistant with a closed command registry; chat is not the system of record
 - Workforce Development: planning-level workforce roles, baselines, versioned forecasts, supply, gaps, pipelines, career paths, scenarios, and the expanded Workforce Pipeline Assessment deliverable
 - Services: five launch service engines, versioned workflows, discovery, solution plans, proposals
 - Legal: templates, contract packages, execution, e-sign abstraction
@@ -139,6 +140,27 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 - Client-facing workforce recommendations and Workforce Pipeline Plans require human approval. Agents cannot approve their own material output.
 - Approved roadmaps create `project_tasks` on the existing delivery `projects` row. There is no second project system.
 - Installation interactive maps remain deferred to Phase 3.5. List/region geography is sufficient.
+
+## Scout (Phase 9)
+
+- Official name is Scout. Tooltip: Open Scout. Do not brand it Copilot, Navigator, or a generic Assistant.
+- Scout is a right-side drawer on authenticated screens. It does not navigate away unless an action requires an entity link.
+- Natural language parses to a closed command registry: SEARCH, SUMMARIZE, DRAFT, CREATE, UPDATE, ASSIGN, ADD_TO_POOL, ADD_TO_JOB, CREATE_TASK, CREATE_FOLLOW_UP, SHOW_RECORD, SHOW_DASHBOARD, FIND_MATCHES. Unknown commands are rejected. The model never generates SQL.
+- Execution path: prompt → intent parser → Zod DTO → authorize → existing query/service layer → PostgreSQL → structured result cards. Page context is the route (candidate/job/company/SkillBridge ids), not conversational memory.
+- RBAC and Restricted PII stripping happen before any record is passed to a model. Without `candidate_pii.read`, email, phone, compensation, resume text, and other restricted fields are omitted.
+- Read actions may run immediately. Material internal writes require confirmation. External actions require `scout.external_actions` plus human approval. Destructive actions always confirm. Drafts follow Draft → Human Review → Send/Copy and never auto-send.
+- Permissions: `scout.use`, `scout.search`, `scout.draft`, `scout.internal_actions`, `scout.external_actions`. Scout cannot self-approve, send contracts, execute offers, reject candidates solely via AI, or bypass RBAC.
+- `scout_sessions` / `scout_messages` / `scout_actions` are usability memory. PostgreSQL business tables remain the system of record.
+
+## SkillBridge operations (Phase 9)
+
+- SkillBridge people are existing Talent Network `candidates`. `skillbridge_profiles` are a 1:1 overlay. Do not duplicate a candidate per employer or job.
+- Preferred locations and target roles are junction tables. Employer connections are `skillbridge_opportunities` with stage history. Filtered fields are relational columns, not JSONB.
+- Resume status is `missing | outdated | current | needs_review` — not a quality score. Files use the existing storage abstraction; binaries stay out of PostgreSQL.
+- Matching reuses the existing job-match architecture. Humans connect or submit. Employer briefs and message drafts require human review.
+- Follow-up, window, no-opportunity, employer-feedback, resume-missing, and conversion rules live in configurable `skillbridge_alert_rules`. Inngest runs scans. In-app notifications are the delivery channel.
+- Metrics and My SkillBridge Queue counts come from stored rows only. Permissions: `skillbridge.read`, `skillbridge.write`, `skillbridge.manage`, `skillbridge.export`. Restricted PII rules still apply.
+- Development fixtures include labeled SkillBridge people. Production seed (`db:seed:prod`) loads alert-rule defaults only, not those people.
 
 ## Related documents
 

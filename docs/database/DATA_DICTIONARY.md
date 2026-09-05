@@ -1,6 +1,6 @@
 # Data Dictionary
 
-Status: Phase 8 executive reporting and production hardening  
+Status: Phase 9 Scout + SkillBridge operations  
 Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 
 ## Conventions
@@ -102,6 +102,7 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | --- | --- |
 | `activities` | Notes, calls, meetings, and follow-ups linked to CRM or talent records. |
 | `saved_views` | User-owned list filters and column sets. |
+| `in_app_notifications` | User-visible operating alerts that point at source records. Not a second inbox. |
 
 ## Recruiting
 
@@ -131,6 +132,24 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | `military_civilian_mappings` | Military-to-civilian translations, including reverse search, provenance, and review status. |
 | `bridge_training_recommendations` | Skill-gap and credential recommendations. Do not promise employment. |
 | `occupation_data_imports` | Repeatable importer run log. Approved mappings are not silently deleted. |
+| `skillbridge_profiles` | One SkillBridge overlay per Talent Network candidate (unique `candidate_id`). Window, EOS, occupation, location, resume status, owner. Not a second person table. |
+| `skillbridge_preferred_locations` | Junction of preferred locations for filtering. |
+| `skillbridge_target_roles` | Junction of civilian target roles. |
+| `skillbridge_opportunities` | Many-to-many candidate–employer SkillBridge pipeline rows with stage. |
+| `skillbridge_opportunity_stage_history` | Prior stages retained; current stage lives on the opportunity. |
+| `skillbridge_notes` | Operating notes on a profile/opportunity. Timeline also reuses `activities`. |
+| `skillbridge_documents` | Metadata links to `files` (resume/certs). No binaries in PostgreSQL. Resume status is missing/outdated/current/needs_review. |
+| `skillbridge_alert_rules` | Configurable follow-up, window, no-opportunity, employer-feedback, resume, and conversion thresholds. |
+
+## Scout
+
+Chat history is not the system of record.
+
+| Table | Purpose |
+| --- | --- |
+| `scout_sessions` | Per-user Scout drawer sessions with explicit page path/module/entity context. |
+| `scout_messages` | User/Scout/system messages plus parsed command family and DTO payload. |
+| `scout_actions` | Proposed/executed Scout commands. Material writes stay `proposed` until human confirmation. |
 
 ## Workforce planning (Phase 5)
 

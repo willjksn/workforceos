@@ -42,7 +42,7 @@ WorkforceOS deploys the existing GitHub repository `willjksn/workforceos` to Ver
 - [ ] `npm run lint` passes
 - [ ] `npm run typecheck` passes
 - [ ] `npm test` passes
-- [ ] Phase tests pass (`npm run test:db-acceptance`, `npm run test:phase2` through `npm run test:phase8`, `npm run test:smoke`)
+- [ ] Phase tests pass (`npm run test:db-acceptance`, `npm run test:phase2` through `npm run test:phase9`, `npm run test:smoke`)
 - [ ] `npm run build` passes
 
 ## Preview smoke

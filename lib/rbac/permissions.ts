@@ -89,6 +89,15 @@ export const PERMISSIONS = [
   "data_quality.read",
   "alerts.read",
   "privacy.delete",
+  "scout.use",
+  "scout.search",
+  "scout.draft",
+  "scout.internal_actions",
+  "scout.external_actions",
+  "skillbridge.read",
+  "skillbridge.write",
+  "skillbridge.manage",
+  "skillbridge.export",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -175,6 +184,9 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "reports.export",
     "data_quality.read",
     "alerts.read",
+    "scout.use",
+    "scout.search",
+    "skillbridge.read",
   ],
   "strategy-technology-administrator": [
     "companies.read",
@@ -225,6 +237,9 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "reports.export",
     "data_quality.read",
     "alerts.read",
+    "scout.use",
+    "scout.search",
+    "skillbridge.read",
   ],
   "talent-partner": [
     "companies.read",
@@ -279,6 +294,14 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "scenario_models.read",
     "reports.read",
     "reports.export",
+    "scout.use",
+    "scout.search",
+    "scout.draft",
+    "scout.internal_actions",
+    "skillbridge.read",
+    "skillbridge.write",
+    "skillbridge.manage",
+    "skillbridge.export",
   ],
   recruiter: [
     "companies.read",
@@ -313,6 +336,12 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "agents.read",
     "knowledge.read",
     "reports.read",
+    "scout.use",
+    "scout.search",
+    "scout.draft",
+    "scout.internal_actions",
+    "skillbridge.read",
+    "skillbridge.write",
   ],
   "workforce-consultant": [
     "companies.read",
@@ -364,6 +393,9 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "knowledge.read",
     "knowledge.write",
     "reports.read",
+    "scout.use",
+    "scout.search",
+    "skillbridge.read",
   ],
   "military-talent-specialist": [
     "companies.read",
@@ -397,8 +429,16 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "agents.read",
     "knowledge.read",
     "reports.read",
+    "scout.use",
+    "scout.search",
+    "scout.draft",
+    "scout.internal_actions",
+    "skillbridge.read",
+    "skillbridge.write",
+    "skillbridge.manage",
+    "skillbridge.export",
   ],
-  "read-only": READ_ONLY,
+  "read-only": [...READ_ONLY, "scout.use", "scout.search"],
 };
 
 export type Principal = {

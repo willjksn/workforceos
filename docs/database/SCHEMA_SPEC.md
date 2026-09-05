@@ -1,6 +1,6 @@
 # Schema Specification
 
-Status: Phase 8 executive reporting and production hardening  
+Status: Phase 9 Scout + SkillBridge operations  
 Implementation: `db/schema/`  
 Migrations: `drizzle/`
 
@@ -36,7 +36,9 @@ Migrations: `drizzle/`
 | `db/schema/finance/` | billing schedules, billing events, invoices, payments, revenue events, cost entries, adjustments |
 | `db/schema/integrations/` | integration hub, external records, webhook receipts, enrichment reviews, workspace references |
 | `db/schema/ai/` | agent runs/outputs, prompt versions, model configs, knowledge records, automation, handoffs, usage, circuit breakers, meeting extractions |
-| `db/schema/operating/` | activities, candidate_engagements, candidate_designations, saved views |
+| `db/schema/operating/` | activities, candidate_engagements, candidate_designations, saved views, in-app notifications |
+| `db/schema/scout/` | scout_sessions, scout_messages, scout_actions |
+| `db/schema/skillbridge/` | profiles, preferred locations, target roles, opportunities, stage history, notes, documents, alert rules |
 
 ## Key uniqueness rules
 
@@ -44,7 +46,8 @@ Migrations: `drizzle/`
 - `candidate_talent_pools` unique on `(candidate_id, talent_pool_id)`.
 - `candidate_job_matches` unique on `(candidate_id, job_id)`.
 - `military_civilian_mappings` unique on `(military_occupation_id, civilian_occupation_id)`.
-- Do not duplicate a candidate per requisition or as a separate military database.
+- `skillbridge_profiles` unique on `candidate_id`.
+- Do not duplicate a candidate per requisition, SkillBridge employer, or as a separate military database.
 
 ## Phase 3 schema notes
 
@@ -88,6 +91,13 @@ Migrations: `drizzle/`
 - Migration `drizzle/0007_chemical_quasar.sql` adds `privacy_deletion_requests`, `rate_limit_buckets`, `users.last_login_at`, `candidates.privacy_deleted_at`, `files.retention_until`, and composite indexes for reports/alerts. Do not rewrite `0000`–`0006`.
 - Privacy deletion is not a foreign key from `privacy_deletion_requests.candidate_id` to `candidates` (avoids a circular schema import). Application code scopes by organization.
 - Reports reuse `saved_views` with module `reports:{category}`. There is no separate BI schema.
+
+## Phase 9 schema notes
+
+- Migration `drizzle/0008_cooing_blade.sql` adds Scout session/message/action tables, SkillBridge operating tables, and `in_app_notifications`. Do not rewrite `0000`–`0007`.
+- Scout command family is a Postgres enum matching the closed registry. Unknown commands never persist as executable actions.
+- SkillBridge filtered fields (status, window dates, location, occupation, owner, resume status, opportunity stage) are relational columns. JSONB is limited to Scout DTO/result payloads.
+- Resume files stay in object storage via `files` + `skillbridge_documents`.
 
 ## Semantic search
 

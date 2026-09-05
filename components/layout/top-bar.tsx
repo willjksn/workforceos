@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Bell, Menu, Search } from "lucide-react";
 
 import { AuthControls } from "@/app/auth-controls";
+import { ScoutLauncher } from "@/components/scout/scout-drawer";
 
 const LABELS: Record<string, string> = {
   app: "Command Center",
@@ -20,7 +21,7 @@ const LABELS: Record<string, string> = {
   rediscovery: "Rediscovery",
   nurture: "Nurture",
   jobs: "Jobs",
-  military: "Military Talent",
+  skillbridge: "SkillBridge",
   services: "Services",
   workforce: "Workforce",
   projects: "Projects",
@@ -57,9 +58,11 @@ function crumbsFromPath(pathname: string) {
 export function TopBar({
   pendingApprovals,
   onMenuClick,
+  scoutEnabled,
 }: {
   pendingApprovals: number;
   onMenuClick: () => void;
+  scoutEnabled: boolean;
 }) {
   const pathname = usePathname();
   const crumbs = crumbsFromPath(pathname);
@@ -103,6 +106,7 @@ export function TopBar({
           <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-warning" />
         ) : null}
       </Link>
+      <ScoutLauncher enabled={scoutEnabled} />
       <AuthControls />
     </header>
   );

@@ -138,6 +138,20 @@ export default async function CommandCenterPage() {
         </section>
       ) : null}
 
+      {can(principal, "skillbridge.read") || can(principal, "military.read") ? (
+        <section className="mt-8">
+          <SectionHeader title="SkillBridge" />
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <MetricCard href="/app/military/skillbridge?view=needs-action" label="Needs attention" value={snapshot.skillbridge.needsAttention} />
+            <MetricCard href="/app/military/skillbridge?view=windows" label="Windows opening soon" value={snapshot.skillbridge.windowsOpeningSoon} />
+            <MetricCard href="/app/military/skillbridge?view=without-opportunities" label="No opportunity" value={snapshot.skillbridge.noOpportunity} />
+            <MetricCard href="/app/military/skillbridge?view=employer-feedback" label="Employer feedback overdue" value={snapshot.skillbridge.employerFeedbackOverdue} />
+            <MetricCard href="/app/military/skillbridge?view=active" label="SkillBridge active" value={snapshot.skillbridge.skillbridgeActive} />
+            <MetricCard href="/app/military/skillbridge?view=conversion" label="Conversion pending" value={snapshot.skillbridge.conversionPending} />
+          </div>
+        </section>
+      ) : null}
+
       {can(principal, "integrations.read") || canFinance ? (
         <section className="mt-8">
           <SectionHeader title="Integrations" />

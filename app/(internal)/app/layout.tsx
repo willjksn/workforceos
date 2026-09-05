@@ -6,7 +6,7 @@ import { navGroupsForPrincipal } from "@/components/navigation/nav-config";
 import { getDb } from "@/db";
 import { approvals } from "@/db/schema";
 import { getCurrentPrincipal } from "@/lib/auth/session";
-import { AuthorizationError } from "@/lib/rbac/permissions";
+import { AuthorizationError, can } from "@/lib/rbac/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +45,7 @@ export default async function InternalAppLayout({
   const pendingApprovals = await pendingApprovalCount(principal.organizationId);
 
   return (
-    <AppShell groups={groups} pendingApprovals={pendingApprovals}>
+    <AppShell groups={groups} pendingApprovals={pendingApprovals} scoutEnabled={can(principal, "scout.use")}>
       {children}
     </AppShell>
   );

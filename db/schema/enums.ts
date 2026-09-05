@@ -773,3 +773,146 @@ export const privacyDeletionStatusEnum = pgEnum("privacy_deletion_status", [
   "completed",
   "rejected",
 ]);
+
+export const scoutCommandFamilyEnum = pgEnum("scout_command_family", [
+  "SEARCH",
+  "SUMMARIZE",
+  "DRAFT",
+  "CREATE",
+  "UPDATE",
+  "ASSIGN",
+  "ADD_TO_POOL",
+  "ADD_TO_JOB",
+  "CREATE_TASK",
+  "CREATE_FOLLOW_UP",
+  "SHOW_RECORD",
+  "SHOW_DASHBOARD",
+  "FIND_MATCHES",
+]);
+
+export const scoutMessageRoleEnum = pgEnum("scout_message_role", [
+  "user",
+  "scout",
+  "system",
+]);
+
+export const scoutActionStatusEnum = pgEnum("scout_action_status", [
+  "proposed",
+  "confirmed",
+  "executed",
+  "cancelled",
+  "rejected",
+  "pending_approval",
+]);
+
+export const skillbridgeApprovalStatusEnum = pgEnum("skillbridge_approval_status", [
+  "unknown",
+  "not_started",
+  "candidate_interested",
+  "command_discussion",
+  "pending",
+  "approved",
+  "denied",
+  "not_required",
+  "completed",
+]);
+
+export const skillbridgeCandidateStatusEnum = pgEnum("skillbridge_candidate_status", [
+  "new",
+  "initial_contact",
+  "profile_incomplete",
+  "ready_for_matching",
+  "matching",
+  "opportunity_identified",
+  "submitted",
+  "interviewing",
+  "skillbridge_pending",
+  "skillbridge_approved",
+  "skillbridge_active",
+  "conversion_pending",
+  "hired",
+  "nurture",
+  "closed",
+]);
+
+export const skillbridgeOpportunityStageEnum = pgEnum("skillbridge_opportunity_stage", [
+  "candidate_identified",
+  "initial_contact",
+  "profile_complete",
+  "opportunity_matching",
+  "candidate_interested",
+  "employer_submitted",
+  "hiring_manager_review",
+  "interview",
+  "skillbridge_approval",
+  "skillbridge_placement",
+  "skillbridge_active",
+  "conversion_review",
+  "hired",
+  "no_match_yet",
+  "candidate_withdrew",
+  "employer_declined",
+  "skillbridge_denied",
+  "position_closed",
+  "nurture",
+  "closed",
+]);
+
+export const skillbridgeResumeStatusEnum = pgEnum("skillbridge_resume_status", [
+  "missing",
+  "outdated",
+  "current",
+  "needs_review",
+]);
+
+export const skillbridgeNoteKindEnum = pgEnum("skillbridge_note_kind", [
+  "candidate_preference",
+  "employer_feedback",
+  "timing",
+  "approval",
+  "resume",
+  "career_goal",
+  "follow_up",
+  "risk",
+  "other",
+]);
+
+export const skillbridgeNoteVisibilityEnum = pgEnum("skillbridge_note_visibility", [
+  "internal",
+  "client_visible",
+]);
+
+export const skillbridgeIdealEmployerKindEnum = pgEnum("skillbridge_ideal_employer_kind", [
+  "named_company",
+  "employer_category",
+  "industry",
+  "no_preference",
+]);
+
+export const skillbridgeDocumentTypeEnum = pgEnum("skillbridge_document_type", [
+  "resume",
+  "certification",
+  "training",
+  "transition",
+  "other",
+]);
+
+export const skillbridgeAlertRuleCodeEnum = pgEnum("skillbridge_alert_rule_code", [
+  "candidate_no_contact",
+  "employer_feedback_overdue",
+  "window_approaching",
+  "no_opportunity",
+  "resume_missing",
+  "conversion_approaching",
+]);
+
+export const inAppNotificationKindEnum = pgEnum("in_app_notification_kind", [
+  "skillbridge_window_approaching",
+  "follow_up_overdue",
+  "employer_response_overdue",
+  "resume_missing",
+  "interview_upcoming",
+  "approval_pending",
+  "conversion_decision_approaching",
+  "scout_action",
+]);

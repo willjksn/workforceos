@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Phase 9 — Scout + SkillBridge operations
+
+- Added Scout, the persistent WorkforceOS intelligence assistant (tooltip: Open Scout). Right-side drawer on authenticated screens. Closed command registry; no model-generated SQL; chat is not the system of record.
+- Scout uses route page context, RBAC/PII stripping before model context, confirmation cards for material writes, and Draft → Human Review → Send/Copy (never auto-send).
+- Added SkillBridge operations as a first-class Military Talent workflow. SkillBridge people are existing Talent Network candidates (`skillbridge_profiles` 1:1). Employer opportunities, configurable alert rules, Inngest scans, and in-app notifications.
+- Command Center and military reports include live SkillBridge counts. My SkillBridge Queue is owner-scoped (managers with `skillbridge.manage` can view global).
+- Added schema migration `drizzle/0008_cooing_blade.sql` and `npm run test:phase9` (25 acceptance tests).
+- Development fixtures include ≥12 labeled SkillBridge candidates. Production seed loads alert-rule defaults only, not those people.
+
 ### Phase 8 — Executive reporting + Command Center + production hardening
 
 - Finalized the Executive Command Center with live PostgreSQL aggregates (business, sales, recruiting, talent, workforce, projects, AI, integrations). Empty values stay empty.

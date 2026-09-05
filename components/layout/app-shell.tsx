@@ -9,10 +9,12 @@ import type { NavGroup } from "../navigation/nav-config";
 export function AppShell({
   groups,
   pendingApprovals,
+  scoutEnabled,
   children,
 }: {
   groups: NavGroup[];
   pendingApprovals: number;
+  scoutEnabled: boolean;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -38,7 +40,7 @@ export function AppShell({
         </div>
       ) : null}
       <div className="app-main flex min-w-0 flex-1 flex-col">
-        <TopBar pendingApprovals={pendingApprovals} onMenuClick={() => setOpen(true)} />
+        <TopBar pendingApprovals={pendingApprovals} onMenuClick={() => setOpen(true)} scoutEnabled={scoutEnabled} />
         {children}
       </div>
     </div>

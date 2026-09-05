@@ -12,6 +12,7 @@ import {
   workspaceSyncJob,
 } from "./integrations";
 import { aiAutomationJob } from "./ai";
+import { skillbridgeFollowUpScanJob, skillbridgeMatchJob } from "./skillbridge";
 
 export const internalTalentSearchJob = inngest.createFunction(
   {
@@ -47,4 +48,6 @@ export const inngestFunctions = [
   sourcingSyncJob,
   workspaceSyncJob,
   aiAutomationJob,
+  skillbridgeFollowUpScanJob,
+  skillbridgeMatchJob,
 ];

@@ -133,7 +133,10 @@ async function main() {
     health.checks.every((check) => !/sk_live|sk_test|postgres(?:ql)?:\/\/\S+|password=/i.test(check.detail)),
     "Health details leaked a secret",
   );
-  assert(health.seedVersion.includes("phase8"), "Seed version should reflect Phase 8");
+  assert(
+    /phase(?:8|9)/.test(health.seedVersion),
+    "Seed version should reflect Phase 8 or later",
+  );
 
   console.log("TEST 8 — production seed cannot load fixtures");
   const env = process.env as { NODE_ENV?: string; ALLOW_DEV_SEED?: string };

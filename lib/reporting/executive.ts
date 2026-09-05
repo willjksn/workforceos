@@ -28,6 +28,7 @@ import {
 } from "../repositories/recruiting-delivery";
 import { getWorkforceCommandSnapshot } from "../repositories/workforce";
 import { recruitingCycleTimes } from "./cycle-time";
+import { getSkillBridgeMetrics } from "../skillbridge/service";
 
 async function counted(query: Promise<Array<{ value: number }>>) {
   const [row] = await query;
@@ -72,6 +73,7 @@ export async function getExecutiveCommandCenter(organizationId: string) {
     pendingReviews,
     failedRuns,
     unhealthyProviders,
+    skillbridge,
   ] = await Promise.all([
     getCommandCenterSnapshot(organizationId),
     phase4CommandSnapshot(organizationId),
@@ -218,6 +220,7 @@ export async function getExecutiveCommandCenter(organizationId: string) {
           ),
         ),
     ),
+    getSkillBridgeMetrics(organizationId),
   ]);
 
   return {
@@ -277,6 +280,14 @@ export async function getExecutiveCommandCenter(organizationId: string) {
     integrations: {
       failedSyncs: failedSyncs.length,
       unhealthyProviders,
+    },
+    skillbridge: {
+      needsAttention: skillbridge.needsCandidateFollowUp + skillbridge.needsEmployerFollowUp,
+      windowsOpeningSoon: skillbridge.windows90,
+      noOpportunity: skillbridge.withoutOpportunity,
+      employerFeedbackOverdue: skillbridge.needsEmployerFollowUp,
+      skillbridgeActive: skillbridge.skillbridgeActive,
+      conversionPending: skillbridge.conversionPending,
     },
     delivery,
     finance,

@@ -13,3 +13,5 @@ export * from "./legal";
 export * from "./finance";
 export * from "./integrations";
 export * from "./operating";
+export * from "./scout";
+export * from "./skillbridge";

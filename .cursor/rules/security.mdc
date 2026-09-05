@@ -7,7 +7,7 @@ alwaysApply: true
 
 - Enforce authorization server-side on every mutation and protected read. UI hiding is not security.
 - Clerk authenticates. Local PostgreSQL `users`, `roles`, and `user_roles` authorize. Never use Clerk metadata as the sole permission source.
-- Candidate data is Restricted PII. Access requires `candidate_pii.read`.
+- Candidate data is Restricted PII. Access requires `candidate_pii.read`. Scout and SkillBridge obey the same rule: strip email/phone/compensation/resume before any model context.
 - Never put database credentials, Clerk secret keys, storage secrets, or provider API keys in client bundles.
 - Validate all external input with schema validation before writes.
 - Record audit events for material business changes. Do not log passwords, tokens, or secrets.

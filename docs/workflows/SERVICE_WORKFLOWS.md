@@ -1,6 +1,6 @@
 # Service Workflows
 
-Status: Phase 5 workforce intelligence on Phase 4 service engines  
+Status: Phase 9 SkillBridge overlay on Phase 4/5 service engines  
 Agents must read approved workflow records from the database. They must not improvise material workflow rules.
 
 ## Workflow versioning
@@ -46,6 +46,8 @@ Delivery project phases: Discovery, Job Inventory, Military Crosswalk, Installat
 
 Test fixture workflow for Phase 1 uses this service.
 
+SkillBridge operations (Phase 9) are an overlay on Talent Network candidates, not a sixth launch service and not a duplicate candidate database. Profiles, employer opportunities, configurable alert rules, and human connect/submit stay inside this military practice area. Matching reuses Professional Search job-match architecture.
+
 ### TA Performance Assessment
 
 1. Collect TA operating data and current process.
@@ -87,4 +89,5 @@ Agents cannot approve their own material output.
 Proposals cannot be sent until approved.  
 Client-facing deliverables cannot be delivered until approved.  
 Pricing outside the configured range requires `pricing.approve`.  
-Delivery projects require an executed contract unless a Managing Partner override is audited.
+Delivery projects require an executed contract unless a Managing Partner override is audited.  
+Scout drafts follow Draft → Human Review → Send/Copy and never auto-send. Scout cannot self-approve.

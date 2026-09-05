@@ -492,3 +492,53 @@ Database mirror: `decision_log` table, seeded from this file.
 - Reason: Production operation needs failure visibility without expanding the Restricted PII surface.
 - Affected modules: observability, admin, AI, integrations
 - Reconsideration: after a production Sentry project exists, keep the same redaction rules.
+
+## DEC-AI-009 — Scout is the persistent assistant; commands are a closed registry
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: The official in-app assistant name is Scout (tooltip: Open Scout). Scout is not Copilot, Navigator, or a generic Assistant. Natural-language prompts parse to a closed command registry (SEARCH, SUMMARIZE, DRAFT, CREATE, UPDATE, ASSIGN, ADD_TO_POOL, ADD_TO_JOB, CREATE_TASK, CREATE_FOLLOW_UP, SHOW_RECORD, SHOW_DASHBOARD, FIND_MATCHES). Unknown commands are rejected. Execution uses Zod-validated DTOs and existing query/service functions. The model never generates SQL. Chat history (`scout_sessions` / `scout_messages` / `scout_actions`) is usability memory, not the system of record.
+- Reason: An unconstrained chatbot would invent SQL, bypass RBAC, and treat conversation as business data.
+- Affected modules: ai, scout, security, audit
+- Reconsideration: additional named commands may be added when a documented operating action requires them. The registry stays closed.
+
+## DEC-AI-010 — Scout page context, confirmation, and RBAC-before-model
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Scout receives explicit structured page context (pathname plus entity type/id from the route). Conversational memory is not the source of truth. Authorization and Restricted PII stripping happen before any record is passed to a model. Without `candidate_pii.read`, Scout omits email, phone, compensation, resume text, and other restricted fields. Read actions may run immediately. Material internal writes require confirmation. External actions require `scout.external_actions` plus human approval. Destructive actions always confirm. Drafts follow Draft → Human Review → Send/Copy and never auto-send. Scout cannot self-approve, send contracts, execute offers, or reject candidates solely via AI.
+- Reason: WFOS-AI-001, WFOS-AI-002, WFOS-SEC-001, WFOS-SEC-002. Page-aware prompts must not leak PII or commit business changes from casual phrasing.
+- Affected modules: scout, talent, security, approvals
+- Reconsideration: none for V1.
+
+## DEC-MIL-003 — SkillBridge people are Talent Network candidates
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: SkillBridge operations use `skillbridge_profiles` linked one-to-one with existing `candidates`. Do not create a parallel SkillBridge person table or duplicate a candidate per employer/job. Preferred locations and target roles are junction tables. Employer connections live in `skillbridge_opportunities` (many-to-many) with stage history. Filtered fields are relational columns, not JSONB. Resume status is missing/outdated/current/needs_review — not a quality score. Files use the existing storage abstraction.
+- Reason: WFOS-MIL-007. SkillBridge is an operating overlay on Talent CRM, not a second candidate database.
+- Affected modules: military, talent, recruiting
+- Reconsideration: none for V1.
+
+## DEC-MIL-004 — SkillBridge matching, alerts, and humans stay in the loop
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: SkillBridge opportunity matching reuses the existing job-match architecture and explainable component scores. Humans connect or submit candidates. Follow-up, window, no-opportunity, employer-feedback, resume-missing, and conversion rules are stored as configurable `skillbridge_alert_rules` (not only hardcoded). Inngest runs scans. In-app notifications are the Phase 9 delivery channel; no new email/SMS unless an existing integration already supports it safely. Employer briefs and message drafts require human review. Metrics and queue counts come from stored rows only.
+- Reason: Invented employers, hardcoded SLA days, or AI-submitted candidates would create false operating data and liability.
+- Affected modules: military, recruiting, inngest, notifications, reports
+- Reconsideration: if email/SMS later ships, it still requires `scout.external_actions` (or equivalent) and human confirmation.
+
+## DEC-OPS-002 — In-app notifications are a foundation, not a second inbox
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: `in_app_notifications` store user-visible operating alerts (SkillBridge window, follow-up overdue, employer feedback, resume missing, interview upcoming, approval pending, conversion approaching). They point at source records. They do not replace activities, engagements, or the derived operational alert list.
+- Reason: Operators need a durable in-app inbox for scanned SkillBridge work without duplicating CRM/talent timelines.
+- Affected modules: notifications, military, scout
+- Reconsideration: if volume requires digesting, keep rows discardable and rebuildable from source scans.

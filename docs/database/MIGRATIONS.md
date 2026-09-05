@@ -16,7 +16,7 @@ npm run db:check
 
 | Command | Safe for production? | Contents |
 | --- | --- | --- |
-| `npm run db:seed:dev` | No | Organization plus Harbor/Taylor Ellis/Navy EM development fixtures |
+| `npm run db:seed:dev` | No | Organization plus Harbor/Taylor Ellis/Navy EM/SkillBridge development fixtures |
 | `npm run db:seed:prod` | Yes | Organization, roles, launch services, disabled agent registry, locked requirements, decision log |
 
 Do not automatically run development seed data in production.
@@ -44,6 +44,7 @@ Do not enable these with ad-hoc production SQL if a migration can do it.
 | `drizzle/0005_unknown_satana.sql` | Phase 6 operational finance and business integrations. Expands `billing_schedules` / `billing_events` and adds invoices, payments, revenue events, enrichment reviews, webhook receipts, and O*NET alternate titles. Do not rewrite `0000`–`0004`. |
 | `drizzle/0006_mushy_iron_lad.sql` | Phase 7 AI operations: agent run contract, prompts, knowledge, automation, handoffs, usage, and circuit breakers. Do not rewrite `0000`–`0005`. |
 | `drizzle/0007_chemical_quasar.sql` | Phase 8: privacy deletion requests, rate-limit buckets, last login, privacy_deleted_at, file retention, report/alert indexes. Do not rewrite `0000`–`0006`. |
+| `drizzle/0008_cooing_blade.sql` | Phase 9: Scout sessions/messages/actions, SkillBridge operating tables, in-app notifications. Do not rewrite `0000`–`0007`. |
 
 Enum values are added in a separate statement from column defaults that use those values. Postgres rejects `ADD VALUE` and `DEFAULT` of that value in the same transaction.
 

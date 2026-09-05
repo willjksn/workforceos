@@ -22,6 +22,8 @@ import {
   projectRisks,
   projects,
   services,
+  skillbridgeOpportunities,
+  skillbridgeProfiles,
   talentPipelines,
   trainingPrograms,
   workforceAssessments,
@@ -311,7 +313,7 @@ async function talentReport(organizationId: string, filters: ReportFilters, incl
 
 async function militaryReport(organizationId: string, filters: ReportFilters) {
   const db = getDb();
-  const [occupations, mappings, installations, targeting, skillbridge, imports, militaryCandidates] = await Promise.all([
+  const [occupations, mappings, installations, targeting, skillbridge, imports, militaryCandidates, skillbridgeProfilesCount, skillbridgeOppCount] = await Promise.all([
     db.select({ value: count() }).from(militaryOccupations),
     db.select({ value: count() }).from(militaryCivilianMappings),
     db.select({ value: count() }).from(militaryInstallations),
@@ -331,6 +333,14 @@ async function militaryReport(organizationId: string, filters: ReportFilters) {
           inArray(candidates.militaryStatus, ["veteran", "active_duty", "reserve", "national_guard"]),
         ),
       ),
+    db
+      .select({ value: count() })
+      .from(skillbridgeProfiles)
+      .where(and(eq(skillbridgeProfiles.organizationId, organizationId), isNull(skillbridgeProfiles.archivedAt))),
+    db
+      .select({ value: count() })
+      .from(skillbridgeOpportunities)
+      .where(and(eq(skillbridgeOpportunities.organizationId, organizationId), isNull(skillbridgeOpportunities.archivedAt))),
   ]);
   void filters;
   const hireRows = await db
@@ -356,6 +366,8 @@ async function militaryReport(organizationId: string, filters: ReportFilters) {
       { label: "Military candidates", value: Number(militaryCandidates[0]?.value ?? 0) },
       { label: "Military hires", value: Number(hireRows[0]?.value ?? 0) },
       { label: "SkillBridge/program notes", value: Number(skillbridge[0]?.value ?? 0), hint: "Occupation-installation rows with a SkillBridge note" },
+      { label: "SkillBridge profiles", value: Number(skillbridgeProfilesCount[0]?.value ?? 0) },
+      { label: "SkillBridge employer opportunities", value: Number(skillbridgeOppCount[0]?.value ?? 0) },
     ],
     columns: ["Import", "Source", "Created"],
     rows: imports.map((row) => ({

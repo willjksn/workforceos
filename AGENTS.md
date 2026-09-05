@@ -36,4 +36,4 @@ Project rules in `.cursor/rules/` are binding:
 - `security.mdc`
 - `workflow.mdc`
 
-Phase 1–8 are complete. Do not start major new business modules unless explicitly asked. Treat WorkforceOS as entering controlled production operation. Do not use Firebase. Do not add temp staffing, payroll, general ledger, tax accounting, AP, benefits, public job marketplace, or cap-table features.
+Phase 1–9 are complete. Do not start Phase 10 or major new business modules unless explicitly asked. Treat WorkforceOS as entering controlled production operation. Do not use Firebase. Do not add temp staffing, payroll, general ledger, tax accounting, AP, benefits, public job marketplace, or cap-table features.

@@ -32,7 +32,7 @@ Preview vs production: preview uses Clerk test keys and a preview database. Prod
 ## Migrate
 
 - Change schema in `db/schema/`.
-- Generate `npm run db:generate`. Review SQL. Do not rewrite already-applied files `0000`–`0007`.
+- Generate `npm run db:generate`. Review SQL. Do not rewrite already-applied files `0000`–`0008`.
 - Apply with `npm run db:migrate` using `DATABASE_URL_UNPOOLED`.
 - Update `docs/database/MIGRATIONS.md` and `docs/database/DATA_DICTIONARY.md`.
 
@@ -43,7 +43,7 @@ Rollback of a bad migration is restore-from-backup / PITR, not `drizzle-kit push
 | Command | When |
 | --- | --- |
 | `npm run db:seed:prod` | Production and any clean branch. Organization, roles, services, workflows, requirements, agents, approved reference data. |
-| `npm run db:seed:dev` | Local/preview fixtures only (Harbor, Taylor Ellis, Navy EM, Cedar Ridge). |
+| `npm run db:seed:dev` | Local/preview fixtures only (Harbor, Taylor Ellis, Navy EM, Cedar Ridge, labeled SkillBridge people). |
 
 `db:seed:dev` refuses to run when `NODE_ENV=production` or `VERCEL_ENV=production` unless `ALLOW_DEV_SEED=true`. Do not set that override on Vercel production.
 
@@ -83,6 +83,24 @@ Unsigned webhooks are rejected. Webhook intake is rate-limited.
 ## AI review queue
 
 Material AI output lands on `/app/ai-operations/review` as `approvals` plus `agent_outputs`. Humans approve, reject, request changes, or edit. The originating agent cannot approve its own output. Client-facing drafts stay drafts until approved.
+
+## Scout
+
+Scout is the persistent in-app assistant (tooltip: Open Scout). It is a right-side drawer, not a new product surface.
+
+- Grant `scout.use` to operators who may open it. Search/draft/internal/external actions are separate permissions.
+- Material writes show a confirmation card. Confirming is a human action and is audited.
+- Drafts never send. Copy or a later human-approved send path is required. `scout.external_actions` is required before any external send is even proposed.
+- Do not treat Scout chat as the system of record. Correct data on the candidate, job, company, or SkillBridge record.
+
+## SkillBridge
+
+SkillBridge is an overlay on Talent Network candidates at `/app/military/skillbridge`.
+
+- Create a profile against an existing candidate. Do not create a second person.
+- My SkillBridge Queue is the owner's overdue follow-ups, windows, missing resumes, and employer feedback. Managers with `skillbridge.manage` can switch to the global queue.
+- Alert thresholds are `skillbridge_alert_rules` (not hardcoded). Inngest `workforceos/skillbridge-follow-up-scan` and `workforceos/skillbridge-match` populate in-app notifications.
+- Humans connect or submit to employers. Scout/agent drafts of briefs and emails stay drafts.
 
 ## Backup / PITR / recovery
 
