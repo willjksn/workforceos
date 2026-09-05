@@ -152,3 +152,13 @@ Database mirror: `decision_log` table, seeded from this file.
 - Reason: List/geo plus ranked targeting satisfies the operating workflow. A map library would delay recruiting and translator delivery.
 - Affected modules: military UI
 - Reconsideration: Phase 3.5 if a lightweight map can consume stored coordinates without a large new dependency.
+
+## DEC-DEP-001 — Separate Neon databases per Vercel environment
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Development, Vercel Preview, and Vercel Production each use a distinct Neon branch/database. Migrations are versioned Drizzle files applied explicitly. Production seed is catalog-only. Development fixtures never run in production. `next build` does not migrate or seed.
+- Reason: The current default Neon branch is named `production` but contains development fixtures. Sharing one database would mix Harbor/Taylor Ellis data with live operations and make rollback unsafe.
+- Affected modules: deployment, database, seed
+- Reconsideration: if Neon-Vercel preview branching is enabled, preview still must not share the production connection string.

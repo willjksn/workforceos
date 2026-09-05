@@ -4,6 +4,7 @@ import { getServerEnv } from "../env";
 import { LocalStorageProvider } from "./local";
 import type { StorageProvider } from "./provider";
 import { S3CompatibleStorageProvider } from "./s3-compatible";
+import { UnconfiguredStorageProvider } from "./unconfigured";
 
 export function getStorageProvider(): StorageProvider {
   const env = getServerEnv();
@@ -17,18 +18,23 @@ export function getStorageProvider(): StorageProvider {
     });
   }
 
-  const rootDir = path.join(
-    process.cwd(),
-    ".data",
-    "storage",
-  );
+  if (env.NODE_ENV === "production") {
+    return new UnconfiguredStorageProvider();
+  }
+
+  const rootDir = env.LOCAL_STORAGE_DIR
+    ? path.resolve(env.LOCAL_STORAGE_DIR)
+    : path.join(process.cwd(), ".data", "storage");
   return new LocalStorageProvider(rootDir);
 }
 
 export async function getStorageStatus() {
   const provider = getStorageProvider();
+  const env = getServerEnv();
   return {
     adapter: provider.name,
-    ready: provider.name === "local" || Boolean(getServerEnv().S3_BUCKET),
+    ready:
+      provider.name === "local" ||
+      (provider.name === "s3" && Boolean(env.S3_BUCKET)),
   };
 }

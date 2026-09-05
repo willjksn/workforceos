@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Deployment readiness
+
+- Split production-safe seed (`db:seed:prod`) from development fixtures (`db:seed:dev`). Harbor, Taylor Ellis, and Navy EM test mappings are excluded from production seed.
+- Hardened Vercel storage fallback so the local disk adapter is not used in production.
+- Added `NEXT_PUBLIC_APP_URL` / `APP_URL`, `db:check` migration/extension/table validation, and first-admin bootstrap (`db:bootstrap-admin`).
+- Documented Neon/Vercel/Clerk environment separation in `docs/architecture/DATABASE_DEPLOYMENT.md` and `docs/architecture/VERCEL_DEPLOYMENT_CHECKLIST.md`.
+
 ### Phase 3 — Recruiting Operations + Military Talent Translator
 
 - Added recruiting operations: job intake, canonical job skills, internal-first search, job-specific match components, pipeline, screening, submissions, interviews, offers, placements, and agreement-based guarantees.

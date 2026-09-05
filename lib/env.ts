@@ -37,6 +37,8 @@ const serverEnvSchema = z.object({
   AI_PROVIDER: optionalString,
   AI_API_KEY: optionalString,
   SENTRY_DSN: optionalString,
+  NEXT_PUBLIC_APP_URL: optionalString,
+  APP_URL: optionalString,
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -92,4 +94,13 @@ export function requireClerkKeys(env: ServerEnv = getServerEnv()) {
     publishableKey: env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY as string,
     secretKey: env.CLERK_SECRET_KEY as string,
   };
+}
+
+export function getAppUrl(env: ServerEnv = getServerEnv()): string | undefined {
+  const configured = env.NEXT_PUBLIC_APP_URL ?? env.APP_URL;
+  if (configured) return configured.replace(/\/$/, "");
+  const vercelHost = process.env.VERCEL_URL;
+  if (vercelHost) return `https://${vercelHost.replace(/\/$/, "")}`;
+  if (env.NODE_ENV !== "production") return "http://localhost:3000";
+  return undefined;
 }

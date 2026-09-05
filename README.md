@@ -26,6 +26,8 @@ Canonical documents:
 
 - `docs/architecture/WORKFORCEOS_MASTER_SPEC.md`
 - `docs/architecture/DEPLOYMENT.md`
+- `docs/architecture/DATABASE_DEPLOYMENT.md`
+- `docs/architecture/VERCEL_DEPLOYMENT_CHECKLIST.md`
 - `docs/business/SERVICE_CATALOG.md`
 - `docs/database/DATA_DICTIONARY.md`
 - `docs/database/SCHEMA_SPEC.md`
@@ -53,12 +55,18 @@ Copy `.env.example` to `.env.local`. Never commit `.env`, `.env.local`, or `.env
 
 Required for database commands:
 
-- `DATABASE_URL`
+- `DATABASE_URL` (pooled, app/runtime)
+- `DATABASE_URL_UNPOOLED` (direct, migrations)
 
 Required to sign in:
 
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
 - `CLERK_SECRET_KEY`
+
+Recommended per environment:
+
+- `NEXT_PUBLIC_APP_URL` (`http://localhost:3000` locally)
+- `NEON_BRANCH`
 
 Optional until the feature is enabled:
 
@@ -67,14 +75,15 @@ Optional until the feature is enabled:
 - `AI_PROVIDER`, `AI_API_KEY`
 - `SENTRY_DSN`
 
-`next dev` and `next build` do not require every value. Database scripts fail clearly without `DATABASE_URL`.
+`next dev` and `next build` do not require every value. Database scripts fail clearly without `DATABASE_URL`. Never put production Clerk live keys in `.env.local`.
 
 ## Neon setup
 
 1. Create a Neon project.
 2. Enable the `vector` and `pg_trgm` extensions via migrations, not ad-hoc production SQL.
-3. Put the connection string in `DATABASE_URL`.
-4. Run `npm run db:migrate` then `npm run db:seed`.
+3. Put the pooled connection string in `DATABASE_URL` and the direct URL in `DATABASE_URL_UNPOOLED`.
+4. Run `npm run db:migrate` then `npm run db:seed:dev` on a development branch.
+5. Production databases use `npm run db:seed:prod` only. Never run development fixtures against production.
 
 ## Clerk setup
 
@@ -89,12 +98,16 @@ Optional until the feature is enabled:
 npm run db:generate
 npm run db:migrate
 npm run db:check
-npm run db:seed
+npm run db:seed:dev
+npm run db:seed:prod
+npm run db:bootstrap-admin
 npm run db:verify-core
 npm run db:verify-extensions
 ```
 
-Schema changes: edit `db/schema/`, generate a migration, review SQL, migrate, update the data dictionary.
+`db:seed` is an alias of `db:seed:dev` and includes Harbor / Taylor Ellis fixtures. `db:seed:prod` seeds organization, roles, launch services, agent registry, and locked requirements only.
+
+Schema changes: edit `db/schema/`, generate a migration, review SQL, migrate, update the data dictionary. See `docs/architecture/DATABASE_DEPLOYMENT.md`.
 
 ## Inngest
 
@@ -128,4 +141,4 @@ npm run build
 
 ## Deployment
 
-See `docs/architecture/DEPLOYMENT.md`. Verify `npm run build`, set Vercel env vars, use Neon HTTP in serverless, and send background work through Inngest.
+See `docs/architecture/DEPLOYMENT.md` and `docs/architecture/VERCEL_DEPLOYMENT_CHECKLIST.md`. Verify `npm run build`, set Vercel env vars per environment, use Neon HTTP in serverless, apply migrations explicitly, and send background work through Inngest.

@@ -1,10 +1,17 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { describe, expect, it } from "vitest";
-
+import { resetServerEnvCache } from "../lib/env";
+import { getStorageProvider } from "../lib/storage";
 import { LocalStorageProvider } from "../lib/storage/local";
+import { UnconfiguredStorageProvider } from "../lib/storage/unconfigured";
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  resetServerEnvCache();
+});
 
 describe("local storage adapter", () => {
   it("uploads and retrieves a development file", async () => {
@@ -23,5 +30,16 @@ describe("local storage adapter", () => {
     const meta = await storage.metadata(key);
     expect(meta?.sizeBytes).toBe(body.byteLength);
     await rm(dir, { recursive: true, force: true });
+  });
+});
+
+describe("production storage fallback", () => {
+  it("does not use the local disk adapter in production when S3 is unset", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("STORAGE_PROVIDER", "local");
+    resetServerEnvCache();
+    const provider = getStorageProvider();
+    expect(provider).toBeInstanceOf(UnconfiguredStorageProvider);
+    expect(provider.name).toBe("unconfigured");
   });
 });

@@ -10,6 +10,17 @@ npm run db:migrate
 npm run db:check
 ```
 
+`npm run build` does not migrate. Vercel must not run migrations as part of the application build.
+
+## Seeds
+
+| Command | Safe for production? | Contents |
+| --- | --- | --- |
+| `npm run db:seed:dev` | No | Organization plus Harbor/Taylor Ellis/Navy EM development fixtures |
+| `npm run db:seed:prod` | Yes | Organization, roles, launch services, disabled agent registry, locked requirements, decision log |
+
+Do not automatically run development seed data in production.
+
 ## Extensions
 
 The first migration enables:
@@ -33,4 +44,4 @@ Enum values are added in a separate statement from column defaults that use thos
 
 ## Preview databases
 
-Neon preview branching should run the same migration set. See `docs/architecture/DEPLOYMENT.md`.
+Neon preview branching should run the same migration set. See `docs/architecture/DATABASE_DEPLOYMENT.md` and `docs/architecture/DEPLOYMENT.md`.

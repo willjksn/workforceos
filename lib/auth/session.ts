@@ -2,6 +2,7 @@ import { cache } from "react";
 
 import { AuthorizationError } from "../rbac/permissions";
 import { clerkAuthAvailable, syncLocalUser, type ClerkIdentity } from "./sync-user";
+import { assertLocalAccountActive, assertLocalAccountNotDisabled } from "./account-status";
 import { loadPrincipalByUserId } from "../rbac/authorize";
 
 async function readClerkIdentity(): Promise<ClerkIdentity | null> {
@@ -29,9 +30,7 @@ export const getCurrentPrincipal = cache(async () => {
   const identity = await readClerkIdentity();
   if (!identity) return null;
   const user = await syncLocalUser(identity);
-  if (user.status === "disabled") {
-    throw new AuthorizationError("This WorkforceOS account is disabled");
-  }
+  assertLocalAccountNotDisabled(user.status);
   return loadPrincipalByUserId(user.id);
 });
 
@@ -40,8 +39,6 @@ export async function requireCurrentPrincipal() {
   if (!principal) {
     throw new AuthorizationError("Authentication required");
   }
-  if (principal.status !== "active") {
-    throw new AuthorizationError("This WorkforceOS account is not active");
-  }
+  assertLocalAccountActive(principal.status);
   return principal;
 }

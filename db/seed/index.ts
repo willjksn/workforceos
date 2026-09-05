@@ -64,7 +64,14 @@ import {
 
 const now = () => new Date();
 
-export async function seedFoundation() {
+export async function seedProductionSafe() {
+  return seedFoundation({ includeDevelopmentFixtures: false });
+}
+
+export async function seedFoundation(
+  options: { includeDevelopmentFixtures?: boolean } = {},
+) {
+  const includeDevelopmentFixtures = options.includeDevelopmentFixtures ?? true;
   const db = getDb();
 
   await db
@@ -205,29 +212,31 @@ export async function seedFoundation() {
     },
   ];
 
-  for (const user of userSeed) {
-    await db
-      .insert(users)
-      .values({
-        id: user.id,
-        organizationId: INTERNAL_ORG_ID,
-        email: user.email,
-        fullName: user.fullName,
-        status: user.status,
-      })
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
+  if (includeDevelopmentFixtures) {
+    for (const user of userSeed) {
+      await db
+        .insert(users)
+        .values({
+          id: user.id,
+          organizationId: INTERNAL_ORG_ID,
           email: user.email,
           fullName: user.fullName,
           status: user.status,
-          updatedAt: now(),
-        },
-      });
-    await db
-      .insert(userRoles)
-      .values({ userId: user.id, roleId: user.roleId })
-      .onConflictDoNothing();
+        })
+        .onConflictDoUpdate({
+          target: users.id,
+          set: {
+            email: user.email,
+            fullName: user.fullName,
+            status: user.status,
+            updatedAt: now(),
+          },
+        });
+      await db
+        .insert(userRoles)
+        .values({ userId: user.id, roleId: user.roleId })
+        .onConflictDoNothing();
+    }
   }
 
   const agentSeed = [
@@ -256,7 +265,11 @@ export async function seedFoundation() {
       .onConflictDoNothing();
   }
 
-  await seedCatalogAndTalent(db);
+  if (includeDevelopmentFixtures) {
+    await seedCatalogAndTalent(db);
+  } else {
+    await seedLaunchServices(db);
+  }
   await seedRequirementsAndDecisions(db);
 
   await db
@@ -268,6 +281,83 @@ export async function seedFoundation() {
     });
 
   return { organizationId: INTERNAL_ORG_ID, seedVersion: SEED_VERSION };
+}
+
+async function seedLaunchServices(db: ReturnType<typeof getDb>) {
+  const launchServices = [
+    {
+      id: "00000000-0000-4000-8900-000000000001",
+      code: "professional-search",
+      name: "Professional Search",
+      definition: "Internal-first retained/project search.",
+    },
+    {
+      id: MTOA_SERVICE_ID,
+      code: "military-talent-opportunity-assessment",
+      name: "Military Talent Opportunity Assessment",
+      definition:
+        "Translate civilian demand to military occupations, skills, gaps, training, and likely installations.",
+    },
+    {
+      id: "00000000-0000-4000-8900-000000000003",
+      code: "ta-performance-assessment",
+      name: "TA Performance Assessment",
+      definition: "Assess talent acquisition operating performance.",
+    },
+    {
+      id: "00000000-0000-4000-8900-000000000004",
+      code: "fractional-talent-partner",
+      name: "Fractional Talent Partner",
+      definition: "Fractional talent leadership engagement. Not temp staffing or payroll.",
+    },
+    {
+      id: "00000000-0000-4000-8900-000000000005",
+      code: "workforce-pipeline-assessment",
+      name: "Workforce Pipeline Assessment",
+      definition: "Assess workforce supply/demand and pipeline actions.",
+    },
+  ];
+
+  for (const service of launchServices) {
+    await db
+      .insert(services)
+      .values({
+        id: service.id,
+        code: service.code,
+        name: service.name,
+        status: "active",
+        description: service.definition,
+      })
+      .onConflictDoNothing();
+    const versionId =
+      service.code === "military-talent-opportunity-assessment"
+        ? MTOA_VERSION_ID
+        : service.id.replace("8900", "8910");
+    await db
+      .insert(serviceVersions)
+      .values({
+        id: versionId,
+        serviceId: service.id,
+        version: "v1",
+        definition: service.definition,
+        reviewStatus: "approved",
+      })
+      .onConflictDoNothing();
+
+    const steps = LAUNCH_SERVICE_WORKFLOWS[service.code] ?? [];
+    for (const [index, step] of steps.entries()) {
+      await db
+        .insert(serviceWorkflows)
+        .values({
+          serviceVersionId: versionId,
+          stepNumber: index + 1,
+          name: step.name,
+          instructions: step.instructions,
+          requiresHumanApproval: step.requiresHumanApproval,
+        })
+        .onConflictDoNothing();
+    }
+  }
 }
 
 async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
@@ -756,80 +846,7 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
 
   await seedPhase3OperatingFixtures(db, skillIds);
 
-  const launchServices = [
-    {
-      id: "00000000-0000-4000-8900-000000000001",
-      code: "professional-search",
-      name: "Professional Search",
-      definition: "Internal-first retained/project search.",
-    },
-    {
-      id: MTOA_SERVICE_ID,
-      code: "military-talent-opportunity-assessment",
-      name: "Military Talent Opportunity Assessment",
-      definition:
-        "Translate civilian demand to military occupations, skills, gaps, training, and likely installations.",
-    },
-    {
-      id: "00000000-0000-4000-8900-000000000003",
-      code: "ta-performance-assessment",
-      name: "TA Performance Assessment",
-      definition: "Assess talent acquisition operating performance.",
-    },
-    {
-      id: "00000000-0000-4000-8900-000000000004",
-      code: "fractional-talent-partner",
-      name: "Fractional Talent Partner",
-      definition: "Fractional talent leadership engagement. Not temp staffing or payroll.",
-    },
-    {
-      id: "00000000-0000-4000-8900-000000000005",
-      code: "workforce-pipeline-assessment",
-      name: "Workforce Pipeline Assessment",
-      definition: "Assess workforce supply/demand and pipeline actions.",
-    },
-  ];
-
-  for (const service of launchServices) {
-    await db
-      .insert(services)
-      .values({
-        id: service.id,
-        code: service.code,
-        name: service.name,
-        status: "active",
-        description: service.definition,
-      })
-      .onConflictDoNothing();
-    const versionId =
-      service.code === "military-talent-opportunity-assessment"
-        ? MTOA_VERSION_ID
-        : service.id.replace("8900", "8910");
-    await db
-      .insert(serviceVersions)
-      .values({
-        id: versionId,
-        serviceId: service.id,
-        version: "v1",
-        definition: service.definition,
-        reviewStatus: "approved",
-      })
-      .onConflictDoNothing();
-
-    const steps = LAUNCH_SERVICE_WORKFLOWS[service.code] ?? [];
-    for (const [index, step] of steps.entries()) {
-      await db
-        .insert(serviceWorkflows)
-        .values({
-          serviceVersionId: versionId,
-          stepNumber: index + 1,
-          name: step.name,
-          instructions: step.instructions,
-          requiresHumanApproval: step.requiresHumanApproval,
-        })
-        .onConflictDoNothing();
-    }
-  }
+  await seedLaunchServices(db);
 
   await db
     .insert(solutionPlans)

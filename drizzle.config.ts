@@ -9,10 +9,18 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
-    url:
-      process.env.DATABASE_URL_UNPOOLED ??
-      process.env.DATABASE_URL ??
-      "postgresql://127.0.0.1:5432/workforceos",
+    url: (() => {
+      const url =
+        process.env.DATABASE_URL_UNPOOLED ??
+        process.env.DATABASE_URL ??
+        "postgresql://127.0.0.1:5432/workforceos";
+      if (url.includes("-pooler")) {
+        console.warn(
+          "drizzle.config is using a pooled connection string. Set DATABASE_URL_UNPOOLED to the Neon direct URL before running migrations.",
+        );
+      }
+      return url;
+    })(),
   },
   strict: true,
   verbose: true,

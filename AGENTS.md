@@ -23,6 +23,8 @@ Read these canonical documents instead of inventing architecture:
 - `docs/requirements/REQUIREMENTS_REGISTRY.md`
 - `docs/workflows/SERVICE_WORKFLOWS.md`
 - `docs/architecture/DEPLOYMENT.md`
+- `docs/architecture/DATABASE_DEPLOYMENT.md`
+- `docs/architecture/VERCEL_DEPLOYMENT_CHECKLIST.md`
 
 Project rules in `.cursor/rules/` are binding:
 

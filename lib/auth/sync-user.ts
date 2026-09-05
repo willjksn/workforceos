@@ -3,7 +3,8 @@ import { eq } from "drizzle-orm";
 import { getDb } from "../../db";
 import { organizations, userRoles, users } from "../../db/schema";
 import { isClerkConfigured } from "../env";
-import { AuthorizationError, type Principal } from "../rbac/permissions";
+import { type Principal } from "../rbac/permissions";
+import { assertLocalAccountNotDisabled } from "./account-status";
 import { loadPrincipalByUserId } from "../rbac/authorize";
 import { INTERNAL_ORG_SLUG } from "../../db/seed/constants";
 
@@ -37,9 +38,7 @@ export async function syncLocalUser(identity: ClerkIdentity) {
     .where(eq(users.clerkUserId, identity.clerkUserId))
     .limit(1);
   if (byClerk) {
-    if (byClerk.status === "disabled") {
-      throw new AuthorizationError("This WorkforceOS account is disabled");
-    }
+    assertLocalAccountNotDisabled(byClerk.status);
     const [updated] = await db
       .update(users)
       .set({
@@ -59,9 +58,7 @@ export async function syncLocalUser(identity: ClerkIdentity) {
     .where(eq(users.email, identity.email.toLowerCase()))
     .limit(1);
   if (byEmail) {
-    if (byEmail.status === "disabled") {
-      throw new AuthorizationError("This WorkforceOS account is disabled");
-    }
+    assertLocalAccountNotDisabled(byEmail.status);
     const [updated] = await db
       .update(users)
       .set({
