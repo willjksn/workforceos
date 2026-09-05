@@ -612,3 +612,91 @@ export const talentScarcityClassEnum = pgEnum("talent_scarcity_class", [
   "moderate",
   "abundant",
 ]);
+
+export const billingTypeEnum = pgEnum("billing_type", [
+  "placement_fee",
+  "monthly_recurring",
+  "milestone",
+  "fixed_project",
+  "retainer",
+  "custom",
+]);
+
+export const billingScheduleStatusEnum = pgEnum("billing_schedule_status", [
+  "active",
+  "paused",
+  "terminated",
+  "completed",
+]);
+
+export const invoiceStatusEnum = pgEnum("invoice_status", [
+  "draft",
+  "ready",
+  "sent",
+  "partially_paid",
+  "paid",
+  "overdue",
+  "void",
+  "disputed",
+]);
+
+export const paymentReconciliationStatusEnum = pgEnum("payment_reconciliation_status", [
+  "unmatched",
+  "matched",
+  "disputed",
+  "written_off",
+]);
+
+export const revenueEventStatusEnum = pgEnum("revenue_event_status", [
+  "expected",
+  "recognized",
+  "invoiced",
+  "cancelled",
+]);
+
+export const revenueTriggerTypeEnum = pgEnum("revenue_trigger_type", [
+  "candidate_start",
+  "milestone_completed",
+  "monthly_fractional",
+  "assessment_kickoff",
+  "final_deliverable",
+  "contract_deposit",
+  "custom",
+]);
+
+export const arAgingBucketEnum = pgEnum("ar_aging_bucket", [
+  "current",
+  "1_30",
+  "31_60",
+  "61_90",
+  "90_plus",
+]);
+
+export const financeAdjustmentTypeEnum = pgEnum("finance_adjustment_type", [
+  "write_off",
+  "invoice_adjustment",
+  "revenue_correction",
+  "fee_override",
+  "billing_schedule_change",
+]);
+
+export const enrichmentReviewStatusEnum = pgEnum("enrichment_review_status", [
+  "pending_review",
+  "accepted",
+  "rejected",
+]);
+
+export const integrationJobStatusEnum = pgEnum("integration_job_status", [
+  "queued",
+  "running",
+  "succeeded",
+  "failed",
+  "dead_letter",
+]);
+
+export const workspaceReferenceTypeEnum = pgEnum("workspace_reference_type", [
+  "calendar",
+  "meeting",
+  "interview",
+  "email_thread",
+]);

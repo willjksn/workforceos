@@ -1,6 +1,6 @@
 # WorkforceOS Master Specification
 
-Status: Phase 5 workforce development and workforce intelligence  
+Status: Phase 6 operational finance and business integrations  
 Audience: engineering agents and maintainers  
 Canonical: this file is the architecture source of truth for implementation.
 
@@ -10,7 +10,7 @@ WorkforceOS is an internal operating system for a Workforce & Talent Solutions f
 
 It will eventually manage company CRM, Talent CRM, recruiting/search, military talent translation, workforce development, legal document operations, finance/AR workflow, integrations, background AI agents, audit history, approvals, and institutional knowledge.
 
-Phase 1 built the technical foundation. Phase 4 activates service engines, proposals, contracts, and project delivery. Phase 5 expands Workforce Pipeline Assessment into workforce development and intelligence on that same foundation.
+Phase 1 built the technical foundation. Phase 4 activates service engines, proposals, contracts, and project delivery. Phase 5 expands Workforce Pipeline Assessment into workforce development and intelligence. Phase 6 activates operational finance and Integration Hub business adapters on that same foundation.
 
 ## Product boundaries
 
@@ -73,7 +73,7 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 - Workforce Development: planning-level workforce roles, baselines, versioned forecasts, supply, gaps, pipelines, career paths, scenarios, and the expanded Workforce Pipeline Assessment deliverable
 - Services: five launch service engines, versioned workflows, discovery, solution plans, proposals
 - Legal: templates, contract packages, execution, e-sign abstraction
-- Finance: billing-trigger foundations (not QuickBooks invoicing)
+- Finance: operational billing, invoice expectations, AR view, revenue events (QuickBooks remains the ledger)
 - AI: agent registry, runs, outputs, approvals
 - Platform: users, roles, audit, integrations, files, search
 
@@ -116,7 +116,7 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 - `search_projects` are recruiting containers. `projects` are delivery engagements.
 - Proposals, pricing outside the configured range, contracts, legal language, and client-facing deliverables require human approval. Agents cannot approve their own material output.
 - Delivery project creation requires an executed contract unless a Managing Partner override is recorded and audited.
-- Billing events are operational triggers. They do not create QuickBooks invoices unless that integration is already configured.
+- Billing events are operational triggers. Invoice and payment rows are operating records. They do not make WorkforceOS the accounting ledger. QuickBooks remains the accounting source of truth.
 - Seeded legal templates are not attorney-authoritative unless `attorney_approved` is true.
 
 ## Workforce development rules (Phase 5)

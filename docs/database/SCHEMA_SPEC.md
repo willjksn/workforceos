@@ -1,6 +1,6 @@
 # Schema Specification
 
-Status: Phase 5 workforce development and workforce intelligence schema  
+Status: Phase 6 operational finance and business integrations schema  
 Implementation: `db/schema/`  
 Migrations: `drizzle/`
 
@@ -33,8 +33,8 @@ Migrations: `drizzle/`
 | `db/schema/services/` | services, versions, workflow definitions, workflows, discoveries, solution plans, proposals |
 | `db/schema/projects/` | project templates, delivery projects, phases, tasks, deliverables, risks, issues, KPIs, closeout, expansion |
 | `db/schema/legal/` | templates, contracts, e-sign envelopes, legal packages |
-| `db/schema/finance/` | billing schedules, billing events, reserved finance operating foundation |
-| `db/schema/integrations/` | integration hub tables |
+| `db/schema/finance/` | billing schedules, billing events, invoices, payments, revenue events, cost entries, adjustments |
+| `db/schema/integrations/` | integration hub, external records, webhook receipts, enrichment reviews, workspace references |
 | `db/schema/ai/` | agent runs and outputs |
 | `db/schema/operating/` | activities, candidate_engagements, candidate_designations, saved views |
 
@@ -69,6 +69,12 @@ Migrations: `drizzle/`
 - `workforce_assessments` unique on `(company_id, version_number)`. Forecasts unique on `(assessment_id, version_number, horizon_months)`.
 - `skills_gap_analyses.candidate_id` is a UUID without a Drizzle FK to avoid a circular `workforce` ↔ `talent` import.
 - Approved roadmap items write `project_tasks` on existing delivery `projects`. There is no parallel workforce project table.
+
+## Phase 6 schema notes
+
+- Migration `drizzle/0005_unknown_satana.sql` expands `billing_schedules` and `billing_events` and adds `invoices`, `payments`, `revenue_events`, `finance_cost_entries`, `finance_adjustments`, `contract_billing_terms`, `occupation_alternate_titles`, `enrichment_reviews`, `integration_webhook_receipts`, and `workspace_event_references`. Do not rewrite `0000`–`0004`.
+- QuickBooks, DocuSign, and Apollo IDs map through `external_records`. Do not add provider-specific IDs to core finance tables.
+- Placement fee and milestone amounts come from stored search agreements / `contract_billing_terms`. The application does not invent commercial terms.
 
 ## Semantic search
 

@@ -44,6 +44,9 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | `integration_connections` | Provider connection configuration status. |
 | `external_records` | Maps external provider records to WorkforceOS records. |
 | `integration_events` | Integration sync/lookup activity. |
+| `integration_webhook_receipts` | Idempotent webhook receipts. Unsigned payloads are rejected. |
+| `enrichment_reviews` | Review-gated Apollo (and similar) enrichment. Approved CRM fields are not overwritten silently. |
+| `workspace_event_references` | Calendar/meeting/email references. Not a second inbox. |
 | `requirements` | Locked and evolving product requirements. |
 | `decision_log` | Architectural decisions. |
 | `system_settings` | Seed/version metadata. |
@@ -158,6 +161,7 @@ Workforce roles are planning-level. They do not duplicate recruiting `jobs`. For
 | `proposal_versions` | Immutable history after a proposal is sent. |
 | `legal_templates` | Structural legal templates. Not attorney-authoritative by default. |
 | `contracts` | Service-specific contract packages and execution status. |
+| `contract_billing_terms` | Stored milestone/fee terms. Amounts are never invented in finance code. |
 | `esign_envelopes` | E-sign provider abstraction (DocuSign-ready; manual execution in Phase 4). |
 | `legal_packages` | Legal document records linked to services, engagements, and contracts. |
 | `project_templates` | Delivery templates tied to a service workflow. Distinct from `search_projects`. |
@@ -168,7 +172,10 @@ Workforce roles are planning-level. They do not duplicate recruiting `jobs`. For
 | `project_risks` / `project_issues` | Delivery risk and issue tracking. Material open risks keep a project at risk. |
 | `project_meetings` | Cadence meetings for delivery projects. |
 | `project_kpis` | Stored KPI values only; never fabricated. |
-| `billing_schedules` / `billing_events` | Operational billing triggers. Not QuickBooks invoices. |
+| `billing_schedules` / `billing_events` | Operational billing triggers expanded in Phase 6. Not the QuickBooks ledger. |
+| `revenue_events` | Operational revenue triggers (start, milestone, monthly, deposit). |
+| `invoices` / `payments` | Invoice expectations, balances, and payment references. Provider IDs map through `external_records`. |
+| `finance_cost_entries` / `finance_adjustments` | Optional delivery costs and approved write-offs, fee overrides, and schedule changes. |
 | `expansion_recommendations` | Suggested follow-on services. Human review required before creating revenue opportunities. |
 | `project_closeouts` | Closeout snapshot, lessons, and knowledge capture. |
 

@@ -14,6 +14,7 @@ import {
   submissions,
 } from "../../db/schema";
 import { recordAuditEvent } from "../audit/record-audit-event";
+import { FinanceError, recordPlacementFeeEvent } from "../finance/engine";
 import { stalledRecruitingAlerts } from "../recruiting/alerts";
 import { guaranteeDates, guaranteeStatusOn, placementFeeFromTerms } from "../recruiting/guarantees";
 
@@ -308,6 +309,14 @@ export async function createPlacementFromOffer(input: {
     recordId: guarantee.id,
     after: { startsOn: guarantee.startsOn, endsOn: guarantee.endsOn, days: guarantee.guaranteeDays },
   });
+  try {
+    await recordPlacementFeeEvent({
+      actor: { organizationId: input.organizationId, userId: input.actorUserId },
+      placementId: placement.id,
+    });
+  } catch (error) {
+    if (!(error instanceof FinanceError)) throw error;
+  }
   return { placement, guarantee };
 }
 

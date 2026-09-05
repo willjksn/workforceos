@@ -21,6 +21,6 @@ export function externalSourcingHook(input: {
     allowed: true as const,
     provider: input.provider,
     jobId: input.jobId,
-    reason: "Internal search is complete. Provider adapters remain behind the Integration Hub and are not connected in this phase.",
+    reason: "Internal search is complete. Provider adapters remain behind the Integration Hub. SeekOut is the preferred sourcing adapter; LinkedIn is not scraped.",
   };
 }

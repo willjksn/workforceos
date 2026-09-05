@@ -1,3 +1,5 @@
+import { DocuSignAdapter } from "./providers";
+
 export type EsignResult = {
   provider: string;
   configured: boolean;
@@ -35,42 +37,13 @@ class ManualEsignAdapter implements EsignAdapter {
   }
 }
 
-class DocuSignPlaceholderAdapter implements EsignAdapter {
-  provider = "docusign";
-
-  private notConfigured(): EsignResult {
-    return {
-      provider: this.provider,
-      configured: false,
-      status: "not_configured",
-      error: "DocuSign is not configured. Use manual execution.",
-    };
-  }
-
-  async createEnvelope() {
-    return this.notConfigured();
-  }
-  async send() {
-    return this.notConfigured();
-  }
-  async status() {
-    return this.notConfigured();
-  }
-  async completedDocument() {
-    return this.notConfigured();
-  }
-  async auditCertificate() {
-    return this.notConfigured();
-  }
-}
-
 export function getEsignAdapter(): EsignAdapter {
-  if (process.env.DOCUSIGN_INTEGRATION_KEY) {
-    return new DocuSignPlaceholderAdapter();
+  if (process.env.DOCUSIGN_INTEGRATION_KEY && process.env.DOCUSIGN_USER_ID) {
+    return new DocuSignAdapter();
   }
   return new ManualEsignAdapter();
 }
 
 export function getDocuSignAdapter(): EsignAdapter {
-  return new DocuSignPlaceholderAdapter();
+  return new DocuSignAdapter();
 }

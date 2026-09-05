@@ -13,12 +13,17 @@ import { requireCurrentPrincipal } from "@/lib/auth/session";
 import { getCommandCenterSnapshot } from "@/lib/repositories/command-center";
 import { getWorkforceCommandSnapshot } from "@/lib/repositories/workforce";
 import { phase4CommandSnapshot } from "@/lib/delivery/engine";
+import { financeCommandSnapshot } from "@/lib/finance/engine";
+import { moneyString } from "@/lib/finance/money";
 import { can } from "@/lib/rbac/permissions";
 
 export default async function CommandCenterPage() {
   const principal = await requireCurrentPrincipal();
   const snapshot = await getCommandCenterSnapshot(principal.organizationId);
   const delivery = await phase4CommandSnapshot(principal.organizationId);
+  const finance = can(principal, "finance.read")
+    ? await financeCommandSnapshot(principal.organizationId)
+    : null;
   const workforce = can(principal, "workforce.read")
     ? await getWorkforceCommandSnapshot(principal.organizationId)
     : null;
@@ -74,6 +79,15 @@ export default async function CommandCenterPage() {
         ) : null}
         {can(principal, "billing.read") ? (
           <MetricCard href="/app/finance" label="Billing events upcoming" value={delivery.billingUpcoming} />
+        ) : null}
+        {finance ? (
+          <>
+            <MetricCard href="/app/finance/ar" label="Overdue AR" value={finance.overdueAr} />
+            <MetricCard href="/app/finance/invoices" label="Upcoming invoices" value={finance.upcomingInvoices} />
+            <MetricCard href="/app/finance/schedules" label="Monthly recurring revenue" value={moneyString(finance.monthlyRecurringRevenue)} />
+            <MetricCard href="/app/finance/revenue" label="Upcoming placement fees" value={moneyString(finance.upcomingPlacementFees)} />
+            <MetricCard href="/app/integrations" label="Failed integration syncs" value={finance.failedIntegrationSyncs} />
+          </>
         ) : null}
         {can(principal, "projects.read") ? (
           <MetricCard href="/app/projects?filter=active" label="Engagements closing soon" value={delivery.engagementsClosingSoon} />

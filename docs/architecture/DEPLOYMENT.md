@@ -33,6 +33,17 @@ Enable as features are connected:
 - `SENTRY_DSN` when Sentry is wired
 - `APP_VERSION`
 
+Optional Integration Hub credentials (unconfigured providers stay labeled mocks):
+
+- `QUICKBOOKS_CLIENT_ID` / `QUICKBOOKS_CLIENT_SECRET`
+- `DOCUSIGN_INTEGRATION_KEY` / `DOCUSIGN_USER_ID` / `DOCUSIGN_SECRET_KEY`
+- `APOLLO_API_KEY`
+- `ONET_API_KEY`
+- `SEEKOUT_API_KEY`
+- `MICROSOFT_CLIENT_ID` / `MICROSOFT_CLIENT_SECRET`
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`
+- `INTEGRATION_WEBHOOK_SECRET`
+
 Do not put secrets in client bundles. Only `NEXT_PUBLIC_*` values are public. `CLERK_SECRET_KEY`, `DATABASE_URL`, Inngest signing keys, `AI_API_KEY`, and `S3_SECRET_ACCESS_KEY` are server-only.
 
 `STORAGE_PROVIDER=local` is development-only. Production and Vercel builds fall back to an unconfigured storage adapter until S3-compatible credentials are set. Read-only deploys can go live without storage; uploads will fail until R2/S3 is configured.

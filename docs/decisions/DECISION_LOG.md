@@ -292,3 +292,83 @@ Database mirror: `decision_log` table, seeded from this file.
 - Reason: Duplicate military data would diverge from the translator of record.
 - Affected modules: workforce, military
 - Reconsideration: Phase 3.5 map may consume stored coordinates; it still must not fabricate them.
+
+## DEC-FIN-002 — Operational finance vs QuickBooks ledger
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Phase 6 extends DEC-FIN-001. WorkforceOS owns operational finance: contract value, service revenue, placement fees, recurring fees, billing schedules, invoice expectations, invoice references, an AR operating view, revenue events, and engagement economics. QuickBooks remains the accounting ledger. WorkforceOS does not become a general ledger, payroll, tax, AP, benefits, or expense-management system.
+- Reason: The firm needs operating visibility without duplicating accounting. Billing events stay operational triggers; invoices and payments in WorkforceOS are operating records that may map to QuickBooks through the Integration Hub.
+- Affected modules: finance, integrations, legal, recruiting
+- Reconsideration: none for V1. Live QuickBooks posting still requires configured credentials and does not make WorkforceOS the accounting source of truth.
+
+## DEC-FIN-003 — Expand Phase 4 billing tables; do not create a second billing system
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Expand existing `billing_schedules` and `billing_events`. Add `invoices`, `payments`, `revenue_events`, cost entries, and adjustments beside them. QuickBooks, DocuSign, and Apollo IDs map only through `external_records`. Do not add provider-specific IDs to core finance tables.
+- Reason: A parallel invoice/billing model would drift from Phase 4 delivery triggers and invent a second commercial history.
+- Affected modules: finance, integrations
+- Reconsideration: none for V1.
+
+## DEC-FIN-004 — Commercial amounts come only from stored contract terms
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Placement fees, minimum fees, retained-search structure, milestone amounts, and fractional monthly fees come from stored search agreements, contracts, and `contract_billing_terms`. The application does not invent percentages, splits, or due dates. Human overrides require reason, user, date, `finance.approve`, and an audit event.
+- Reason: Fabricated fee or milestone terms would create false AR and client liability.
+- Affected modules: finance, recruiting, legal
+- Reconsideration: none for V1.
+
+## DEC-INT-002 — Unconfigured providers are adapters plus labeled mocks
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: QuickBooks, DocuSign, Apollo, O\*NET, SeekOut, LinkedIn, Microsoft, and Google stay behind the Integration Hub. Missing credentials yield adapter interfaces, labeled mock/dev behavior, and setup instructions. The app must not present a fake production connection.
+- Reason: WFOS-INT-001. Pretend-live integrations would contaminate CRM, legal, and finance records.
+- Affected modules: integrations, finance, legal, recruiting
+- Reconsideration: when credentials and OAuth exist, adapters may perform live sync while WorkforceOS remains the operational system of record.
+
+## DEC-INT-003 — DocuSign never marks a contract executed without confirmation
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Manual contract execution remains available when DocuSign is unconfigured. Provider webhooks and status polls may update envelope and contract status only after signature validation. Neither a mock adapter nor an unsigned webhook may set `contracts.status = executed`.
+- Reason: Execution is a legal fact. Silent or mock completion would create false commercial coverage.
+- Affected modules: legal, integrations
+- Reconsideration: none for V1.
+
+## DEC-INT-004 — Apollo must not silently overwrite approved CRM data
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Apollo (and similar enrichment) writes proposed payloads to review records with source, external ID, last sync, and confidence. Applying enrichment to companies or contacts requires a human accept. Approved CRM fields are not overwritten automatically.
+- Reason: Apollo is a research provider, not the CRM system of record.
+- Affected modules: integrations, crm
+- Reconsideration: none for V1.
+
+## DEC-INT-005 — SeekOut is the Phase 6 preferred sourcing adapter
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Phase 6 implements SeekOut as the preferred external sourcing adapter. hireEZ remains a thin Integration Hub placeholder. LinkedIn supports profile URL and Recruiter project/reference IDs plus a future RSC/CRM Connect adapter only. Do not scrape LinkedIn. Internal Talent Network search must complete before any external sourcing adapter runs.
+- Reason: Part 17 requires one preferred provider. Duplicate deep adapters would split sourcing operations. Scraping LinkedIn is prohibited.
+- Affected modules: integrations, recruiting
+- Reconsideration: if hireEZ is later selected as the operating provider, swap the deep adapter without changing Talent CRM tables.
+
+## DEC-INT-006 — Workspace tools store references, not a second inbox
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Microsoft 365 and Google Workspace integrations store calendar, meeting, interview, and email/thread references through the Integration Hub. WorkforceOS does not duplicate Outlook or Gmail.
+- Reason: Operating work needs pointers to workspace events without becoming a mail client.
+- Affected modules: integrations, recruiting, projects
+- Reconsideration: if a later phase needs send-as-user, it still must not copy mailboxes into PostgreSQL.

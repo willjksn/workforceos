@@ -229,6 +229,22 @@ Database mirror: `requirements` table.
 - Status: approved
 - Acceptance: project and contract events create `billing_events` without creating QuickBooks invoices unless that integration is configured.
 
+### WFOS-FIN-002
+
+- Title: Operational finance stays distinct from the accounting ledger
+- Module: finance
+- Priority: locked
+- Status: approved
+- Acceptance: invoices, payments, AR, and revenue events are WorkforceOS operating records. QuickBooks IDs map through `external_records`. Placement fees and milestone amounts come from stored contracts. Overrides require `finance.approve` and an audit event.
+
+### WFOS-INT-002
+
+- Title: Unconfigured providers never appear as live production connections
+- Module: integrations
+- Priority: locked
+- Status: approved
+- Acceptance: missing credentials yield adapters, labeled mocks, and setup instructions. Unsigned webhooks are rejected. Apollo does not overwrite approved CRM fields without review. DocuSign does not mark executed without provider or manual confirmation.
+
 ### WFOS-WF-001
 
 - Title: Workforce roles are planning-level

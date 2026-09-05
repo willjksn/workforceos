@@ -1,4 +1,4 @@
-import { boolean, date, index, numeric, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import { boolean, date, index, integer, numeric, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 
 import { timestamps } from "../_common";
 import { organizations, users } from "../core";
@@ -65,6 +65,9 @@ export const contracts = pgTable("contracts", {
   renewalDate: date("renewal_date", { mode: "date" }),
   terminationDate: date("termination_date", { mode: "date" }),
   paymentTerms: text("payment_terms"),
+  monthlyFee: numeric("monthly_fee", { precision: 14, scale: 2 }),
+  billingDay: integer("billing_day"),
+  minimumTermMonths: integer("minimum_term_months"),
   guaranteeTerms: text("guarantee_terms"),
   insuranceRequirements: text("insurance_requirements"),
   dataRequirements: text("data_requirements"),
@@ -94,9 +97,26 @@ export const esignEnvelopes = pgTable("esign_envelopes", {
   completedAt: timestamp("completed_at", { withTimezone: true, mode: "date" }),
   lastError: text("last_error"),
   auditCertificateKey: text("audit_certificate_key"),
+  completedDocumentKey: text("completed_document_key"),
+  signerStatus: text("signer_status"),
   ...timestamps(),
 }, (table) => [
   index("esign_envelopes_contract_id_idx").on(table.contractId),
+]);
+
+export const contractBillingTerms = pgTable("contract_billing_terms", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  contractId: uuid("contract_id").notNull().references(() => contracts.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  billingType: text("billing_type").notNull(),
+  amount: numeric("amount", { precision: 14, scale: 2 }),
+  percentage: numeric("percentage", { precision: 8, scale: 4 }),
+  dueTrigger: text("due_trigger").notNull(),
+  sequence: integer("sequence").notNull().default(1),
+  notes: text("notes"),
+  ...timestamps(),
+}, (table) => [
+  index("contract_billing_terms_contract_id_idx").on(table.contractId),
 ]);
 
 export const legalPackages = pgTable("legal_packages", {

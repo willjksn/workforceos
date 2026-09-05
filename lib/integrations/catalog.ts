@@ -42,7 +42,7 @@ export const INTEGRATION_CATALOG: IntegrationCatalogEntry[] = [
     id: "seekout",
     name: "SeekOut",
     group: "Talent sourcing",
-    summary: "External sourcing. Does not replace the internal Talent Network search.",
+    summary: "Preferred external sourcing adapter. Does not replace the internal Talent Network search. hireEZ remains a thin placeholder.",
   },
   {
     id: "hireez",

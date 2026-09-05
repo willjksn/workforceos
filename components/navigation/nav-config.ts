@@ -152,9 +152,20 @@ const NAV: NavGroup[] = [
     ],
   },
   {
-    label: "",
+    label: "Finance",
     items: [
       { href: "/app/finance", label: "Finance", icon: "wallet", anyPermission: ["finance.read", "billing.read"] },
+      { href: "/app/finance/invoices", label: "Invoices", icon: "clipboard", permission: "invoices.read" },
+      { href: "/app/finance/ar", label: "Accounts Receivable", icon: "bell", permission: "finance.read" },
+    ],
+  },
+  {
+    label: "Integrations",
+    items: [
+      { href: "/app/integrations", label: "Overview", icon: "network", anyPermission: ["integrations.read", "admin.users", "admin.roles"] },
+      { href: "/app/integrations/quickbooks", label: "QuickBooks", icon: "wallet", anyPermission: ["integrations.read", "admin.users"] },
+      { href: "/app/integrations/docusign", label: "DocuSign", icon: "scale", anyPermission: ["integrations.read", "admin.users"] },
+      { href: "/app/integrations/apollo", label: "Apollo", icon: "search", anyPermission: ["integrations.read", "admin.users"] },
     ],
   },
   {

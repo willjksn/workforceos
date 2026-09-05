@@ -1,3 +1,5 @@
+import { buildProviderAdapters } from "./providers";
+
 export type IntegrationHealth = {
   provider: string;
   configured: boolean;
@@ -43,7 +45,7 @@ export class PlaceholderAdapter implements IntegrationAdapter {
       configured: false,
       connectionHealth: "not_configured",
       lastSyncAt: null,
-      lastError: null,
+      lastError: `${this.provider} is not configured. Adapter and labeled mock/dev setup only.`,
     };
   }
 
@@ -77,7 +79,7 @@ export class PlaceholderAdapter implements IntegrationAdapter {
 }
 
 export function getIntegrationAdapters(): IntegrationAdapter[] {
-  return INTEGRATION_PROVIDERS.map((provider) => new PlaceholderAdapter(provider));
+  return buildProviderAdapters();
 }
 
 export async function getIntegrationHubStatus() {

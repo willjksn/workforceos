@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Phase 6 — Finance + Billing + Business Integrations
+
+- Expanded Phase 4 `billing_schedules` / `billing_events` into operational finance: invoices, payments, AR aging, revenue events, and engagement economics. QuickBooks remains the accounting ledger.
+- Placement fees come from stored search-agreement terms (salary × percent, negotiated amount, minimum fee). Overrides require reason, user, date, `finance.approve`, and an audit event.
+- Integration Hub adapters for QuickBooks, DocuSign, Apollo, O\*NET, SeekOut (preferred sourcing), LinkedIn (no scrape), and Microsoft/Google workspace references. Unconfigured providers are labeled mocks — never fake production connections.
+- DocuSign keeps manual execution when credentials are missing. Unsigned webhooks cannot mark a contract executed. Apollo enrichment is review-gated and does not silently overwrite approved CRM fields.
+- Added schema migration `drizzle/0005_unknown_satana.sql` and `npm run test:phase6`.
+- Harbor, Taylor Ellis, Navy EM, and Cedar Ridge Energy remain development fixtures. Do not run `db:seed:dev` against real production.
+
 ### Phase 5 — Workforce Development + Workforce Intelligence
 
 - Expanded Workforce Pipeline Assessment into planning-level workforce roles, baselines, versioned 12/24/36-month forecasts, supply, structured gaps, pipelines, education/training, career pathways, skills-gap analysis, and scenario modeling.
@@ -64,4 +73,4 @@
 - Added initial CRM, talent, recruiting, military, service, project, and search schemas.
 - Added tests, database acceptance script, system health page, and deployment notes.
 
-Later phases add workforce-development delivery, finance/QuickBooks, and service-engine execution, not an architecture replacement.
+Later phases add additional operating modules on this foundation; they are not an architecture replacement.

@@ -94,7 +94,7 @@ npx tsx scripts/grant-managing-partner.ts --email you@company.com
 
 ## Forward migrations only
 
-Future schema changes get a new `0005_*.sql` (or later) file. Never modify `0000`, `0001`, `0002`, `0003`, or `0004` after they have been applied. `0004_melted_stryfe.sql` is the Phase 5 workforce migration.
+Future schema changes get a new `0006_*.sql` (or later) file. Never modify `0000`–`0005` after they have been applied. `0005_unknown_satana.sql` is the Phase 6 finance and integrations migration.
 
 ## Neon branch layout
 

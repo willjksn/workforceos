@@ -50,6 +50,7 @@ const NAV: Array<{ label: string; items: NavItemConfig[] }> = [
       { href: "/app/projects", label: "Projects", permission: "projects.read" },
       { href: "/app/legal", label: "Legal & Contracts", permission: "legal.read" },
       { href: "/app/finance", label: "Finance", permission: "finance.read" },
+      { href: "/app/integrations", label: "Integrations", anyPermission: ["integrations.read", "admin.users", "admin.roles"] },
     ],
   },
   {

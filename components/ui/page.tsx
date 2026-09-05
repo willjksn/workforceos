@@ -114,7 +114,7 @@ export function EmptyState({
   children,
 }: {
   title?: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }) {
   return (
     <div className="mt-6 rounded-[8px] border border-dashed border-border bg-card px-5 py-10 text-center shadow-[var(--shadow-sm)]">

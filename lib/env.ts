@@ -41,6 +41,19 @@ const serverEnvSchema = z.object({
   SENTRY_DSN: optionalString,
   NEXT_PUBLIC_APP_URL: optionalString,
   APP_URL: optionalString,
+  QUICKBOOKS_CLIENT_ID: optionalString,
+  QUICKBOOKS_CLIENT_SECRET: optionalString,
+  DOCUSIGN_INTEGRATION_KEY: optionalString,
+  DOCUSIGN_USER_ID: optionalString,
+  DOCUSIGN_SECRET_KEY: optionalString,
+  APOLLO_API_KEY: optionalString,
+  ONET_API_KEY: optionalString,
+  SEEKOUT_API_KEY: optionalString,
+  MICROSOFT_CLIENT_ID: optionalString,
+  MICROSOFT_CLIENT_SECRET: optionalString,
+  GOOGLE_CLIENT_ID: optionalString,
+  GOOGLE_CLIENT_SECRET: optionalString,
+  INTEGRATION_WEBHOOK_SECRET: optionalString,
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

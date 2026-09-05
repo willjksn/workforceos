@@ -1,6 +1,6 @@
 # Service Catalog
 
-Status: Phase 5 workforce intelligence on the five launch services  
+Status: Phase 6 operational finance on the five launch services  
 These are the five launch service engines WorkforceOS supports. Definitions are stored as approved `service_versions`. Application code loads those records; it does not invent material service rules.
 
 ## 1. Professional Search

@@ -3,7 +3,6 @@ import { and, asc, desc, eq, inArray, isNull, lte, or } from "drizzle-orm";
 import { getDb } from "../../db";
 import {
   billingEvents,
-  billingSchedules,
   companies,
   contracts,
   discoveries,
@@ -50,6 +49,7 @@ import {
 import { legalPackageForService, primaryContractType } from "./legal-packages";
 import { assertPricingApproved, describePricingModel, pricingOutsideRange } from "./pricing";
 import { expansionCodesFromVersion } from "./expansion";
+import { createDeliveryBillingFoundation } from "../finance/engine";
 
 export { DeliveryError };
 
@@ -975,40 +975,14 @@ async function createBillingFoundation(input: {
   contract?: typeof contracts.$inferSelect;
   plan: typeof solutionPlans.$inferSelect;
 }) {
-  const db = getDb();
-  const amount = input.contract?.contractValue ?? input.plan.approvedPrice ?? input.plan.recommendedPrice ?? "0";
-  const cadence =
-    input.serviceCode === "fractional-talent-partner"
-      ? "monthly"
-      : input.serviceCode === "professional-search"
-        ? "placement"
-        : "milestone";
-  const [schedule] = await db
-    .insert(billingSchedules)
-    .values({
-      organizationId: input.actor.organizationId,
-      companyId: input.project.companyId,
-      projectId: input.project.id,
-      contractId: input.contract?.id ?? null,
-      name: `${input.serviceCode} billing`,
-      cadence,
-      amount,
-      sourceRule: "Approved service workflow billing rules",
-    })
-    .returning();
-  if (cadence !== "placement") {
-    await db.insert(billingEvents).values({
-      organizationId: input.actor.organizationId,
-      companyId: input.project.companyId,
-      projectId: input.project.id,
-      contractId: input.contract?.id ?? null,
-      scheduleId: schedule.id,
-      sourceMilestone: cadence === "monthly" ? "monthly_retainer" : "project_start",
-      amount,
-      expectedDate: new Date(),
-      status: "scheduled",
-    });
-  }
+  await createDeliveryBillingFoundation({
+    actor: input.actor,
+    project: input.project,
+    serviceCode: input.serviceCode,
+    serviceId: input.project.serviceId,
+    contract: input.contract ?? null,
+    storedAmount: input.contract?.monthlyFee ?? input.contract?.contractValue ?? input.plan.approvedPrice ?? input.plan.recommendedPrice,
+  });
 }
 
 export async function triggerBillingEvent(input: {

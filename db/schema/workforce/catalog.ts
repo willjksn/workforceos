@@ -32,6 +32,20 @@ export const civilianOccupations = pgTable("civilian_occupations", {
   index("civilian_occupations_code_trgm_idx").using("gin", sql`${table.code} gin_trgm_ops`),
 ]);
 
+export const occupationAlternateTitles = pgTable("occupation_alternate_titles", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  occupationId: uuid("occupation_id")
+    .notNull()
+    .references(() => civilianOccupations.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  onetSource: text("onet_source"),
+  onetVersion: text("onet_version"),
+  ...timestamps(),
+}, (table) => [
+  index("occupation_alternate_titles_occupation_id_idx").on(table.occupationId),
+  unique("occupation_alternate_titles_uq").on(table.occupationId, table.title),
+]);
+
 export const occupationSkills = pgTable("occupation_skills", {
   id: uuid("id").defaultRandom().primaryKey(),
   occupationId: uuid("occupation_id")
@@ -51,6 +65,14 @@ export const skillsRelations = relations(skills, ({ many }) => ({
 
 export const civilianOccupationsRelations = relations(civilianOccupations, ({ many }) => ({
   occupationSkills: many(occupationSkills),
+  alternateTitles: many(occupationAlternateTitles),
+}));
+
+export const occupationAlternateTitlesRelations = relations(occupationAlternateTitles, ({ one }) => ({
+  occupation: one(civilianOccupations, {
+    fields: [occupationAlternateTitles.occupationId],
+    references: [civilianOccupations.id],
+  }),
 }));
 
 export const occupationSkillsRelations = relations(occupationSkills, ({ one }) => ({

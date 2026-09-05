@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { requirePlatformAdmin } from "@/lib/auth/guard";
 import { INTEGRATION_CATALOG, integrationStatusLabel } from "@/lib/integrations/catalog";
 import { getIntegrationHubStatus } from "@/lib/integrations/hub";
@@ -30,7 +32,9 @@ export default async function IntegrationsAdminPage() {
                   <Card key={item.id}>
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <p className="font-medium text-navy">{item.name}</p>
+                        <p className="font-medium text-navy">
+                          <Link className="underline" href={`/app/integrations/${item.id}`}>{item.name}</Link>
+                        </p>
                         <p className="mt-1 text-sm text-muted-foreground">{item.summary}</p>
                       </div>
                       <StatusBadge tone={status.tone}>{status.label}</StatusBadge>

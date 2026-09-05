@@ -12,6 +12,7 @@ const EXPECTED_MIGRATIONS = [
   "0002_fancy_pretty_boy",
   "0003_vengeful_tyger_tiger",
   "0004_melted_stryfe",
+  "0005_unknown_satana",
 ];
 
 const KEY_TABLES = [
@@ -25,6 +26,8 @@ const KEY_TABLES = [
   "military_occupations",
   "services",
   "workforce_assessments",
+  "invoices",
+  "billing_schedules",
   "audit_events",
 ];
 

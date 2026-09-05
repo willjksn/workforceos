@@ -14,6 +14,8 @@ import { getCompanyGraph, listActivities } from "@/lib/repositories/crm";
 import { getCompanyWorkforceSnapshot } from "@/lib/repositories/workforce";
 import { listJobs } from "@/lib/repositories/recruiting";
 import { companyDeliverySnapshot } from "@/lib/delivery/engine";
+import { companyFinanceSnapshot } from "@/lib/finance/engine";
+import { moneyString } from "@/lib/finance/money";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../_components/action-form";
 import {
@@ -56,8 +58,12 @@ export default async function CompanyDetailPage({
     ? (await listJobs(principal.organizationId)).filter((row) => row.job.companyId === company.id)
     : [];
   const delivery =
-    ["solutions", "proposals", "legal", "finance", "projects"].includes(tab)
+    ["solutions", "proposals", "legal", "projects"].includes(tab)
       ? await companyDeliverySnapshot(company.id, principal.organizationId)
+      : null;
+  const finance =
+    tab === "finance" && can(principal, "finance.read")
+      ? await companyFinanceSnapshot(principal.organizationId, company.id)
       : null;
   const workforce =
     tab === "workforce" && can(principal, "workforce.read")
@@ -439,14 +445,43 @@ export default async function CompanyDetailPage({
         </section>
       ) : null}
 
-      {tab === "finance" && delivery ? (
-        <section className="mt-6 text-sm">
-          {delivery.billing.length === 0 ? <EmptyState>No billing events.</EmptyState> : (
-            <ul className="space-y-2">
-              {delivery.billing.map((event) => (
-                <li key={event.id}>{event.sourceMilestone} · {event.amount} · {event.status}</li>
-              ))}
-            </ul>
+      {tab === "finance" ? (
+        <section className="mt-6 space-y-4 text-sm">
+          {!finance ? (
+            <p className="text-muted-foreground">Finance access requires finance.read.</p>
+          ) : (
+            <>
+              <p>
+                Contract value {moneyString(finance.contractValue)} · Invoiced {moneyString(finance.invoiced)} · Collected {moneyString(finance.collected)} · AR {moneyString(finance.ar)}
+              </p>
+              <div>
+                <h2 className="section-title">Active billing schedules</h2>
+                <ul>
+                  {finance.activeSchedules.map((row) => (
+                    <li key={row.id}>{row.name} · {row.billingType} · {row.amount ?? "—"}</li>
+                  ))}
+                  {finance.activeSchedules.length === 0 ? <li>None active.</li> : null}
+                </ul>
+              </div>
+              <div>
+                <h2 className="section-title">Revenue by service</h2>
+                <ul>
+                  {finance.revenueByService.map((row) => (
+                    <li key={row.service}>{row.service} · {moneyString(row.amount)}</li>
+                  ))}
+                  {finance.revenueByService.length === 0 ? <li>None yet.</li> : null}
+                </ul>
+              </div>
+              <div>
+                <h2 className="section-title">Invoice history</h2>
+                <ul>
+                  {finance.invoices.map((row) => (
+                    <li key={row.invoice.id}>{row.invoice.invoiceNumber} · {row.invoice.amount} · {row.invoice.status}</li>
+                  ))}
+                  {finance.invoices.length === 0 ? <li>No invoices.</li> : null}
+                </ul>
+              </div>
+            </>
           )}
         </section>
       ) : null}

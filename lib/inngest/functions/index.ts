@@ -1,7 +1,16 @@
-import { inngest } from "../client";
-import { healthTest } from "./health-test";
 import { runInternalTalentSearch } from "@/lib/repositories/recruiting";
 import { recruitingAnalytics } from "@/lib/repositories/recruiting-delivery";
+
+import { inngest } from "../client";
+import { healthTest } from "./health-test";
+import {
+  apolloEnrichmentJob,
+  docusignStatusJob,
+  onetImportJob,
+  quickbooksSyncJob,
+  sourcingSyncJob,
+  workspaceSyncJob,
+} from "./integrations";
 
 export const internalTalentSearchJob = inngest.createFunction(
   {
@@ -26,4 +35,14 @@ export const stalledRecruitingAlertJob = inngest.createFunction(
   },
 );
 
-export const inngestFunctions = [healthTest, internalTalentSearchJob, stalledRecruitingAlertJob];
+export const inngestFunctions = [
+  healthTest,
+  internalTalentSearchJob,
+  stalledRecruitingAlertJob,
+  quickbooksSyncJob,
+  docusignStatusJob,
+  apolloEnrichmentJob,
+  onetImportJob,
+  sourcingSyncJob,
+  workspaceSyncJob,
+];

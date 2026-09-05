@@ -2,6 +2,7 @@ import { requireCurrentPrincipal } from "./session";
 import {
   AuthorizationError,
   isPlatformAdmin,
+  requireAnyPermission,
   requirePermission,
   type Permission,
   type Principal,
@@ -10,6 +11,12 @@ import {
 export async function requireAppPermission(permission: Permission): Promise<Principal> {
   const principal = await requireCurrentPrincipal();
   requirePermission(principal, permission);
+  return principal;
+}
+
+export async function requireAnyAppPermission(permissions: Permission[]): Promise<Principal> {
+  const principal = await requireCurrentPrincipal();
+  requireAnyPermission(principal, permissions);
   return principal;
 }
 
