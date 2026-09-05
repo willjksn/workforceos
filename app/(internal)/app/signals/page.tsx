@@ -1,14 +1,36 @@
 import Link from "next/link";
 
 import { addSignalAction, convertSignalAction, reviewSignalAction } from "@/lib/actions/crm";
+import { buttonClassName } from "@/components/ui/button";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { LAUNCH_SERVICE_CODES } from "@/lib/crm/stages";
 import { listCompaniesForSelect, listSignals } from "@/lib/repositories/crm";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../_components/action-form";
-import { EmptyState, Field, PageHeader, PrimaryButton, formatDate, formatLabel, inputClassName } from "../_components/ui";
+import {
+  Card,
+  CreatePanel,
+  EmptyState,
+  Field,
+  FilterBar,
+  PageHeader,
+  PageShell,
+  PrimaryButton,
+  SearchForm,
+  StatusBadge,
+  formatDate,
+  formatLabel,
+  inputClassName,
+} from "../_components/ui";
 
 const REVIEW_STATUSES = ["draft", "pending_review", "approved", "dismissed", "converted"] as const;
+
+function reviewTone(status: string) {
+  if (status === "approved" || status === "converted") return "success" as const;
+  if (status === "dismissed") return "neutral" as const;
+  if (status === "pending_review") return "warning" as const;
+  return "navy" as const;
+}
 
 export default async function SignalsPage({
   searchParams,
@@ -22,58 +44,64 @@ export default async function SignalsPage({
   const canWrite = can(principal, "opportunities.write");
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
+    <PageShell>
       <PageHeader
+        eyebrow="CRM / Intelligence"
         title="Signals"
         description="Workforce and commercial triggers. Review before converting into an opportunity."
       />
-      <form action="/app/signals" className="mt-6 flex flex-wrap gap-2">
-        <input name="q" defaultValue={q} placeholder="Search signal or company" className={`${inputClassName} max-w-md`} />
-        <select name="reviewStatus" defaultValue={reviewStatus ?? ""} className={`${inputClassName} max-w-xs`}>
-          <option value="">All review statuses</option>
-          {REVIEW_STATUSES.map((value) => (
-            <option key={value} value={value}>
-              {formatLabel(value)}
-            </option>
-          ))}
-        </select>
-        <select name="companyId" defaultValue={companyId ?? ""} className={`${inputClassName} max-w-xs`}>
-          <option value="">All companies</option>
-          {companies.map((company) => (
-            <option key={company.id} value={company.id}>
-              {company.name}
-            </option>
-          ))}
-        </select>
-        <button className="rounded border px-4 py-2 text-sm" type="submit">
-          Filter
-        </button>
-      </form>
+      <FilterBar>
+        <SearchForm action="/app/signals" q={q} placeholder="Search signal or company" className="" submitLabel="Filter">
+          <select name="reviewStatus" defaultValue={reviewStatus ?? ""} className={`${inputClassName} max-w-xs`}>
+            <option value="">All review statuses</option>
+            {REVIEW_STATUSES.map((value) => (
+              <option key={value} value={value}>
+                {formatLabel(value)}
+              </option>
+            ))}
+          </select>
+          <select name="companyId" defaultValue={companyId ?? ""} className={`${inputClassName} max-w-xs`}>
+            <option value="">All companies</option>
+            {companies.map((company) => (
+              <option key={company.id} value={company.id}>
+                {company.name}
+              </option>
+            ))}
+          </select>
+        </SearchForm>
+      </FilterBar>
 
       {rows.length === 0 ? (
-        <EmptyState>No signals match.</EmptyState>
+        <EmptyState title="No signals match.">
+          Adjust the filters, or add a signal if you have write access.
+        </EmptyState>
       ) : (
-        <div className="mt-6 space-y-6">
+        <div className="mt-6 space-y-3">
           {rows.map(({ signal, companyName, companyId: signalCompanyId }) => (
-            <article key={signal.id} className="rounded border p-4 text-sm">
-              <h2 className="font-semibold">{signal.title}</h2>
-              <p className="mt-1 text-zinc-600">
-                <Link className="underline" href={`/app/companies/${signalCompanyId}`}>
-                  {companyName}
-                </Link>
-                {` · ${formatLabel(signal.signalType)} · ${formatLabel(signal.reviewStatus)} · ${formatDate(signal.detectedAt)}`}
-              </p>
-              {signal.details ? <p className="mt-2">{signal.details}</p> : null}
+            <Card key={signal.id}>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h2 className="font-medium text-navy">{signal.title}</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    <Link className="font-medium text-navy" href={`/app/companies/${signalCompanyId}`}>
+                      {companyName}
+                    </Link>
+                    {` · ${formatLabel(signal.signalType)} · ${formatDate(signal.detectedAt)}`}
+                  </p>
+                </div>
+                <StatusBadge tone={reviewTone(signal.reviewStatus)}>{formatLabel(signal.reviewStatus)}</StatusBadge>
+              </div>
+              {signal.details ? <p className="mt-3 text-sm">{signal.details}</p> : null}
               {signal.resultingOpportunityId ? (
-                <p className="mt-2">
+                <p className="mt-3 text-sm">
                   Converted to{" "}
-                  <Link className="underline" href={`/app/opportunities/${signal.resultingOpportunityId}`}>
+                  <Link className="font-medium text-navy underline decoration-border underline-offset-4 hover:decoration-teal" href={`/app/opportunities/${signal.resultingOpportunityId}`}>
                     opportunity
                   </Link>
                 </p>
               ) : null}
               {canWrite && signal.reviewStatus !== "converted" ? (
-                <div className="mt-4 flex flex-wrap gap-4">
+                <div className="mt-4 flex flex-wrap gap-4 border-t border-border pt-4">
                   <ActionForm action={reviewSignalAction} className="flex items-end gap-2">
                     <input type="hidden" name="signalId" value={signal.id} />
                     <input type="hidden" name="reviewStatus" value="approved" />
@@ -82,7 +110,7 @@ export default async function SignalsPage({
                   <ActionForm action={reviewSignalAction} className="flex items-end gap-2">
                     <input type="hidden" name="signalId" value={signal.id} />
                     <input type="hidden" name="reviewStatus" value="dismissed" />
-                    <button className="rounded border px-4 py-2 text-sm" type="submit">
+                    <button className={buttonClassName("secondary")} type="submit">
                       Dismiss
                     </button>
                   </ActionForm>
@@ -111,15 +139,14 @@ export default async function SignalsPage({
                   </ActionForm>
                 </div>
               ) : null}
-            </article>
+            </Card>
           ))}
         </div>
       )}
 
       {canWrite ? (
-        <section className="mt-10">
-          <h2 className="text-lg font-semibold">Add signal</h2>
-          <ActionForm action={addSignalAction} className="mt-4 max-w-xl space-y-3">
+        <CreatePanel title="Add signal">
+          <ActionForm action={addSignalAction} className="max-w-xl space-y-3">
             <input type="hidden" name="returnTo" value="/app/signals" />
             <Field label="Company" name="companyId">
               <select className={inputClassName} id="companyId" name="companyId" required defaultValue="">
@@ -158,8 +185,8 @@ export default async function SignalsPage({
             </Field>
             <PrimaryButton>Create signal</PrimaryButton>
           </ActionForm>
-        </section>
+        </CreatePanel>
       ) : null}
-    </main>
+    </PageShell>
   );
 }

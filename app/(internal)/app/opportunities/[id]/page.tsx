@@ -12,7 +12,7 @@ import { OPPORTUNITY_STAGES } from "@/lib/crm/stages";
 import { getOpportunityGraph } from "@/lib/repositories/crm";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../_components/action-form";
-import { EmptyState, Field, PageHeader, PrimaryButton, formatDate, formatLabel, inputClassName } from "../../_components/ui";
+import { EmptyState, Field, PageHeader, PageShell, PrimaryButton, formatDate, formatLabel, inputClassName } from "../../_components/ui";
 
 export default async function OpportunityDetailPage({
   params,
@@ -27,7 +27,7 @@ export default async function OpportunityDetailPage({
   const canWrite = can(principal, "opportunities.write");
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
+    <PageShell>
       <PageHeader
         title={opportunity.name}
         description={`${formatLabel(opportunity.stage)} · ${company.name}`}
@@ -49,40 +49,40 @@ export default async function OpportunityDetailPage({
       </p>
       <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
         <div>
-          <dt className="text-zinc-500">Service</dt>
+          <dt className="text-muted-foreground">Service</dt>
           <dd>{formatLabel(opportunity.serviceCode)}</dd>
         </div>
         <div>
-          <dt className="text-zinc-500">Score</dt>
+          <dt className="text-muted-foreground">Score</dt>
           <dd>
             {opportunity.opportunityScore ?? "—"}
             {opportunity.scoreBand ? ` · ${formatLabel(opportunity.scoreBand)}` : ""}
           </dd>
         </div>
         <div>
-          <dt className="text-zinc-500">Value</dt>
+          <dt className="text-muted-foreground">Value</dt>
           <dd>{opportunity.valueAmount ?? "—"}</dd>
         </div>
         <div>
-          <dt className="text-zinc-500">Owner</dt>
+          <dt className="text-muted-foreground">Owner</dt>
           <dd>{graph.ownerName ?? "—"}</dd>
         </div>
         <div>
-          <dt className="text-zinc-500">Target close</dt>
+          <dt className="text-muted-foreground">Target close</dt>
           <dd>{formatDate(opportunity.targetCloseDate)}</dd>
         </div>
         <div>
-          <dt className="text-zinc-500">Lost reason</dt>
+          <dt className="text-muted-foreground">Lost reason</dt>
           <dd>{opportunity.lostReason ?? "—"}</dd>
         </div>
       </dl>
       {opportunity.problemStatement ? (
-        <p className="mt-4 text-sm text-zinc-600">{opportunity.problemStatement}</p>
+        <p className="mt-4 text-sm text-muted-foreground">{opportunity.problemStatement}</p>
       ) : null}
 
       {canWrite ? (
         <section className="mt-10">
-          <h2 className="text-lg font-semibold">Change stage</h2>
+          <h2 className="section-title">Change stage</h2>
           <ActionForm action={updateOpportunityStageAction} className="mt-4 max-w-xl space-y-3">
             <input type="hidden" name="opportunityId" value={opportunity.id} />
             <Field label="Stage" name="stage">
@@ -103,8 +103,8 @@ export default async function OpportunityDetailPage({
       ) : null}
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold">100-point score</h2>
-        <p className="mt-2 text-sm text-zinc-600">
+        <h2 className="section-title">100-point score</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
           ICP {SCORE_WEIGHTS.icpFit} · trigger {SCORE_WEIGHTS.triggerScore} · pain {SCORE_WEIGHTS.demonstratedPain} ·
           service {SCORE_WEIGHTS.serviceFit} · buyer {SCORE_WEIGHTS.buyerAccess} · timing {SCORE_WEIGHTS.timingBudget}.
         </p>
@@ -161,7 +161,7 @@ export default async function OpportunityDetailPage({
       </section>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold">Converted signals</h2>
+        <h2 className="section-title">Converted signals</h2>
         {graph.signals.length === 0 ? (
           <EmptyState>No signals converted into this opportunity.</EmptyState>
         ) : (
@@ -176,7 +176,7 @@ export default async function OpportunityDetailPage({
       </section>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold">Activity</h2>
+        <h2 className="section-title">Activity</h2>
         {graph.activities.length === 0 ? (
           <EmptyState>No activity recorded.</EmptyState>
         ) : (
@@ -184,7 +184,7 @@ export default async function OpportunityDetailPage({
             {graph.activities.map((activity) => (
               <li key={activity.id}>
                 <span className="font-medium">{activity.subject}</span>
-                <span className="text-zinc-500">
+                <span className="text-muted-foreground">
                   {" "}
                   · {formatLabel(activity.activityType)} · {formatDate(activity.occurredAt)}
                 </span>
@@ -212,6 +212,6 @@ export default async function OpportunityDetailPage({
           </ActionForm>
         ) : null}
       </section>
-    </main>
+    </PageShell>
   );
 }

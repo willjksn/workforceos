@@ -1,7 +1,7 @@
 import { getDb } from "@/db";
 import { requirements } from "@/db/schema";
 import { requirePlatformAdmin } from "@/lib/auth/guard";
-import { EmptyState, PageHeader, PageShell, formatLabel } from "../../_components/ui";
+import { EmptyState, PageHeader, PageShell, RecordList, RecordRow, formatLabel } from "../../_components/ui";
 
 export default async function RequirementsAdminPage() {
   await requirePlatformAdmin();
@@ -18,18 +18,15 @@ export default async function RequirementsAdminPage() {
       {rows.length === 0 ? (
         <EmptyState>No requirements are recorded.</EmptyState>
       ) : (
-        <ul className="mt-8 space-y-4 text-sm">
+        <RecordList className="mt-6">
           {rows.map((row) => (
-            <li key={row.id} className="border-b border-border pb-3">
-              <p className="font-medium text-navy">
-                {row.code} — {row.title}
-              </p>
-              <p className="mt-1 text-muted-foreground">
-                {formatLabel(row.module)} · {formatLabel(row.status)}
-              </p>
-            </li>
+            <RecordRow
+              key={row.id}
+              title={`${row.code} — ${row.title}`}
+              meta={`${formatLabel(row.module)} · ${formatLabel(row.status)}`}
+            />
           ))}
-        </ul>
+        </RecordList>
       )}
     </PageShell>
   );

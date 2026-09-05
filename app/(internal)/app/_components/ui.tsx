@@ -5,10 +5,16 @@ export {
   PageShell,
   PhasePlaceholder,
   SearchForm,
+  FilterBar,
+  DataTable,
+  CreatePanel,
+  RecordList,
+  RecordRow,
+  SectionHeader,
   TextLink,
   formatDate,
   formatLabel,
   inputClassName,
 } from "@/components/ui/page";
 export { PrimaryButton, ButtonLink } from "@/components/ui/button";
-export { Card, MetricCard, StatusBadge, TabNav } from "@/components/ui/display";
+export { Card, MetricCard, ScoreBadge, StatusBadge, TabNav } from "@/components/ui/display";

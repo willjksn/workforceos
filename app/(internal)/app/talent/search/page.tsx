@@ -4,9 +4,27 @@ import { requireAppPermission } from "@/lib/auth/guard";
 import { presentCandidate } from "@/lib/privacy/present-candidate";
 import { searchActiveCandidates } from "@/lib/repositories/talent";
 import { can } from "@/lib/rbac/permissions";
-import { EmptyState, PageHeader, formatLabel, inputClassName } from "../../_components/ui";
+import {
+  DataTable,
+  EmptyState,
+  FilterBar,
+  PageHeader,
+  PageShell,
+  SearchForm,
+  StatusBadge,
+  formatLabel,
+  inputClassName,
+} from "../../_components/ui";
 
 const AVAILABILITY = ["unknown", "available_now", "passive", "not_looking", "do_not_contact"] as const;
+
+function availabilityTone(value: string) {
+  if (value === "available_now") return "success" as const;
+  if (value === "passive") return "teal" as const;
+  if (value === "not_looking") return "warning" as const;
+  if (value === "do_not_contact") return "danger" as const;
+  return "neutral" as const;
+}
 
 export default async function TalentSearchPage({
   searchParams,
@@ -24,53 +42,48 @@ export default async function TalentSearchPage({
   );
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
+    <PageShell>
       <PageHeader
+        eyebrow="Talent Network / Search"
         title="Talent Search"
         description="Search the internal Talent Network. Restricted PII is hidden without candidate_pii.read."
       />
-      <form action="/app/talent/search" className="mt-6 flex flex-wrap gap-2">
-        <input name="q" defaultValue={q} placeholder="Search name or title" className={`${inputClassName} max-w-md`} />
-        <select name="availability" defaultValue={availabilityFilter ?? ""} className={`${inputClassName} max-w-xs`}>
-          <option value="">Any availability</option>
-          {AVAILABILITY.map((value) => (
-            <option key={value} value={value}>
-              {formatLabel(value)}
-            </option>
-          ))}
-        </select>
-        <button className="rounded border px-4 py-2 text-sm" type="submit">
-          Search
-        </button>
-      </form>
-      {rows.length === 0 ? (
-        <EmptyState>No candidates match.</EmptyState>
-      ) : (
-        <table className="mt-6 w-full text-left text-sm">
-          <thead>
-            <tr>
-              <th className="py-2">Name</th>
-              <th>Title</th>
-              <th>Availability</th>
-              <th>Email</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((candidate) => (
-              <tr key={candidate.id} className="border-b">
-                <td className="py-2">
-                  <Link className="underline" href={`/app/talent/${candidate.id}`}>
-                    {candidate.fullName}
-                  </Link>
-                </td>
-                <td>{candidate.currentTitle ?? "—"}</td>
-                <td>{formatLabel(candidate.availability)}</td>
-                <td>{candidate.emailHidden ? "hidden" : (candidate.email ?? "—")}</td>
-              </tr>
+      <FilterBar>
+        <SearchForm action="/app/talent/search" q={q} placeholder="Search name or title" className="">
+          <select name="availability" defaultValue={availabilityFilter ?? ""} className={`${inputClassName} max-w-xs`}>
+            <option value="">Any availability</option>
+            {AVAILABILITY.map((value) => (
+              <option key={value} value={value}>
+                {formatLabel(value)}
+              </option>
             ))}
-          </tbody>
-        </table>
+          </select>
+        </SearchForm>
+      </FilterBar>
+      {rows.length === 0 ? (
+        <EmptyState title="No candidates match.">Try another name, title, or availability filter.</EmptyState>
+      ) : (
+        <DataTable columns={["Name", "Title", "Availability", "Email"]}>
+          {rows.map((candidate) => (
+            <tr key={candidate.id}>
+              <td>
+                <Link className="font-medium text-navy" href={`/app/talent/${candidate.id}`}>
+                  {candidate.fullName}
+                </Link>
+              </td>
+              <td>{candidate.currentTitle ?? "—"}</td>
+              <td>
+                <StatusBadge tone={availabilityTone(candidate.availability)}>
+                  {formatLabel(candidate.availability)}
+                </StatusBadge>
+              </td>
+              <td className="text-muted-foreground">
+                {candidate.emailHidden ? "hidden" : (candidate.email ?? "—")}
+              </td>
+            </tr>
+          ))}
+        </DataTable>
       )}
-    </main>
+    </PageShell>
   );
 }

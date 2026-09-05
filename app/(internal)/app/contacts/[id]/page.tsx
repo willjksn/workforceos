@@ -6,7 +6,7 @@ import { requireAppPermission } from "@/lib/auth/guard";
 import { getContactGraph } from "@/lib/repositories/crm";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../_components/action-form";
-import { EmptyState, Field, PageHeader, PrimaryButton, formatDate, formatLabel, inputClassName } from "../../_components/ui";
+import { EmptyState, Field, PageHeader, PageShell, PrimaryButton, formatDate, formatLabel, inputClassName } from "../../_components/ui";
 
 export default async function ContactDetailPage({
   params,
@@ -20,40 +20,40 @@ export default async function ContactDetailPage({
   const { contact } = graph;
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
+    <PageShell>
       <PageHeader
         title={contact.fullName}
         description={`${contact.title ?? "No title"} · ${formatLabel(contact.relationshipStrength)}`}
       />
       <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
         <div>
-          <dt className="text-zinc-500">Email</dt>
+          <dt className="text-muted-foreground">Email</dt>
           <dd>{contact.email ?? "—"}</dd>
         </div>
         <div>
-          <dt className="text-zinc-500">Phone</dt>
+          <dt className="text-muted-foreground">Phone</dt>
           <dd>{contact.phone ?? "—"}</dd>
         </div>
         <div>
-          <dt className="text-zinc-500">Department</dt>
+          <dt className="text-muted-foreground">Department</dt>
           <dd>{contact.department ?? "—"}</dd>
         </div>
         <div>
-          <dt className="text-zinc-500">Buyer persona</dt>
+          <dt className="text-muted-foreground">Buyer persona</dt>
           <dd>{contact.buyerPersona ?? "—"}</dd>
         </div>
         <div>
-          <dt className="text-zinc-500">Last contacted</dt>
+          <dt className="text-muted-foreground">Last contacted</dt>
           <dd>{formatDate(contact.lastContactedAt)}</dd>
         </div>
         <div>
-          <dt className="text-zinc-500">Do not contact</dt>
+          <dt className="text-muted-foreground">Do not contact</dt>
           <dd>{contact.doNotContact ? "yes" : "no"}</dd>
         </div>
       </dl>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold">Companies</h2>
+        <h2 className="section-title">Companies</h2>
         {graph.companies.length === 0 ? (
           <EmptyState>No company links.</EmptyState>
         ) : (
@@ -73,7 +73,7 @@ export default async function ContactDetailPage({
 
       {can(principal, "opportunities.read") ? (
         <section className="mt-10">
-          <h2 className="text-lg font-semibold">Opportunities</h2>
+          <h2 className="section-title">Opportunities</h2>
           {graph.opportunities.length === 0 ? (
             <EmptyState>Not the primary contact on any opportunity.</EmptyState>
           ) : (
@@ -92,7 +92,7 @@ export default async function ContactDetailPage({
       ) : null}
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold">Activity</h2>
+        <h2 className="section-title">Activity</h2>
         {graph.activities.length === 0 ? (
           <EmptyState>No activity recorded.</EmptyState>
         ) : (
@@ -100,7 +100,7 @@ export default async function ContactDetailPage({
             {graph.activities.map((activity) => (
               <li key={activity.id}>
                 <span className="font-medium">{activity.subject}</span>
-                <span className="text-zinc-500">
+                <span className="text-muted-foreground">
                   {" "}
                   · {formatLabel(activity.activityType)} · {formatDate(activity.occurredAt)}
                 </span>
@@ -132,6 +132,6 @@ export default async function ContactDetailPage({
           </ActionForm>
         ) : null}
       </section>
-    </main>
+    </PageShell>
   );
 }

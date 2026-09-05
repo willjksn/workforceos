@@ -3,7 +3,7 @@ import { desc } from "drizzle-orm";
 import { getDb } from "@/db";
 import { approvals } from "@/db/schema";
 import { requireCurrentPrincipal } from "@/lib/auth/session";
-import { EmptyState, PageHeader, PageShell, StatusBadge, formatLabel } from "../../_components/ui";
+import { DataTable, EmptyState, PageHeader, PageShell, StatusBadge, formatLabel } from "../../_components/ui";
 
 export default async function ApprovalsAdminPage() {
   await requireCurrentPrincipal();
@@ -22,15 +22,7 @@ export default async function ApprovalsAdminPage() {
           When a recommendation or client-facing draft needs a human decision, it will appear here.
         </EmptyState>
       ) : (
-        <table className="mt-8 w-full text-left text-sm">
-          <thead>
-            <tr>
-              <th>What needs review</th>
-              <th>Status</th>
-              <th>Record</th>
-            </tr>
-          </thead>
-          <tbody>
+        <DataTable columns={["What needs review", "Status", "Record"]}>
             {rows.map((row) => (
               <tr key={row.id}>
                 <td>{formatLabel(row.approvalType)}</td>
@@ -44,8 +36,7 @@ export default async function ApprovalsAdminPage() {
                 </td>
               </tr>
             ))}
-          </tbody>
-        </table>
+        </DataTable>
       )}
     </PageShell>
   );

@@ -1,8 +1,7 @@
-import { notFound } from "next/navigation";
-
 import { requireAppPermission } from "@/lib/auth/guard";
 import { getMilitaryInstallation } from "@/lib/repositories/military";
-import { PageHeader, PageShell, formatLabel } from "../../../_components/ui";
+import { notFound } from "next/navigation";
+import { EmptyState, PageHeader, PageShell, RecordList, RecordRow, StatusBadge, formatLabel } from "../../../_components/ui";
 import { MilitarySubnav } from "../../_components/military-subnav";
 
 export default async function InstallationDetailPage({
@@ -18,18 +17,32 @@ export default async function InstallationDetailPage({
 
   return (
     <PageShell>
-      <PageHeader title={installation.name} description={`${installation.city ?? ""} ${installation.region ?? ""}`.trim()} />
+      <PageHeader
+        eyebrow="Military talent"
+        title={installation.name}
+        description={`${[installation.city, installation.region].filter(Boolean).join(", ") || "Location not recorded"}`}
+      />
       <MilitarySubnav active="/app/military/installations" />
-      <p className="mt-4 text-sm">Source {installation.source ?? "development fixture"}. Coordinate source {installation.coordinateSource ?? "not recorded"}.</p>
+      <p className="mt-4 text-sm text-muted-foreground">
+        Source {installation.source ?? "development fixture"}. Coordinate source {installation.coordinateSource ?? "not recorded"}.
+      </p>
       <p className="mt-2 text-sm text-muted-foreground">{installation.transitionRelevance ?? "Transition relevance not recorded."}</p>
       <h2 className="mt-8 section-title">Associated occupations</h2>
-      <ul className="mt-3 list-disc pl-5 text-sm">
-        {bundle.occupations.map(({ occupation, link }) => (
-          <li key={link.id}>
-            {formatLabel(occupation.branch)} {occupation.code} · {occupation.title} · {link.presenceLevel} · {formatLabel(link.reviewStatus)}
-          </li>
-        ))}
-      </ul>
+      {bundle.occupations.length === 0 ? (
+        <EmptyState title="No occupations linked.">Presence is stored only when a mapping exists.</EmptyState>
+      ) : (
+        <RecordList>
+          {bundle.occupations.map(({ occupation, link }) => (
+            <RecordRow
+              key={link.id}
+              href={`/app/military/occupations/${occupation.id}`}
+              title={`${formatLabel(occupation.branch)} ${occupation.code} · ${occupation.title}`}
+              meta={formatLabel(link.presenceLevel)}
+              trailing={<StatusBadge>{formatLabel(link.reviewStatus)}</StatusBadge>}
+            />
+          ))}
+        </RecordList>
+      )}
     </PageShell>
   );
 }

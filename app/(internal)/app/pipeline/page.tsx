@@ -1,8 +1,14 @@
-import Link from "next/link";
-
 import { requireAppPermission } from "@/lib/auth/guard";
 import { listJobs } from "@/lib/repositories/recruiting";
-import { PageHeader, PageShell, formatLabel } from "../_components/ui";
+import {
+  EmptyState,
+  PageHeader,
+  PageShell,
+  RecordList,
+  RecordRow,
+  StatusBadge,
+  formatLabel,
+} from "../_components/ui";
 
 export default async function PipelineIndexPage() {
   const principal = await requireAppPermission("jobs.read");
@@ -16,28 +22,27 @@ export default async function PipelineIndexPage() {
         title="Candidate pipeline"
         description="Open each search to move candidates. Pipeline history is audited and never overwritten."
       />
-      <table className="mt-6 w-full text-left text-sm">
-        <thead>
-          <tr>
-            <th className="py-2">Job</th>
-            <th>Status</th>
-            <th>Active pipeline</th>
-          </tr>
-        </thead>
-        <tbody>
+      {active.length === 0 ? (
+        <EmptyState title="No open searches.">
+          Activate a job to start an Internal Talent Network search. Its pipeline will appear here.
+        </EmptyState>
+      ) : (
+        <RecordList>
           {active.map((row) => (
-            <tr key={row.job.id} className="border-b border-border">
-              <td className="py-2">
-                <Link className="text-navy underline" href={`/app/jobs/${row.job.id}/pipeline`}>
-                  {row.job.title}
-                </Link>
-              </td>
-              <td>{formatLabel(row.job.status)}</td>
-              <td>{row.activePipelineCount}</td>
-            </tr>
+            <RecordRow
+              key={row.job.id}
+              href={`/app/jobs/${row.job.id}/pipeline`}
+              title={row.job.title}
+              meta={`${row.activePipelineCount} in pipeline${row.companyName ? ` · ${row.companyName}` : ""}`}
+              trailing={
+                <StatusBadge tone={row.job.status === "search_active" ? "teal" : "navy"}>
+                  {formatLabel(row.job.status)}
+                </StatusBadge>
+              }
+            />
           ))}
-        </tbody>
-      </table>
+        </RecordList>
+      )}
     </PageShell>
   );
 }

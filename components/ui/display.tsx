@@ -10,7 +10,7 @@ export function Card({
   padded?: boolean;
 }) {
   return (
-    <div className={`rounded-[8px] border border-card-border bg-card ${padded ? "p-5" : ""} ${className}`}>
+    <div className={`rounded-[8px] border border-card-border bg-card shadow-[var(--shadow-sm)] ${padded ? "p-5" : ""} ${className}`}>
       {children}
     </div>
   );
@@ -20,21 +20,26 @@ export function MetricCard({
   href,
   label,
   value,
+  hint,
 }: {
   href?: string;
   label: string;
   value: number | string;
+  hint?: string;
 }) {
   const inner = (
     <>
-      <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
+      <span className="absolute bottom-3 left-0 top-3 w-0.5 rounded-full bg-teal" aria-hidden />
+      <p className="eyebrow">{label}</p>
       <p className="mt-2 font-serif text-[34px] font-semibold leading-none text-navy">{value}</p>
+      {hint ? <p className="mt-2 text-sm leading-5 text-muted-foreground">{hint}</p> : null}
     </>
   );
-  const className = "block rounded-[8px] border border-card-border bg-card px-5 py-4";
+  const className =
+    "relative block overflow-hidden rounded-[8px] border border-card-border bg-card py-4 pl-5 pr-5 shadow-[var(--shadow-sm)]";
   if (href) {
     return (
-      <Link href={href} className={`${className} hover:border-teal`}>
+      <Link href={href} className={`${className} transition-colors hover:border-teal`}>
         {inner}
       </Link>
     );
@@ -52,7 +57,7 @@ export function StatusBadge({
   const tones = {
     neutral: "bg-surface-muted text-muted-foreground",
     navy: "bg-[#e7eef3] text-navy",
-    teal: "bg-[#e7eef1] text-teal",
+    teal: "bg-[#dce8ec] text-[#3d6473]",
     success: "bg-success-bg text-success",
     warning: "bg-warning-bg text-warning",
     danger: "bg-danger-bg text-danger",

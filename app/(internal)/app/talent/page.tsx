@@ -6,7 +6,29 @@ import { presentCandidate } from "@/lib/privacy/present-candidate";
 import { searchActiveCandidates } from "@/lib/repositories/talent";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../_components/action-form";
-import { Field, PageHeader, PrimaryButton, SearchForm, inputClassName } from "../_components/ui";
+import {
+  CreatePanel,
+  DataTable,
+  EmptyState,
+  Field,
+  FilterBar,
+  PageHeader,
+  PageShell,
+  PrimaryButton,
+  SearchForm,
+  formatLabel,
+  inputClassName,
+} from "../_components/ui";
+import { StatusBadge } from "@/components/ui/display";
+import { ButtonLink } from "@/components/ui/button";
+
+function availabilityTone(value: string) {
+  if (value === "available_now") return "success" as const;
+  if (value === "passive") return "teal" as const;
+  if (value === "not_looking") return "warning" as const;
+  if (value === "do_not_contact") return "danger" as const;
+  return "neutral" as const;
+}
 
 export default async function TalentPage({
   searchParams,
@@ -21,48 +43,45 @@ export default async function TalentPage({
   );
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
+    <PageShell>
       <PageHeader
         eyebrow="Talent Network / Candidates"
         title="Talent Network"
         description="Permanent candidate records. One person is never duplicated per job. Email is Restricted PII."
-        actions={<Link className="rounded-[6px] border border-navy px-4 py-2 text-sm text-navy" href="/app/talent/pools">Pools</Link>}
+        actions={<ButtonLink href="/app/talent/pools">Pools</ButtonLink>}
       />
-      <SearchForm action="/app/talent" q={q} placeholder="Search name or title" />
+      <FilterBar>
+        <SearchForm action="/app/talent" q={q} placeholder="Search name or title" className="" />
+      </FilterBar>
       {rows.length === 0 ? (
-        <p className="mt-6 text-sm text-zinc-600">No candidates match.</p>
+        <EmptyState title="No candidates match.">
+          Search another name or title, or add a candidate if you have write access.
+        </EmptyState>
       ) : (
-        <table className="mt-6 w-full text-left text-sm">
-          <thead>
-            <tr>
-              <th className="py-2">Name</th>
-              <th>Title</th>
-              <th>Availability</th>
-              <th>Email</th>
+        <DataTable columns={["Name", "Title", "Availability", "Email"]}>
+          {rows.map((candidate) => (
+            <tr key={candidate.id}>
+              <td>
+                <Link className="font-medium text-navy" href={`/app/talent/${candidate.id}`}>
+                  {candidate.fullName}
+                </Link>
+              </td>
+              <td>{candidate.currentTitle ?? "—"}</td>
+              <td>
+                <StatusBadge tone={availabilityTone(candidate.availability)}>
+                  {formatLabel(candidate.availability)}
+                </StatusBadge>
+              </td>
+              <td className="text-muted-foreground">
+                {candidate.emailHidden ? "hidden" : (candidate.email ?? "—")}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {rows.map((candidate) => (
-              <tr key={candidate.id} className="border-b">
-                <td className="py-2">
-                  <Link className="font-medium text-navy" href={`/app/talent/${candidate.id}`}>
-                    {candidate.fullName}
-                  </Link>
-                </td>
-                <td>{candidate.currentTitle ?? "—"}</td>
-                <td>{candidate.availability}</td>
-                <td>
-                  {candidate.emailHidden ? "hidden" : (candidate.email ?? "—")}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          ))}
+        </DataTable>
       )}
       {can(principal, "candidates.write") ? (
-        <section className="mt-10">
-          <h2 className="section-title">Add candidate</h2>
-          <ActionForm action={createCandidateAction} className="mt-4 max-w-xl space-y-3">
+        <CreatePanel title="Add candidate">
+          <ActionForm action={createCandidateAction} className="max-w-xl space-y-3">
             <Field label="Full name" name="fullName">
               <input className={inputClassName} id="fullName" name="fullName" required />
             </Field>
@@ -91,8 +110,8 @@ export default async function TalentPage({
             </Field>
             <PrimaryButton>Create candidate</PrimaryButton>
           </ActionForm>
-        </section>
+        </CreatePanel>
       ) : null}
-    </main>
+    </PageShell>
   );
 }

@@ -11,7 +11,7 @@ import { presentCandidate } from "@/lib/privacy/present-candidate";
 import { getCandidateWithRelationships, listTalentPools } from "@/lib/repositories/talent";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../_components/action-form";
-import { Field, PageHeader, PrimaryButton, formatDate, formatLabel, inputClassName } from "../../_components/ui";
+import { Field, PageHeader, PageShell, PrimaryButton, formatDate, formatLabel, inputClassName } from "../../_components/ui";
 
 const TABS = [
   "overview",
@@ -60,7 +60,7 @@ export default async function CandidateDetailPage({
   }));
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
+    <PageShell>
       <PageHeader
         eyebrow="Talent Network / Candidate profile"
         title={candidate.fullName}
@@ -242,6 +242,6 @@ export default async function CandidateDetailPage({
           </div>
         </dl>
       ) : null}
-    </main>
+    </PageShell>
   );
 }

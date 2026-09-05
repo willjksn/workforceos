@@ -6,7 +6,19 @@ import { listCompaniesForSelect, listContacts } from "@/lib/repositories/crm";
 import { listCanonicalSkills, listJobs } from "@/lib/repositories/recruiting";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../_components/action-form";
-import { Field, PageHeader, PageShell, PrimaryButton, SearchForm, formatLabel, inputClassName } from "../_components/ui";
+import {
+  CreatePanel,
+  DataTable,
+  EmptyState,
+  Field,
+  FilterBar,
+  PageHeader,
+  PageShell,
+  PrimaryButton,
+  SearchForm,
+  formatLabel,
+  inputClassName,
+} from "../_components/ui";
 import { StatusBadge } from "@/components/ui/display";
 
 export default async function JobsPage({
@@ -29,64 +41,55 @@ export default async function JobsPage({
         title="Jobs"
         description="Search assignments. Activating a job always creates an Internal Talent Network search project before any external sourcing hook."
       />
-      <SearchForm action="/app/jobs" q={q} placeholder="Search job title" />
+      <FilterBar>
+        <SearchForm action="/app/jobs" q={q} placeholder="Search job title" className="" />
+      </FilterBar>
       {rows.length === 0 ? (
-        <p className="mt-6 text-sm text-muted-foreground">No jobs match.</p>
+        <EmptyState title="No jobs match.">
+          Adjust the search or create a job when you have write access.
+        </EmptyState>
       ) : (
-        <table className="mt-6 w-full text-left text-sm">
-          <thead>
-            <tr>
-              <th className="py-2">Title</th>
-              <th>Company</th>
-              <th>Location</th>
-              <th>Hiring manager</th>
-              <th>Status</th>
-              <th>Priority</th>
-              <th>Comp</th>
-              <th>Owner</th>
-              <th>Military</th>
-              <th>Matches</th>
-              <th>Pipeline</th>
-              <th>Days open</th>
+        <DataTable
+          columns={["Title", "Company", "Location", "Status", "Priority", "Pipeline", "Days open"]}
+        >
+          {rows.map((row) => (
+            <tr key={row.job.id}>
+              <td>
+                <Link className="font-medium text-navy" href={`/app/jobs/${row.job.id}`}>
+                  {row.job.title}
+                </Link>
+              </td>
+              <td>{row.companyName ?? "—"}</td>
+              <td>{row.job.locationLabel ?? "—"}</td>
+              <td>
+                <StatusBadge
+                  tone={
+                    row.job.status === "search_active"
+                      ? "teal"
+                      : row.job.status === "filled"
+                        ? "success"
+                        : "navy"
+                  }
+                >
+                  {formatLabel(row.job.status)}
+                </StatusBadge>
+              </td>
+              <td>{formatLabel(row.job.priority)}</td>
+              <td>
+                <Link className="font-medium text-navy underline decoration-border underline-offset-4 hover:decoration-teal" href={`/app/jobs/${row.job.id}/pipeline`}>
+                  {row.activePipelineCount}
+                </Link>
+              </td>
+              <td>{row.daysOpen}</td>
             </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.job.id} className="border-b border-border">
-                <td className="py-2">
-                  <Link className="font-medium text-navy" href={`/app/jobs/${row.job.id}`}>
-                    {row.job.title}
-                  </Link>
-                </td>
-                <td>{row.companyName ?? "—"}</td>
-                <td>{row.job.locationLabel ?? "—"}</td>
-                <td>{row.hiringManagerName ?? "—"}</td>
-                <td>
-                  <StatusBadge tone="navy">{formatLabel(row.job.status)}</StatusBadge>
-                </td>
-                <td>{row.job.priority}</td>
-                <td>
-                  {row.job.compensationMin || row.job.compensationMax
-                    ? `${row.job.compensationMin ?? "—"}–${row.job.compensationMax ?? "—"}`
-                    : "—"}
-                </td>
-                <td>{row.ownerName ?? "—"}</td>
-                <td>{row.job.militaryCompatibility ?? "—"}</td>
-                <td>{row.matchedInternalCount}</td>
-                <td>
-                  <Link className="underline" href={`/app/jobs/${row.job.id}/pipeline`}>
-                    {row.activePipelineCount}
-                  </Link>
-                </td>
-                <td>{row.daysOpen}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          ))}
+        </DataTable>
       )}
       {canWrite ? (
-        <section className="mt-10 max-w-3xl space-y-3">
-          <h2 className="section-title">Create job</h2>
+        <CreatePanel
+          title="Create job"
+          description="Intake stays collapsed until you need it, so the search list stays the operating view."
+        >
           <ActionForm action={createJobAction} className="grid gap-3 sm:grid-cols-2">
             <Field label="Title" name="title">
               <input className={inputClassName} id="title" name="title" required />
@@ -188,7 +191,7 @@ export default async function JobsPage({
               <PrimaryButton>Create job</PrimaryButton>
             </div>
           </ActionForm>
-        </section>
+        </CreatePanel>
       ) : null}
     </PageShell>
   );

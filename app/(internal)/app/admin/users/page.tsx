@@ -3,7 +3,7 @@ import { requireAppPermission } from "@/lib/auth/guard";
 import { assignableRoleSlugs } from "@/lib/rbac/assign-role";
 import { can, type RoleSlug } from "@/lib/rbac/permissions";
 import { listOrganizationRoles, listOrganizationUsers } from "@/lib/repositories/platform";
-import { EmptyState, PageHeader, PageShell } from "../../_components/ui";
+import { DataTable, EmptyState, PageHeader, PageShell } from "../../_components/ui";
 import { RoleAssignField, UserStatusField } from "../_components/role-assign-field";
 
 export const dynamic = "force-dynamic";
@@ -28,16 +28,7 @@ export default async function AdminUsersPage() {
       {rows.length === 0 ? (
         <EmptyState>No people are recorded for this organization.</EmptyState>
       ) : (
-        <table className="mt-8 w-full text-left text-sm">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Access</th>
-            </tr>
-          </thead>
-          <tbody>
+        <DataTable columns={["Name", "Email", "Role", "Access"]}>
             {rows.map((user) => {
               const currentSlug = user.roles[0]?.slug ?? "";
               const canEditRole =
@@ -78,8 +69,7 @@ export default async function AdminUsersPage() {
                 </tr>
               );
             })}
-          </tbody>
-        </table>
+        </DataTable>
       )}
     </PageShell>
   );

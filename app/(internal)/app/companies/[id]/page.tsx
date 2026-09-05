@@ -18,6 +18,7 @@ import {
   EmptyState,
   Field,
   PageHeader,
+  PageShell,
   PrimaryButton,
   StatusBadge,
   TabNav,
@@ -69,7 +70,7 @@ export default async function CompanyDetailPage({
   ].map((item) => ({ ...item, href: `/app/companies/${company.id}?tab=${item.id}` }));
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
+    <PageShell>
       <PageHeader
         eyebrow="CRM / Company intelligence"
         title={company.name}
@@ -107,30 +108,30 @@ export default async function CompanyDetailPage({
           </div>
           <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-zinc-500">Industry</dt>
+              <dt className="text-muted-foreground">Industry</dt>
               <dd>{company.industry ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-zinc-500">Employees</dt>
+              <dt className="text-muted-foreground">Employees</dt>
               <dd>{company.employeeCount ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-zinc-500">Annual revenue</dt>
+              <dt className="text-muted-foreground">Annual revenue</dt>
               <dd>{company.annualRevenue ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-zinc-500">Next action</dt>
+              <dt className="text-muted-foreground">Next action</dt>
               <dd>
                 {company.nextAction ?? "—"}
                 {company.nextActionAt ? ` · ${formatDate(company.nextActionAt)}` : ""}
               </dd>
             </div>
             <div>
-              <dt className="text-zinc-500">Military fit</dt>
+              <dt className="text-muted-foreground">Military fit</dt>
               <dd>{company.militaryFitScore ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-zinc-500">Workforce opportunity</dt>
+              <dt className="text-muted-foreground">Workforce opportunity</dt>
               <dd>{company.workforceOpportunityScore ?? "—"}</dd>
             </div>
           </dl>
@@ -141,8 +142,8 @@ export default async function CompanyDetailPage({
               </a>
             </p>
           ) : null}
-          {company.notes ? <p className="mt-3 text-sm text-zinc-600">{company.notes}</p> : null}
-          <p className="mt-4 text-xs text-zinc-500">
+          {company.notes ? <p className="mt-3 text-sm text-muted-foreground">{company.notes}</p> : null}
+          <p className="mt-4 text-xs text-muted-foreground">
             Annual revenue is operating company size, not ownership or cap-table data.
           </p>
         </section>
@@ -300,7 +301,7 @@ export default async function CompanyDetailPage({
               {activities.map((activity) => (
                 <li key={activity.id}>
                   <span className="font-medium">{activity.subject}</span>
-                  <span className="text-zinc-500">
+                  <span className="text-muted-foreground">
                     {" "}
                     · {formatLabel(activity.activityType)} · {formatDate(activity.occurredAt)}
                   </span>
@@ -339,7 +340,7 @@ export default async function CompanyDetailPage({
       {tab === "jobs" ? (
         <section className="mt-6">
           {!can(principal, "jobs.read") ? (
-            <p className="text-sm text-zinc-600">Not yet implemented in this phase.</p>
+            <p className="text-sm text-muted-foreground">Not yet implemented in this phase.</p>
           ) : jobs.length === 0 ? (
             <EmptyState>No jobs linked to this company.</EmptyState>
           ) : (
@@ -360,6 +361,6 @@ export default async function CompanyDetailPage({
       {tab === "talent" || tab === "workforce" || tab === "legal" || tab === "finance" || tab === "projects" ? (
         <p className="mt-6 text-sm text-muted-foreground">Not yet implemented in this phase.</p>
       ) : null}
-    </main>
+    </PageShell>
   );
 }

@@ -4,10 +4,22 @@ import { createCompanyAction } from "@/lib/actions/crm";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { listCompanies } from "@/lib/repositories/crm";
 import { can } from "@/lib/rbac/permissions";
-import { ActionForm } from "../_components/action-form";
-import { StatusBadge } from "../_components/ui";
 import { ButtonLink } from "@/components/ui/button";
-import { Field, PageHeader, PrimaryButton, SearchForm, inputClassName } from "../_components/ui";
+import { ActionForm } from "../_components/action-form";
+import {
+  CreatePanel,
+  DataTable,
+  EmptyState,
+  Field,
+  FilterBar,
+  PageHeader,
+  PageShell,
+  PrimaryButton,
+  SearchForm,
+  StatusBadge,
+  formatLabel,
+  inputClassName,
+} from "../_components/ui";
 
 export default async function CompaniesPage({
   searchParams,
@@ -17,52 +29,46 @@ export default async function CompaniesPage({
   const principal = await requireAppPermission("companies.read");
   const { q } = await searchParams;
   const rows = await listCompanies(principal.organizationId, q);
+  const canWrite = can(principal, "companies.write");
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
+    <PageShell>
       <PageHeader
         eyebrow="CRM / Account intelligence"
         title="Companies"
         description="Understand client relationships, workforce signals, and revenue opportunities."
-        actions={can(principal, "companies.write") ? <ButtonLink href="#add-company" variant="primary">Add company</ButtonLink> : undefined}
+        actions={canWrite ? <ButtonLink href="#add-company" variant="primary">Add company</ButtonLink> : undefined}
       />
-      <SearchForm action="/app/companies" q={q} placeholder="Search company name" />
+      <FilterBar>
+        <SearchForm action="/app/companies" q={q} placeholder="Search company name" className="" />
+      </FilterBar>
       {rows.length === 0 ? (
-        <p className="mt-6 text-sm text-zinc-600">No companies match.</p>
+        <EmptyState title="No companies match.">
+          Search another name, or add a company if you have write access.
+        </EmptyState>
       ) : (
-        <table className="mt-6 w-full text-left text-sm">
-          <thead>
-            <tr>
-              <th className="py-2">Name</th>
-              <th>Type</th>
-              <th>Status</th>
-              <th>Industry</th>
+        <DataTable columns={["Name", "Type", "Status", "Industry"]}>
+          {rows.map((company) => (
+            <tr key={company.id}>
+              <td>
+                <Link className="font-medium text-navy" href={`/app/companies/${company.id}`}>
+                  {company.name}
+                </Link>
+              </td>
+              <td>{formatLabel(company.companyType)}</td>
+              <td>
+                <StatusBadge tone={company.clientStatus === "active" ? "success" : "navy"}>
+                  {formatLabel(company.clientStatus)}
+                </StatusBadge>
+              </td>
+              <td>{company.industry ?? "—"}</td>
             </tr>
-          </thead>
-          <tbody>
-            {rows.map((company) => (
-              <tr key={company.id} className="border-b">
-                <td className="py-2">
-                  <Link className="font-medium text-navy" href={`/app/companies/${company.id}`}>
-                    {company.name}
-                  </Link>
-                </td>
-                <td>{company.companyType}</td>
-                <td>
-                  <StatusBadge tone={company.clientStatus === "active" ? "success" : "navy"}>
-                    {company.clientStatus}
-                  </StatusBadge>
-                </td>
-                <td>{company.industry ?? "—"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          ))}
+        </DataTable>
       )}
-      {can(principal, "companies.write") ? (
-        <section className="mt-10" id="add-company">
-          <h2 className="section-title">Add company</h2>
-          <ActionForm action={createCompanyAction} className="mt-4 max-w-xl space-y-3">
+      {canWrite ? (
+        <CreatePanel id="add-company" title="Add company">
+          <ActionForm action={createCompanyAction} className="max-w-xl space-y-3">
             <Field label="Name" name="name">
               <input className={inputClassName} id="name" name="name" required />
             </Field>
@@ -107,8 +113,8 @@ export default async function CompaniesPage({
             </Field>
             <PrimaryButton>Create company</PrimaryButton>
           </ActionForm>
-        </section>
+        </CreatePanel>
       ) : null}
-    </main>
+    </PageShell>
   );
 }

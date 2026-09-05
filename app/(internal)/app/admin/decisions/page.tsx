@@ -1,6 +1,6 @@
 import { requirePlatformAdmin } from "@/lib/auth/guard";
 import { listDecisionLog } from "@/lib/repositories/platform";
-import { EmptyState, PageHeader, PageShell } from "../../_components/ui";
+import { EmptyState, PageHeader, PageShell, RecordList, RecordRow } from "../../_components/ui";
 
 export default async function AdminDecisionsPage() {
   await requirePlatformAdmin();
@@ -16,16 +16,11 @@ export default async function AdminDecisionsPage() {
       {rows.length === 0 ? (
         <EmptyState>No decisions recorded.</EmptyState>
       ) : (
-        <ul className="mt-8 space-y-4 text-sm">
+        <RecordList className="mt-6">
           {rows.map((decision) => (
-            <li key={decision.id}>
-              <p className="font-medium text-navy">
-                {decision.code} — {decision.title}
-              </p>
-              <p className="mt-1 text-muted-foreground">{decision.decision}</p>
-            </li>
+            <RecordRow key={decision.id} title={`${decision.code} — ${decision.title}`} meta={decision.decision} />
           ))}
-        </ul>
+        </RecordList>
       )}
     </PageShell>
   );

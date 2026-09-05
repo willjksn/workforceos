@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import {
@@ -11,8 +10,9 @@ import { canCreateDeliveryProject, mappingIsClientFacingDraft, MTOA_SERVICE_CODE
 import { listOpportunities } from "@/lib/repositories/crm";
 import { getServiceBundle, listProjectsForPlan } from "@/lib/repositories/services";
 import { AuthorizationError, can } from "@/lib/rbac/permissions";
+import { ButtonLink } from "@/components/ui/button";
 import { ActionForm } from "../../_components/action-form";
-import { Field, PageHeader, PrimaryButton, inputClassName } from "../../_components/ui";
+import { Field, PageHeader, PageShell, PrimaryButton, inputClassName } from "../../_components/ui";
 
 export default async function ServiceDetailPage({
   params,
@@ -40,32 +40,28 @@ export default async function ServiceDetailPage({
   );
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
+    <PageShell>
       <PageHeader
         title={bundle.service.name}
         description={bundle.service.description ?? "Launch service"}
         actions={
           bundle.service.code === "professional-search" ? (
-            <Link className="rounded-full border px-4 py-2 text-sm" href="/app/jobs">
-              Open jobs
-            </Link>
+            <ButtonLink href="/app/jobs">Open jobs</ButtonLink>
           ) : isMtoa ? (
-            <Link className="rounded-full border px-4 py-2 text-sm" href="/app/military">
-              Open translation
-            </Link>
+            <ButtonLink href="/app/military">Open translation</ButtonLink>
           ) : undefined
         }
       />
-      <p className="mt-3 text-sm text-zinc-600">
+      <p className="mt-3 text-sm text-muted-foreground">
         Version {bundle.approvedVersion?.version ?? "none"} · {bundle.approvedVersion?.reviewStatus ?? "missing"}
       </p>
       <section className="mt-8">
-        <h2 className="text-lg font-semibold">Approved workflow</h2>
+        <h2 className="section-title">Approved workflow</h2>
         <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm">
           {bundle.workflows.map((step) => (
             <li key={step.id}>
-              <div className="font-medium">{step.name}</div>
-              <p className="text-zinc-600">{step.instructions}</p>
+              <div className="font-medium text-navy">{step.name}</div>
+              <p className="text-muted-foreground">{step.instructions}</p>
               {step.requiresHumanApproval ? (
                 <p className="mt-1">Human approval required before this step is complete.</p>
               ) : null}
@@ -75,12 +71,12 @@ export default async function ServiceDetailPage({
       </section>
       {plansWithProjects.length > 0 ? (
         <section className="mt-10">
-          <h2 className="text-lg font-semibold">Solution plans</h2>
-          <ul className="mt-3 space-y-4 text-sm">
+          <h2 className="section-title">Solution plans</h2>
+          <ul className="mt-3 space-y-3 text-sm">
             {plansWithProjects.map(({ plan, opportunity, companyName, projects }) => (
-              <li key={plan.id} className="rounded border p-4">
-                <div className="font-medium">{plan.title}</div>
-                <p className="mt-1 text-zinc-600">
+              <li key={plan.id} className="rounded-[8px] border border-card-border bg-card p-4 shadow-[var(--shadow-sm)]">
+                <div className="font-medium text-navy">{plan.title}</div>
+                <p className="mt-1 text-muted-foreground">
                   {plan.status} · {companyName} · {opportunity.name}
                 </p>
                 {plan.summary ? <p className="mt-2">{plan.summary}</p> : null}
@@ -116,12 +112,12 @@ export default async function ServiceDetailPage({
       ) : null}
       {isMtoa && canWriteSolutions ? (
         <section className="mt-10">
-          <h2 className="text-lg font-semibold">Draft a solution plan</h2>
-          <p className="mt-2 text-sm text-zinc-600">
+          <h2 className="section-title">Draft a solution plan</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
             Recommendations stay drafts until a human approves them. Agents cannot approve this output.
           </p>
           {opportunities.length === 0 ? (
-            <p className="mt-3 text-sm text-zinc-600">Create a company opportunity first.</p>
+            <p className="mt-3 text-sm text-muted-foreground">Create a company opportunity first.</p>
           ) : (
             <ActionForm action={createMtoaPlanAction} className="mt-4 max-w-xl space-y-3">
               <Field label="Opportunity" name="opportunityId">
@@ -144,6 +140,6 @@ export default async function ServiceDetailPage({
           )}
         </section>
       ) : null}
-    </main>
+    </PageShell>
   );
 }

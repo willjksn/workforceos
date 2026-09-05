@@ -1,7 +1,7 @@
 import { requireAppPermission } from "@/lib/auth/guard";
 import { listBridgeTraining, listMilitaryOccupations } from "@/lib/repositories/military";
 import { MetricCard } from "@/components/ui/display";
-import { PageHeader, PageShell } from "../../_components/ui";
+import { PageHeader, PageShell, RecordList, RecordRow, formatLabel } from "../../_components/ui";
 import { MilitarySubnav } from "../_components/military-subnav";
 
 export default async function MilitaryAnalyticsPage() {
@@ -26,11 +26,11 @@ export default async function MilitaryAnalyticsPage() {
         <MetricCard label="Bridge recommendations" value={bridge.length} />
         <MetricCard label="Navy records" value={byBranch.navy ?? 0} />
       </div>
-      <ul className="mt-6 text-sm text-muted-foreground">
+      <RecordList className="mt-6">
         {Object.entries(byBranch).map(([branch, count]) => (
-          <li key={branch}>{branch}: {count}</li>
+          <RecordRow key={branch} title={formatLabel(branch)} trailing={<span className="text-sm text-navy">{count}</span>} />
         ))}
-      </ul>
+      </RecordList>
     </PageShell>
   );
 }

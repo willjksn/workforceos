@@ -1,10 +1,8 @@
-import Link from "next/link";
-
 import { requireAppPermission } from "@/lib/auth/guard";
 import { presentCandidate } from "@/lib/privacy/present-candidate";
 import { listSilverMedalists } from "@/lib/repositories/talent";
 import { can } from "@/lib/rbac/permissions";
-import { EmptyState, PageHeader } from "../../_components/ui";
+import { EmptyState, PageHeader, PageShell, RecordList, RecordRow } from "../../_components/ui";
 
 export default async function SilverMedalistsPage() {
   const principal = await requireAppPermission("candidates.read");
@@ -14,25 +12,28 @@ export default async function SilverMedalistsPage() {
   );
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
+    <PageShell>
       <PageHeader
+        eyebrow="Talent Network / Rediscovery"
         title="Silver Medalists"
         description="Strong prior applicants remain rediscoverable. This is a designation, not a duplicate candidate."
       />
       {rows.length === 0 ? (
-        <EmptyState>No silver medalists recorded.</EmptyState>
+        <EmptyState title="No silver medalists recorded.">
+          Designate a strong prior applicant from the candidate record. They stay one person in the Talent Network.
+        </EmptyState>
       ) : (
-        <ul className="mt-6 space-y-2 text-sm">
+        <RecordList className="mt-6">
           {rows.map((candidate) => (
-            <li key={candidate.id}>
-              <Link className="underline" href={`/app/talent/${candidate.id}`}>
-                {candidate.fullName}
-              </Link>
-              {candidate.currentTitle ? ` · ${candidate.currentTitle}` : ""}
-            </li>
+            <RecordRow
+              key={candidate.id}
+              href={`/app/talent/${candidate.id}`}
+              title={candidate.fullName}
+              meta={candidate.currentTitle ?? undefined}
+            />
           ))}
-        </ul>
+        </RecordList>
       )}
-    </main>
+    </PageShell>
   );
 }

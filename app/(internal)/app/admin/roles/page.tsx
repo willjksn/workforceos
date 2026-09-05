@@ -1,7 +1,7 @@
 import { requireAppPermission } from "@/lib/auth/guard";
 import { guideForRole } from "@/lib/rbac/role-guide";
 import { listOrganizationRoles } from "@/lib/repositories/platform";
-import { EmptyState, PageHeader, PageShell } from "../../_components/ui";
+import { DataTable, EmptyState, PageHeader, PageShell } from "../../_components/ui";
 
 export default async function AdminRolesPage() {
   const principal = await requireAppPermission("admin.roles");
@@ -17,16 +17,7 @@ export default async function AdminRolesPage() {
       {rows.length === 0 ? (
         <EmptyState>No roles are configured for this organization.</EmptyState>
       ) : (
-        <table className="mt-8 w-full text-left text-sm">
-          <thead>
-            <tr>
-              <th>Role</th>
-              <th>Who it is for</th>
-              <th>What they can do</th>
-              <th>People</th>
-            </tr>
-          </thead>
-          <tbody>
+        <DataTable columns={["Role", "Who it is for", "What they can do", "People"]}>
             {rows.map((role) => {
               const guide = guideForRole(role.slug);
               return (
@@ -43,8 +34,7 @@ export default async function AdminRolesPage() {
                 </tr>
               );
             })}
-          </tbody>
-        </table>
+        </DataTable>
       )}
     </PageShell>
   );

@@ -6,9 +6,30 @@ import { LAUNCH_SERVICE_CODES, OPPORTUNITY_STAGES } from "@/lib/crm/stages";
 import { listCompaniesForSelect, listOpportunitiesFiltered } from "@/lib/repositories/crm";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../_components/action-form";
-import { EmptyState, Field, PageHeader, PrimaryButton, formatLabel, inputClassName } from "../_components/ui";
+import {
+  CreatePanel,
+  DataTable,
+  EmptyState,
+  Field,
+  FilterBar,
+  PageHeader,
+  PageShell,
+  PrimaryButton,
+  ScoreBadge,
+  SearchForm,
+  StatusBadge,
+  formatLabel,
+  inputClassName,
+} from "../_components/ui";
 
 const SCORE_BANDS = ["priority", "active_qualified", "nurture", "monitor"] as const;
+
+function stageTone(stage: string) {
+  if (stage === "won" || stage === "closed_won") return "success" as const;
+  if (stage === "lost" || stage === "closed_lost") return "neutral" as const;
+  if (stage === "proposal" || stage === "verbal") return "teal" as const;
+  return "navy" as const;
+}
 
 export default async function OpportunitiesPage({
   searchParams,
@@ -24,73 +45,63 @@ export default async function OpportunitiesPage({
     stage: stageFilter,
     scoreBand: scoreBandFilter,
   });
-  const companies = can(principal, "opportunities.write")
-    ? await listCompaniesForSelect(principal.organizationId)
-    : [];
+  const canWrite = can(principal, "opportunities.write");
+  const companies = canWrite ? await listCompaniesForSelect(principal.organizationId) : [];
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
+    <PageShell>
       <PageHeader
+        eyebrow="CRM / Pipeline"
         title="Opportunities"
         description="Commercial pipeline for the five launch services. Scores are stored, not invented at render time."
       />
-      <form action="/app/opportunities" className="mt-6 flex flex-wrap gap-2">
-        <input name="q" defaultValue={q} placeholder="Search opportunity or company" className={`${inputClassName} max-w-md`} />
-        <select name="stage" defaultValue={stage ?? ""} className={`${inputClassName} max-w-xs`}>
-          <option value="">All stages</option>
-          {OPPORTUNITY_STAGES.map((value) => (
-            <option key={value} value={value}>
-              {formatLabel(value)}
-            </option>
-          ))}
-        </select>
-        <select name="scoreBand" defaultValue={scoreBand ?? ""} className={`${inputClassName} max-w-xs`}>
-          <option value="">All score bands</option>
-          {SCORE_BANDS.map((value) => (
-            <option key={value} value={value}>
-              {formatLabel(value)}
-            </option>
-          ))}
-        </select>
-        <button className="rounded border px-4 py-2 text-sm" type="submit">
-          Filter
-        </button>
-      </form>
-      {rows.length === 0 ? (
-        <EmptyState>No opportunities match.</EmptyState>
-      ) : (
-        <table className="mt-6 w-full text-left text-sm">
-          <thead>
-            <tr>
-              <th className="py-2">Opportunity</th>
-              <th>Company</th>
-              <th>Stage</th>
-              <th>Score</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(({ opportunity, companyName }) => (
-              <tr key={opportunity.id} className="border-b">
-                <td className="py-2">
-                  <Link className="underline" href={`/app/opportunities/${opportunity.id}`}>
-                    {opportunity.name}
-                  </Link>
-                </td>
-                <td>{companyName}</td>
-                <td>{formatLabel(opportunity.stage)}</td>
-                <td>
-                  {opportunity.opportunityScore ?? "—"}
-                  {opportunity.scoreBand ? ` · ${formatLabel(opportunity.scoreBand)}` : ""}
-                </td>
-              </tr>
+      <FilterBar>
+        <SearchForm action="/app/opportunities" q={q} placeholder="Search opportunity or company" className="" submitLabel="Filter">
+          <select name="stage" defaultValue={stage ?? ""} className={`${inputClassName} max-w-xs`}>
+            <option value="">All stages</option>
+            {OPPORTUNITY_STAGES.map((value) => (
+              <option key={value} value={value}>
+                {formatLabel(value)}
+              </option>
             ))}
-          </tbody>
-        </table>
+          </select>
+          <select name="scoreBand" defaultValue={scoreBand ?? ""} className={`${inputClassName} max-w-xs`}>
+            <option value="">All score bands</option>
+            {SCORE_BANDS.map((value) => (
+              <option key={value} value={value}>
+                {formatLabel(value)}
+              </option>
+            ))}
+          </select>
+        </SearchForm>
+      </FilterBar>
+      {rows.length === 0 ? (
+        <EmptyState title="No opportunities match.">
+          Adjust the filters, or add an opportunity if you have write access.
+        </EmptyState>
+      ) : (
+        <DataTable columns={["Opportunity", "Company", "Stage", "Score"]}>
+          {rows.map(({ opportunity, companyName }) => (
+            <tr key={opportunity.id}>
+              <td>
+                <Link className="font-medium text-navy" href={`/app/opportunities/${opportunity.id}`}>
+                  {opportunity.name}
+                </Link>
+              </td>
+              <td>{companyName}</td>
+              <td>
+                <StatusBadge tone={stageTone(opportunity.stage)}>{formatLabel(opportunity.stage)}</StatusBadge>
+              </td>
+              <td>
+                <ScoreBadge score={opportunity.opportunityScore} band={opportunity.scoreBand} />
+              </td>
+            </tr>
+          ))}
+        </DataTable>
       )}
-      {can(principal, "opportunities.write") ? (
-        <section className="mt-10">
-          <h2 className="text-lg font-semibold">Add opportunity</h2>
-          <ActionForm action={addOpportunityAction} className="mt-4 max-w-xl space-y-3">
+      {canWrite ? (
+        <CreatePanel title="Add opportunity">
+          <ActionForm action={addOpportunityAction} className="max-w-xl space-y-3">
             <Field label="Company" name="companyId">
               <select className={inputClassName} id="companyId" name="companyId" required defaultValue="">
                 <option value="" disabled>
@@ -127,8 +138,8 @@ export default async function OpportunitiesPage({
             </Field>
             <PrimaryButton>Create opportunity</PrimaryButton>
           </ActionForm>
-        </section>
+        </CreatePanel>
       ) : null}
-    </main>
+    </PageShell>
   );
 }

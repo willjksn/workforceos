@@ -2,7 +2,7 @@ import { getDb } from "@/db";
 import { agents } from "@/db/schema";
 import { requirePlatformAdmin } from "@/lib/auth/guard";
 import { requirePermission } from "@/lib/rbac/permissions";
-import { EmptyState, PageHeader, PageShell, StatusBadge, formatLabel } from "../../_components/ui";
+import { DataTable, EmptyState, PageHeader, PageShell, StatusBadge, formatLabel } from "../../_components/ui";
 
 export default async function AgentsAdminPage() {
   const principal = await requirePlatformAdmin();
@@ -20,14 +20,7 @@ export default async function AgentsAdminPage() {
       {rows.length === 0 ? (
         <EmptyState>No agents are registered.</EmptyState>
       ) : (
-        <table className="mt-8 w-full text-left text-sm">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
+        <DataTable columns={["Name", "Status"]}>
             {rows.map((agent) => (
               <tr key={agent.id}>
                 <td>{agent.name}</td>
@@ -38,8 +31,7 @@ export default async function AgentsAdminPage() {
                 </td>
               </tr>
             ))}
-          </tbody>
-        </table>
+        </DataTable>
       )}
     </PageShell>
   );

@@ -2,7 +2,18 @@ import Link from "next/link";
 
 import { requireAppPermission } from "@/lib/auth/guard";
 import { clientNeedInstallationTargets, occupationInstallationMap, listMilitaryOccupations } from "@/lib/repositories/military";
-import { PageHeader, PageShell, formatLabel } from "../../_components/ui";
+import {
+  DataTable,
+  EmptyState,
+  FilterBar,
+  PageHeader,
+  PageShell,
+  SearchForm,
+  SectionHeader,
+  StatusBadge,
+  formatLabel,
+  inputClassName,
+} from "../../_components/ui";
 import { MilitarySubnav } from "../_components/military-subnav";
 
 export default async function InstallationMappingPage({
@@ -24,67 +35,71 @@ export default async function InstallationMappingPage({
         description="Occupation → likely installations, or civilian need → occupations → installations. Ranked from stored compatibility, presence, transition notes, and known candidate supply. Unsupported guesses are not shown."
       />
       <MilitarySubnav active="/app/military/installation-mapping" />
-      <form className="mt-6 flex flex-wrap gap-2" action="/app/military/installation-mapping">
-        <select name="occupationId" defaultValue={occupationId ?? ""} className="rounded-[6px] border border-border px-3 py-2 text-sm">
-          <option value="">Military occupation</option>
-          {occupations.map((occupation) => (
-            <option key={occupation.id} value={occupation.id}>{occupation.code} · {occupation.title}</option>
-          ))}
-        </select>
-        <input name="civilian" defaultValue={civilian} placeholder="Civilian job, e.g. Industrial Electrical Technician" className="min-w-[16rem] rounded-[6px] border border-border px-3 py-2 text-sm" />
-        <button className="rounded-[6px] border border-navy px-4 py-2 text-sm" type="submit">Map</button>
-      </form>
+      <FilterBar>
+        <SearchForm
+          action="/app/military/installation-mapping"
+          q={civilian}
+          queryName="civilian"
+          placeholder="Civilian job, e.g. Industrial Electrical Technician"
+          className=""
+          submitLabel="Map"
+        >
+          <select name="occupationId" defaultValue={occupationId ?? ""} className={`${inputClassName} max-w-xs`}>
+            <option value="">Military occupation</option>
+            {occupations.map((occupation) => (
+              <option key={occupation.id} value={occupation.id}>
+                {occupation.code} · {occupation.title}
+              </option>
+            ))}
+          </select>
+        </SearchForm>
+      </FilterBar>
       {occupationMap ? (
         <section className="mt-8">
-          <h2 className="section-title">{occupationMap.occupation.title}</h2>
-          <table className="mt-3 w-full text-left text-sm">
-            <thead>
-              <tr>
-                <th className="py-2">Installation</th>
-                <th>Presence</th>
-                <th>Why</th>
-                <th>Review</th>
-                <th>Source</th>
-              </tr>
-            </thead>
-            <tbody>
+          <SectionHeader title={occupationMap.occupation.title} />
+          {occupationMap.installations.length === 0 ? (
+            <EmptyState title="No stored installation links.">Unsupported guesses are not shown.</EmptyState>
+          ) : (
+            <DataTable className="mt-4" columns={["Installation", "Presence", "Why", "Review", "Source"]}>
               {occupationMap.installations.map((row) => (
-                <tr key={row.link.id} className="border-b border-border">
-                  <td className="py-2">
-                    <Link className="underline" href={`/app/military/installations/${row.installation.id}`}>{row.installation.name}</Link>
+                <tr key={row.link.id}>
+                  <td>
+                    <Link className="font-medium text-navy" href={`/app/military/installations/${row.installation.id}`}>
+                      {row.installation.name}
+                    </Link>
                   </td>
                   <td>{row.relevance}</td>
                   <td>{row.why ?? "—"}</td>
-                  <td>{formatLabel(row.reviewStatus)}</td>
+                  <td>
+                    <StatusBadge>{formatLabel(row.reviewStatus)}</StatusBadge>
+                  </td>
                   <td>{row.source ?? "—"}</td>
                 </tr>
               ))}
-            </tbody>
-          </table>
+            </DataTable>
+          )}
         </section>
       ) : null}
       {targets.length > 0 ? (
         <section className="mt-10">
-          <h2 className="section-title">Client need targeting</h2>
-          <table className="mt-3 w-full text-left text-sm">
-            <thead>
-              <tr>
-                <th className="py-2">Military occupation</th>
-                <th>Installation</th>
-                <th>Rank score</th>
+          <SectionHeader title="Client need targeting" />
+          <DataTable className="mt-4" columns={["Military occupation", "Installation", "Rank score"]}>
+            {targets.map((row) => (
+              <tr key={`${row.military.id}-${row.installation.id}`}>
+                <td>
+                  {row.military.code} · {row.military.title}
+                </td>
+                <td>{row.installation.name}</td>
+                <td>{Math.round(row.rankScore)}</td>
               </tr>
-            </thead>
-            <tbody>
-              {targets.map((row) => (
-                <tr key={`${row.military.id}-${row.installation.id}`} className="border-b border-border">
-                  <td className="py-2">{row.military.code} · {row.military.title}</td>
-                  <td>{row.installation.name}</td>
-                  <td>{Math.round(row.rankScore)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            ))}
+          </DataTable>
         </section>
+      ) : null}
+      {!occupationMap && targets.length === 0 ? (
+        <EmptyState title="Choose an occupation or civilian need.">
+          Rankings come from stored compatibility, presence, transition notes, and known candidate supply.
+        </EmptyState>
       ) : null}
     </PageShell>
   );
