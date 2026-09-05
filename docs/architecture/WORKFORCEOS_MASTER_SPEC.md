@@ -1,6 +1,6 @@
 # WorkforceOS Master Specification
 
-Status: Phase 1 foundation  
+Status: Phase 3 recruiting operations and military talent translator  
 Audience: engineering agents and maintainers  
 Canonical: this file is the architecture source of truth for implementation.
 
@@ -64,16 +64,16 @@ Server-only modules live under `db/` and `lib/`. Client components must not impo
 
 ## Domain map (future modules)
 
-Phase 1 implemented schema and service foundations. Phase 2 adds operating UI for CRM, Talent Network, Professional Search, and Military Talent Opportunity Assessment on that foundation.
+Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Talent Network, Professional Search, and Military Talent Opportunity Assessment. Phase 3 activates recruiting operations and the military talent translator on that foundation.
 
 - CRM: companies, contacts, opportunities, signals
 - Talent Network: candidates, pools, rediscovery
-- Recruiting: jobs, matches, submissions, interviews, offers, placements
-- Military Talent: occupation translation, installations, civilian mappings
-- Workforce Development: assessments, forecasts, pipeline planning
+- Recruiting: jobs, internal-first search projects, job-specific matches, pipeline, submissions, interviews, offers, placements, guarantees
+- Military Talent: occupation library, skills translator, reverse search, installations, bridge training, human mapping review
+- Workforce Development: assessments, forecasts, pipeline planning (placeholder after Phase 3)
 - Services: five launch service engines and versioned workflows
 - Legal: document packages linked to services and engagements
-- Finance: AR operating workflow
+- Finance: AR operating workflow (billing hook only in Phase 3)
 - AI: agent registry, runs, outputs, approvals
 - Platform: users, roles, audit, integrations, files, search
 
@@ -97,6 +97,16 @@ Phase 1 implemented schema and service foundations. Phase 2 adds operating UI fo
 - Proxy/Clerk route protection is an optimistic gate, not the authorization system.
 - Secrets stay in server environment variables.
 - Audit events are append-only through application logic.
+
+## Recruiting and military operating rules (Phase 3)
+
+- Activating a job (`search_active`) starts an Internal Talent Network search. External sourcing hooks stay blocked until that search is marked complete.
+- `candidate_job_matches` are job-specific. There is no universal candidate quality score. Component scores are stored and explained. Scores never auto-reject a candidate.
+- Pipeline movement and material rejection are audited. AI/system actors cannot reject a candidate without a human.
+- Placement guarantee days and fee terms come from the search agreement / search project. The application does not invent contract terms.
+- Military mappings store source, version, confidence, origin, and review status. Agent drafts start pending. The originating agent cannot approve them.
+- Military candidates reuse Talent Network candidate records. There is no separate military candidate database.
+- Installation map rendering is deferred to Phase 3.5. List/geo fields and `coordinate_source` are the Phase 3 foundation. Coordinates are never fabricated.
 
 ## Related documents
 

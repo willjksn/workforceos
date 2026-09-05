@@ -11,6 +11,7 @@ import {
   createDraftSolutionPlan,
   createProjectFromSolutionPlan,
 } from "@/lib/repositories/services";
+import { reviewMilitaryMapping } from "@/lib/repositories/military";
 import { emptyToNull } from "@/lib/validation/forms";
 
 export type ActionState = { error?: string };
@@ -94,6 +95,35 @@ export async function createMtoaProjectAction(
       userId: principal.id,
     });
     redirect(`/app/services/${MTOA_SERVICE_CODE}`);
+  } catch (error) {
+    if (isNextControlFlow(error)) throw error;
+    return fail(error);
+  }
+}
+
+export async function reviewMilitaryMappingAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  try {
+    const principal = await requireAppPermission("military.review");
+    const parsed = z
+      .object({
+        mappingId: z.string().uuid(),
+        status: z.enum(["approved", "rejected", "needs_review"]),
+      })
+      .parse({
+        mappingId: formData.get("mappingId"),
+        status: formData.get("status"),
+      });
+    await reviewMilitaryMapping({
+      organizationId: principal.organizationId,
+      actorUserId: principal.id,
+      mappingId: parsed.mappingId,
+      status: parsed.status,
+      actorType: "human",
+    });
+    redirect("/app/military/review");
   } catch (error) {
     if (isNextControlFlow(error)) throw error;
     return fail(error);

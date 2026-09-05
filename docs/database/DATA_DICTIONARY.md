@@ -1,6 +1,6 @@
 # Data Dictionary
 
-Status: Phase 1 foundation tables  
+Status: Phase 3 recruiting and military translator tables  
 Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 
 ## Conventions
@@ -93,25 +93,30 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 
 | Table | Purpose |
 | --- | --- |
-| `jobs` | Requisitions/search assignments. |
-| `job_skills` | Job skill requirements. |
-| `candidate_job_matches` | Job-specific scores. One candidate may have many independent matches. |
-| `search_projects` | Internal-first search containers. |
-| `submissions` | Candidate submissions to a client/job. |
-| `interviews` | Interview records. |
-| `offers` | Offer records. |
-| `placements` | Placement records. |
+| `jobs` | Requisitions/search assignments with operational intake fields, internal-search timestamps, and activity. |
+| `job_skills` | Canonical skill requirements (`required`, `preferred`, `nice_to_have`) with years, weight, and human verification. |
+| `candidate_job_matches` | Job-specific component scores, strengths/gaps, provenance, pipeline stage, and human review. Unique on `(candidate_id, job_id)`. |
+| `candidate_screenings` | Structured, job-related screening notes for a match. |
+| `search_projects` | Internal-first search containers with strategy, fee, and guarantee terms from the search agreement. |
+| `submissions` | Recruiter-prepared client packets. Human approval required before client submission. |
+| `interviews` | Interview history. Multiple interviews per candidate/job are retained. |
+| `offers` | Recorded offers. The system does not send or auto-negotiate offers. |
+| `placements` | Placement records with fee/guarantee copied from search-agreement terms. Billing is a queued hook only. |
+| `placement_guarantees` | Guarantee windows calculated from agreement days. |
 
 ## Military
 
 | Table | Purpose |
 | --- | --- |
-| `military_occupations` | MOS, ratings, AFSC, and related classifications. |
-| `candidate_military_experiences` | Candidate military history. |
-| `military_occupation_skills` | Occupation skill links. |
-| `military_installations` | Bases/installations. |
-| `military_occupation_installations` | Likely presence mappings. |
-| `military_civilian_mappings` | Military-to-civilian translations, including reverse search support. |
+| `military_occupations` | MOS, ratings, AFSC, and related classifications with source/version. |
+| `candidate_military_experiences` | Candidate military history linked to a Talent Network candidate. |
+| `candidate_military_translations` | Candidate-specific translations pending human review. |
+| `military_occupation_skills` | Occupation skill links through the canonical skills taxonomy. |
+| `military_installations` | Bases/installations with optional sourced coordinates and `coordinate_source`. |
+| `military_occupation_installations` | Likely presence mappings with why/confidence/review/provenance. |
+| `military_civilian_mappings` | Military-to-civilian translations, including reverse search, provenance, and review status. |
+| `bridge_training_recommendations` | Skill-gap and credential recommendations. Do not promise employment. |
+| `occupation_data_imports` | Repeatable importer run log. Approved mappings are not silently deleted. |
 
 ## Services and delivery
 

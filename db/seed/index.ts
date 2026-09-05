@@ -46,6 +46,7 @@ import {
 } from "../schema";
 import { PERMISSIONS, ROLE_PERMISSIONS, type RoleSlug } from "../../lib/rbac/permissions";
 import { LAUNCH_SERVICE_WORKFLOWS } from "./service-workflows";
+import { seedPhase3OperatingFixtures } from "./phase3";
 import {
   CANDIDATE_ID,
   COMPANY_ID,
@@ -78,8 +79,7 @@ export async function seedFoundation() {
       set: { name: "WorkforceOS", slug: "workforceos", updatedAt: now() },
     });
 
-  const permissionRows = PERMISSIONS.map((slug, index) => ({
-    id: `00000000-0000-4000-8000-${String(1000 + index).padStart(12, "0")}`,
+  const permissionRows = PERMISSIONS.map((slug) => ({
     slug,
     description: slug,
   }));
@@ -754,6 +754,8 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
     })
     .onConflictDoNothing();
 
+  await seedPhase3OperatingFixtures(db, skillIds);
+
   const launchServices = [
     {
       id: "00000000-0000-4000-8900-000000000001",
@@ -1097,6 +1099,11 @@ async function seedRequirementsAndDecisions(db: ReturnType<typeof getDb>) {
     ["WFOS-INT-001", "integrations", "External providers must connect through an Integration Hub abstraction."],
     ["WFOS-CRM-001", "crm", "Command Center cards must use live PostgreSQL aggregates, not hardcoded metrics."],
     ["WFOS-CRM-002", "crm", "Opportunity scores use the stored 100-point model and may be human-overridden with a reason."],
+    ["WFOS-REC-001", "recruiting", "search_active records internal Talent Network search before external sourcing hooks."],
+    ["WFOS-REC-002", "recruiting", "Job-specific match components are stored and explained; scores never auto-reject."],
+    ["WFOS-REC-003", "recruiting", "Pipeline, submission, and placement terms require human control and search-agreement data."],
+    ["WFOS-MIL-006", "military", "Military mappings store provenance and require human review; agents cannot self-approve."],
+    ["WFOS-MIL-007", "military", "Military candidate views reuse Talent Network records."],
   ] as const;
 
   for (const [code, module, description] of requirementSeed) {
@@ -1127,6 +1134,10 @@ async function seedRequirementsAndDecisions(db: ReturnType<typeof getDb>) {
     ["DEC-SEM-001", "Temporary embedding dimension", "1536-dimension vectors until a production model is selected."],
     ["DEC-AUTH-001", "Clerk authenticates; PostgreSQL authorizes", "Local roles remain authoritative."],
     ["DEC-CRM-001", "Phase 2 CRM scoring and first-class records", "Opportunities use a stored 100-point score. Contacts, opportunities, and signals are first-class records. Company annual revenue is operating size, not ownership."],
+    ["DEC-REC-001", "Internal Talent Network first; job-specific scores only", "External sourcing stays blocked until internal search completes. Scores are job-specific and never auto-reject."],
+    ["DEC-REC-002", "Guarantee and fee terms come from the search agreement", "Placement terms are copied from the search project. Finance is a billing hook only."],
+    ["DEC-MIL-001", "Military mappings need provenance and human review", "Agent drafts start pending. The originating agent cannot approve them."],
+    ["DEC-MIL-002", "Installation map view deferred to Phase 3.5", "Phase 3 ships list/geo and coordinate_source. Coordinates are never fabricated."],
   ] as const;
 
   for (const [code, title, decision] of decisions) {

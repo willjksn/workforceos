@@ -112,3 +112,43 @@ Database mirror: `decision_log` table, seeded from this file.
 - Reason: Nested company-only CRM cannot support pipeline, signal review, or role-aware operating snapshots. Scores must be persisted so the UI cannot invent them at render time.
 - Affected modules: crm, command center, audit
 - Reconsideration: if a later phase replaces the scoring model; existing `opportunity_scores` rows would need a versioned migration.
+
+## DEC-REC-001 — Internal Talent Network first; job-specific scores only
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Activating a job starts an Internal Talent Network search. External sourcing adapters stay behind the Integration Hub and remain blocked until internal search is marked complete. Candidate scores are job-specific component records with explanations. There is no universal candidate quality score, and scores never auto-reject.
+- Reason: PierOne is a professional search firm. Internal reuse and explainable fit are operating rules, not UI preferences.
+- Affected modules: recruiting, talent, integrations
+- Reconsideration: only if a documented search agreement requires a different sourcing order.
+
+## DEC-REC-002 — Guarantee and fee terms come from the search agreement
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Placement fee percent/amount and guarantee days are copied from the search project / search agreement. The application does not invent defaults. Finance invoicing is a queued billing hook only.
+- Reason: Contract terms are commercial facts. Fabricated guarantee windows would create false operating data.
+- Affected modules: recruiting, finance
+- Reconsideration: if a later finance module becomes the system of record for invoices; guarantee windows would still originate from the agreement.
+
+## DEC-MIL-001 — Military mappings need provenance and human review
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Military→civilian, installation, bridge-training, and candidate translation records store source, version, confidence, origin, and review status. Agent-generated mappings start pending. The originating agent cannot approve them. Development fixtures are labeled and are not authoritative production data.
+- Reason: Military translation is a differentiator and a liability if invented. Hiring-manager copy may use only approved mappings.
+- Affected modules: military, approvals, audit
+- Reconsideration: if a trusted official extract is imported as reference data with `trustedReference`; those rows may start approved.
+
+## DEC-MIL-002 — Installation map view deferred to Phase 3.5
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Phase 3 ships list/geo foundation (`latitude`, `longitude`, `coordinate_source`) and occupation→installation targeting. An interactive map is deferred so Phase 3 is not blocked by a mapping dependency. Coordinates are never fabricated.
+- Reason: List/geo plus ranked targeting satisfies the operating workflow. A map library would delay recruiting and translator delivery.
+- Affected modules: military UI
+- Reconsideration: Phase 3.5 if a lightweight map can consume stored coordinates without a large new dependency.

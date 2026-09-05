@@ -14,6 +14,7 @@ import {
   jobSkills,
   jobs,
   militaryOccupationSkills,
+  militaryOccupations,
   searchProjects,
   services,
   skills,
@@ -207,6 +208,14 @@ export async function createJobWithInternalSearch(input: {
     after: { id: searchProject.id, name: searchProject.name, jobId: job.id },
   });
 
+  if (status === "search_active") {
+    await runInternalTalentSearch({
+      organizationId: input.organizationId,
+      actorUserId: input.actorUserId,
+      jobId: job.id,
+    });
+  }
+
   return { job, searchProject };
 }
 
@@ -259,6 +268,13 @@ export async function setJobStatus(input: {
     recordId: after.id,
     after: { status: after.status },
   });
+  if (input.status === "search_active") {
+    await runInternalTalentSearch({
+      organizationId: input.organizationId,
+      actorUserId: input.actorUserId,
+      jobId: input.jobId,
+    });
+  }
   return after;
 }
 
@@ -431,26 +447,28 @@ export async function runInternalTalentSearch(input: {
     ? await db
         .select({
           candidateId: candidateMilitaryExperiences.candidateId,
-          occupationTitle: sql<string>`''`,
+          occupationTitle: militaryOccupations.title,
           skillId: militaryOccupationSkills.skillId,
         })
         .from(candidateMilitaryExperiences)
+        .leftJoin(
+          militaryOccupations,
+          eq(militaryOccupations.id, candidateMilitaryExperiences.militaryOccupationId),
+        )
         .leftJoin(
           militaryOccupationSkills,
           eq(militaryOccupationSkills.militaryOccupationId, candidateMilitaryExperiences.militaryOccupationId),
         )
         .where(inArray(candidateMilitaryExperiences.candidateId, candidateIds))
     : [];
-  const militarySkillNames = military.length
+  const militarySkillIds = [
+    ...new Set(military.map((row) => row.skillId).filter((id): id is string => Boolean(id))),
+  ];
+  const militarySkillNames = militarySkillIds.length
     ? await db
         .select({ id: skills.id, name: skills.name })
         .from(skills)
-        .where(
-          inArray(
-            skills.id,
-            military.map((row) => row.skillId).filter((id): id is string => Boolean(id)),
-          ),
-        )
+        .where(inArray(skills.id, militarySkillIds))
     : [];
   const skillNameById = Object.fromEntries(militarySkillNames.map((skill) => [skill.id, skill.name]));
 
@@ -481,6 +499,7 @@ export async function runInternalTalentSearch(input: {
         .filter((experience) => experience.candidateId === candidate.id)
         .map((experience) => `${experience.title} ${experience.employer}`),
       candidateSkillNames: skillRows.filter((row) => row.candidateId === candidate.id).map((row) => row.name),
+      militaryOccupationTitle: military.find((row) => row.candidateId === candidate.id)?.occupationTitle,
       militarySkillNames: military
         .filter((row) => row.candidateId === candidate.id)
         .map((row) => skillNameById[row.skillId ?? ""])
@@ -606,7 +625,7 @@ export async function updateMatchPipelineStatus(input: {
   pipelineStatus: typeof candidateJobMatches.$inferInsert.pipelineStatus;
   actorType?: "human" | "agent" | "system";
 }) {
-  const stage = normalizePipelineStage(input.pipelineStatus);
+  const stage = normalizePipelineStage(input.pipelineStatus ?? "identified");
   if (stage === "rejected" && (input.actorType ?? "human") !== "human") {
     throw new Error("Material AI-based rejection requires a human decision");
   }

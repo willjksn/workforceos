@@ -1,6 +1,6 @@
 # Requirements Registry
 
-Status: Phase 1 locked set  
+Status: Phase 3 locked set  
 Database mirror: `requirements` table.
 
 ## Locked requirements
@@ -156,3 +156,43 @@ Database mirror: `requirements` table.
 - Priority: locked
 - Status: approved
 - Acceptance: scores persist component values and total; a human override requires a reason and is audited.
+
+### WFOS-REC-001
+
+- Title: Internal Talent Network before external sourcing
+- Module: recruiting
+- Priority: locked
+- Status: approved
+- Acceptance: `search_active` records internal search start/completion; external sourcing hooks remain blocked until completion.
+
+### WFOS-REC-002
+
+- Title: Job-specific explainable match components
+- Module: recruiting
+- Priority: locked
+- Status: approved
+- Acceptance: matches store overall plus skills, experience, industry, location, compensation, certification, military, career alignment, and prior-feedback scores with strengths, gaps, and provenance. No universal candidate quality score. Scores do not auto-reject.
+
+### WFOS-REC-003
+
+- Title: Human-controlled pipeline, submission, and placement terms
+- Module: recruiting
+- Priority: locked
+- Status: approved
+- Acceptance: pipeline movement is audited; submissions start pending human action; guarantee days and fees come from the search agreement.
+
+### WFOS-MIL-006
+
+- Title: Military mapping provenance and human review
+- Module: military
+- Priority: locked
+- Status: approved
+- Acceptance: mappings store source, version, confidence, origin, and review status. Agent drafts start pending. The originating agent cannot approve them.
+
+### WFOS-MIL-007
+
+- Title: Military candidates reuse Talent Network records
+- Module: military
+- Priority: locked
+- Status: approved
+- Acceptance: military views filter existing candidates; they do not create a parallel military candidate database.

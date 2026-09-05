@@ -61,12 +61,14 @@ export function formatBranch(branch: string) {
   return branch.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-export function rankClientNeedTargets(rows: Array<{
-  occupationCompatibility: number;
-  installationRelevance: number;
-  transitionOpportunity: number;
-  candidateSupply: number;
-}>) {
+export function rankClientNeedTargets<
+  T extends {
+    occupationCompatibility: number;
+    installationRelevance: number;
+    transitionOpportunity: number;
+    candidateSupply: number;
+  },
+>(rows: T[]) {
   return rows
     .map((row) => ({
       ...row,

@@ -1,6 +1,6 @@
 # Schema Specification
 
-Status: Phase 2 CRM/Talent operating schema  
+Status: Phase 3 recruiting operations and military translator schema  
 Implementation: `db/schema/`  
 Migrations: `drizzle/`
 
@@ -27,8 +27,8 @@ Migrations: `drizzle/`
 | `db/schema/system/` | audit, approvals, files, requirements, decision log, semantic documents |
 | `db/schema/crm/` | companies through opportunities and opportunity_scores |
 | `db/schema/talent/` | candidates and pools |
-| `db/schema/recruiting/` | jobs through placements |
-| `db/schema/military/` | military translation tables |
+| `db/schema/recruiting/` | jobs, job_skills, matches, screenings, search_projects, submissions, interviews, offers, placements, placement_guarantees |
+| `db/schema/military/` | occupations, installations, mappings, bridge training, translations, occupation data imports |
 | `db/schema/workforce/` | occupation/skill foundations used by workforce services |
 | `db/schema/services/` | services, versions, workflows, solution plans |
 | `db/schema/projects/` | projects, phases, tasks |
@@ -43,7 +43,15 @@ Migrations: `drizzle/`
 - A candidate is stored once and reused across clients and jobs.
 - `candidate_talent_pools` unique on `(candidate_id, talent_pool_id)`.
 - `candidate_job_matches` unique on `(candidate_id, job_id)`.
-- Do not duplicate a candidate per requisition.
+- `military_civilian_mappings` unique on `(military_occupation_id, civilian_occupation_id)`.
+- Do not duplicate a candidate per requisition or as a separate military database.
+
+## Phase 3 schema notes
+
+- Migration `drizzle/0002_fancy_pretty_boy.sql` extends jobs, matches, search projects, interviews, and military provenance. It adds `candidate_screenings`, `placement_guarantees`, `bridge_training_recommendations`, `candidate_military_translations`, and `occupation_data_imports`.
+- `candidate_pipeline_status` keeps legacy values (`sourced`, `screened`, `interviewing`, `offered`, `declined`) and adds Phase 3 stages. Application code normalizes legacy values.
+- Job status includes `search_active`. Internal search timestamps live on both `jobs` and `search_projects`.
+- Mapping review uses `pending | approved | rejected | needs_review`. Agent-origin rows start pending.
 
 ## Semantic search
 

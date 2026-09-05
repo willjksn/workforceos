@@ -33,9 +33,9 @@ Adapters return a common result type. Missing credentials yield `not_configured`
 | --- | --- | --- |
 | Apollo | company/contact discovery | placeholder |
 | O\*NET | occupation/skill reference | placeholder + source fields on occupation/skill tables |
-| LinkedIn Recruiter | recruiter operating source | placeholder |
-| SeekOut | sourcing | placeholder |
-| hireEZ | sourcing | placeholder |
+| LinkedIn Recruiter | recruiter operating source | hook only; no scrape; blocked until internal search completes |
+| SeekOut | sourcing | placeholder hook |
+| hireEZ | sourcing | placeholder hook |
 | Microsoft | identity/docs/mail | placeholder |
 | Google | identity/docs/mail | placeholder |
 | DocuSign | legal execution | placeholder |

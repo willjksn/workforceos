@@ -1,6 +1,6 @@
 # Service Workflows
 
-Status: Phase 1 version-controlled workflow foundation  
+Status: Phase 3 recruiting and military translator workflows  
 Agents must read approved workflow records from the database. They must not improvise material workflow rules.
 
 ## Workflow versioning
@@ -17,21 +17,23 @@ A solution plan references a specific service version. A delivery project is cre
 
 ### Professional Search
 
-1. Confirm client need and job record.
-2. Search internal Talent Network.
-3. Score job-specific matches with explanations.
-4. Recruiter reviews and advances candidates.
-5. Submit, interview, offer, place.
-6. Preserve silver medalists and prior applicants for rediscovery.
+1. Confirm client need and capture a structured job record (not a single intake blob).
+2. Activate search. WorkforceOS must run Internal Talent Network review before any external sourcing hook.
+3. Score job-specific matches with component scores, strengths, gaps, and provenance. Do not create a universal candidate score. Do not auto-reject on score.
+4. Recruiter screens and advances the pipeline (`identified` → `contacted` → `screening` → `qualified` → `submitted` → `interview` → `finalist` → `offer` → `placed`). Movements are audited. Material rejection is a human decision.
+5. Human recruiter prepares and approves the client submission packet.
+6. Interviews accumulate as history. Stalled client feedback is flagged in-app.
+7. Offers are recorded, not sent. Placement copies fee and guarantee days from the search agreement.
+8. Preserve silver medalists and prior applicants for rediscovery.
 
 ### Military Talent Opportunity Assessment
 
 1. Capture client civilian roles, locations, and constraints.
-2. Translate civilian demand to military occupations.
-3. Map skills, certifications, gaps, and bridge training.
-4. Identify likely installations/bases.
-5. Produce recommendations as drafts.
-6. Require human approval before client-facing output.
+2. Translate civilian demand to military occupations using stored, reviewed mappings.
+3. Map skills, certifications, gaps, and bridge training with source/version/confidence.
+4. Identify likely installations/bases from occupation–installation links, not unsupported guesses.
+5. Produce recommendations as drafts. Agent mappings start pending.
+6. Require a human military reviewer. The originating agent cannot approve its own mapping.
 7. Create a delivery project from the approved solution plan.
 
 Test fixture workflow for Phase 1 uses this service.
