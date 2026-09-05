@@ -372,3 +372,73 @@ Database mirror: `decision_log` table, seeded from this file.
 - Reason: Operating work needs pointers to workspace events without becoming a mail client.
 - Affected modules: integrations, recruiting, projects
 - Reconsideration: if a later phase needs send-as-user, it still must not copy mailboxes into PostgreSQL.
+
+## DEC-AI-002 — Agents operate on PostgreSQL, not as a second database
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Phase 7 agents receive context from PostgreSQL records, approved service workflows, approved knowledge, the current record, and the intersection of agent and human permissions. Conversational memory is not a source of truth. Agents draft and recommend; they do not silently overwrite approved human decisions.
+- Reason: WFOS-AI-001 and DEC-AI-001. A hidden AI store would drift from CRM, Talent, recruiting, military, workforce, legal, and finance records.
+- Affected modules: ai, workflows, knowledge, security
+- Reconsideration: none for V1.
+
+## DEC-AI-003 — Autonomy levels 0–4; no unsupervised external commitments
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Agents have an integer autonomy level: 0 read-only, 1 recommend/draft outputs, 2 write internal draft records, 3 execute approved internal workflow actions, 4 queue external actions that still require human approval. Level 4 never sends material external communications or legal/business commitments without an approved workflow and a human decision. No agent may mark opportunities won, submit candidates, issue offers, approve proposals, execute contracts, or close projects.
+- Reason: AI must not bypass approvals or become an unsupervised actor.
+- Affected modules: ai, approvals, crm, recruiting, legal, projects
+- Reconsideration: none for V1.
+
+## DEC-AI-004 — Approved production prompts are immutable
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Prompt templates are versioned (`prompt_versions`). An approved production prompt is never overwritten. Changes create a new version with effective date, approver, content, and change reason. Runtime loads the current approved version for the agent and prompt name.
+- Reason: Silent prompt edits would make material outputs unauditable.
+- Affected modules: ai
+- Reconsideration: clerical typo fixes still create a new version so the rule stays simple.
+
+## DEC-AI-005 — Provider abstraction with heuristic fallback
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Business logic is not hardwired to one model provider. Runtime selects provider, model, task type, temperature, timeout, cost limits, and an approved fallback from `ai_model_configs`. When `AI_API_KEY` is unset, the `internal_heuristic` provider produces deterministic drafts from stored records. Neon AI Gateway / OpenAI-compatible endpoints are supported when configured. Estimated cost and token usage are recorded when available.
+- Reason: Phase 7 must run in development without live model credentials, and production must be able to change models without rewriting agents.
+- Affected modules: ai, deployment
+- Reconsideration: after a production embedding and chat model are selected, update DEC-SEM-001 and model configs together.
+
+## DEC-AI-006 — Knowledge is approved, versioned, and ACL-filtered before retrieval
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Institutional knowledge lives in `knowledge_records` and may be indexed into `semantic_documents`. Retrieval applies organization, privacy class, approval status, and permission checks before returning content. Restricted candidate PII and unrelated client confidential data are not eligible for cross-context retrieval. Agents preserve sources on every knowledge-backed output.
+- Reason: Semantic search without ACL would leak Restricted PII and client confidential data.
+- Affected modules: ai, knowledge, security, search
+- Reconsideration: production embeddings still require a selected model (DEC-SEM-001).
+
+## DEC-AI-007 — Closed automation rules, not a no-code platform
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Phase 7 ships a fixed set of event-driven automation rules (high-score signal, job `search_active`, new candidate, overdue interview feedback, contract executed, project milestone complete, pending workforce recommendation). Rules invoke named agent tasks or approved internal workflow actions. Do not add an arbitrary no-code automation builder.
+- Reason: Open-ended automation would bypass workflow, permission, and approval design.
+- Affected modules: ai, inngest, recruiting, legal, finance, crm
+- Reconsideration: additional named rules may be added when a documented operating event requires them.
+
+## DEC-AI-008 — Review queue is the operating surface for material AI output
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Material agent outputs create `approvals` plus `agent_outputs` in a central Review Queue. Categories include candidate submission, AI rejection recommendation, military mapping, workforce recommendation, solution plan, proposal, pricing, contract/legal language, client deliverable, and invoice adjustment. Humans may approve, reject, request changes, or edit where the domain record allows. The originating agent cannot decide the approval.
+- Reason: WFOS-AI-002. Scattered per-module AI inboxes would hide pending material work.
+- Affected modules: ai, approvals, audit
+- Reconsideration: none for V1.

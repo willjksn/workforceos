@@ -15,7 +15,7 @@ export default async function AgentsAdminPage() {
       <PageHeader
         eyebrow="Admin / Internal"
         title="Agent registry"
-        description="This is a backend registry, not an operating screen. Agents stay disabled until a later phase."
+        description="This is a backend registry, not an operating screen. Use AI Operations for runs, review, and prompts."
       />
       {rows.length === 0 ? (
         <EmptyState>No agents are registered.</EmptyState>

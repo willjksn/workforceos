@@ -44,6 +44,7 @@ import {
 import { PERMISSIONS, ROLE_PERMISSIONS, type RoleSlug } from "../../lib/rbac/permissions";
 import { seedPhase4Fixtures } from "./phase4";
 import { seedPhase5Fixtures } from "./phase5";
+import { seedPhase7Ai } from "./phase7";
 import { seedLaunchServiceCatalog } from "./phase4-catalog";
 import { seedPhase3OperatingFixtures } from "./phase3";
 import {
@@ -262,6 +263,7 @@ export async function seedFoundation(
       })
       .onConflictDoNothing();
   }
+  await seedPhase7Ai(db);
 
   if (includeDevelopmentFixtures) {
     await seedCatalogAndTalent(db);
@@ -1034,6 +1036,8 @@ async function seedRequirementsAndDecisions(db: ReturnType<typeof getDb>) {
     ["WFOS-LEGAL-001", "legal", "Legal document packages must be linked to services and engagements."],
     ["WFOS-AI-001", "ai", "Material AI recommendations require provenance."],
     ["WFOS-AI-002", "ai", "Material client-facing AI outputs require human approval."],
+    ["WFOS-AI-003", "ai", "Agents load approved workflow context and cannot bypass RBAC or self-approve."],
+    ["WFOS-AI-004", "ai", "Automation is a closed named-ruleset; contract execution still cannot be performed by an agent."],
     ["WFOS-AUD-001", "platform", "Important business changes require audit events."],
     ["WFOS-SEC-001", "security", "Database authorization must be server-side."],
     ["WFOS-SEC-002", "security", "Candidate data is Restricted PII."],
@@ -1079,6 +1083,13 @@ async function seedRequirementsAndDecisions(db: ReturnType<typeof getDb>) {
     ["DEC-DB-003", "Drizzle as ORM", "Drizzle ORM with SQL migrations."],
     ["DEC-SEC-001", "WorkforceOS is internal-first", "Invite-controlled internal users."],
     ["DEC-AI-001", "AI is an internal operating engine", "AI is not a client-facing marketing claim."],
+    ["DEC-AI-002", "Agents operate on PostgreSQL", "Context comes from database, workflows, knowledge, permissions, and the current record."],
+    ["DEC-AI-003", "Autonomy levels 0-4", "No unsupervised external commitments."],
+    ["DEC-AI-004", "Approved prompts are immutable", "Changes create a new version."],
+    ["DEC-AI-005", "Provider abstraction with heuristic fallback", "Business logic is not hardwired to one model."],
+    ["DEC-AI-006", "Knowledge ACL before retrieval", "Restricted PII does not leak across contexts."],
+    ["DEC-AI-007", "Closed automation rules", "Not a no-code automation platform."],
+    ["DEC-AI-008", "Central Review Queue", "Originating agents cannot decide approvals."],
     ["DEC-BIZ-001", "No temp staffing or payroll in V1", "Out of launch scope."],
     ["DEC-SEC-002", "No ownership or cap-table data", "Not stored in normal WorkforceOS."],
     ["DEC-SEM-001", "Temporary embedding dimension", "1536-dimension vectors until a production model is selected."],

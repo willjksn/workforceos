@@ -15,6 +15,7 @@
     "test:phase4": "tsx scripts/test-phase4.ts",
     "test:phase5": "tsx scripts/test-phase5.ts",
     "test:phase6": "tsx scripts/test-phase6.ts",
+    "test:phase7": "tsx scripts/test-phase7.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:check": "tsx scripts/db-check.ts",

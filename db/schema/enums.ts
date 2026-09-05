@@ -700,3 +700,69 @@ export const workspaceReferenceTypeEnum = pgEnum("workspace_reference_type", [
   "interview",
   "email_thread",
 ]);
+
+export const agentRunStatusEnum = pgEnum("agent_run_status", [
+  "queued",
+  "running",
+  "completed",
+  "failed",
+  "cancelled",
+  "partial",
+]);
+
+export const promptVersionStatusEnum = pgEnum("prompt_version_status", [
+  "draft",
+  "approved",
+  "retired",
+]);
+
+export const knowledgeRecordTypeEnum = pgEnum("knowledge_record_type", [
+  "service_playbook",
+  "military_methodology",
+  "workforce_methodology",
+  "legal_template_reference",
+  "recruiting_playbook",
+  "client_approved_insight",
+  "lessons_learned",
+  "case_study",
+  "internal_process",
+]);
+
+export const knowledgeRecordStatusEnum = pgEnum("knowledge_record_status", [
+  "draft",
+  "in_review",
+  "approved",
+  "retired",
+]);
+
+export const automationRuleStatusEnum = pgEnum("automation_rule_status", [
+  "enabled",
+  "disabled",
+]);
+
+export const agentHandoffStatusEnum = pgEnum("agent_handoff_status", [
+  "pending",
+  "accepted",
+  "completed",
+  "rejected",
+  "failed",
+]);
+
+export const reviewCategoryEnum = pgEnum("review_category", [
+  "candidate_submission",
+  "ai_candidate_rejection",
+  "military_mapping",
+  "workforce_recommendation",
+  "solution_plan",
+  "proposal",
+  "pricing",
+  "contract_legal_language",
+  "client_deliverable",
+  "invoice_adjustment",
+]);
+
+export const circuitBreakerStateEnum = pgEnum("circuit_breaker_state", [
+  "closed",
+  "open",
+  "half_open",
+]);

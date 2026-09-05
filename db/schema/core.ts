@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { index, pgTable, text, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { index, integer, numeric, pgTable, text, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 import { timestamps } from "./_common";
 import { userStatusEnum } from "./enums";
@@ -85,6 +85,10 @@ export const agents = pgTable("agents", {
   slug: text("slug").notNull(),
   description: text("description"),
   status: text("status").notNull().default("disabled"),
+  autonomyLevel: integer("autonomy_level").notNull().default(1),
+  defaultTaskType: text("default_task_type"),
+  dailyCostLimitUsd: numeric("daily_cost_limit_usd", { precision: 12, scale: 4 }),
+  monthlyCostLimitUsd: numeric("monthly_cost_limit_usd", { precision: 12, scale: 4 }),
   ...timestamps(),
 }, (table) => [
   index("agents_organization_id_idx").on(table.organizationId),

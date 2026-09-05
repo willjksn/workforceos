@@ -11,6 +11,7 @@ import {
   sourcingSyncJob,
   workspaceSyncJob,
 } from "./integrations";
+import { aiAutomationJob } from "./ai";
 
 export const internalTalentSearchJob = inngest.createFunction(
   {
@@ -45,4 +46,5 @@ export const inngestFunctions = [
   onetImportJob,
   sourcingSyncJob,
   workspaceSyncJob,
+  aiAutomationJob,
 ];

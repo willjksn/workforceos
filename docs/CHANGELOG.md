@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Phase 7 — AI Operations + Automation
+
+- Activated the approved agent registry (plus optional Finance, Compliance, and Candidate Engagement assistants) on top of PostgreSQL, approved workflows, RBAC, audit, approvals, and provenance.
+- Added prompt versioning, provider abstraction with heuristic fallback, a reusable context builder, Review Queue, named automation rules, autonomy levels 0–4, knowledge records with ACL-filtered retrieval, cost limits, circuit breakers, and recorded agent handoffs.
+- Agents cannot self-approve, submit candidates, send proposals, or execute contracts. Internal Talent Network search, project creation after contract execution, and billing events remain workflow-gated.
+- Added schema migration `drizzle/0006_mushy_iron_lad.sql` and `npm run test:phase7`.
+
 ### Phase 6 — Finance + Billing + Business Integrations
 
 - Expanded Phase 4 `billing_schedules` / `billing_events` into operational finance: invoices, payments, AR aging, revenue events, and engagement economics. QuickBooks remains the accounting ledger.

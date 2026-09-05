@@ -21,7 +21,7 @@ describe("admin navigation", () => {
   it("hides Admin from operating staff", () => {
     const links = hrefs(principalFor("recruiter"));
     expect(links.some((href) => href.startsWith("/app/admin"))).toBe(false);
-    expect(links).not.toContain("/app/ai-operations");
+    expect(links).toContain("/app/ai-operations");
   });
 
   it("shows operating Admin screens to Managing Partner and hides engineering registries", () => {
@@ -31,10 +31,11 @@ describe("admin navigation", () => {
     expect(links).toContain("/app/admin/integrations");
     expect(links).toContain("/app/admin/system-health");
     expect(links).toContain("/app/admin/approvals");
+    expect(links).toContain("/app/ai-operations");
     expect(links).not.toContain("/app/admin/agents");
     expect(links).not.toContain("/app/admin/requirements");
     expect(links).not.toContain("/app/admin/decisions");
-    expect(links).not.toContain("/app/ai-operations");
+    expect(links).not.toContain("/app/admin/agents");
   });
 
   it("does not show role configuration to Operations Administrator", () => {

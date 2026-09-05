@@ -133,11 +133,10 @@ export function assertAgentCannotSelfApprove(params: {
   decidingActorType: "human" | "agent" | "system";
   decidingAgentId?: string | null;
 }) {
-  if (
-    params.requestingAgentId &&
-    params.decidingActorType === "agent" &&
-    params.decidingAgentId === params.requestingAgentId
-  ) {
+  if (params.decidingActorType !== "human") {
+    throw new ApprovalError("Only a human can approve material agent output");
+  }
+  if (params.requestingAgentId && params.decidingAgentId === params.requestingAgentId) {
     throw new ApprovalError("Agents cannot approve their own material output");
   }
 }

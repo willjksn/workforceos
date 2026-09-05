@@ -284,3 +284,20 @@ Database mirror: `requirements` table.
 - Priority: locked
 - Status: approved
 - Acceptance: unconfigured BLS/Census/O\*NET lookups return labeled fixtures with null values. The application does not invent provider statistics.
+
+### WFOS-AI-003
+
+- Title: Agents operate within RBAC, workflows, and provenance
+- Module: ai
+- Priority: locked
+- Status: approved
+- Acceptance: agent runs load approved workflow context when a service is in scope. Effective permissions are the intersection of agent and caller permissions. Draft outputs store agent, model, sources, and review state. Originating agents cannot approve their own material output.
+
+### WFOS-AI-004
+
+- Title: Closed automation and no unsupervised commitments
+- Module: ai
+- Priority: locked
+- Status: approved
+- Acceptance: named automation rules may trigger internal Talent Network search, draft opportunities, project creation after contract execution, and billing events from stored terms. No agent can execute a contract, send a proposal, or submit a candidate.
+

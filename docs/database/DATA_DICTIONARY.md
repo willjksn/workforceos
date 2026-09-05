@@ -1,6 +1,6 @@
 # Data Dictionary
 
-Status: Phase 5 workforce development and workforce intelligence  
+Status: Phase 7 AI operations and automation  
 Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 
 ## Conventions
@@ -30,7 +30,7 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | `users` | Local application users mapped from Clerk. Authoritative status and identity for authorization. |
 | `roles` | Named roles such as Managing Partner and Recruiter. |
 | `user_roles` | Many-to-many user/role assignments. |
-| `agents` | Registered AI agents. Default disabled. |
+| `agents` | Registered AI agents with autonomy level and cost limits. Default was disabled in earlier phases; Phase 7 enables the approved registry. |
 
 ## Platform
 
@@ -38,8 +38,17 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | --- | --- |
 | `audit_events` | Append-only business change history. |
 | `approvals` | Generic human approval requests. |
-| `agent_runs` | Execution instances of agents. |
-| `agent_outputs` | Drafts/recommendations with provenance. |
+| `agent_runs` | Execution instances with task, workflow, model, cost, review state, and errors. |
+| `agent_outputs` | Drafts/recommendations with provenance, missing data, assumptions, and review category. |
+| `prompt_versions` | Versioned agent prompts. Approved rows are immutable. |
+| `ai_model_configs` | Provider/model/task configuration, limits, timeout, and fallback. |
+| `knowledge_records` | Approved institutional knowledge (playbooks, methodology, lessons). |
+| `automation_rules` | Named event-driven automation rules. |
+| `automation_rule_runs` | Automation executions. |
+| `agent_handoffs` | Visible agent-to-agent handoffs. |
+| `ai_usage_events` | Token/cost ledger. |
+| `ai_circuit_breakers` | Repeated-failure circuit breakers. |
+| `meeting_extractions` | Meeting intelligence drafts pending human approval. |
 | `files` | Object-storage metadata only. Binaries are not stored in PostgreSQL. |
 | `integration_connections` | Provider connection configuration status. |
 | `external_records` | Maps external provider records to WorkforceOS records. |

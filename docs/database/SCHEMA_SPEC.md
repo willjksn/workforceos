@@ -1,6 +1,6 @@
 # Schema Specification
 
-Status: Phase 6 operational finance and business integrations schema  
+Status: Phase 7 AI operations and automation schema  
 Implementation: `db/schema/`  
 Migrations: `drizzle/`
 
@@ -35,7 +35,7 @@ Migrations: `drizzle/`
 | `db/schema/legal/` | templates, contracts, e-sign envelopes, legal packages |
 | `db/schema/finance/` | billing schedules, billing events, invoices, payments, revenue events, cost entries, adjustments |
 | `db/schema/integrations/` | integration hub, external records, webhook receipts, enrichment reviews, workspace references |
-| `db/schema/ai/` | agent runs and outputs |
+| `db/schema/ai/` | agent runs/outputs, prompt versions, model configs, knowledge records, automation, handoffs, usage, circuit breakers, meeting extractions |
 | `db/schema/operating/` | activities, candidate_engagements, candidate_designations, saved views |
 
 ## Key uniqueness rules
@@ -75,6 +75,13 @@ Migrations: `drizzle/`
 - Migration `drizzle/0005_unknown_satana.sql` expands `billing_schedules` and `billing_events` and adds `invoices`, `payments`, `revenue_events`, `finance_cost_entries`, `finance_adjustments`, `contract_billing_terms`, `occupation_alternate_titles`, `enrichment_reviews`, `integration_webhook_receipts`, and `workspace_event_references`. Do not rewrite `0000`–`0004`.
 - QuickBooks, DocuSign, and Apollo IDs map through `external_records`. Do not add provider-specific IDs to core finance tables.
 - Placement fee and milestone amounts come from stored search agreements / `contract_billing_terms`. The application does not invent commercial terms.
+
+## Phase 7 schema notes
+
+- Migration `drizzle/0006_mushy_iron_lad.sql` expands `agents`, `agent_runs`, `agent_outputs`, and `semantic_documents`, and adds prompt versions, model configs, knowledge records, automation rules, agent handoffs, usage events, circuit breakers, and meeting extractions. Do not rewrite `0000`–`0005`.
+- Approved `prompt_versions` are immutable. Changes create a new version.
+- Knowledge retrieval applies privacy class and required permission before returning content. Knowledge records do not store Restricted candidate PII.
+- Automation is a closed named-ruleset (`automation_rules`), not a general-purpose workflow builder.
 
 ## Semantic search
 

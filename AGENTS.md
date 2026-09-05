@@ -33,4 +33,4 @@ Project rules in `.cursor/rules/` are binding:
 - `security.mdc`
 - `workflow.mdc`
 
-Phase 1–6 are complete. Do not start Phase 7 unless explicitly asked. Do not use Firebase. Do not add temp staffing, payroll, general ledger, tax accounting, AP, benefits, public job marketplace, or cap-table features.
+Phase 1–7 are complete. Do not start Phase 8 unless explicitly asked. Do not use Firebase. Do not add temp staffing, payroll, general ledger, tax accounting, AP, benefits, public job marketplace, or cap-table features.

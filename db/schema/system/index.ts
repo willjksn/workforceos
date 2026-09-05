@@ -133,6 +133,8 @@ export const semanticDocuments = pgTable("semantic_documents", {
   embeddingModel: text("embedding_model"),
   embeddingVersion: text("embedding_version"),
   embeddingDimensions: integer("embedding_dimensions"),
+  privacyClass: privacyClassEnum("privacy_class").notNull().default("internal"),
+  requiredPermission: text("required_permission"),
   ...createdAtOnly(),
 }, (table) => [
   index("semantic_documents_organization_id_idx").on(table.organizationId),

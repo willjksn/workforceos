@@ -1,6 +1,6 @@
 # WorkforceOS Master Specification
 
-Status: Phase 6 operational finance and business integrations  
+Status: Phase 7 AI operations and automation  
 Audience: engineering agents and maintainers  
 Canonical: this file is the architecture source of truth for implementation.
 
@@ -10,7 +10,7 @@ WorkforceOS is an internal operating system for a Workforce & Talent Solutions f
 
 It will eventually manage company CRM, Talent CRM, recruiting/search, military talent translation, workforce development, legal document operations, finance/AR workflow, integrations, background AI agents, audit history, approvals, and institutional knowledge.
 
-Phase 1 built the technical foundation. Phase 4 activates service engines, proposals, contracts, and project delivery. Phase 5 expands Workforce Pipeline Assessment into workforce development and intelligence. Phase 6 activates operational finance and Integration Hub business adapters on that same foundation.
+Phase 1 built the technical foundation. Phase 4 activates service engines, proposals, contracts, and project delivery. Phase 5 expands Workforce Pipeline Assessment into workforce development and intelligence. Phase 6 activates operational finance and Integration Hub business adapters. Phase 7 activates AI operations, prompt versioning, the Review Queue, named automation, and approved knowledge retrieval on that same foundation.
 
 ## Product boundaries
 
@@ -74,7 +74,7 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 - Services: five launch service engines, versioned workflows, discovery, solution plans, proposals
 - Legal: templates, contract packages, execution, e-sign abstraction
 - Finance: operational billing, invoice expectations, AR view, revenue events (QuickBooks remains the ledger)
-- AI: agent registry, runs, outputs, approvals
+- AI: agent registry, runs, outputs, prompt versions, review queue, automation, knowledge retrieval, approvals
 - Platform: users, roles, audit, integrations, files, search
 
 ## Data ownership
