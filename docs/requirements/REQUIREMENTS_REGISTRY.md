@@ -462,4 +462,157 @@ Database mirror: `requirements` table.
 - Status: approved
 - Acceptance: Rate limits, honeypot, resume MIME/size/extension checks, closed-job rejection, and no direct ORM from the browser.
 
+### WFOS-WEB-001
+
+- Title: PierOne public website must remain separately deployable from WorkforceOS
+- Module: public-site
+- Priority: locked
+- Status: approved
+- Acceptance: `sites/pierone` has its own package.json and Vercel project. Marketing deploys do not require a WorkforceOS release unless API contracts change.
+
+### WFOS-WEB-002
+
+- Title: Public website may not access WorkforceOS database directly
+- Module: public-site
+- Priority: locked
+- Status: approved
+- Acceptance: No Drizzle, DATABASE_URL, or Neon client in `sites/pierone`.
+
+### WFOS-WEB-003
+
+- Title: Public operational data exchange must occur through approved public gateway APIs
+- Module: public-site
+- Priority: locked
+- Status: approved
+- Acceptance: Jobs, applications, inquiries, military talent intake, and public content use `/api/public/v1/*`.
+
+### WFOS-WEB-004
+
+- Title: WorkforceOS remains source of truth for published jobs
+- Module: public-site
+- Priority: locked
+- Status: approved
+- Acceptance: Closing a job in WorkforceOS stops public applications without a website deploy.
+
+### WFOS-WEB-005
+
+- Title: Employer website inquiries must enter WorkforceOS CRM/intake workflow
+- Module: public-site
+- Priority: locked
+- Status: approved
+- Acceptance: POST `/api/public/v1/inquiries` creates `website_inquiries` and links Company/Contact when safe. Opportunities are not automatic.
+
+### WFOS-WEB-006
+
+- Title: Public applications must create/reuse the global Candidate architecture
+- Module: public-site
+- Priority: locked
+- Status: approved
+- Acceptance: Email/phone dedupe; no per-requisition candidate clone.
+
+### WFOS-WEB-007
+
+- Title: SkillBridge applications must reuse the global Candidate and SkillBridge architecture
+- Module: public-site
+- Priority: locked
+- Status: approved
+- Acceptance: SkillBridge job applications attach `skillbridge_profiles` to the existing Candidate.
+
+### WFOS-WEB-008
+
+- Title: Transitioning service members may join PierOne's Military Talent Network without applying to a specific job
+- Module: public-site
+- Priority: locked
+- Status: approved
+- Acceptance: POST `/api/public/v1/military-talent` creates/reuses Candidate + SkillBridge profile.
+
+### WFOS-WEB-009
+
+- Title: Public write endpoints must be validated, rate-limited, and abuse-resistant
+- Module: public-site
+- Priority: locked
+- Status: approved
+- Acceptance: Zod, rate limits, honeypot, sanitization, production HMAC (required), file validation.
+
+### WFOS-WEB-010
+
+- Title: Confidential client information may not leak to public job surfaces
+- Module: public-site
+- Priority: locked
+- Status: approved
+- Acceptance: `toPublicJob` redacts confidential client identity and compensation internals.
+
+### WFOS-WEB-011
+
+- Title: Resume storage must use production private object storage
+- Module: public-site
+- Priority: locked
+- Status: approved
+- Acceptance: S3-compatible StorageProvider implemented; no public resume URLs; metadata in `files` only.
+
+### WFOS-WEB-012
+
+- Title: Public transactional email must use WorkforceOS EmailProvider
+- Module: public-site
+- Priority: locked
+- Status: approved
+- Acceptance: Inquiry, application, and military-talent acknowledgements go through EmailProvider/Resend.
+
+### WFOS-WEB-013
+
+- Title: Website submissions must retain source and attribution data
+- Module: public-site
+- Priority: locked
+- Status: approved
+- Acceptance: `source`, subsource, landing URL, referrer, and UTM fields stored on inquiries.
+
+### WFOS-WEB-014
+
+- Title: Public marketing content and WorkforceOS operational data must have separate sources of truth
+- Module: public-site
+- Priority: locked
+- Status: approved
+- Acceptance: Marketing copy in `sites/pierone`; jobs/applications/inquiries in WorkforceOS.
+
+### WFOS-WEB-015
+
+- Title: The public website must remain usable if WorkforceOS dynamic services are temporarily unavailable
+- Module: public-site
+- Priority: locked
+- Status: approved
+- Acceptance: Marketing pages render without the API. Careers shows a safe unavailable state. Forms do not fake success.
+
+### WFOS-WEB-016
+
+- Title: Frequently changing operational public content must be controllable from WorkforceOS
+- Module: public-site
+- Priority: locked
+- Status: approved
+- Acceptance: `public_content_items` plus `/app/public-content` can feature jobs, SkillBridge roles, banners, notices, announcements, and industry campaigns without editing website code.
+
+### WFOS-WEB-017
+
+- Title: Public website must consume versioned public content APIs and omit empty sections
+- Module: public-site
+- Priority: locked
+- Status: approved
+- Acceptance: `GET /api/public/v1/content` returns public-safe DTOs. Homepage, Careers, and SkillBridge omit sections when no active content exists and do not error.
+
+### WFOS-WEB-018
+
+- Title: Public content changes must appear without a website redeploy
+- Module: public-site
+- Priority: locked
+- Status: approved
+- Acceptance: Gateway cache ≤ 120s; public site `revalidate` 60s; optional `/api/revalidate`. Closed jobs drop from featured payloads at query time.
+
+### WFOS-WEB-019
+
+- Title: Public content publishing is permissioned and audited
+- Module: public-site
+- Priority: locked
+- Status: approved
+- Acceptance: `public_content.read|manage|publish`. Recruiters do not receive publish by default. Scout material publishing requires confirmation. Create/edit/activate/archive/linked-job changes are audited.
+
+
 

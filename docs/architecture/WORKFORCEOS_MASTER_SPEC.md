@@ -43,7 +43,7 @@ Firebase and Firestore are prohibited.
 
 ## Application structure
 
-The repository uses a root-level `app/` directory from the original Next.js scaffold. Keep that layout unless a documented decision changes it.
+The repository uses a root-level `app/` directory from the original Next.js scaffold. Keep that layout unless a documented decision changes it. The PierOne public website is a second Next.js app at `sites/pierone` (DEC-WEB-002). It does not import `db/` or Drizzle.
 
 Server-only modules live under `db/` and `lib/`. Client components must not import database, environment secrets, or authorization internals.
 
@@ -167,6 +167,7 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 - There is one global `candidates` record. `applications` are Candidate↔Job relationships. Never duplicate a person because they applied twice or later became an employee.
 - Jobs may be `internal`, `client`, or `skillbridge`. Approved jobs publish through `job_postings` to `/careers` and `/api/public/v1/jobs`. Public payloads omit confidential client identity, compensation internals, and recruiter notes.
 - Public applications enter WorkforceOS through `/api/public/v1/applications` (validation, rate limit, multipart resume upload for PDF/DOC/DOCX). Binaries go to `StorageProvider`; PostgreSQL stores `files` metadata only. The public site never receives database credentials.
+- PierOnePartners.com is the public business front door. It consumes `/api/public/v1` (jobs, applications, inquiries, military talent, public content). Employer inquiries create `website_inquiries` for human qualification. Frequently changing operational public content is published from WorkforceOS (`public_content_items`); stable brand copy stays in `sites/pierone`. See `docs/public-site/ARCHITECTURE.md` and `docs/public-site/PUBLIC_CONTENT_PUBLISHING.md`.
 - Interview scheduling uses `CalendarProvider`. Phase 10 is **mock only** (`liveScheduling` is always false). Microsoft/Google credentials, when present, are Integration Hub workspace references — not live OAuth slot booking. Candidate self-scheduling is follow-on.
 - Transactional system email uses `EmailProvider` / Resend when `RESEND_API_KEY` and `RESEND_FROM_EMAIL` are set. Production without those keys fails clearly. Recruiter mailboxes stay on Microsoft/Google.
 - Background and drug screening use provider adapters (`BackgroundCheckProvider`, `DrugScreenProvider`). Checkr is the preferred future background provider but the HTTP API is **not wired** (not sandbox-ready). Drug screening is **NOT CONFIGURED**; `ManualDrugScreenProvider` only. Humans review results; adapters never auto-reject.
@@ -183,6 +184,7 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 - [INTEGRATION_PLAN.md](../integrations/INTEGRATION_PLAN.md)
 - [REQUIREMENTS_REGISTRY.md](../requirements/REQUIREMENTS_REGISTRY.md)
 - [DEPLOYMENT.md](./DEPLOYMENT.md)
+- [PUBLIC_CONTENT_PUBLISHING.md](../public-site/PUBLIC_CONTENT_PUBLISHING.md)
 - [DATABASE_DEPLOYMENT.md](./DATABASE_DEPLOYMENT.md)
 - [VERCEL_DEPLOYMENT_CHECKLIST.md](./VERCEL_DEPLOYMENT_CHECKLIST.md)
 - [WORKFORCEOS_OPERATING_PLAYBOOK.md](../operations/WORKFORCEOS_OPERATING_PLAYBOOK.md)

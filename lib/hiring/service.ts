@@ -419,6 +419,7 @@ export function toPublicJob(posting: typeof jobPostings.$inferSelect, job: typeo
     skillbridgeEligible: posting.skillbridgeEligible,
     skillbridgeDisclaimer: posting.skillbridgeDisclaimer,
     jobContextType: job.jobContextType,
+    applicationOpen: posting.applicationOpen && job.status !== "closed" && job.status !== "cancelled" && job.status !== "filled",
     clientName: confidential ? null : posting.companyDisplay,
     compensationMin: null,
     compensationMax: null,

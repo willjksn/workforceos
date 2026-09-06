@@ -1,0 +1,166 @@
+export type ImageSlot = {
+  src: string;
+  alt: string;
+  category: string;
+  aspect: "3/4" | "3/2" | "16/9" | "4/5" | "1/1";
+  replacementNeeded: true;
+  searchTerms: string[];
+};
+
+export const IMAGES = {
+  homeHero: {
+    src: "/images/placeholders/home-hero-v2.jpg",
+    alt: "Technical professional reviewing operations in an industrial facility",
+    category: "industrial workforce",
+    aspect: "4/5",
+    replacementNeeded: true,
+    searchTerms: ["industrial engineer workforce", "utility technician professional", "advanced manufacturing workforce"],
+  },
+  homeStrategy: {
+    src: "/images/placeholders/home-strategy.jpg",
+    alt: "Leaders reviewing workforce plans around a table",
+    category: "workforce strategy discussion",
+    aspect: "16/9",
+    replacementNeeded: true,
+    searchTerms: ["executive planning meeting", "workforce strategy discussion", "operations leadership table"],
+  },
+  homeInfrastructure: {
+    src: "/images/placeholders/home-infrastructure.jpg",
+    alt: "Industrial infrastructure and technical operations environment",
+    category: "infrastructure / manufacturing",
+    aspect: "16/9",
+    replacementNeeded: true,
+    searchTerms: ["power plant infrastructure", "advanced manufacturing floor", "utility operations"],
+  },
+  homeTransition: {
+    src: "/images/placeholders/home-transition.jpg",
+    alt: "Professional in a technical workplace discussing a civilian career path",
+    category: "career transition",
+    aspect: "3/2",
+    replacementNeeded: true,
+    searchTerms: ["veteran professional workplace", "career transition technical job", "military veteran engineer office"],
+  },
+  military: {
+    src: "/images/placeholders/military-talent-v5.jpg",
+    alt: "Navy technician performing engine maintenance on a U.S. warship",
+    category: "military-to-civilian transition",
+    aspect: "3/2",
+    replacementNeeded: true,
+    searchTerms: ["navy engine room technician", "shipboard engineering maintenance", "gas turbine mechanic navy"],
+  },
+  workforce: {
+    src: "/images/placeholders/workforce-development.jpg",
+    alt: "Operations team reviewing production and workforce plans",
+    category: "workforce planning",
+    aspect: "16/9",
+    replacementNeeded: true,
+    searchTerms: ["manufacturing operations planning", "control room workforce", "industrial team planning"],
+  },
+  careers: {
+    src: "/images/placeholders/careers.jpg",
+    alt: "Technical professionals at work in a field operations setting",
+    category: "authentic workplace",
+    aspect: "16/9",
+    replacementNeeded: true,
+    searchTerms: ["field technician professional", "industrial workplace candid", "operations professionals"],
+  },
+  about: {
+    src: "/images/placeholders/about.jpg",
+    alt: "Professional collaboration in a calm advisory setting",
+    category: "leadership collaboration",
+    aspect: "16/9",
+    replacementNeeded: true,
+    searchTerms: ["professional collaboration meeting", "consulting discussion", "advisory team"],
+  },
+  contact: {
+    src: "/images/placeholders/contact.jpg",
+    alt: "Quiet professional setting for a workforce advisory conversation",
+    category: "consultation",
+    aspect: "3/4",
+    replacementNeeded: true,
+    searchTerms: ["executive office conversation", "advisory consultation", "professional meeting room"],
+  },
+  skillbridge: {
+    src: "/images/placeholders/skillbridge.jpg",
+    alt: "Professional reviewing career materials in a workplace, not a combat setting",
+    category: "career opportunity",
+    aspect: "16/9",
+    replacementNeeded: true,
+    searchTerms: ["career coaching professional", "resume review workplace", "transitioning professional office"],
+  },
+  industryEnergy: {
+    src: "/images/placeholders/industry-energy.jpg",
+    alt: "Energy and utilities operations environment",
+    category: "energy",
+    aspect: "3/2",
+    replacementNeeded: true,
+    searchTerms: ["electrical substation professional", "utility operations", "energy infrastructure"],
+  },
+  industryManufacturing: {
+    src: "/images/placeholders/industry-manufacturing.jpg",
+    alt: "Advanced manufacturing floor",
+    category: "manufacturing",
+    aspect: "3/2",
+    replacementNeeded: true,
+    searchTerms: ["advanced manufacturing factory", "precision manufacturing", "industrial production"],
+  },
+  industryInfrastructure: {
+    src: "/images/placeholders/industry-infrastructure.jpg",
+    alt: "Infrastructure project in progress",
+    category: "infrastructure",
+    aspect: "3/2",
+    replacementNeeded: true,
+    searchTerms: ["civil infrastructure construction", "bridge infrastructure professional", "utility infrastructure"],
+  },
+  industryOperations: {
+    src: "/images/placeholders/industry-operations.jpg",
+    alt: "Industrial and technical operations environment",
+    category: "industrial operations",
+    aspect: "3/2",
+    replacementNeeded: true,
+    searchTerms: ["industrial operations technician", "plant operations", "technical maintenance professional"],
+  },
+  industryDataCenters: {
+    src: "/images/placeholders/industry-data-centers.jpg",
+    alt: "Data center technical environment",
+    category: "data centers",
+    aspect: "3/2",
+    replacementNeeded: true,
+    searchTerms: ["data center operations", "server room technician", "critical infrastructure data center"],
+  },
+  industryAerospace: {
+    src: "/images/placeholders/industry-aerospace-v3.jpg",
+    alt: "Military aircraft in a defense aviation environment",
+    category: "aerospace and defense",
+    aspect: "3/2",
+    replacementNeeded: true,
+    searchTerms: ["military fighter jet", "defense aircraft hangar", "military aviation operations"],
+  },
+  industryEngineering: {
+    src: "/images/placeholders/industry-engineering.jpg",
+    alt: "Engineers reviewing technical plans",
+    category: "engineering",
+    aspect: "3/2",
+    replacementNeeded: true,
+    searchTerms: ["engineers reviewing blueprints", "technical design review", "engineering collaboration"],
+  },
+  industryLogistics: {
+    src: "/images/placeholders/industry-logistics.jpg",
+    alt: "Supply chain and logistics operations",
+    category: "logistics",
+    aspect: "3/2",
+    replacementNeeded: true,
+    searchTerms: ["warehouse logistics operations", "supply chain facility", "freight operations professional"],
+  },
+} as const satisfies Record<string, ImageSlot>;
+
+export const INDUSTRY_TILES = [
+  { name: "Energy & Utilities", image: IMAGES.industryEnergy, emphasis: "primary" as const },
+  { name: "Advanced Manufacturing", image: IMAGES.industryManufacturing, emphasis: "primary" as const },
+  { name: "Infrastructure", image: IMAGES.industryInfrastructure, emphasis: "primary" as const },
+  { name: "Industrial & Technical Operations", image: IMAGES.industryOperations, emphasis: "primary" as const },
+  { name: "Data Centers", image: IMAGES.industryDataCenters, emphasis: "secondary" as const },
+  { name: "Aerospace & Defense", image: IMAGES.industryAerospace, emphasis: "secondary" as const },
+  { name: "Engineering", image: IMAGES.industryEngineering, emphasis: "secondary" as const },
+  { name: "Supply Chain & Logistics", image: IMAGES.industryLogistics, emphasis: "secondary" as const },
+] as const;

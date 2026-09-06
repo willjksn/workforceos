@@ -28,7 +28,7 @@ Enable as features are connected:
 
 - `INNGEST_EVENT_KEY`
 - `INNGEST_SIGNING_KEY`
-- `STORAGE_PROVIDER=s3` plus `S3_BUCKET`, `S3_REGION`, `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`
+- `STORAGE_PROVIDER=s3` plus `S3_BUCKET`, `S3_REGION`, `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`. The S3-compatible adapter is implemented. Candidate resumes stay private (no public bucket URL).
 - `AI_PROVIDER`, `AI_API_KEY`
 - `SENTRY_DSN` when Sentry is wired
 - `APP_VERSION`

@@ -20,6 +20,7 @@
     "test:phase8": "tsx scripts/test-phase8.ts",
     "test:phase9": "tsx scripts/test-phase9.ts",
     "test:phase10": "tsx scripts/test-phase10.ts",
+    "test:public-site": "tsx scripts/test-public-site.ts && tsx scripts/test-public-content.ts && npm --prefix sites/pierone test",
     "test:smoke": "tsx scripts/test-smoke.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -31,7 +32,9 @@
     "db:verify-core": "tsx scripts/verify-core-identity.ts",
     "db:verify-extensions": "tsx scripts/verify-extensions.ts",
     "inngest:dev": "npx inngest-cli@latest dev",
-    "inngest:health": "tsx scripts/inngest-health.ts"
+    "inngest:health": "tsx scripts/inngest-health.ts",
+    "dev:public-site": "npm --prefix sites/pierone run dev",
+    "build:public-site": "npm --prefix sites/pierone run build"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.1",
@@ -46,7 +49,9 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "server-only": "^0.0.1",
-    "zod": "^4.5.4"
+    "zod": "^4.5.4",
+    "@aws-sdk/client-s3": "^3.901.0",
+    "@aws-sdk/s3-request-presigner": "^3.901.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

@@ -52,6 +52,7 @@ const NAV: NavGroup[] = [
       { href: "/app/companies", label: "Companies", icon: "building", permission: "companies.read" },
       { href: "/app/contacts", label: "Contacts", icon: "users", permission: "contacts.read" },
       { href: "/app/opportunities", label: "Opportunities", icon: "briefcase", permission: "opportunities.read" },
+      { href: "/app/crm/inquiries", label: "Website inquiries", icon: "radio", permission: "opportunities.read" },
       { href: "/app/signals", label: "Signals", icon: "radio", permission: "opportunities.read" },
     ],
   },
@@ -190,6 +191,12 @@ const NAV: NavGroup[] = [
       { href: "/app/integrations/quickbooks", label: "QuickBooks", icon: "wallet", anyPermission: ["integrations.read", "admin.users"] },
       { href: "/app/integrations/docusign", label: "DocuSign", icon: "scale", anyPermission: ["integrations.read", "admin.users"] },
       { href: "/app/integrations/apollo", label: "Apollo", icon: "search", anyPermission: ["integrations.read", "admin.users"] },
+    ],
+  },
+  {
+    label: "Public website",
+    items: [
+      { href: "/app/public-content", label: "Public content", icon: "eye", permission: "public_content.read" },
     ],
   },
   {

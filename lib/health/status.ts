@@ -135,7 +135,7 @@ export async function getSystemHealth() {
     },
     {
       title: "Resend",
-      ok: true,
+      ok: env.NODE_ENV === "production" ? isResendConfigured() : true,
       detail: isResendConfigured()
         ? "RESEND_API_KEY and RESEND_FROM_EMAIL are set. Sending still requires a verified Resend domain; DNS is not assumed complete."
         : env.NODE_ENV === "production"
@@ -168,11 +168,68 @@ export async function getSystemHealth() {
       detail: drugScreenProviderStatus().detail,
     },
     {
-      title: "Public careers API",
-      ok: true,
+      title: "Public Jobs API",
+      ok: database.ok,
+      detail: database.ok
+        ? "GET /api/public/v1/jobs and /jobs/[slug]. Published jobs only. Confidential client identity is redacted."
+        : "Public jobs cannot be served until the database is connected.",
+    },
+    {
+      title: "Public Content API",
+      ok: database.ok,
+      detail: database.ok
+        ? "GET /api/public/v1/content. Active-window items only. Closed jobs drop from featured payloads without a website deploy. Cached 60s."
+        : "Public content cannot be served until the database is connected.",
+    },
+    {
+      title: "Public site HMAC",
+      ok: env.NODE_ENV === "production" ? Boolean(env.PUBLIC_SITE_INTEGRATION_SECRET) : true,
+      detail: env.PUBLIC_SITE_INTEGRATION_SECRET
+        ? "PUBLIC_SITE_INTEGRATION_SECRET is set. Cross-origin public writes require a valid HMAC. The secret is not displayed."
+        : env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production"
+          ? "NOT CONFIGURED — production public writes are rejected until PUBLIC_SITE_INTEGRATION_SECRET is set."
+          : "NOT CONFIGURED — development public writes may omit HMAC. Production requires the secret.",
+    },
+    {
+      title: "Public Applications API",
+      ok:
+        database.ok &&
+        storage.ready &&
+        (env.NODE_ENV === "production" ? Boolean(env.PUBLIC_SITE_INTEGRATION_SECRET) : true),
+      detail: !database.ok
+        ? "Applications cannot be stored until the database is connected."
+        : !storage.ready
+          ? "NOT READY — resume upload requires STORAGE_PROVIDER=s3 plus S3 credentials in production."
+          : env.NODE_ENV === "production" && !env.PUBLIC_SITE_INTEGRATION_SECRET
+            ? "NOT READY — production applications require HMAC signing."
+            : "POST /api/public/v1/applications. Rate-limited. Resume binaries go to StorageProvider.",
+    },
+    {
+      title: "Public Inquiry API",
+      ok: database.ok && (env.NODE_ENV === "production" ? Boolean(env.PUBLIC_SITE_INTEGRATION_SECRET) : true),
+      detail: !database.ok
+        ? "Inquiries cannot be stored until the database is connected."
+        : env.NODE_ENV === "production" && !env.PUBLIC_SITE_INTEGRATION_SECRET
+          ? "NOT READY — production inquiries require HMAC signing."
+          : "POST /api/public/v1/inquiries creates website_inquiries intake records. Opportunities are not auto-created.",
+    },
+    {
+      title: "Military Talent Intake API",
+      ok: database.ok && (env.NODE_ENV === "production" ? Boolean(env.PUBLIC_SITE_INTEGRATION_SECRET) : true),
+      detail: !database.ok
+        ? "Military talent intake cannot be stored until the database is connected."
+        : env.NODE_ENV === "production" && !env.PUBLIC_SITE_INTEGRATION_SECRET
+          ? "NOT READY — production military-talent intake requires HMAC signing."
+          : "POST /api/public/v1/military-talent reuses Candidate + SkillBridge profile records.",
+    },
+    {
+      title: "Public careers URL",
+      ok: env.NODE_ENV === "production" ? Boolean(env.PUBLIC_CAREERS_URL) : true,
       detail: env.PUBLIC_CAREERS_URL
         ? `Public careers URL: ${env.PUBLIC_CAREERS_URL}`
-        : "Public jobs API is /api/public/v1/jobs. Set PUBLIC_CAREERS_URL when the PierOne site is live.",
+        : env.NODE_ENV === "production"
+          ? "NOT CONFIGURED — set PUBLIC_CAREERS_URL to https://pieronepartners.com/careers when the public site is live."
+          : "Set PUBLIC_CAREERS_URL when pieronepartners.com/careers is live.",
     },
     {
       title: "Backup / checkpoint",

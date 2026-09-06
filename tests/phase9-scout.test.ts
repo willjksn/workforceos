@@ -71,4 +71,14 @@ describe("Phase 9 Scout", () => {
     expect(scoutQueueNeighbor(items, "/app/talent/a", -1)).toBeNull();
     expect(scoutQueueNeighbor(items, "/app/jobs/missing", 1)).toBeNull();
   });
+
+  it("parses public website publishing commands with confirmation", () => {
+    const featured = parseScoutIntent("Show me what's currently featured on the public website.");
+    expect(featured.ok).toBe(true);
+    if (featured.ok) expect(featured.dto.entity).toBe("public_content");
+    const create = parseScoutIntent("Feature this job on the homepage.");
+    expect(create.ok).toBe(true);
+    if (create.ok) expect(create.dto.family).toBe("CREATE");
+    expect(isRegisteredCommand("CREATE")).toBe(true);
+  });
 });

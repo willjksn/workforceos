@@ -21,7 +21,9 @@ type NotificationKind =
   | "offer_accepted"
   | "offer_expiring"
   | "onboarding_overdue"
-  | "new_hire_starting";
+  | "new_hire_starting"
+  | "website_inquiry_received"
+  | "military_talent_received";
 
 export async function createInAppNotification(input: {
   organizationId: string;

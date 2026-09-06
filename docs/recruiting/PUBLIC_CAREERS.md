@@ -4,8 +4,8 @@ WorkforceOS publishes approved jobs for PierOne Partners. This is not a public j
 
 ## URLs
 
-- Site: `/careers` and `/jobs/[slug]`
-- API: `GET /api/public/v1/jobs`, `GET /api/public/v1/jobs/[slug]`, `POST /api/public/v1/applications`
+- Site: WorkforceOS fallback `/careers` and `/jobs/[slug]`; public front door `pieronepartners.com/careers` and `/jobs/[slug]`
+- API: `GET /api/public/v1/jobs`, `GET /api/public/v1/jobs/[slug]`, `POST /api/public/v1/applications`, `POST /api/public/v1/inquiries`, `POST /api/public/v1/military-talent`
 
 Authenticated `/app` routes stay private. `lib/auth/public-paths.ts` allows the careers and public API prefixes. Resume download is `/api/files/[fileId]` and requires a signed-in principal with `candidate_pii.read` for Restricted PII files.
 

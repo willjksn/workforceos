@@ -183,6 +183,30 @@ export function skillbridgePublicDisclaimer() {
   return "SkillBridge participation is subject to applicable service and command approval and employer requirements. Applying does not guarantee placement, approval, or employment.";
 }
 
+export function inquiryAcknowledgementEmail(input: { firstName: string }) {
+  const heading = "Thank you for contacting PierOne Partners";
+  const bodyHtml = `<p>Hello ${escapeHtml(input.firstName)},</p>
+<p>We received your message. A member of the PierOne team will review it and follow up if there is a fit.</p>
+<p>This acknowledgement does not confirm an engagement or a meeting.</p>`;
+  return {
+    subject: "Thank you for contacting PierOne Partners",
+    html: brandedEmail({ heading, bodyHtml, footer: "This message was sent by WorkforceOS on behalf of PierOne Partners." }),
+    text: `Hello ${input.firstName}, we received your message. A member of the PierOne team will review it.`,
+  };
+}
+
+export function militaryTalentAcknowledgementEmail(input: { firstName: string }) {
+  const heading = "Military Talent Network submission received";
+  const bodyHtml = `<p>Hello ${escapeHtml(input.firstName)},</p>
+<p>We received your PierOne Military Talent Network profile. Our team will review it against current and upcoming opportunities.</p>
+<p>Joining the network does not guarantee a SkillBridge approval, an interview, placement, or employment.</p>`;
+  return {
+    subject: "Military Talent Network — submission received",
+    html: brandedEmail({ heading, bodyHtml }),
+    text: `Hello ${input.firstName}, we received your Military Talent Network profile. This does not guarantee placement or SkillBridge approval.`,
+  };
+}
+
 function escapeHtml(value: string) {
   return value
     .replaceAll("&", "&amp;")

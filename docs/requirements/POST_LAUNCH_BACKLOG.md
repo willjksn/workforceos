@@ -4,7 +4,7 @@ Do not build these items during Post-Phase-9 stabilization. New work enters the 
 
 | Title | Problem | Business value | Priority | Dependencies | Complexity | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| Implement R2/S3 storage adapter | Production uploads throw “not implemented”; health must not look ready | Resume and contract files in production | P1 | Cloudflare R2 or S3 credentials | M | open |
+| Implement R2/S3 storage adapter | Production uploads throw “not implemented”; health must not look ready | Resume and contract files in production | P1 | Cloudflare R2 or S3 credentials | M | adapter implemented 2026-09-06; production credentials still required |
 | Live Checkr HTTP API | Adapter is a stub; CHECKR_API_KEY does not call Checkr; not sandbox-ready | Provider-hosted background invitations | P2 | Checkr sandbox + webhook secret + counsel | L | open |
 | Drug-screen vendor adapter | ManualDrugScreenProvider only; no vendor selected | Provider-hosted collection workflow | P3 | Vendor selection + BAA/PHI review | L | open |
 | Live calendar OAuth scheduling | getCalendarProvider() always returns mock; liveScheduling is false | Real Microsoft/Google interview events | P2 | Graph/Google OAuth + Integration Hub tokens | L | open |

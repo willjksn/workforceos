@@ -39,6 +39,7 @@ Migrations: `drizzle/`
 | `db/schema/operating/` | activities, candidate_engagements, candidate_designations, saved views, in-app notifications |
 | `db/schema/scout/` | scout_sessions, scout_messages, scout_actions |
 | `db/schema/skillbridge/` | profiles, preferred locations, target roles, opportunities, stage history, notes, documents, alert rules |
+| `db/schema/public-site/` | website_inquiries, public_intake_settings, public_content_items |
 
 ## Key uniqueness rules
 
@@ -128,4 +129,8 @@ Do not apply raw production SQL outside migrations unless an emergency runbook s
 ## Phase 10 hiring tables
 
 Add through a new Drizzle migration. Do not edit 0000–0009. Index `applications.candidate_id`, `applications.job_id`, `applications.status`, `applications.current_stage`, `applications.applied_at`, posting slug, interview/offer `application_id`, and `employees.candidate_id`. Unique person identity stays on `candidates`.
+
+## Public content items
+
+`public_content_items` is a lightweight publishing table, not a CMS. Content types and placements are Postgres enums so new types can be added later without a JSON document store. `linked_job_id` references `jobs`. Closed or unpublished jobs are omitted from `GET /api/public/v1/content` at query time. Do not duplicate website job or SkillBridge opportunity records.
 

@@ -2,7 +2,7 @@
 
 Canonical schema rules remain `docs/database/SCHEMA_SPEC.md` and `docs/architecture/DATABASE_DEPLOYMENT.md`. This runbook is the operator path for applying Drizzle migrations. Do not use `drizzle-kit push`. Do not edit already-applied SQL.
 
-Current versioned files: `drizzle/0000_flippant_mauler.sql` through `drizzle/0010_nostalgic_scarecrow.sql`.
+Current versioned files: `drizzle/0000_flippant_mauler.sql` through `drizzle/0011_keen_korvac.sql`.
 
 ## Connection strings
 
@@ -60,7 +60,7 @@ Do not recommend a destructive production reset.
 
 - **Application-only defect:** redeploy the last good Vercel production deployment.
 - **Bad migration already applied:** restore the Neon branch to a timestamp before the migration (PITR) or promote a child branch taken before migrate. Then point Vercel `DATABASE_URL` at the restored compute. Do not edit applied SQL.
-- **Forward-fix:** add `0011_*.sql` (or later) that corrects data or schema. Apply it the same way as any other migration. Do not edit `0010_nostalgic_scarecrow.sql` after it has been applied.
+- **Forward-fix:** add `0012_*.sql` (or later) that corrects data or schema. Apply it the same way as any other migration. Do not edit `0011_keen_korvac.sql` after it has been applied.
 
 ## Migration `0010_nostalgic_scarecrow.sql`
 
@@ -74,4 +74,6 @@ Organizations use `ON DELETE restrict`. Foreign keys are indexed. No forward-fix
 
 ## Repeatability
 
-A clean database should apply `0000`–`0010` in journal order, then `db:seed:prod` (catalog) or `db:seed:dev` (fixtures). Migrations must not insert Harbor, Taylor Ellis, SkillBridge people, fake applicants, or other development fixtures. `seedPhase10Fixtures` runs only from development seed.
+A clean database should apply `0000`–`0011` in journal order, then `db:seed:prod` (catalog) or `db:seed:dev` (fixtures). Migrations must not insert Harbor, Taylor Ellis, SkillBridge people, fake applicants, or other development fixtures. `seedPhase10Fixtures` runs only from development seed.
+
+The Neon project currently has a single unprotected branch named `production` that contains development fixtures and already has `0011_keen_korvac` applied. Do not treat that branch as launch production. Create distinct `development` / `preview` branches and a **protected, fixture-free** production branch before cutover. See `docs/operations/PRODUCTION_ACTIVATION.md`.

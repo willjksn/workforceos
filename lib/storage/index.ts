@@ -35,6 +35,6 @@ export async function getStorageStatus() {
     adapter: provider.name,
     ready:
       provider.name === "local" ||
-      (provider.name === "s3" && Boolean(env.S3_BUCKET)),
+      (provider.name === "s3" && Boolean(env.S3_BUCKET && env.S3_ACCESS_KEY_ID && env.S3_SECRET_ACCESS_KEY)),
   };
 }

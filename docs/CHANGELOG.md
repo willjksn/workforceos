@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### PierOne public website + WorkforceOS public gateway
+
+- Added a separately deployable public website at `sites/pierone` (Vercel root `sites/pierone`) without relocating WorkforceOS `app/`.
+- Extended the public gateway with `POST /api/public/v1/inquiries`, `POST /api/public/v1/military-talent`, and `GET /api/public/v1/health`. Employer inquiries become `website_inquiries` intake records; opportunities are not auto-created.
+- Implemented the S3-compatible StorageProvider for private resume storage. Local adapter remains development-only.
+- Shared public DTOs in `packages/public-api-contracts`. Production HMAC between the first-party website and WorkforceOS write APIs (`PUBLIC_SITE_INTEGRATION_SECRET` / `WORKFORCEOS_SITE_SECRET`). Development may omit the secret; production rejects unsigned cross-origin writes.
+- Added WorkforceOS Public Content (`public_content_items`, `/app/public-content`, `GET /api/public/v1/content`) so authorized users can feature jobs, SkillBridge roles, banners, notices, announcements, and industry campaigns without redeploying pieronepartners.com. Stable brand copy stays in `sites/pierone`. Schema migration `drizzle/0012_wise_scourge.sql`.
+- Internal CRM view at `/app/crm/inquiries`. Scout can search website inquiries and convert them with confirmation.
+- Added `npm run test:public-site`. Production HMAC is required; System Health no longer reports public write APIs as ready when storage, Resend, or the site secret are missing in production.
+
 ### Phase 10 — Careers, applicant tracking, and onboarding
 
 - Extended WorkforceOS with job requisitions, job-description versions, public job postings, applications, interview plans/scorecards, pre-employment checks, offer versioning, employees, and onboarding templates. One global Candidate remains the person record.

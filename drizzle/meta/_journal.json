@@ -78,6 +78,20 @@
       "when": 1788663887268,
       "tag": "0010_nostalgic_scarecrow",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1788714338831,
+      "tag": "0011_keen_korvac",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1788726090186,
+      "tag": "0012_wise_scourge",
+      "breakpoints": true
     }
   ]
 }

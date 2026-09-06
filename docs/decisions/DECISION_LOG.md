@@ -592,3 +592,104 @@ Database mirror: `decision_log` table, seeded from this file.
 - Reason: Operators need a durable in-app inbox for scanned SkillBridge work without duplicating CRM/talent timelines.
 - Affected modules: notifications, military, scout
 - Reconsideration: if volume requires digesting, keep rows discardable and rebuildable from source scans.
+
+## DEC-WEB-001 — PierOnePartners.com is the public business front door
+
+- Date: 2026-09-06
+- Owner: Product Build
+- Status: accepted
+- Decision: `pieronepartners.com` / `www.pieronepartners.com` is the public PierOne business website. `app.pieronepartners.com` remains private WorkforceOS. This is not Phase 11.
+- Reason: Separate public conversion from the internal operating system.
+- Affected modules: public website, hiring, CRM, SkillBridge
+- Reconsideration: none for V1.
+
+## DEC-WEB-002 — Same Git repository, two Vercel projects, no WorkforceOS relocation
+
+- Date: 2026-09-06
+- Owner: Product Build
+- Status: accepted
+- Decision: Keep WorkforceOS at the repository root. Add `sites/pierone` as a separately deployable Next.js app. Share only `packages/public-api-contracts`. Do not move `app/`.
+- Reason: Independent marketing deploys without destabilizing the completed internal product.
+- Affected modules: deployment
+- Reconsideration: a separate Git repository if Vercel root-directory isolation fails.
+
+## DEC-WEB-003 — Public website talks to WorkforceOS only through versioned public APIs
+
+- Date: 2026-09-06
+- Owner: Product Build
+- Status: accepted
+- Decision: The browser never accesses Neon. The public website never imports Drizzle. Operational exchange uses `/api/public/v1/*`. Writes prefer website-server → gateway. WorkforceOS remains the system of record for jobs, applications, candidates, SkillBridge profiles, and CRM inquiries.
+- Reason: WFOS-WEB-002, WFOS-WEB-003, DEC-HIRE-003.
+- Affected modules: public API, security
+- Reconsideration: webhooks only for later CMS/marketing automation.
+
+## DEC-WEB-004 — Website inquiries are intake records, not automatic opportunities
+
+- Date: 2026-09-06
+- Owner: Product Build
+- Status: accepted
+- Decision: Employer forms create `website_inquiries`, then safely link Company/Contact/Activity. Opportunities are created by a human (or confirmed Scout convert). Company match uses website host, never name-only merges.
+- Reason: Avoid duplicate CRM truth and accidental pipeline pollution.
+- Affected modules: CRM, Scout
+- Reconsideration: automatic opportunity creation only if a documented workflow requires it.
+
+## DEC-WEB-005 — Production public writes require first-party HMAC
+
+- Date: 2026-09-06
+- Owner: Product Build
+- Status: accepted
+- Decision: `PUBLIC_SITE_INTEGRATION_SECRET` (WorkforceOS) and `WORKFORCEOS_SITE_SECRET` (public site) must be set to the same value in production. Cross-origin public writes without a valid timestamped HMAC are rejected. Development may omit the secret. Same-origin WorkforceOS `/careers` posts may omit HMAC when the secret is set. GET public jobs remain unsigned per the public read policy.
+- Reason: The public website and WorkforceOS are separate Vercel projects. Unsigned production writes are not an acceptable first-party control.
+- Affected modules: public API, public website, security
+- Reconsideration: none for launch.
+
+## DEC-WEB-006 — Canonical public host is pieronepartners.com
+
+- Date: 2026-09-06
+- Owner: Product Build
+- Status: accepted
+- Decision: `https://pieronepartners.com` is canonical. `https://www.pieronepartners.com` redirects to the apex. `NEXT_PUBLIC_SITE_URL`, sitemap, and Open Graph URLs use the apex.
+- Reason: One public origin for HMAC allowlisting, SEO, and cookies.
+- Affected modules: public website, DNS
+- Reconsideration: switch to www-canonical only with a documented DNS and metadata change.
+
+## DEC-WEB-007 — WorkforceOS controls frequently changing operational public content
+
+- Date: 2026-09-06
+- Owner: Product Build
+- Status: accepted
+- Decision: Featured jobs, featured SkillBridge roles, homepage hiring banners, urgent hiring notices, temporary announcements, and featured industry campaigns are authored in WorkforceOS (`public_content_items`) and consumed by the public website through `GET /api/public/v1/content`.
+- Reason: Authorized PierOne users must change operational public content without editing website code or redeploying pieronepartners.com.
+- Affected modules: public content, public API, public website
+- Reconsideration: none for launch.
+
+## DEC-WEB-008 — Public website code controls stable brand and marketing content
+
+- Date: 2026-09-06
+- Owner: Product Build
+- Status: accepted
+- Decision: Homepage core positioning, About, service pages, industries structure, permanent brand copy, and legal pages remain in `sites/pierone`. WorkforceOS Public Content is not a general CMS or website editor.
+- Reason: Keep brand control with the public site codebase while moving only frequently changing operational content into the operating system.
+- Affected modules: public website
+- Reconsideration: a true CMS only with a documented product decision.
+
+## DEC-WEB-009 — Jobs and SkillBridge opportunities remain single source of truth in WorkforceOS
+
+- Date: 2026-09-06
+- Owner: Product Build
+- Status: accepted
+- Decision: Featured public jobs and SkillBridge roles reference existing `jobs` / `job_postings`. Public SkillBridge features are published SkillBridge-eligible job postings, not duplicated `skillbridge_opportunities` (those are candidate–employer operating records). If a job closes or is no longer public, it stops appearing as featured at query time.
+- Reason: Avoid duplicate website job records and Restricted PII leakage.
+- Affected modules: hiring, SkillBridge, public content
+- Reconsideration: none.
+
+## DEC-WEB-010 — Public Content is a lightweight publishing layer, not a full CMS
+
+- Date: 2026-09-06
+- Owner: Product Build
+- Status: accepted
+- Decision: Support a closed set of content types, placements, and style variants. No arbitrary HTML/CSS. Active state is computed from `is_active` plus date window plus linked-job validity. Cache TTL is 60 seconds with optional on-demand revalidate. Inngest is not required for activation/expiration.
+- Reason: Launch needs operational publishing without turning WorkforceOS into a website editor.
+- Affected modules: public content, Scout, RBAC
+- Reconsideration: additional content types may be added as enum values without rewriting the module.
+

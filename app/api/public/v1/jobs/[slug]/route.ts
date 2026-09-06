@@ -9,5 +9,14 @@ export async function GET(_request: Request, context: { params: Promise<{ slug: 
   const { posting, job: internalJob, ...publicJob } = job;
   void posting;
   void internalJob;
-  return NextResponse.json({ job: publicJob });
+  return NextResponse.json(
+    { job: publicJob },
+    {
+      headers: {
+        "Cache-Control": publicJob.applicationOpen
+          ? "public, s-maxage=60, stale-while-revalidate=120"
+          : "public, s-maxage=30",
+      },
+    },
+  );
 }

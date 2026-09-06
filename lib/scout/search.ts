@@ -18,7 +18,7 @@ import { findSkillBridgeMatches } from "../skillbridge/matching";
 const SCOUT_RESULT_LIMIT = 25;
 
 export type ScoutResultCard = {
-  type: "candidate" | "job" | "opportunity" | "skillbridge" | "record" | "application";
+  type: "candidate" | "job" | "opportunity" | "skillbridge" | "record" | "application" | "inquiry";
   id: string;
   title: string;
   href: string;
@@ -60,6 +60,58 @@ export async function executeScoutSearch(input: {
       };
     }
     return searchJobs(input.organizationId, filters.title ?? filters.skill, filters.city ?? filters.region);
+  }
+
+  if (input.dto.entity === "public_content") {
+    if (!input.permissions.has("public_content.read")) return { summary: "No public content access.", cards: [] };
+    const { listPublicContentItems } = await import("../public-content/service");
+    const principalLike = {
+      id: input.userId,
+      status: "active" as const,
+      organizationId: input.organizationId,
+      roleSlugs: [],
+      permissions: input.permissions,
+    };
+    let rows = await listPublicContentItems({ principal: principalLike });
+    if (filters.availability?.includes("scheduled")) {
+      rows = rows.filter((row) => row.status === "scheduled");
+    } else {
+      rows = rows.filter((row) => row.rendering || row.status === "live");
+    }
+    const cards = rows.slice(0, SCOUT_RESULT_LIMIT).map((row) => ({
+      type: "record" as const,
+      id: row.id,
+      title: row.title,
+      href: `/app/public-content/${row.id}`,
+      meta: `${row.contentType} · ${row.status} · ${row.placement}`,
+      fields: { status: row.status, type: row.contentType, placement: row.placement },
+    }));
+    return { summary: `${cards.length} public content items.`, cards };
+  }
+
+  if (input.dto.entity === "website_inquiries" || input.dto.entity === "website_leads") {
+    if (!input.permissions.has("opportunities.read")) return { summary: "No inquiry access.", cards: [] };
+    const { listWebsiteInquiries } = await import("../inquiries/service");
+    let rows = await listWebsiteInquiries(input.organizationId, filters.title ?? filters.candidateName);
+    if (filters.needsFollowUp) {
+      rows = rows.filter((row) => row.status === "new" || row.status === "reviewing");
+    }
+    if (filters.industry) {
+      rows = rows.filter((row) => row.serviceInterest.includes("military") || row.serviceInterest === filters.industry);
+    }
+    const cards = rows.slice(0, SCOUT_RESULT_LIMIT).map((row) => ({
+      type: "inquiry" as const,
+      id: row.id,
+      title: `${row.companyName} — ${row.firstName} ${row.lastName}`,
+      href: `/app/crm/inquiries/${row.id}`,
+      meta: `${row.serviceInterest} · ${row.status}`,
+      fields: {
+        status: row.status,
+        service: row.serviceInterest,
+        submitted: row.submittedAt.toISOString(),
+      },
+    }));
+    return { summary: `${cards.length} website inquiries.`, cards };
   }
 
   if (input.dto.entity === "applications" || input.dto.entity === "hiring" || /\bapplication/.test(input.dto.entity ?? "")) {

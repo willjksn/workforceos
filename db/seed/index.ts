@@ -28,6 +28,7 @@ import {
   opportunityScores,
   opportunitySignals,
   organizations,
+  publicIntakeSettings,
   searchProjects,
   permissions,
   requirements,
@@ -243,6 +244,16 @@ export async function seedFoundation(
         .onConflictDoNothing();
     }
   }
+
+  await db
+    .insert(publicIntakeSettings)
+    .values({
+      organizationId: INTERNAL_ORG_ID,
+      inquiryOwnerRoleSlug: "managing-partner",
+      militaryTalentOwnerRoleSlug: "military-talent-specialist",
+      applicationNotifyRoleSlug: "recruiter",
+    })
+    .onConflictDoNothing();
 
   const agentSeed = [
     ["opportunity-scout", "Opportunity Scout"],

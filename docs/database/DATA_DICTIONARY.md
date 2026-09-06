@@ -222,6 +222,9 @@ Workforce roles are planning-level. They do not duplicate recruiting `jobs`. For
 | `employees` | Employment bridge to `candidate_id`. Not payroll. |
 | `onboarding_templates` / `onboarding_instances` / `onboarding_tasks` | New-hire checklists. |
 | `transactional_email_events` | Resend/mock send log. |
+| `website_inquiries` | Public employer intake from pieronepartners.com. Not an automatic opportunity. |
+| `public_intake_settings` | Role-based owner assignment for website inquiries, military talent, and application notifications. No hardcoded person IDs. |
+| `public_content_items` | Lightweight public operational content: featured jobs, SkillBridge features, banners, notices, announcements, industry campaigns. Not a CMS. Featured rows FK to `jobs`. Active state is computed at read time. |
 
 ## Explicitly excluded
 

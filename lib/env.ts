@@ -78,6 +78,9 @@ const serverEnvSchema = z.object({
   DRUG_SCREEN_API_KEY: optionalString,
   PUBLIC_CAREERS_URL: optionalString,
   PUBLIC_APP_URL: optionalString,
+  PUBLIC_SITE_INTEGRATION_SECRET: optionalString,
+  PUBLIC_SITE_ALLOWED_ORIGINS: optionalString,
+  PUBLIC_INTAKE_ORGANIZATION_ID: optionalString,
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

@@ -125,6 +125,9 @@ export const PERMISSIONS = [
   "employees.manage",
   "careers.manage",
   "transactional_email.send",
+  "public_content.read",
+  "public_content.manage",
+  "public_content.publish",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -225,6 +228,9 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "onboarding.manage",
     "employees.read",
     "employees.manage",
+    "public_content.read",
+    "public_content.manage",
+    "public_content.publish",
   ],
   "strategy-technology-administrator": [
     "companies.read",
@@ -278,6 +284,9 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "scout.use",
     "scout.search",
     "skillbridge.read",
+    "public_content.read",
+    "public_content.manage",
+    "public_content.publish",
   ],
   "talent-partner": [
     "companies.read",
@@ -367,6 +376,7 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "employees.manage",
     "careers.manage",
     "transactional_email.send",
+    "public_content.read",
   ],
   recruiter: [
     "companies.read",

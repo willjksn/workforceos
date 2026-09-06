@@ -8,7 +8,9 @@ export type ScoutPageContext = {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const ENTITY_ROUTES: Array<{ prefix: string; entityType: string; module: string }> = [
+  { prefix: "/app/public-content/", entityType: "public_content_item", module: "public_content" },
   { prefix: "/app/military/skillbridge/", entityType: "skillbridge_profile", module: "skillbridge" },
+  { prefix: "/app/crm/inquiries/", entityType: "website_inquiry", module: "crm" },
   { prefix: "/app/talent/", entityType: "candidate", module: "talent" },
   { prefix: "/app/jobs/", entityType: "job", module: "recruiting" },
   { prefix: "/app/companies/", entityType: "company", module: "crm" },
@@ -19,13 +21,14 @@ const ENTITY_ROUTES: Array<{ prefix: string; entityType: string; module: string 
 ];
 
 function moduleFromPath(pathname: string) {
+  if (pathname.startsWith("/app/public-content")) return "public_content";
   if (pathname.startsWith("/app/military/skillbridge")) return "skillbridge";
   if (pathname.startsWith("/app/military")) return "military";
   if (pathname.startsWith("/app/talent")) return "talent";
   if (pathname.startsWith("/app/jobs") || pathname.startsWith("/app/pipeline") || pathname.startsWith("/app/search-projects")) {
     return "recruiting";
   }
-  if (pathname.startsWith("/app/companies") || pathname.startsWith("/app/contacts") || pathname.startsWith("/app/opportunities")) {
+  if (pathname.startsWith("/app/companies") || pathname.startsWith("/app/contacts") || pathname.startsWith("/app/opportunities") || pathname.startsWith("/app/crm/inquiries") || pathname.startsWith("/app/signals")) {
     return "crm";
   }
   if (pathname.startsWith("/app/workforce")) return "workforce";

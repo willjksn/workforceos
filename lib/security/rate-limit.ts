@@ -25,6 +25,8 @@ export const RATE_LIMITS = {
   webhook: { limit: 120, windowSeconds: 60 },
   authSensitive: { limit: 20, windowSeconds: 60 },
   publicApplication: { limit: 5, windowSeconds: 60 },
+  publicInquiry: { limit: 5, windowSeconds: 60 },
+  publicMilitaryTalent: { limit: 5, windowSeconds: 60 },
 } as const;
 
 function windowStart(windowSeconds: number, now = Date.now()) {

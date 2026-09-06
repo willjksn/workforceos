@@ -929,6 +929,8 @@ export const inAppNotificationKindEnum = pgEnum("in_app_notification_kind", [
   "offer_expiring",
   "onboarding_overdue",
   "new_hire_starting",
+  "website_inquiry_received",
+  "military_talent_received",
 ]);
 
 export const jobContextTypeEnum = pgEnum("job_context_type", ["internal", "client", "skillbridge"]);
@@ -1038,4 +1040,45 @@ export const transactionalEmailStatusEnum = pgEnum("transactional_email_status",
   "delivered",
   "failed",
   "bounced",
+]);
+
+export const websiteInquiryStatusEnum = pgEnum("website_inquiry_status", [
+  "new",
+  "reviewing",
+  "qualified",
+  "discovery_requested",
+  "converted_to_opportunity",
+  "nurture",
+  "closed",
+]);
+
+export const websiteInquiryServiceInterestEnum = pgEnum("website_inquiry_service_interest", [
+  "professional-search",
+  "military-talent-opportunity-assessment",
+  "ta-performance-assessment",
+  "fractional-talent-partner",
+  "workforce-pipeline-assessment",
+  "other",
+]);
+
+export const publicContentTypeEnum = pgEnum("public_content_type", [
+  "featured_job",
+  "featured_skillbridge",
+  "homepage_banner",
+  "urgent_hiring_notice",
+  "temporary_announcement",
+  "featured_industry_campaign",
+]);
+
+export const publicContentPlacementEnum = pgEnum("public_content_placement", [
+  "home",
+  "careers",
+  "skillbridge",
+  "site_wide",
+]);
+
+export const publicContentStyleVariantEnum = pgEnum("public_content_style_variant", [
+  "navy",
+  "teal",
+  "light",
 ]);

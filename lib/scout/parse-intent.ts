@@ -58,6 +58,7 @@ export const scoutCommandDtoSchema = z.object({
   draftKind: z.string().trim().max(80).optional(),
   subject: z.string().trim().max(200).optional(),
   preferredLocation: z.string().trim().max(200).optional(),
+  websiteInquiryId: z.string().uuid().optional(),
   ownerUserId: z.string().uuid().optional(),
   followUpAt: z.string().datetime().optional(),
   note: z.string().trim().max(2000).optional(),
@@ -221,7 +222,51 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
     family = "SHOW_DASHBOARD";
     summary = "Show today's operating priorities.";
   } else if (
-    /\bapplication|\bwho applied\b|\binterviews tomorrow\b|\bscorecards?\b|\bbackground check\b|\bdrug screen\b|\boffers? expire\b|\bnew hires?\b|\bonboarding\b/.test(
+    /\bwebsite (lead|inquiry|inquiries)|new website|\bemployer inquir|\bwork with pierone\b/.test(text)
+  ) {
+    entity = "website_inquiries";
+    summary = "Search public website inquiries.";
+    if (/\bnot been contacted\b|\bneed(s)? follow-?up\b|\bneed contact\b/.test(text)) {
+      filters.needsFollowUp = true;
+    }
+    if (/\bmilitary talent\b/.test(text)) {
+      filters.industry = "military-talent-opportunity-assessment";
+    }
+  } else if (/\bconvert (this |the )?inquiry\b|\bcreate (an )?opportunity from (this )?inquiry\b/.test(text)) {
+    family = "CREATE";
+    entity = "opportunity_from_inquiry";
+    summary = "Convert a website inquiry into an opportunity (confirmation required).";
+  } else if (
+    /\bwhat('?s| is) currently featured\b|\bfeatured on the (public )?website\b|\bshow (me )?(current )?public content\b/.test(
+      text,
+    )
+  ) {
+    family = "SEARCH";
+    entity = "public_content";
+    summary = "Show live public website content.";
+  } else if (/\bscheduled public announcements?\b|\bscheduled announcements?\b/.test(text)) {
+    family = "SEARCH";
+    entity = "public_content";
+    filters.availability = ["scheduled"];
+    summary = "Show scheduled public announcements.";
+  } else if (/\bfeature this (job|role) on the homepage\b|\bfeature this job\b/.test(text)) {
+    family = "CREATE";
+    entity = "public_content_feature_job";
+    summary = "Feature this job on the public website (confirmation required).";
+  } else if (/\bfeature this skillbridge\b|\bfeature this (skillbridge )?role\b/.test(text)) {
+    family = "CREATE";
+    entity = "public_content_feature_skillbridge";
+    summary = "Feature this SkillBridge role (confirmation required).";
+  } else if (/\bcreate a hiring banner\b|\bhiring banner for this role\b/.test(text)) {
+    family = "CREATE";
+    entity = "public_content_banner";
+    summary = "Create a hiring banner (confirmation required).";
+  } else if (/\bremove (the )?(current )?urgent hiring notice\b|\bdeactivate (the )?urgent hiring notice\b/.test(text)) {
+    family = "UPDATE";
+    entity = "public_content_deactivate_urgent";
+    summary = "Remove the current urgent hiring notice (confirmation required).";
+  } else if (
+    /\bapplication|\bwho applied\b|\binterviews tomorrow\b|\bscorecards?\b|\bbackground check\b|\bdrug screen\b|\boffers? expire\b|\bnew hires?\b|\bonboarding\b|\bcareers site\b/.test(
       text,
     )
   ) {
@@ -260,6 +305,7 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
     skillbridgeProfileId:
       pageContext?.entityType === "skillbridge_profile" ? pageContext.entityId ?? undefined : undefined,
     companyId: pageContext?.entityType === "company" ? pageContext.entityId ?? undefined : undefined,
+    websiteInquiryId: pageContext?.entityType === "website_inquiry" ? pageContext.entityId ?? undefined : undefined,
     note: entity === "applications" || family === "DRAFT" ? raw.slice(0, 500) : undefined,
   };
 

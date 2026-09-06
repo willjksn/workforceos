@@ -293,6 +293,20 @@ async function executeAuthorizedCommand(input: {
   }
 
   if (input.dto.family === "SUMMARIZE") {
+    if (input.pageContext.entityType === "website_inquiry" || input.dto.entity === "website_inquiries") {
+      const { getWebsiteInquiry } = await import("../inquiries/service");
+      const id = input.dto.websiteInquiryId ?? input.pageContext.entityId;
+      const inquiry = id ? await getWebsiteInquiry(input.principal.organizationId, id) : null;
+      return {
+        message: inquiry
+          ? `${inquiry.companyName}: ${inquiry.serviceInterest.replaceAll("-", " ")}. Status ${inquiry.status.replaceAll("_", " ")}. Company match ${inquiry.companyMatchStatus}.`
+          : "No website inquiry in context.",
+        cards: [],
+        confirmation: null,
+        draft: null,
+        links: inquiry ? [{ href: `/app/crm/inquiries/${inquiry.id}`, label: inquiry.companyName }] : [],
+      };
+    }
     if (input.pageContext.entityType === "skillbridge_profile" && input.pageContext.entityId) {
       const detail = await getSkillBridgeDetail(input.pageContext.entityId, input.principal.organizationId, canReadPii);
       return {
@@ -483,6 +497,31 @@ async function executeAuthorizedCommand(input: {
     };
   }
 
+  if (input.dto.family === "UPDATE" && input.dto.entity === "public_content_deactivate_urgent") {
+    const { listPublicContentItems, setPublicContentActive } = await import("../public-content/service");
+    if (!can(input.principal, "public_content.publish")) {
+      return {
+        message: "Publishing public content requires public_content.publish.",
+        cards: [],
+        confirmation: null,
+        draft: null,
+        links: [],
+      };
+    }
+    const rows = await listPublicContentItems({ principal: input.principal, contentType: "urgent_hiring_notice" });
+    const live = rows.filter((row) => row.rendering || row.isActive);
+    for (const row of live) {
+      await setPublicContentActive({ principal: input.principal, id: row.id, isActive: false });
+    }
+    return {
+      message: live.length ? `Deactivated ${live.length} urgent hiring notice(s).` : "No active urgent hiring notice.",
+      cards: [],
+      confirmation: null,
+      draft: null,
+      links: [{ href: "/app/public-content", label: "Public content" }],
+    };
+  }
+
   if (input.dto.family === "UPDATE" && input.dto.preferredLocation) {
     const profileId = input.dto.skillbridgeProfileId ?? input.pageContext.entityId;
     if (!profileId) {
@@ -503,6 +542,88 @@ async function executeAuthorizedCommand(input: {
   }
 
   if (input.dto.family === "CREATE") {
+    if (input.dto.entity === "opportunity_from_inquiry") {
+      const { convertInquiryToOpportunity } = await import("../inquiries/service");
+      const inquiryId = input.dto.websiteInquiryId ?? input.pageContext.entityId;
+      if (!inquiryId) {
+        return { message: "No website inquiry in context to convert.", cards: [], confirmation: null, draft: null, links: [] };
+      }
+      const inquiry = await convertInquiryToOpportunity({
+        organizationId: input.principal.organizationId,
+        actorUserId: input.principal.id,
+        inquiryId,
+      });
+      return {
+        message: inquiry?.opportunityId ? "Opportunity created from the website inquiry." : "Inquiry could not be converted.",
+        cards: [],
+        confirmation: null,
+        draft: null,
+        links: inquiry ? [{ href: `/app/crm/inquiries/${inquiry.id}`, label: "Website inquiry" }] : [],
+      };
+    }
+    if (input.dto.entity?.startsWith("public_content_")) {
+      const { createPublicContentItem } = await import("../public-content/service");
+      if (!can(input.principal, "public_content.manage") || !can(input.principal, "public_content.publish")) {
+        return {
+          message: "Publishing public content requires public_content.manage and public_content.publish.",
+          cards: [],
+          confirmation: null,
+          draft: null,
+          links: [],
+        };
+      }
+      const jobId = input.dto.jobId ?? (input.pageContext.entityType === "job" ? input.pageContext.entityId : null);
+      if (input.dto.entity === "public_content_feature_job" || input.dto.entity === "public_content_feature_skillbridge") {
+        if (!jobId) {
+          return {
+            message: "Open a job record first, then ask Scout to feature it.",
+            cards: [],
+            confirmation: null,
+            draft: null,
+            links: [],
+          };
+        }
+        const skillbridge = input.dto.entity === "public_content_feature_skillbridge";
+        const created = await createPublicContentItem({
+          principal: input.principal,
+          data: {
+            contentType: skillbridge ? "featured_skillbridge" : "featured_job",
+            title: skillbridge ? "Featured SkillBridge role" : "Featured job",
+            linkedJobId: jobId,
+            placement: skillbridge ? "skillbridge" : "careers",
+            isActive: true,
+          },
+        });
+        return {
+          message: skillbridge ? "SkillBridge role featured on the public site." : "Job featured on the public site.",
+          cards: [],
+          confirmation: null,
+          draft: null,
+          links: [{ href: `/app/public-content/${created.id}`, label: "Public content item" }],
+        };
+      }
+      const created = await createPublicContentItem({
+        principal: input.principal,
+        data: {
+          contentType: "homepage_banner",
+          title: "We're hiring",
+          body: "PierOne is recruiting talent. Applying does not guarantee an interview.",
+          ctaLabel: "View open roles",
+          ctaUrl: "/careers",
+          linkedJobId: jobId,
+          placement: "home",
+          styleVariant: "navy",
+          isActive: true,
+        },
+      });
+      return {
+        message: "Hiring banner created and activated.",
+        cards: [],
+        confirmation: null,
+        draft: null,
+        links: [{ href: `/app/public-content/${created.id}`, label: "Hiring banner" }],
+      };
+    }
     const db = getDb();
     await db.insert(activities).values({
       organizationId: input.principal.organizationId,
