@@ -160,15 +160,15 @@ describe("public content publishing", () => {
   it("omits empty groups and never requires content to render", () => {
     expect(EMPTY_PUBLIC_CONTENT.featuredJobs).toEqual([]);
     expect(publicContentResponseSchema.parse(EMPTY_PUBLIC_CONTENT).banners).toEqual([]);
-    const filtered = filterPublicContentByPlacement(
-      {
-        ...EMPTY_PUBLIC_CONTENT,
-        banners: [{ title: "Hiring", body: null, ctaLabel: null, ctaUrl: null, styleVariant: "navy" as const }],
-        urgentNotices: [{ headline: "Now hiring", body: null, ctaLabel: null, ctaUrl: null, jobSlug: null }],
-        announcements: [{ headline: "Fair", body: null, ctaLabel: null, ctaUrl: null, placement: "careers" }],
-      },
-      "home",
-    );
+    const payload = {
+      featuredJobs: [] as unknown[],
+      featuredSkillBridge: [] as unknown[],
+      banners: [{ title: "Hiring", body: null, ctaLabel: null, ctaUrl: null, styleVariant: "navy" as const }],
+      announcements: [{ headline: "Fair", body: null, ctaLabel: null, ctaUrl: null, placement: "careers" }],
+      campaigns: [] as unknown[],
+      urgentNotices: [{ headline: "Now hiring", body: null, ctaLabel: null, ctaUrl: null, jobSlug: null }],
+    };
+    const filtered = filterPublicContentByPlacement(payload, "home");
     expect(filtered.banners).toHaveLength(1);
     expect(filtered.urgentNotices).toHaveLength(0);
     expect(filtered.announcements).toHaveLength(0);

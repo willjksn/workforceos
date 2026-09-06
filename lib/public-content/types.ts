@@ -52,12 +52,12 @@ export const EMPTY_PUBLIC_CONTENT = {
 } as const;
 
 export function filterPublicContentByPlacement<T extends {
-  featuredJobs: unknown[];
-  featuredSkillBridge: unknown[];
-  banners: unknown[];
-  announcements: Array<{ placement: string }>;
-  campaigns: unknown[];
-  urgentNotices: unknown[];
+  featuredJobs: readonly unknown[];
+  featuredSkillBridge: readonly unknown[];
+  banners: readonly unknown[];
+  announcements: ReadonlyArray<{ placement: string }>;
+  campaigns: readonly unknown[];
+  urgentNotices: readonly unknown[];
 }>(payload: T, placement?: string | null): T {
   if (!placement) return payload;
   const normalized = placement.trim().toLowerCase().replaceAll("-", "_") as PublicContentPlacement;

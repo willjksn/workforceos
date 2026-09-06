@@ -5,7 +5,7 @@ import { can } from "@/lib/rbac/permissions";
 import { listPublicContentItems } from "@/lib/public-content/service";
 import { PUBLIC_CONTENT_TYPE_LABELS, type PublicContentType } from "@/lib/public-content/types";
 import { getServerEnv } from "@/lib/env";
-import { ActionForm } from "../../_components/action-form";
+import { ActionForm } from "../_components/action-form";
 import {
   ButtonLink,
   DataTable,
@@ -16,7 +16,7 @@ import {
   TabNav,
   formatDate,
   formatLabel,
-} from "../../_components/ui";
+} from "../_components/ui";
 import { archivePublicContentAction, togglePublicContentAction } from "@/lib/actions/public-content";
 
 const TABS: Array<{ id: string; href: string; label: string; type?: PublicContentType }> = [
