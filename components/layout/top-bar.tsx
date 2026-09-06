@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Search } from "lucide-react";
+import { Menu } from "lucide-react";
 
 import { AuthControls } from "@/app/auth-controls";
+import { GlobalSearch } from "@/components/layout/global-search";
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { ScoutLauncher } from "@/components/scout/scout-drawer";
 
@@ -88,15 +89,7 @@ export function TopBar({
           </span>
         ))}
       </nav>
-      <label className="relative hidden min-w-[220px] max-w-sm flex-1 md:block">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" strokeWidth={1.5} />
-        <input
-          placeholder="Search WorkforceOS"
-          className="w-full rounded-[6px] border border-border bg-surface-muted py-1.5 pl-9 pr-3 text-sm placeholder:text-muted-foreground"
-          disabled
-          aria-label="Global search (coming later)"
-        />
-      </label>
+      <GlobalSearch />
       <div className="ml-auto flex shrink-0 items-center gap-1">
         <NotificationBell unreadCount={unreadNotifications} />
         <ScoutLauncher enabled={scoutEnabled} />
