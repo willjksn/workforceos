@@ -5,7 +5,9 @@ import { agentRuns, integrationEvents } from "../../db/schema";
 import { SEED_VERSION } from "../../db/seed/constants";
 import { getServerEnv, isClerkConfigured, isInngestConfigured } from "../env";
 import { getIntegrationHubStatus } from "../integrations/hub";
-import { isCheckrConfigured, isDrugScreenConfigured, isGoogleConfigured, isMicrosoftConfigured, isResendConfigured } from "../integrations/credentials";
+import { calendarProviderStatus } from "../calendar";
+import { isCheckrConfigured, isCheckrLiveApiWired, isGoogleConfigured, isMicrosoftConfigured, isResendConfigured } from "../integrations/credentials";
+import { drugScreenProviderStatus } from "../drug-screens";
 import { getStorageStatus } from "../storage";
 
 export type HealthCheck = {
@@ -135,30 +137,35 @@ export async function getSystemHealth() {
       title: "Resend",
       ok: true,
       detail: isResendConfigured()
-        ? "Transactional email is configured."
-        : "NOT CONFIGURED — mock EmailProvider is used until RESEND_API_KEY and RESEND_FROM_EMAIL are set.",
+        ? "RESEND_API_KEY and RESEND_FROM_EMAIL are set. Sending still requires a verified Resend domain; DNS is not assumed complete."
+        : env.NODE_ENV === "production"
+          ? "NOT CONFIGURED — production transactional email fails clearly until RESEND_API_KEY and RESEND_FROM_EMAIL are set."
+          : "NOT CONFIGURED — MockEmailProvider is used in development/test until RESEND_API_KEY and RESEND_FROM_EMAIL are set.",
     },
     {
       title: "Calendar provider",
       ok: true,
-      detail:
-        isMicrosoftConfigured() || isGoogleConfigured()
-          ? "Microsoft/Google credentials are present. Live interview scheduling still uses the CalendarProvider adapter (mock until OAuth scheduling is enabled)."
-          : "NOT CONFIGURED — CalendarProvider mock is used for interview events.",
+      detail: (() => {
+        const calendar = calendarProviderStatus();
+        const workspace = isMicrosoftConfigured() || isGoogleConfigured()
+          ? " Microsoft/Google workspace credentials are present as Integration Hub references only."
+          : "";
+        return `${calendar.detail}${workspace}`;
+      })(),
     },
     {
       title: "Background checks",
       ok: true,
-      detail: isCheckrConfigured()
-        ? "Checkr credentials are present. Human review is still required."
-        : "NOT CONFIGURED — manual BackgroundCheckProvider mock only.",
+      detail: isCheckrLiveApiWired()
+        ? "Checkr live API is wired. Human review is still required. Results never auto-reject."
+        : isCheckrConfigured()
+          ? "CHECKR_API_KEY is set, but the Checkr HTTP API is not wired. Manual background-check workflow only. Results never auto-reject."
+          : "NOT CONFIGURED — ManualBackgroundCheckProvider only. Checkr is not sandbox-ready. Results never auto-reject.",
     },
     {
       title: "Drug screens",
       ok: true,
-      detail: isDrugScreenConfigured()
-        ? "Drug-screen provider credentials are present."
-        : "NOT CONFIGURED — manual DrugScreenProvider only. No vendor is selected.",
+      detail: drugScreenProviderStatus().detail,
     },
     {
       title: "Public careers API",

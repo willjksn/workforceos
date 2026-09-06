@@ -29,9 +29,9 @@ WorkforceOS deploys the existing GitHub repository `willjksn/workforceos` to Ver
 - [ ] Storage variables configured if file uploads are required (`STORAGE_PROVIDER=s3` plus `S3_*`)
 - [ ] `NEXT_PUBLIC_APP_URL` set per environment (preview Vercel URL; production `https://app.pieronepartners.com`)
 - [ ] `SENTRY_DSN` set when error monitoring is required (optional; logs still redact secrets/PII)
-- [ ] Resend: `RESEND_API_KEY`, `RESEND_FROM_EMAIL` after domain verification (`careers@` / `noreply@pieronepartners.com`)
+- [ ] Resend: `RESEND_API_KEY`, `RESEND_FROM_EMAIL` after domain verification (`careers@` / `noreply@pieronepartners.com`). DNS is not assumed complete. Production without these keys fails clearly.
 - [ ] `PUBLIC_CAREERS_URL` when pieronepartners.com/careers is live
-- [ ] Checkr keys only if the background adapter is going live (sandbox vs production separated)
+- [ ] Do not treat `CHECKR_API_KEY` as a live integration. Checkr HTTP API is not wired. Manual background-check workflow only.
 - [ ] Do not set unused `DRUG_SCREEN_*` until a vendor is selected
 
 ## Data
@@ -46,7 +46,7 @@ WorkforceOS deploys the existing GitHub repository `willjksn/workforceos` to Ver
 - [ ] `npm run lint` passes
 - [ ] `npm run typecheck` passes
 - [ ] `npm test` passes
-- [ ] Phase tests pass (`npm run test:db-acceptance`, `npm run test:phase2` through `npm run test:phase9`, `npm run test:smoke`)
+- [ ] Phase tests pass (`npm run test:db-acceptance`, `npm run test:phase2` through `npm run test:phase10`, `npm run test:smoke`)
 - [ ] `npm run build` passes
 
 ## Preview smoke

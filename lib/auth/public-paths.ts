@@ -16,6 +16,8 @@ export const PROTECTED_ROUTE_SAMPLES = [
   "/app/jobs",
   "/app/military",
   "/app/admin/system-health",
+  "/app/onboarding",
+  "/api/files",
 ] as const;
 
 export function isPublicPath(pathname: string) {

@@ -166,10 +166,11 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 
 - There is one global `candidates` record. `applications` are Candidate↔Job relationships. Never duplicate a person because they applied twice or later became an employee.
 - Jobs may be `internal`, `client`, or `skillbridge`. Approved jobs publish through `job_postings` to `/careers` and `/api/public/v1/jobs`. Public payloads omit confidential client identity, compensation internals, and recruiter notes.
-- Public applications enter WorkforceOS through `/api/public/v1/applications` (validation, rate limit, file checks). The public site never receives database credentials.
-- Interview scheduling uses `CalendarProvider` (Microsoft/Google when connected; mock otherwise). Transactional system email uses `EmailProvider` / Resend. Recruiter mailboxes stay on Microsoft/Google.
-- Background and drug screening use provider adapters (`BackgroundCheckProvider`, `DrugScreenProvider`). Checkr is the preferred future background provider. Drug screening is NOT CONFIGURED until a vendor is selected. Humans review results; adapters never auto-reject.
-- Offers reuse `offers` with versions. Onboarding uses templates and Inngest reminders. `employees` link to `candidate_id`; the Talent Network record remains. Phase 10 is not payroll, benefits, performance, timekeeping, or a full HRIS.
+- Public applications enter WorkforceOS through `/api/public/v1/applications` (validation, rate limit, multipart resume upload for PDF/DOC/DOCX). Binaries go to `StorageProvider`; PostgreSQL stores `files` metadata only. The public site never receives database credentials.
+- Interview scheduling uses `CalendarProvider`. Phase 10 is **mock only** (`liveScheduling` is always false). Microsoft/Google credentials, when present, are Integration Hub workspace references — not live OAuth slot booking. Candidate self-scheduling is follow-on.
+- Transactional system email uses `EmailProvider` / Resend when `RESEND_API_KEY` and `RESEND_FROM_EMAIL` are set. Production without those keys fails clearly. Recruiter mailboxes stay on Microsoft/Google.
+- Background and drug screening use provider adapters (`BackgroundCheckProvider`, `DrugScreenProvider`). Checkr is the preferred future background provider but the HTTP API is **not wired** (not sandbox-ready). Drug screening is **NOT CONFIGURED**; `ManualDrugScreenProvider` only. Humans review results; adapters never auto-reject.
+- Offers reuse `offers` with versions. Onboarding uses templates and Inngest reminders. Internal `/app/onboarding` completes tasks without a candidate portal. `/onboarding/access` is reserved follow-on. `employees` link to `candidate_id`; the Talent Network record remains. Phase 10 is not payroll, benefits, performance, timekeeping, or a full HRIS.
 - Scout can search hiring queues and draft messages. Scout cannot independently reject candidates or send transactional email.
 
 ## Related documents

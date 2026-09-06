@@ -6,9 +6,13 @@ import { z } from "zod";
 import { requireAppPermission } from "@/lib/auth/guard";
 import {
   advanceApplication,
+  completeOnboardingTask,
   createRequisition,
   nurtureApplication,
   rejectApplication,
+  requestBackgroundCheck,
+  requestDrugScreen,
+  startOnboarding,
   submitRequisitionForApproval,
 } from "@/lib/hiring/service";
 import { AuthorizationError } from "@/lib/rbac/permissions";
@@ -73,6 +77,54 @@ export async function nurtureApplicationAction(_state: ActionState, formData: Fo
     const principal = await requireAppPermission("applications.review");
     const applicationId = String(formData.get("applicationId") ?? "");
     await nurtureApplication({ principal, applicationId });
+    redirect(`/app/recruiting/applications/${applicationId}`);
+  } catch (error) {
+    if (error && typeof error === "object" && "digest" in error) throw error;
+    return fail(error);
+  }
+}
+
+export async function startOnboardingAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    const principal = await requireAppPermission("onboarding.manage");
+    const applicationId = String(formData.get("applicationId") ?? "");
+    await startOnboarding({ principal, applicationId });
+    redirect("/app/onboarding");
+  } catch (error) {
+    if (error && typeof error === "object" && "digest" in error) throw error;
+    return fail(error);
+  }
+}
+
+export async function completeOnboardingTaskAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    const principal = await requireAppPermission("onboarding.complete");
+    const taskId = String(formData.get("taskId") ?? "");
+    await completeOnboardingTask({ principal, taskId });
+    redirect("/app/onboarding");
+  } catch (error) {
+    if (error && typeof error === "object" && "digest" in error) throw error;
+    return fail(error);
+  }
+}
+
+export async function requestBackgroundCheckAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    const principal = await requireAppPermission("background_checks.request");
+    const applicationId = String(formData.get("applicationId") ?? "");
+    await requestBackgroundCheck({ principal, applicationId });
+    redirect(`/app/recruiting/applications/${applicationId}`);
+  } catch (error) {
+    if (error && typeof error === "object" && "digest" in error) throw error;
+    return fail(error);
+  }
+}
+
+export async function requestDrugScreenAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    const principal = await requireAppPermission("drug_screens.request");
+    const applicationId = String(formData.get("applicationId") ?? "");
+    await requestDrugScreen({ principal, applicationId });
     redirect(`/app/recruiting/applications/${applicationId}`);
   } catch (error) {
     if (error && typeof error === "object" && "digest" in error) throw error;

@@ -1,6 +1,6 @@
 # Data Dictionary
 
-Status: Phase 9 Scout + SkillBridge operations  
+Status: Phase 10 careers, ATS, and onboarding  
 Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 
 ## Conventions
@@ -52,7 +52,7 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | `research_cache` | Short-lived provider response cache keyed by query. |
 | `ai_circuit_breakers` | Repeated-failure circuit breakers. |
 | `meeting_extractions` | Meeting intelligence drafts pending human approval. |
-| `files` | Object-storage metadata only. Binaries are not stored in PostgreSQL. `retention_until` supports later deletion jobs. |
+| `files` | Object-storage metadata only. Binaries are not stored in PostgreSQL. Public application resumes use `StorageProvider` with `privacy_class=restricted_pii`. `retention_until` supports later deletion jobs. |
 | `privacy_deletion_requests` | Controlled candidate privacy deletion (anonymize Restricted PII). Distinct from `archived_at`. |
 | `rate_limit_buckets` | Per-key request windows for AI, export, search, webhook, and auth-sensitive actions. |
 | `integration_connections` | Provider connection configuration status. |

@@ -18,7 +18,7 @@ Stage changes append `application_stage_history`.
 
 ## Review
 
-`/app/recruiting/applications` and `/app/recruiting/applications/[applicationId]`. Material dispositions require `applications.reject` and an allowlisted reason. Scout cannot reject with `source=scout`.
+`/app/recruiting/applications` and `/app/recruiting/applications/[applicationId]`. Recruiters with `candidate_pii.read` can open the stored resume from `/api/files/[fileId]`. Material dispositions require `applications.reject` and an allowlisted reason. Scout cannot reject with `source=scout`.
 
 ## Matching
 

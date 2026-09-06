@@ -5,6 +5,20 @@ import { FileValidationError } from "@/lib/hiring/files";
 import { HiringError, submitPublicApplication } from "@/lib/hiring/service";
 import { RATE_LIMITS, RateLimitError, assertRateLimit } from "@/lib/security/rate-limit";
 
+const sourceEnum = z.enum([
+  "career_site",
+  "referral",
+  "recruiter",
+  "linkedin",
+  "indeed",
+  "military_event",
+  "skillbridge",
+  "client_referral",
+  "internal",
+  "agency",
+  "other",
+]);
+
 const bodySchema = z.object({
   slug: z.string().min(1).max(120),
   firstName: z.string().min(1).max(80),
@@ -16,19 +30,7 @@ const bodySchema = z.object({
   region: z.string().max(80).optional(),
   country: z.string().max(80).optional(),
   linkedinUrl: z.string().url().max(300).optional().or(z.literal("")),
-  source: z.enum([
-    "career_site",
-    "referral",
-    "recruiter",
-    "linkedin",
-    "indeed",
-    "military_event",
-    "skillbridge",
-    "client_referral",
-    "internal",
-    "agency",
-    "other",
-  ]).optional(),
+  source: sourceEnum.optional(),
   answers: z.array(z.object({ key: z.string().max(80), answer: z.string().max(4000) })).optional(),
   honeypot: z.string().optional(),
   branch: z.string().max(40).optional(),
@@ -36,6 +38,70 @@ const bodySchema = z.object({
   rank: z.string().max(40).optional(),
   installation: z.string().max(120).optional(),
 });
+
+async function resumeFromFile(file: File | null) {
+  if (!file || file.size <= 0) return null;
+  const body = new Uint8Array(await file.arrayBuffer());
+  return {
+    filename: file.name || "resume.pdf",
+    mimeType: file.type || "application/octet-stream",
+    body,
+  };
+}
+
+function optionalText(value: FormDataEntryValue | null) {
+  const text = typeof value === "string" ? value.trim() : "";
+  return text || undefined;
+}
+
+async function parseApplicationRequest(request: Request) {
+  const contentType = request.headers.get("content-type") ?? "";
+  if (contentType.includes("multipart/form-data")) {
+    const form = await request.formData();
+    const resumeEntry = form.get("resume");
+    const parsed = bodySchema.safeParse({
+      slug: optionalText(form.get("slug")) ?? "",
+      firstName: optionalText(form.get("firstName")) ?? "",
+      lastName: optionalText(form.get("lastName")) ?? "",
+      preferredName: optionalText(form.get("preferredName")),
+      email: optionalText(form.get("email")) ?? "",
+      phone: optionalText(form.get("phone")),
+      city: optionalText(form.get("city")),
+      region: optionalText(form.get("region")),
+      country: optionalText(form.get("country")),
+      linkedinUrl: optionalText(form.get("linkedinUrl")) ?? "",
+      source: optionalText(form.get("source")),
+      honeypot: optionalText(form.get("honeypot")) ?? optionalText(form.get("company_website")),
+      branch: optionalText(form.get("branch")),
+      mos: optionalText(form.get("mos")),
+      rank: optionalText(form.get("rank")),
+      installation: optionalText(form.get("installation")),
+      answers: [
+        { key: "work_authorization", answer: optionalText(form.get("workAuthorization")) ?? "" },
+        { key: "how_heard", answer: optionalText(form.get("howHeard")) ?? "" },
+      ].filter((item) => item.answer),
+    });
+    if (!parsed.success) {
+      return { error: parsed.error.issues[0]?.message ?? "Invalid application" } as const;
+    }
+    return {
+      data: parsed.data,
+      resume: await resumeFromFile(resumeEntry instanceof File ? resumeEntry : null),
+    } as const;
+  }
+
+  let json: unknown;
+  try {
+    json = await request.json();
+  } catch {
+    return { error: "Invalid JSON" } as const;
+  }
+  const parsed = bodySchema.safeParse(json);
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid application" } as const;
+  }
+  return { data: parsed.data, resume: null } as const;
+}
 
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
@@ -48,21 +114,16 @@ export async function POST(request: Request) {
     throw error;
   }
 
-  let json: unknown;
-  try {
-    json = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-  const parsed = bodySchema.safeParse(json);
-  if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid application" }, { status: 400 });
+  const parsed = await parseApplicationRequest(request);
+  if ("error" in parsed) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
   try {
     const result = await submitPublicApplication({
       ...parsed.data,
       linkedinUrl: parsed.data.linkedinUrl || null,
+      resume: parsed.resume,
       ip,
     });
     return NextResponse.json({
@@ -72,7 +133,8 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     if (error instanceof HiringError || error instanceof FileValidationError) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      const storageFailure = /storage is not configured|not implemented/i.test(error.message);
+      return NextResponse.json({ error: error.message }, { status: storageFailure ? 503 : 400 });
     }
     throw error;
   }

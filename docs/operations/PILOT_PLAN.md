@@ -24,7 +24,7 @@ Invite in Clerk (public sign-up off). After first sign-in, grant Managing Partne
 2. Create one real contact.
 3. Create one real opportunity (one launch service).
 4. Add one real candidate (not a SkillBridge duplicate person).
-5. Upload a resume only after storage is actually writable (local in development; R2/S3 is not implemented yet — see limitations).
+5. Upload a resume only after storage is actually writable (local in development; production needs STORAGE_PROVIDER=s3 and a working R2/S3 adapter — see post-launch backlog).
 6. Confirm the record appears on Command Center / Talent and an audit event exists.
 
 ## Week 2 — SkillBridge (small set)

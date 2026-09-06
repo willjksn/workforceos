@@ -78,7 +78,7 @@ export const INTEGRATION_CATALOG: IntegrationCatalogEntry[] = [
     id: "checkr",
     name: "Checkr",
     group: "Background checks",
-    summary: "Background screening through a provider adapter. Human review is required; results are not hiring decisions.",
+    summary: "Preferred future background provider. HTTP API is not wired in Phase 10. Manual workflow only. Human review required; results never auto-reject.",
   },
   {
     id: "resend",
@@ -90,7 +90,7 @@ export const INTEGRATION_CATALOG: IntegrationCatalogEntry[] = [
     id: "drug-screen",
     name: "Drug screen",
     group: "Pre-employment",
-    summary: "Provider-neutral drug-screen adapter. Unconfigured: manual/mock workflow only.",
+    summary: "Provider-neutral drug-screen adapter. No vendor is selected. ManualDrugScreenProvider only.",
   },
 ];
 

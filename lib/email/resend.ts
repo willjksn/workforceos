@@ -10,12 +10,30 @@ export class ResendEmailProvider implements EmailProvider {
   constructor(apiKey: string, fromEmail: string) {
     this.apiKey = apiKey;
     this.fromEmail = fromEmail;
-    this.configured = Boolean(apiKey);
+    this.configured = Boolean(apiKey && fromEmail);
   }
 
   async sendTransactional(input: SendTransactionalInput): Promise<SendResult> {
     const env = getServerEnv();
     const from = env.RESEND_FROM_EMAIL ?? this.fromEmail;
+    if (!this.apiKey) {
+      return {
+        provider: "resend",
+        mock: false,
+        providerMessageId: "",
+        status: "failed",
+        error: "RESEND_API_KEY is not set. Transactional email cannot send.",
+      };
+    }
+    if (!from) {
+      return {
+        provider: "resend",
+        mock: false,
+        providerMessageId: "",
+        status: "failed",
+        error: "RESEND_FROM_EMAIL is not set. Use a verified Resend sending address after DNS is complete.",
+      };
+    }
     const replyTo = input.replyTo ?? env.RESEND_REPLY_TO_EMAIL;
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -45,7 +63,7 @@ export class ResendEmailProvider implements EmailProvider {
     return {
       provider: "resend",
       mock: false,
-      providerMessageId: payload.id ?? `resend-${Date.now()}`,
+      providerMessageId: payload.id ?? "",
       status: "sent",
     };
   }

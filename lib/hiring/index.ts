@@ -34,6 +34,9 @@ export {
   submitRequisitionForApproval,
   submitScorecard,
   toPublicJob,
+  completeOnboardingTask,
+  downloadStoredFile,
+  listOnboardingQueue,
 } from "./service";
 export { HiringError } from "./service";
 export { matchExistingCandidate, normalizeEmail, normalizePhone } from "./dedupe";

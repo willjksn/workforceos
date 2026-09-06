@@ -47,7 +47,7 @@ import { createJobWithInternalSearch } from "../repositories/recruiting";
 import { createSkillBridgeOpportunity, createSkillBridgeProfile } from "../skillbridge/service";
 import { getStorageProvider } from "../storage";
 import { matchExistingCandidate, normalizeEmail } from "./dedupe";
-import { validateResumeUpload } from "./files";
+import { sanitizeResumeFilename, validateResumeUpload } from "./files";
 import { assertDispositionReason, defaultPipelineName, type JobContextType } from "./stages";
 import {
   applicationReceivedEmail,
@@ -103,6 +103,10 @@ async function recordEmailEvent(input: {
     })
     .returning();
   return row;
+}
+
+function emailRecordStatus(status: "queued" | "sent" | "failed") {
+  return status === "failed" ? ("failed" as const) : ("sent" as const);
 }
 
 export async function createRequisition(input: {
@@ -553,13 +557,23 @@ export async function submitPublicApplication(input: PublicApplicationInput) {
       body: input.resume.body,
     });
     const storage = getStorageProvider();
-    const key = `applications/${job.organizationId}/${candidateId}/${Date.now()}-${input.resume.filename}`;
-    const stored = await storage.upload({
-      key,
-      body: input.resume.body,
-      mimeType: checked.mimeType,
-      filename: input.resume.filename,
-    });
+    const safeName = sanitizeResumeFilename(input.resume.filename);
+    const key = `applications/${job.organizationId}/${candidateId}/${Date.now()}-${safeName}`;
+    let stored;
+    try {
+      stored = await storage.upload({
+        key,
+        body: input.resume.body,
+        mimeType: checked.mimeType,
+        filename: safeName,
+      });
+    } catch (error) {
+      throw new HiringError(
+        error instanceof Error
+          ? error.message
+          : "Resume storage failed. Object storage is not configured for this environment.",
+      );
+    }
     const [file] = await db
       .insert(files)
       .values({
@@ -568,7 +582,8 @@ export async function submitPublicApplication(input: PublicApplicationInput) {
         storageKey: stored.key,
         filename: input.resume.filename,
         mimeType: checked.mimeType,
-        sizeBytes: input.resume.body.byteLength,
+        sizeBytes: stored.sizeBytes,
+        checksum: stored.checksum ?? null,
         privacyClass: "restricted_pii",
       })
       .returning();
@@ -780,6 +795,20 @@ export async function getApplicationDetail(principal: Principal, applicationId: 
     ? await db.select().from(backgroundChecks).where(eq(backgroundChecks.applicationId, applicationId))
     : [];
   const drug = canDrug ? await db.select().from(drugScreens).where(eq(drugScreens.applicationId, applicationId)) : [];
+  const resumeAnswer = answers.find((item) => item.questionKey === "resume" && item.fileId);
+  const resumeFileId = canPii ? (resumeAnswer?.fileId ?? row.candidate.currentResumeFileId) : null;
+  let resumeFile: { id: string; filename: string; mimeType: string; sizeBytes: number } | null = null;
+  if (resumeFileId) {
+    const [file] = await db.select().from(files).where(eq(files.id, resumeFileId)).limit(1);
+    if (file && file.organizationId === principal.organizationId) {
+      resumeFile = {
+        id: file.id,
+        filename: file.filename,
+        mimeType: file.mimeType,
+        sizeBytes: file.sizeBytes,
+      };
+    }
+  }
   return {
     application: row.application,
     job: row.job,
@@ -788,17 +817,20 @@ export async function getApplicationDetail(principal: Principal, applicationId: 
       ? answers
       : answers.filter((item) => !["email", "phone", "resume"].includes(item.questionKey)),
     history,
+    resumeFile,
     backgroundChecks: bg.map((item) => ({
       id: item.id,
       status: item.status,
       reviewStatus: item.reviewStatus,
       resultSummary: canBg ? item.resultSummary : null,
+      provider: item.provider,
     })),
     drugScreens: drug.map((item) => ({
       id: item.id,
       status: item.status,
       resultStatus: canDrug ? item.resultStatus : null,
       notes: null,
+      provider: item.provider,
     })),
   };
 }
@@ -994,8 +1026,9 @@ export async function scheduleInterview(input: {
       recipient: candidate.email,
       entityType: "interview",
       entityId: interview.id,
-      status: "sent",
+      status: emailRecordStatus(sent.status),
       providerMessageId: sent.providerMessageId,
+      error: sent.error ?? null,
     });
   }
   await recordAuditEvent({
@@ -1054,10 +1087,11 @@ export async function sendInterviewReminder(input: { interviewId: string; window
     recipient: candidate.email,
     entityType: "interview",
     entityId: interview.id,
-    status: "sent",
+    status: emailRecordStatus(sent.status),
     providerMessageId: sent.providerMessageId,
+    error: sent.error ?? null,
   });
-  return { sent: true, idempotent: false };
+  return { sent: sent.status !== "failed", idempotent: false };
 }
 
 export function resetInterviewReminderIdempotency() {
@@ -1346,8 +1380,9 @@ export async function sendHiringOffer(input: { principal: Principal; offerId: st
       recipient: candidate.email,
       entityType: "offer",
       entityId: offer.id,
-      status: "sent",
+      status: emailRecordStatus(sent.status),
       providerMessageId: sent.providerMessageId,
+      error: sent.error ?? null,
     });
   }
   return updated;
@@ -1414,6 +1449,12 @@ export async function startOnboarding(input: { principal: Principal; application
   const db = getDb();
   const [application] = await db.select().from(applications).where(eq(applications.id, input.applicationId)).limit(1);
   if (!application) throw new HiringError("Application not found");
+  const [existingInstance] = await db
+    .select()
+    .from(onboardingInstances)
+    .where(eq(onboardingInstances.applicationId, application.id))
+    .limit(1);
+  if (existingInstance) throw new HiringError("Onboarding has already been started for this application.");
   const template = await ensureDefaultOnboardingTemplate(input.principal.organizationId);
   const [instance] = await db
     .insert(onboardingInstances)
@@ -1464,8 +1505,9 @@ export async function startOnboarding(input: { principal: Principal; application
       recipient: candidate.email,
       entityType: "onboarding_instance",
       entityId: instance.id,
-      status: "sent",
+      status: emailRecordStatus(sent.status),
       providerMessageId: sent.providerMessageId,
+      error: sent.error ?? null,
     });
   }
   await recordAuditEvent({
@@ -1483,6 +1525,21 @@ export async function createEmployeeFromApplication(input: { principal: Principa
   const db = getDb();
   const [application] = await db.select().from(applications).where(eq(applications.id, input.applicationId)).limit(1);
   if (!application) throw new HiringError("Application not found");
+  const [existing] = await db
+    .select()
+    .from(employees)
+    .where(
+      and(
+        eq(employees.organizationId, input.principal.organizationId),
+        eq(employees.candidateId, application.candidateId),
+      ),
+    )
+    .limit(1);
+  if (existing) {
+    await changeStage(input.principal, application.id, "hired", "hired", "human");
+    await db.update(applications).set({ status: "hired", updatedAt: new Date() }).where(eq(applications.id, application.id));
+    return existing;
+  }
   const [job] = await db.select().from(jobs).where(eq(jobs.id, application.jobId)).limit(1);
   const [row] = await db
     .insert(employees)
@@ -1519,6 +1576,73 @@ export async function assertFileAccess(principal: Principal, fileId: string) {
     throw new HiringError("Missing permission: candidate_pii.read");
   }
   return file;
+}
+
+export async function downloadStoredFile(principal: Principal, fileId: string) {
+  const file = await assertFileAccess(principal, fileId);
+  const storage = getStorageProvider();
+  const body = await storage.download(file.storageKey);
+  return { file, body };
+}
+
+export async function listOnboardingQueue(principal: Principal) {
+  requirePermission(principal, "onboarding.read");
+  const db = getDb();
+  const instances = await db
+    .select({
+      instance: onboardingInstances,
+      application: applications,
+      candidate: candidates,
+      job: jobs,
+    })
+    .from(onboardingInstances)
+    .innerJoin(applications, eq(applications.id, onboardingInstances.applicationId))
+    .innerJoin(candidates, eq(candidates.id, applications.candidateId))
+    .innerJoin(jobs, eq(jobs.id, applications.jobId))
+    .where(eq(onboardingInstances.organizationId, principal.organizationId))
+    .orderBy(desc(onboardingInstances.createdAt))
+    .limit(50);
+  const instanceIds = instances.map((row) => row.instance.id);
+  const tasks = instanceIds.length
+    ? await db.select().from(onboardingTasks).where(inArray(onboardingTasks.instanceId, instanceIds))
+    : [];
+  const canPii = can(principal, "candidate_pii.read");
+  return instances.map((row) => ({
+    instance: row.instance,
+    application: row.application,
+    job: row.job,
+    candidate: presentCandidate(row.candidate, canPii),
+    tasks: tasks.filter((task) => task.instanceId === row.instance.id),
+  }));
+}
+
+export async function completeOnboardingTask(input: { principal: Principal; taskId: string }) {
+  requirePermission(input.principal, "onboarding.complete");
+  const db = getDb();
+  const [task] = await db.select().from(onboardingTasks).where(eq(onboardingTasks.id, input.taskId)).limit(1);
+  if (!task) throw new HiringError("Onboarding task not found");
+  const [instance] = await db
+    .select()
+    .from(onboardingInstances)
+    .where(eq(onboardingInstances.id, task.instanceId))
+    .limit(1);
+  if (!instance || instance.organizationId !== input.principal.organizationId) {
+    throw new HiringError("Onboarding task not found");
+  }
+  const [updated] = await db
+    .update(onboardingTasks)
+    .set({ status: "completed", completedAt: new Date(), updatedAt: new Date() })
+    .where(eq(onboardingTasks.id, task.id))
+    .returning();
+  await recordAuditEvent({
+    organizationId: input.principal.organizationId,
+    actor: { type: "human", userId: input.principal.id },
+    action: "onboarding_task.completed",
+    recordType: "onboarding_task",
+    recordId: task.id,
+    after: { instanceId: instance.id, title: task.title },
+  });
+  return updated;
 }
 
 export async function getHiringMetrics(organizationId: string) {

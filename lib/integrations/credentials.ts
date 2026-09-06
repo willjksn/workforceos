@@ -32,15 +32,20 @@ export function isGoogleConfigured() {
 }
 
 export function isResendConfigured() {
-  return Boolean(integrationCredential("RESEND_API_KEY"));
+  return Boolean(integrationCredential("RESEND_API_KEY") && integrationCredential("RESEND_FROM_EMAIL"));
 }
 
 export function isCheckrConfigured() {
   return Boolean(integrationCredential("CHECKR_API_KEY"));
 }
 
+/** Live Checkr HTTP API is not implemented. A key alone is not a working integration. */
+export function isCheckrLiveApiWired() {
+  return false;
+}
+
 export function isDrugScreenConfigured() {
-  return Boolean(integrationCredential("DRUG_SCREEN_API_KEY"));
+  return false;
 }
 
 export function webhookSecret(provider: string) {

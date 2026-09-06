@@ -9,30 +9,12 @@ export function PublicApplyForm({ slug, jobTitle }: { slug: string; jobTitle: st
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("submitting");
-    const form = new FormData(event.currentTarget);
-    const payload = {
-      slug,
-      firstName: String(form.get("firstName") ?? ""),
-      lastName: String(form.get("lastName") ?? ""),
-      preferredName: String(form.get("preferredName") ?? ""),
-      email: String(form.get("email") ?? ""),
-      phone: String(form.get("phone") ?? ""),
-      city: String(form.get("city") ?? ""),
-      region: String(form.get("region") ?? ""),
-      country: String(form.get("country") ?? "US"),
-      linkedinUrl: String(form.get("linkedinUrl") ?? ""),
-      honeypot: String(form.get("company_website") ?? ""),
-      branch: String(form.get("branch") ?? ""),
-      mos: String(form.get("mos") ?? ""),
-      answers: [
-        { key: "work_authorization", answer: String(form.get("workAuthorization") ?? "") },
-        { key: "how_heard", answer: String(form.get("howHeard") ?? "") },
-      ],
-    };
+    const form = event.currentTarget;
+    const payload = new FormData(form);
+    payload.set("slug", slug);
     const response = await fetch("/api/public/v1/applications", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: payload,
     });
     const data = (await response.json()) as { error?: string; message?: string };
     if (!response.ok) {
@@ -56,7 +38,7 @@ export function PublicApplyForm({ slug, jobTitle }: { slug: string; jobTitle: st
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4 border border-[#DCE2E7] bg-white p-6">
+    <form onSubmit={onSubmit} className="space-y-4 border border-[#DCE2E7] bg-white p-6" encType="multipart/form-data">
       <input name="company_website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="text-sm text-[#102A3A]">
@@ -92,6 +74,17 @@ export function PublicApplyForm({ slug, jobTitle }: { slug: string; jobTitle: st
           <input name="linkedinUrl" className="mt-1 w-full border border-[#DCE2E7] px-3 py-2" />
         </label>
       </div>
+      <label className="block text-sm text-[#102A3A]">
+        Resume (PDF, DOC, or DOCX)
+        <input
+          required
+          type="file"
+          name="resume"
+          accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          className="mt-1 w-full border border-[#DCE2E7] px-3 py-2 text-sm"
+        />
+        <span className="mt-1 block text-xs text-[#6B7280]">Maximum 10MB. Files are stored privately. We do not store the binary in the database.</span>
+      </label>
       <label className="block text-sm text-[#102A3A]">
         Are you authorized to work in the United States?
         <select name="workAuthorization" className="mt-1 w-full border border-[#DCE2E7] px-3 py-2">

@@ -28,6 +28,7 @@ export type CalendarEventRecord = {
 export interface CalendarProvider {
   readonly name: string;
   readonly configured: boolean;
+  readonly liveScheduling: boolean;
   getAvailability(input: { owner: string; from: Date; to: Date; durationMinutes: number }): Promise<CalendarSlot[]>;
   createEvent(input: CalendarEventInput): Promise<CalendarEventRecord>;
   updateEvent(externalEventId: string, input: Partial<CalendarEventInput>): Promise<CalendarEventRecord>;

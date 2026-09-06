@@ -80,6 +80,105 @@ export function onboardingWelcomeEmail(input: { firstName: string; startDate?: s
   };
 }
 
+export function interviewConfirmationEmail(input: { firstName: string; jobTitle: string; when: Date }) {
+  return {
+    subject: `Interview confirmed — ${input.jobTitle}`,
+    html: brandedEmail({
+      heading: "Interview confirmed",
+      bodyHtml: `<p>Hello ${escapeHtml(input.firstName)},</p><p>Your interview for <strong>${escapeHtml(input.jobTitle)}</strong> is confirmed for ${input.when.toLocaleString()}.</p>`,
+    }),
+    text: `Interview confirmed for ${input.jobTitle} on ${input.when.toLocaleString()}.`,
+  };
+}
+
+export function interviewRescheduledEmail(input: { firstName: string; jobTitle: string; when: Date }) {
+  return {
+    subject: `Interview rescheduled — ${input.jobTitle}`,
+    html: brandedEmail({
+      heading: "Interview rescheduled",
+      bodyHtml: `<p>Hello ${escapeHtml(input.firstName)},</p><p>Your interview for <strong>${escapeHtml(input.jobTitle)}</strong> was rescheduled to ${input.when.toLocaleString()}.</p>`,
+    }),
+    text: `Interview for ${input.jobTitle} rescheduled to ${input.when.toLocaleString()}.`,
+  };
+}
+
+export function interviewCancelledEmail(input: { firstName: string; jobTitle: string }) {
+  return {
+    subject: `Interview cancelled — ${input.jobTitle}`,
+    html: brandedEmail({
+      heading: "Interview cancelled",
+      bodyHtml: `<p>Hello ${escapeHtml(input.firstName)},</p><p>Your interview for <strong>${escapeHtml(input.jobTitle)}</strong> has been cancelled. We will contact you if a new time is offered.</p>`,
+    }),
+    text: `Interview for ${input.jobTitle} has been cancelled.`,
+  };
+}
+
+export function resumeRequestEmail(input: { firstName: string; jobTitle: string }) {
+  return {
+    subject: `Resume needed — ${input.jobTitle}`,
+    html: brandedEmail({
+      heading: "Resume needed",
+      bodyHtml: `<p>Hello ${escapeHtml(input.firstName)},</p><p>Please send a PDF, DOC, or DOCX resume for <strong>${escapeHtml(input.jobTitle)}</strong> so we can continue review.</p>`,
+    }),
+    text: `Please send a PDF, DOC, or DOCX resume for ${input.jobTitle}.`,
+  };
+}
+
+export function applicationUpdateEmail(input: { firstName: string; jobTitle: string; message: string }) {
+  return {
+    subject: `Application update — ${input.jobTitle}`,
+    html: brandedEmail({
+      heading: "Application update",
+      bodyHtml: `<p>Hello ${escapeHtml(input.firstName)},</p><p>${escapeHtml(input.message)}</p>`,
+    }),
+    text: input.message,
+  };
+}
+
+export function backgroundCheckNextStepEmail(input: { firstName: string }) {
+  return {
+    subject: "Background check — next step",
+    html: brandedEmail({
+      heading: "Background check next step",
+      bodyHtml: `<p>Hello ${escapeHtml(input.firstName)},</p><p>A background check may be required for this role. A recruiter will send the next step. This message is not a hiring decision.</p>`,
+    }),
+    text: "A recruiter will send the next step for a background check. This is not a hiring decision.",
+  };
+}
+
+export function drugScreenNextStepEmail(input: { firstName: string }) {
+  return {
+    subject: "Drug screen — next step",
+    html: brandedEmail({
+      heading: "Drug screen next step",
+      bodyHtml: `<p>Hello ${escapeHtml(input.firstName)},</p><p>If a drug screen is required, a recruiter will send collection instructions. WorkforceOS uses a manual workflow until a vendor is selected.</p>`,
+    }),
+    text: "If a drug screen is required, a recruiter will send collection instructions.",
+  };
+}
+
+export function onboardingReminderEmail(input: { firstName: string; taskTitle: string }) {
+  return {
+    subject: "Onboarding reminder — PierOne Partners",
+    html: brandedEmail({
+      heading: "Onboarding reminder",
+      bodyHtml: `<p>Hello ${escapeHtml(input.firstName)},</p><p>This is a reminder that <strong>${escapeHtml(input.taskTitle)}</strong> is still open.</p>`,
+    }),
+    text: `Reminder: ${input.taskTitle} is still open.`,
+  };
+}
+
+export function startDateReminderEmail(input: { firstName: string; startDate: string }) {
+  return {
+    subject: "Start date reminder — PierOne Partners",
+    html: brandedEmail({
+      heading: "Start date reminder",
+      bodyHtml: `<p>Hello ${escapeHtml(input.firstName)},</p><p>Your recorded start date is ${escapeHtml(input.startDate)}.</p>`,
+    }),
+    text: `Your recorded start date is ${input.startDate}.`,
+  };
+}
+
 export function skillbridgePublicDisclaimer() {
   return "SkillBridge participation is subject to applicable service and command approval and employer requirements. Applying does not guarantee placement, approval, or employment.";
 }

@@ -10,7 +10,14 @@ export function getCalendarProvider(): CalendarProvider {
 }
 
 export function calendarProviderStatus() {
-  if (isMicrosoftConfigured()) return { provider: "microsoft", configured: true, liveScheduling: false };
-  if (isGoogleConfigured()) return { provider: "google", configured: true, liveScheduling: false };
-  return { provider: "mock", configured: false, liveScheduling: false };
+  const workspace = isMicrosoftConfigured() ? "microsoft" : isGoogleConfigured() ? "google" : "none";
+  return {
+    provider: "mock" as const,
+    configured: false,
+    liveScheduling: false,
+    nonProduction: true,
+    workspaceCredentials: workspace,
+    detail:
+      "Interview scheduling always uses MockCalendarProvider. Microsoft/Google OAuth slot booking is not enabled. Workspace credentials, when present, are Integration Hub references only.",
+  };
 }

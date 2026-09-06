@@ -1,5 +1,3 @@
-import { isDrugScreenConfigured } from "../integrations/credentials";
-
 export type DrugScreenOrder = {
   provider: string;
   mock: boolean;
@@ -20,7 +18,7 @@ export class ManualDrugScreenProvider implements DrugScreenProvider {
   readonly configured = false;
 
   async createOrder(input: { candidateId: string }): Promise<DrugScreenOrder> {
-    return { provider: "manual", mock: true, orderId: `drug-${input.candidateId}-${Date.now()}` };
+    return { provider: "manual", mock: true, orderId: `drug-manual-${input.candidateId}-${Date.now()}` };
   }
 
   async getStatus() {
@@ -37,15 +35,14 @@ export class ManualDrugScreenProvider implements DrugScreenProvider {
 }
 
 export function getDrugScreenProvider(): DrugScreenProvider {
-  if (isDrugScreenConfigured() && process.env.NODE_ENV !== "test") {
-    return new ManualDrugScreenProvider();
-  }
   return new ManualDrugScreenProvider();
 }
 
 export function drugScreenProviderStatus() {
   return {
-    provider: process.env.DRUG_SCREEN_PROVIDER ?? "none",
-    configured: isDrugScreenConfigured(),
+    provider: "manual" as const,
+    configured: false,
+    vendor: "none",
+    detail: "NOT CONFIGURED — ManualDrugScreenProvider only. No drug-screen vendor is selected.",
   };
 }

@@ -10,6 +10,7 @@ import {
   candidates,
   employees,
   offers,
+  onboardingTasks,
   transactionalEmailEvents,
 } from "../db/schema";
 import { INTERNAL_ORG_ID, USER_IDS } from "../db/seed/constants";
@@ -47,6 +48,7 @@ import {
   submitPublicApplication,
   submitRequisitionForApproval,
   submitScorecard,
+  completeOnboardingTask,
 } from "../lib/hiring/service";
 import { FileValidationError, validateResumeUpload } from "../lib/hiring/files";
 import { matchExistingCandidate } from "../lib/hiring/dedupe";
@@ -57,6 +59,8 @@ import { ROLE_PERMISSIONS } from "../lib/rbac/permissions";
 import { RATE_LIMITS, RateLimitError, assertRateLimit, resetMemoryRateLimits } from "../lib/security/rate-limit";
 import { SeedGuardError, assertDevSeedAllowed } from "../lib/seed/guards";
 import { getBackgroundCheckProvider } from "../lib/background-checks";
+import { getCalendarProvider } from "../lib/calendar";
+import { getDrugScreenProvider } from "../lib/drug-screens";
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -170,9 +174,18 @@ async function main() {
     city: "Charlotte",
     region: "NC",
     answers: [{ key: "availability", answer: "Two weeks" }],
+    resume: {
+      filename: "avery-quill.pdf",
+      mimeType: "application/pdf",
+      body: new TextEncoder().encode("%PDF-1.4 fixture resume for Avery Quill"),
+    },
   });
   assert(first.application.candidateId, "Application linked to a candidate");
   assert(getSharedMockEmailProvider().sent.some((item) => item.template === "application_received"), "Confirmation queued through EmailProvider");
+  const withResume = await getApplicationDetail(partner, first.application.id);
+  assert(withResume.resumeFile?.filename === "avery-quill.pdf", "Resume metadata stored for recruiter");
+  const resumeMeta = await assertFileAccess(partner, withResume.resumeFile!.id);
+  assert(resumeMeta.storageKey.startsWith("applications/"), "Resume binary lives in StorageProvider, not PostgreSQL");
 
   console.log("TEST 9 — Existing candidate application links to same candidate");
   const secondJobPosting = await publishJob({
@@ -280,7 +293,9 @@ async function main() {
     start: new Date(Date.now() + 86400000),
     end: new Date(Date.now() + 86400000 + 30 * 60000),
   });
-  assert(scheduled.calendarEvent.externalEventId, "Calendar event stored");
+  assert(scheduled.calendarEvent.externalEventId.startsWith("MOCK-NON-PRODUCTION-"), "Calendar mock is unmistakably non-production");
+  assert(scheduled.calendarEvent.mock === true, "Calendar event is mock");
+  assert(getCalendarProvider().liveScheduling === false, "Live scheduling is not enabled");
 
   console.log("TEST 19 — Unauthorized user cannot schedule interview");
   let denied = false;
@@ -320,7 +335,8 @@ async function main() {
 
   console.log("TEST 22 — Background check through adapter/mock");
   const bg = await requestBackgroundCheck({ principal: partner, applicationId: first.application.id });
-  assert(bg.provider === getBackgroundCheckProvider().name || bg.status === "invited", "Background requested");
+  assert(bg.provider === "manual", "Background check uses manual provider");
+  assert(getBackgroundCheckProvider().name === "manual", "Checkr HTTP API is not selected");
 
   console.log("TEST 23 — Background result cannot auto-reject");
   let autoRejectBlocked = false;
@@ -341,6 +357,8 @@ async function main() {
   console.log("TEST 24 — Drug screen can be requested");
   const drug = await requestDrugScreen({ principal: partner, applicationId: first.application.id });
   assert(drug.status === "ordered", "Drug screen ordered");
+  assert(drug.provider === "manual", "Drug screen uses ManualDrugScreenProvider");
+  assert(getDrugScreenProvider().name === "manual", "No drug-screen vendor is selected");
 
   console.log("TEST 25 — Drug-screen restricted fields require permission");
   const restricted = presentDrugScreen(drug, reader);
@@ -384,6 +402,14 @@ async function main() {
   console.log("TEST 30-31 — Onboarding instance and tasks");
   const onboarding = await startOnboarding({ principal: partner, applicationId: first.application.id });
   assert(onboarding.id, "Onboarding instance created");
+  const [openTask] = await db
+    .select()
+    .from(onboardingTasks)
+    .where(eq(onboardingTasks.instanceId, onboarding.id))
+    .limit(1);
+  assert(openTask, "Onboarding tasks generated from template");
+  const completed = await completeOnboardingTask({ principal: partner, taskId: openTask.id });
+  assert(completed.status === "completed", "Internal onboarding task can be completed without a candidate portal");
 
   console.log("TEST 32-33 — Employee links to candidate; candidate remains");
   const employee = await createEmployeeFromApplication({ principal: partner, applicationId: first.application.id });
@@ -493,6 +519,18 @@ async function main() {
     fakeMime = true;
   }
   assert(fakeMime, "Fake MIME rejected");
+  let txtBlocked = false;
+  try {
+    validateResumeUpload({
+      filename: "resume.txt",
+      mimeType: "text/plain",
+      sizeBytes: 12,
+      body: new TextEncoder().encode("not a resume"),
+    });
+  } catch {
+    txtBlocked = true;
+  }
+  assert(txtBlocked, "TXT resumes are rejected");
 
   console.log("TEST 44 — Unauthorized file access fails");
   let fileDenied = false;
@@ -506,6 +544,7 @@ async function main() {
   console.log("TEST 45 — Application PII protected");
   const detail = await getApplicationDetail(reader, first.application.id);
   assert(!detail.answers.some((row) => row.questionKey === "email" && row.answer?.includes("@")), "Email stripped without PII");
+  assert(detail.resumeFile === null, "Resume hidden without candidate_pii.read");
 
   console.log("TEST 46 — Background/drug data protected");
   assert(detail.drugScreens.every((row) => row.notes === null), "Drug notes hidden");

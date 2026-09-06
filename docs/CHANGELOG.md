@@ -5,10 +5,12 @@
 ### Phase 10 — Careers, applicant tracking, and onboarding
 
 - Extended WorkforceOS with job requisitions, job-description versions, public job postings, applications, interview plans/scorecards, pre-employment checks, offer versioning, employees, and onboarding templates. One global Candidate remains the person record.
-- Public careers: `/careers`, `/jobs/[slug]`, `/api/public/v1/jobs`, `/api/public/v1/applications`. Rate limiting, resume validation, and confidential-client redaction. Not a public job marketplace.
-- Added EmailProvider (Resend + mock), CalendarProvider (mock until live OAuth scheduling), BackgroundCheckProvider, and DrugScreenProvider. Checkr and drug-screen vendors stay unconfigured unless credentials are set.
-- Scout searches hiring queues; material rejection and external sends still require a human. Command Center includes live hiring metrics.
+- Public careers: `/careers`, `/jobs/[slug]`, `/api/public/v1/jobs`, `/api/public/v1/applications` (multipart resume upload for PDF/DOC/DOCX through StorageProvider). Rate limiting, magic-byte validation, and confidential-client redaction. Not a public job marketplace.
+- Added EmailProvider (Resend + mock + production unconfigured-fail). CalendarProvider is mock-only (`liveScheduling` false). BackgroundCheckProvider is manual; Checkr HTTP API is not wired. DrugScreenProvider is always manual. Humans review; results never auto-reject.
+- Scout searches hiring queues; material rejection and external sends still require a human. Command Center hiring metrics read PostgreSQL aggregates only. System Health does not display secrets.
+- Internal onboarding at `/app/onboarding` works without a candidate portal. `/onboarding/access` and candidate self-scheduling are documented follow-on.
 - Added `npm run test:phase10`. Schema migration `drizzle/0010_nostalgic_scarecrow.sql` (also creates research session/cache tables that were already in the Drizzle schema). Development fixtures are fake applicants only and cannot seed production.
+- Parked unfinished AI/research runtime at `1a356d3` (`follow-on/parked-working-tree`) is not part of Phase 10 and must not be merged for this completion.
 
 ### Post-Phase-9 stabilization
 

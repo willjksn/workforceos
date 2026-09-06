@@ -10,13 +10,19 @@ Phase 10 onboarding is new-hire tasking, not an HRIS.
 
 Default template slug: `general-employee` (forms, handbook, email, WorkforceOS access, manager meeting, 30-day check-in).
 
+## Internal operating path (required)
+
+Recruiters/operations start onboarding from the application page (`onboarding.manage`). Tasks appear on `/app/onboarding`. Staff complete tasks with `onboarding.complete`. Internal onboarding works without a candidate portal.
+
 ## Automation
 
 Inngest: interview reminders, onboarding reminder cron, offer expiration cron. Do not run large scans on the request path.
 
-## New-hire access
+## New-hire access (follow-on, not required for Phase 10)
 
-Do not expose `/app`. A signed token / external portal can be added on `onboarding/access` (public path reserved). Until tokens are issued, recruiters complete tasks internally.
+Do not expose `/app` to new hires. `/onboarding/access` is a reserved public path for a later signed-token portal. Tokens are not issued in Phase 10. Until that portal exists, recruiters complete tasks internally.
+
+Candidate self-scheduling of interviews is also follow-on. See [INTERVIEW_SCHEDULING.md](../recruiting/INTERVIEW_SCHEDULING.md).
 
 ## Out of scope
 

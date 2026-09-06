@@ -17,7 +17,7 @@ import { recordAuditEvent } from "../audit/record-audit-event";
 import { canOpenExternalSourcing } from "../recruiting/external-sourcing";
 import {
   isApolloConfigured,
-  isCheckrConfigured,
+  isCheckrLiveApiWired,
   isDocuSignConfigured,
   isDrugScreenConfigured,
   isGoogleConfigured,
@@ -515,7 +515,7 @@ export function buildProviderAdapters(): IntegrationAdapter[] {
     new WorkspaceAdapter("google"),
     new DocuSignAdapter(),
     new QuickBooksAdapter(),
-    new BaseAdapter("checkr", isCheckrConfigured),
+    new BaseAdapter("checkr", isCheckrLiveApiWired),
     new BaseAdapter("resend", isResendConfigured),
     new BaseAdapter("drug-screen", isDrugScreenConfigured),
   ];

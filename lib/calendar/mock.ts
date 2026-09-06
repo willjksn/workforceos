@@ -3,9 +3,18 @@ import type { CalendarEventInput, CalendarEventRecord, CalendarProvider, Calenda
 export class MockCalendarProvider implements CalendarProvider {
   readonly name = "mock";
   readonly configured = false;
+  readonly liveScheduling = false;
+  readonly nonProduction = true;
   readonly events = new Map<string, CalendarEventRecord>();
 
-  async getAvailability(input: { from: Date; durationMinutes: number }): Promise<CalendarSlot[]> {
+  async getAvailability(input: {
+    owner: string;
+    from: Date;
+    to: Date;
+    durationMinutes: number;
+  }): Promise<CalendarSlot[]> {
+    void input.owner;
+    void input.to;
     const start = new Date(input.from);
     start.setMinutes(0, 0, 0);
     start.setHours(start.getHours() + 2);
@@ -17,8 +26,8 @@ export class MockCalendarProvider implements CalendarProvider {
     const record: CalendarEventRecord = {
       provider: "mock",
       mock: true,
-      externalEventId: `mock-cal-${this.events.size + 1}`,
-      meetingUrl: "https://meet.example.test/workforceos-interview",
+      externalEventId: `MOCK-NON-PRODUCTION-${this.events.size + 1}`,
+      meetingUrl: "https://mock.non-production.workforceos.invalid/interview",
       start: input.start,
       end: input.end,
       timezone: input.timezone,

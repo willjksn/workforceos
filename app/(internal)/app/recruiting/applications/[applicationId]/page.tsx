@@ -4,6 +4,9 @@ import {
   advanceApplicationAction,
   nurtureApplicationAction,
   rejectApplicationAction,
+  requestBackgroundCheckAction,
+  requestDrugScreenAction,
+  startOnboardingAction,
 } from "@/lib/actions/hiring";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { getApplicationDetail } from "@/lib/hiring/service";
@@ -19,6 +22,9 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
   if (!detail) notFound();
   const canAdvance = can(principal, "applications.advance");
   const canReject = can(principal, "applications.reject");
+  const canOnboard = can(principal, "onboarding.manage");
+  const canBackground = can(principal, "background_checks.request");
+  const canDrug = can(principal, "drug_screens.request");
 
   return (
     <PageShell wide>
@@ -38,6 +44,16 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
                 </div>
               ))}
             </dl>
+            {detail.resumeFile ? (
+              <p className="mt-4 text-sm">
+                Resume:{" "}
+                <a className="text-navy underline" href={`/api/files/${detail.resumeFile.id}`}>
+                  {detail.resumeFile.filename}
+                </a>
+              </p>
+            ) : (
+              <p className="mt-4 text-sm text-muted-foreground">No resume on file, or resume is hidden without candidate PII access.</p>
+            )}
           </div>
           <div className="border border-border bg-white p-4">
             <h2 className="font-medium">Stage history</h2>
@@ -54,8 +70,20 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
           <div className="border border-border bg-white p-4 text-sm">
             <p>Stage: {formatLabel(detail.application.currentStage)}</p>
             <p>Pipeline: {detail.application.pipeline}</p>
-            {detail.backgroundChecks.length ? <p>Background: {detail.backgroundChecks[0]?.status}</p> : null}
-            {detail.drugScreens.length ? <p>Drug screen: {detail.drugScreens[0]?.status}</p> : null}
+            {detail.backgroundChecks.length ? (
+              <p>
+                Background ({detail.backgroundChecks[0]?.provider ?? "manual"}): {detail.backgroundChecks[0]?.status}
+              </p>
+            ) : (
+              <p>Background: not requested (manual workflow; Checkr is not live)</p>
+            )}
+            {detail.drugScreens.length ? (
+              <p>
+                Drug screen ({detail.drugScreens[0]?.provider ?? "manual"}): {detail.drugScreens[0]?.status}
+              </p>
+            ) : (
+              <p>Drug screen: not requested (manual workflow; no vendor)</p>
+            )}
           </div>
           {canAdvance ? (
             <ActionForm action={advanceApplicationAction}>
@@ -86,6 +114,27 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
             <input type="hidden" name="applicationId" value={detail.application.id} />
             <PrimaryButton>Nurture</PrimaryButton>
           </ActionForm>
+          {canBackground ? (
+            <ActionForm action={requestBackgroundCheckAction}>
+              <input type="hidden" name="applicationId" value={detail.application.id} />
+              <p className="mb-2 text-xs text-muted-foreground">Opens a manual background-check row. Checkr is not wired.</p>
+              <PrimaryButton>Request background check</PrimaryButton>
+            </ActionForm>
+          ) : null}
+          {canDrug ? (
+            <ActionForm action={requestDrugScreenAction}>
+              <input type="hidden" name="applicationId" value={detail.application.id} />
+              <p className="mb-2 text-xs text-muted-foreground">Manual drug-screen workflow. No vendor is selected.</p>
+              <PrimaryButton>Request drug screen</PrimaryButton>
+            </ActionForm>
+          ) : null}
+          {canOnboard ? (
+            <ActionForm action={startOnboardingAction}>
+              <input type="hidden" name="applicationId" value={detail.application.id} />
+              <p className="mb-2 text-xs text-muted-foreground">Internal checklist. The /onboarding/access portal is a follow-on.</p>
+              <PrimaryButton>Start onboarding</PrimaryButton>
+            </ActionForm>
+          ) : null}
         </aside>
       </div>
     </PageShell>

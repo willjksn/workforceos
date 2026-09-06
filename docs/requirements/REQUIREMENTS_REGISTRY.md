@@ -379,7 +379,7 @@ Database mirror: `requirements` table.
 - Module: hiring
 - Priority: locked
 - Status: approved
-- Acceptance: `POST /api/public/v1/applications` creates/links a Candidate and Application. No public database access.
+- Acceptance: `POST /api/public/v1/applications` creates/links a Candidate and Application. Multipart resume (PDF/DOC/DOCX) is stored via StorageProvider. No public database access.
 
 ### WFOS-HIRE-006
 
@@ -395,7 +395,7 @@ Database mirror: `requirements` table.
 - Module: hiring
 - Priority: locked
 - Status: approved
-- Acceptance: Events store provider, external id, times, timezone, and meeting URL. Microsoft/Google stay adapters; mock is used when unconfigured.
+- Acceptance: Events store provider, external id, times, timezone, and meeting URL. Microsoft/Google stay adapters. Phase 10 uses MockCalendarProvider only (`liveScheduling` false). Candidate self-scheduling is follow-on.
 
 ### WFOS-HIRE-008
 
@@ -411,7 +411,7 @@ Database mirror: `requirements` table.
 - Module: hiring
 - Priority: locked
 - Status: approved
-- Acceptance: `ResendEmailProvider` is used when `RESEND_API_KEY` and `RESEND_FROM_EMAIL` are set. Tests and unconfigured environments use the mock provider.
+- Acceptance: `ResendEmailProvider` is used when `RESEND_API_KEY` and `RESEND_FROM_EMAIL` are set. Tests and unconfigured development use the mock provider. Unconfigured production fails clearly.
 
 ### WFOS-HIRE-010
 
@@ -420,6 +420,7 @@ Database mirror: `requirements` table.
 - Priority: locked
 - Status: approved
 - Acceptance: Checkr is preferred when configured; otherwise manual/mock. Results cannot auto-reject a candidate.
+- Implementation note (Phase 10 complete): Checkr HTTP API is not wired. `getBackgroundCheckProvider()` returns `ManualBackgroundCheckProvider`. Not sandbox-ready. See `docs/integrations/CHECKR.md`.
 
 ### WFOS-HIRE-011
 
@@ -451,7 +452,7 @@ Database mirror: `requirements` table.
 - Module: hiring
 - Priority: locked
 - Status: approved
-- Acceptance: Templates generate instance tasks with owners, due dates, and phases. Inngest handles reminders.
+- Acceptance: Templates generate instance tasks with owners, due dates, and phases. Inngest handles reminders. Internal `/app/onboarding` completes tasks. `/onboarding/access` is a reserved follow-on portal.
 
 ### WFOS-HIRE-015
 

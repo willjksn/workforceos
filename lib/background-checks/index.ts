@@ -1,5 +1,3 @@
-import { isCheckrConfigured } from "../integrations/credentials";
-
 export type BackgroundInvitation = {
   provider: string;
   mock: boolean;
@@ -34,7 +32,7 @@ export class ManualBackgroundCheckProvider implements BackgroundCheckProvider {
   }
 
   async getReportStatus() {
-    return { status: "completed", summary: "Manual workflow — human review required." };
+    return { status: "completed", summary: "Manual workflow — human review required. Not a live Checkr report." };
   }
 
   async handleWebhook() {
@@ -42,25 +40,33 @@ export class ManualBackgroundCheckProvider implements BackgroundCheckProvider {
   }
 }
 
+/**
+ * Kept as an explicit stub so a CHECKR_API_KEY cannot be mistaken for a live integration.
+ * There is no Checkr HTTP client, sandbox client, or webhook verifier in this repository.
+ * Do not select this provider from getBackgroundCheckProvider until a real API is wired.
+ */
 export class CheckrBackgroundCheckProvider implements BackgroundCheckProvider {
-  readonly name = "checkr";
-  readonly configured = true;
+  readonly name = "checkr-stub";
+  readonly configured = false;
 
   async createInvitation(input: { candidateId: string }): Promise<BackgroundInvitation> {
     return {
-      provider: "checkr",
-      mock: false,
-      providerCandidateId: `checkr-${input.candidateId}`,
-      invitationId: `checkr-invite-${Date.now()}`,
+      provider: "checkr-stub",
+      mock: true,
+      providerCandidateId: `checkr-stub-not-live-${input.candidateId}`,
+      invitationId: `checkr-stub-invite-${Date.now()}`,
     };
   }
 
   async getCandidateStatus() {
-    return { status: "in_progress" };
+    return { status: "not_wired" };
   }
 
   async getReportStatus() {
-    return { status: "completed", summary: "Provider-hosted report. Human review required." };
+    return {
+      status: "not_wired",
+      summary: "Checkr HTTP API is not implemented. Use the manual background-check workflow. Human review required.",
+    };
   }
 
   async handleWebhook() {
@@ -69,8 +75,5 @@ export class CheckrBackgroundCheckProvider implements BackgroundCheckProvider {
 }
 
 export function getBackgroundCheckProvider(): BackgroundCheckProvider {
-  if (isCheckrConfigured() && process.env.NODE_ENV !== "test") {
-    return new CheckrBackgroundCheckProvider();
-  }
   return new ManualBackgroundCheckProvider();
 }
