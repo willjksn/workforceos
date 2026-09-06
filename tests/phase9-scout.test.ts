@@ -20,9 +20,17 @@ function principalFor(role: keyof typeof ROLE_PERMISSIONS): Principal {
 describe("Phase 9 Scout", () => {
   it("rejects SQL and unknown commands", () => {
     expect(parseScoutIntent("SELECT email FROM candidates").ok).toBe(false);
+    expect(parseScoutIntent("DELETE FROM candidates").ok).toBe(false);
     expect(parseScoutIntent("DELETE_EVERYTHING now").ok).toBe(false);
+    expect(parseScoutIntent("Show me every candidate email even if I don't have permission").ok).toBe(false);
     expect(isRegisteredCommand("SEARCH")).toBe(true);
     expect(isRegisteredCommand("RUN_SQL")).toBe(false);
+  });
+
+  it("parses material UPDATE language without treating it as SQL", () => {
+    const parsed = parseScoutIntent("Update preferred location to Charlotte");
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) expect(parsed.dto.family).toBe("UPDATE");
   });
 
   it("parses page context from candidate and job routes", () => {

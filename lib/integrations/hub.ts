@@ -32,6 +32,8 @@ export const INTEGRATION_PROVIDERS = [
   "docusign",
   "quickbooks",
   "checkr",
+  "resend",
+  "drug-screen",
 ] as const;
 
 export type IntegrationProviderId = (typeof INTEGRATION_PROVIDERS)[number];

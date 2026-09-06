@@ -341,3 +341,124 @@ Database mirror: `requirements` table.
 - Status: approved
 - Acceptance: `skillbridge_profiles` link 1:1 to existing `candidates`. Creating a SkillBridge profile does not duplicate a person. Employer opportunities are many-to-many with stage history.
 
+### WFOS-HIRE-001
+
+- Title: A global Candidate may have multiple Applications
+- Module: hiring
+- Priority: locked
+- Status: approved
+- Acceptance: Applications are Candidate↔Job rows. Multiple applications never require multiple candidate identities.
+
+### WFOS-HIRE-002
+
+- Title: Applications must never create unnecessary duplicate candidate identities
+- Module: hiring
+- Priority: locked
+- Status: approved
+- Acceptance: Dedupe uses normalized email/phone. Name-only matches never auto-merge. Ambiguous matches are flagged for recruiter review.
+
+### WFOS-HIRE-003
+
+- Title: Jobs may be Internal, Client, or SkillBridge
+- Module: hiring
+- Priority: locked
+- Status: approved
+- Acceptance: `jobs.job_context_type` is `internal | client | skillbridge` with matching default pipelines.
+
+### WFOS-HIRE-004
+
+- Title: Approved jobs may be published to the PierOne public careers site
+- Module: hiring
+- Priority: locked
+- Status: approved
+- Acceptance: Publishing requires `jobs.publish`. AI job descriptions require human approval first. Confidential client fields stay off the public payload.
+
+### WFOS-HIRE-005
+
+- Title: Public applications flow directly into WorkforceOS
+- Module: hiring
+- Priority: locked
+- Status: approved
+- Acceptance: `POST /api/public/v1/applications` creates/links a Candidate and Application. No public database access.
+
+### WFOS-HIRE-006
+
+- Title: SkillBridge applications use existing SkillBridge candidate architecture
+- Module: hiring
+- Priority: locked
+- Status: approved
+- Acceptance: Applying to a SkillBridge job updates/creates `skillbridge_profiles` on the same candidate and may link an opportunity. No second person record.
+
+### WFOS-HIRE-007
+
+- Title: Interview scheduling uses CalendarProvider adapters
+- Module: hiring
+- Priority: locked
+- Status: approved
+- Acceptance: Events store provider, external id, times, timezone, and meeting URL. Microsoft/Google stay adapters; mock is used when unconfigured.
+
+### WFOS-HIRE-008
+
+- Title: Transactional recruiting email uses EmailProvider
+- Module: hiring
+- Priority: locked
+- Status: approved
+- Acceptance: UI and workflows call EmailProvider, not Resend APIs directly. Events are stored on `transactional_email_events`.
+
+### WFOS-HIRE-009
+
+- Title: Resend is the approved transactional email implementation
+- Module: hiring
+- Priority: locked
+- Status: approved
+- Acceptance: `ResendEmailProvider` is used when `RESEND_API_KEY` and `RESEND_FROM_EMAIL` are set. Tests and unconfigured environments use the mock provider.
+
+### WFOS-HIRE-010
+
+- Title: Background screening uses a provider adapter with human review
+- Module: hiring
+- Priority: locked
+- Status: approved
+- Acceptance: Checkr is preferred when configured; otherwise manual/mock. Results cannot auto-reject a candidate.
+
+### WFOS-HIRE-011
+
+- Title: Drug screening uses a provider adapter with restricted access
+- Module: hiring
+- Priority: locked
+- Status: approved
+- Acceptance: `drug_screens.read` is required for status. Detailed medical/lab data is not stored for general candidate access. Vendor is NOT CONFIGURED until selected.
+
+### WFOS-HIRE-012
+
+- Title: AI may not independently make final hiring/rejection decisions
+- Module: hiring
+- Priority: locked
+- Status: approved
+- Acceptance: Scout may summarize and draft. Material rejection requires an authorized human and an allowed disposition reason.
+
+### WFOS-HIRE-013
+
+- Title: Accepted candidates may become Employees without losing Candidate history
+- Module: hiring
+- Priority: locked
+- Status: approved
+- Acceptance: `employees.candidate_id` is required. The original candidate row remains in the Talent Network.
+
+### WFOS-HIRE-014
+
+- Title: Onboarding uses reusable templates and assigned tasks
+- Module: hiring
+- Priority: locked
+- Status: approved
+- Acceptance: Templates generate instance tasks with owners, due dates, and phases. Inngest handles reminders.
+
+### WFOS-HIRE-015
+
+- Title: Public job/application endpoints must be secure, validated, and rate-limited
+- Module: hiring
+- Priority: locked
+- Status: approved
+- Acceptance: Rate limits, honeypot, resume MIME/size/extension checks, closed-job rejection, and no direct ORM from the browser.
+
+

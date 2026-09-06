@@ -5,6 +5,7 @@ import { agentRuns, integrationEvents } from "../../db/schema";
 import { SEED_VERSION } from "../../db/seed/constants";
 import { getServerEnv, isClerkConfigured, isInngestConfigured } from "../env";
 import { getIntegrationHubStatus } from "../integrations/hub";
+import { isCheckrConfigured, isDrugScreenConfigured, isGoogleConfigured, isMicrosoftConfigured, isResendConfigured } from "../integrations/credentials";
 import { getStorageStatus } from "../storage";
 
 export type HealthCheck = {
@@ -78,18 +79,18 @@ export async function getSystemHealth() {
     {
       title: "Database",
       ok: database.ok,
-      detail: database.ok ? "PostgreSQL is connected and is the system of record." : database.error,
+      detail: database.ok ? "Database is connected." : database.error,
     },
     {
       title: "Migrations",
       ok: migrations.ok,
-      detail: migrations.ok ? `${migrations.value.length} applied Drizzle migrations.` : migrations.error,
+      detail: migrations.ok ? `${migrations.value.length} applied schema migrations.` : migrations.error,
     },
     {
       title: "Extensions",
       ok: searchOk,
       detail: searchOk
-        ? "vector and pg_trgm are available."
+        ? "Search extensions are available."
         : extensions.ok
           ? "One or more search extensions are missing."
           : extensions.error,
@@ -98,7 +99,7 @@ export async function getSystemHealth() {
       title: "Clerk",
       ok: clerkOk,
       detail: clerkOk
-        ? "Clerk is configured. Local roles still authorize every screen."
+        ? "Sign-in is configured. WorkforceOS roles still control access."
         : "Clerk keys are not set.",
     },
     {
@@ -116,19 +117,55 @@ export async function getSystemHealth() {
     {
       title: "Integrations",
       ok: true,
-      detail: `${integrations.filter((item) => item.configured).length} of ${integrations.length} providers configured. Unconfigured providers stay labeled mocks.`,
+      detail: `${integrations.filter((item) => item.configured).length} of ${integrations.length} providers configured. Others stay disconnected until credentials are set.`,
     },
     {
       title: "AI provider",
       ok: true,
       detail: aiConfigured
         ? `${env.AI_PROVIDER ?? "openai-compatible"} is configured.`
-        : "Using internal_heuristic until AI_API_KEY is set.",
+        : "AI is using internal drafts until an API key is set.",
     },
     {
       title: "Queue failures (24h)",
       ok: queueFailures === 0,
       detail: queueFailures === 0 ? "No failed agent runs or integration events in the last 24 hours." : `${queueFailures} failures.`,
+    },
+    {
+      title: "Resend",
+      ok: true,
+      detail: isResendConfigured()
+        ? "Transactional email is configured."
+        : "NOT CONFIGURED — mock EmailProvider is used until RESEND_API_KEY and RESEND_FROM_EMAIL are set.",
+    },
+    {
+      title: "Calendar provider",
+      ok: true,
+      detail:
+        isMicrosoftConfigured() || isGoogleConfigured()
+          ? "Microsoft/Google credentials are present. Live interview scheduling still uses the CalendarProvider adapter (mock until OAuth scheduling is enabled)."
+          : "NOT CONFIGURED — CalendarProvider mock is used for interview events.",
+    },
+    {
+      title: "Background checks",
+      ok: true,
+      detail: isCheckrConfigured()
+        ? "Checkr credentials are present. Human review is still required."
+        : "NOT CONFIGURED — manual BackgroundCheckProvider mock only.",
+    },
+    {
+      title: "Drug screens",
+      ok: true,
+      detail: isDrugScreenConfigured()
+        ? "Drug-screen provider credentials are present."
+        : "NOT CONFIGURED — manual DrugScreenProvider only. No vendor is selected.",
+    },
+    {
+      title: "Public careers API",
+      ok: true,
+      detail: env.PUBLIC_CAREERS_URL
+        ? `Public careers URL: ${env.PUBLIC_CAREERS_URL}`
+        : "Public jobs API is /api/public/v1/jobs. Set PUBLIC_CAREERS_URL when the PierOne site is live.",
     },
     {
       title: "Backup / checkpoint",

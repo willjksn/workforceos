@@ -11,11 +11,14 @@ import {
 import { presentCandidate } from "../privacy/present-candidate";
 import type { ScoutCommandDto } from "./parse-intent";
 import { stripScoutPii } from "./pii";
+import { searchHiringForScout, listMissingScorecards, getHiringMetrics } from "../hiring/service";
 import { listSkillBridgeCards } from "../skillbridge/service";
 import { findSkillBridgeMatches } from "../skillbridge/matching";
 
+const SCOUT_RESULT_LIMIT = 25;
+
 export type ScoutResultCard = {
-  type: "candidate" | "job" | "opportunity" | "skillbridge" | "record";
+  type: "candidate" | "job" | "opportunity" | "skillbridge" | "record" | "application";
   id: string;
   title: string;
   href: string;
@@ -59,6 +62,34 @@ export async function executeScoutSearch(input: {
     return searchJobs(input.organizationId, filters.title ?? filters.skill, filters.city ?? filters.region);
   }
 
+  if (input.dto.entity === "applications" || input.dto.entity === "hiring" || /\bapplication/.test(input.dto.entity ?? "")) {
+    if (!input.permissions.has("applications.read")) return { summary: "No application access.", cards: [] };
+    const cards = await searchHiringForScout({
+      organizationId: input.organizationId,
+      prompt: input.dto.note ?? input.dto.filters?.title ?? "new applications",
+      canReadPii: input.canReadPii,
+    });
+    if (/\bscorecard/.test(JSON.stringify(input.dto).toLowerCase())) {
+      const missing = await listMissingScorecards(input.organizationId);
+      return {
+        summary: `${missing.length} scorecards are outstanding.`,
+        cards: missing.map((row) => ({
+          type: "application" as const,
+          id: row.id,
+          title: "Missing scorecard",
+          href: `/app/recruiting/applications/${row.applicationId ?? ""}`,
+          meta: row.status,
+          fields: { status: row.status },
+        })),
+      };
+    }
+    const metrics = await getHiringMetrics(input.organizationId);
+    return {
+      summary: `Found ${cards.length} applications. ${metrics.awaitingReview} awaiting review.`,
+      cards,
+    };
+  }
+
   if (input.dto.entity === "skillbridge" || filters.windowWithinDays || filters.hasActiveOpportunity === false || filters.employerFeedbackOverdue || filters.needsFollowUp) {
     if (!input.permissions.has("skillbridge.read") && !input.permissions.has("military.read")) {
       return { summary: "No SkillBridge access.", cards: [] };
@@ -99,7 +130,8 @@ async function searchCandidates(input: {
   let rows = await db
     .select()
     .from(candidates)
-    .where(and(...conditions));
+    .where(and(...conditions))
+    .limit(100);
 
   if (filters.skill) {
     const skillMatches = await db
@@ -113,7 +145,7 @@ async function searchCandidates(input: {
     );
   }
 
-  const cards: ScoutResultCard[] = rows.slice(0, 25).map((row) => {
+  const cards: ScoutResultCard[] = rows.slice(0, SCOUT_RESULT_LIMIT).map((row) => {
     const presented = presentCandidate(row, input.canReadPii);
     return {
       type: "candidate",
@@ -151,7 +183,8 @@ async function searchJobs(organizationId: string, query?: string, location?: str
         query ? or(ilike(jobs.title, `%${query}%`), ilike(jobs.locationLabel, `%${query}%`)) : undefined,
         location ? or(ilike(jobs.locationLabel, `%${location}%`), ilike(jobs.title, `%${location}%`)) : undefined,
       ),
-    );
+    )
+    .limit(SCOUT_RESULT_LIMIT);
   return {
     summary: `Found ${rows.length} jobs.`,
     cards: rows.map(({ job, company }) => ({
@@ -228,9 +261,10 @@ async function searchSkillBridge(input: {
     return true;
   });
 
+  const limited = filtered.slice(0, SCOUT_RESULT_LIMIT);
   return {
-    summary: `Found ${filtered.length} SkillBridge records.`,
-    cards: filtered.map((card) => ({
+    summary: `Found ${limited.length} SkillBridge records.`,
+    cards: limited.map((card) => ({
       type: "skillbridge" as const,
       id: card.profile.id,
       title: card.candidate.fullName,

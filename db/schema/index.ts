@@ -15,3 +15,5 @@ export * from "./integrations";
 export * from "./operating";
 export * from "./scout";
 export * from "./skillbridge";
+export * from "./research";
+export * from "./hiring";

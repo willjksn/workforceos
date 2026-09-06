@@ -7,28 +7,28 @@ import {
   contracts,
   discoveries,
   integrationConnections,
+  interviews,
   invoices,
+  jobs,
+  offers,
   opportunities,
   projectDeliverables,
   projects,
   proposals,
+  submissions,
 } from "../../db/schema";
 import { usageSummary } from "../ai/cost";
 import { CLOSED_OPPORTUNITY_STAGES } from "../crm/stages";
 import { phase4CommandSnapshot } from "../delivery/engine";
 import { financeCommandSnapshot } from "../finance/engine";
 import { parseMoney } from "../finance/money";
-import { listFailedIntegrationEvents } from "../integrations/retry";
+import { countFailedIntegrationEvents } from "../integrations/retry";
 import { getCommandCenterSnapshot } from "../repositories/command-center";
-import {
-  listInterviews,
-  listOffers,
-  listSubmissions,
-  recruitingAnalytics,
-} from "../repositories/recruiting-delivery";
+import { recruitingAnalytics } from "../repositories/recruiting-delivery";
 import { getWorkforceCommandSnapshot } from "../repositories/workforce";
 import { recruitingCycleTimes } from "./cycle-time";
 import { getSkillBridgeMetrics } from "../skillbridge/service";
+import { getHiringMetrics } from "../hiring/service";
 
 async function counted(query: Promise<Array<{ value: number }>>) {
   const [row] = await query;
@@ -52,10 +52,10 @@ export async function getExecutiveCommandCenter(organizationId: string) {
     recruiting,
     cycleTimes,
     usage,
-    failedSyncs,
-    submissions,
-    interviews,
-    offers,
+    failedSyncCount,
+    submissionCount,
+    interviewCount,
+    offerCount,
     contracted,
     invoiced,
     collected,
@@ -74,6 +74,7 @@ export async function getExecutiveCommandCenter(organizationId: string) {
     failedRuns,
     unhealthyProviders,
     skillbridge,
+    hiring,
   ] = await Promise.all([
     getCommandCenterSnapshot(organizationId),
     phase4CommandSnapshot(organizationId),
@@ -81,11 +82,29 @@ export async function getExecutiveCommandCenter(organizationId: string) {
     getWorkforceCommandSnapshot(organizationId),
     recruitingAnalytics(organizationId),
     recruitingCycleTimes(organizationId),
-    usageSummary(organizationId),
-    listFailedIntegrationEvents(organizationId),
-    listSubmissions(organizationId),
-    listInterviews(organizationId),
-    listOffers(organizationId),
+    usageSummary(organizationId, { includeEvents: false }),
+    countFailedIntegrationEvents(organizationId),
+    counted(
+      db
+        .select({ value: count() })
+        .from(submissions)
+        .innerJoin(jobs, eq(submissions.jobId, jobs.id))
+        .where(eq(jobs.organizationId, organizationId)),
+    ),
+    counted(
+      db
+        .select({ value: count() })
+        .from(interviews)
+        .innerJoin(jobs, eq(interviews.jobId, jobs.id))
+        .where(eq(jobs.organizationId, organizationId)),
+    ),
+    counted(
+      db
+        .select({ value: count() })
+        .from(offers)
+        .innerJoin(jobs, eq(offers.jobId, jobs.id))
+        .where(eq(jobs.organizationId, organizationId)),
+    ),
     db
       .select({ value: sql<string>`coalesce(sum(${contracts.contractValue}), 0)` })
       .from(contracts)
@@ -221,6 +240,7 @@ export async function getExecutiveCommandCenter(organizationId: string) {
         ),
     ),
     getSkillBridgeMetrics(organizationId),
+    getHiringMetrics(organizationId),
   ]);
 
   return {
@@ -245,11 +265,12 @@ export async function getExecutiveCommandCenter(organizationId: string) {
       activeSearches: recruiting.activeSearches,
       timeToShortlistDays: cycleTimes.timeToShortlistDays,
       timeToFillDays: cycleTimes.timeToFillDays,
-      submissions: submissions.length,
-      interviews: interviews.length,
-      offers: offers.length,
+      submissions: submissionCount,
+      interviews: interviewCount,
+      offers: offerCount,
       placements: recruiting.placements,
       guaranteeRisk: recruiting.guarantees.expiringSoon + recruiting.guarantees.replacementRequired,
+      hiring,
     },
     talent: {
       totalCandidates: base.talent.candidateCount,
@@ -278,7 +299,7 @@ export async function getExecutiveCommandCenter(organizationId: string) {
       usageCost: usage.monthCostUsd,
     },
     integrations: {
-      failedSyncs: failedSyncs.length,
+      failedSyncs: failedSyncCount,
       unhealthyProviders,
     },
     skillbridge: {

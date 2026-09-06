@@ -1,4 +1,4 @@
-import { and, eq, gte, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, sql } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import { agents, aiUsageEvents } from "../../db/schema";
@@ -22,6 +22,9 @@ export async function recordUsage(input: {
   inputTokens?: number;
   outputTokens?: number;
   estimatedCostUsd: number;
+  modelTier?: string | null;
+  webSearchCalls?: number | null;
+  tavilyRequests?: number | null;
 }) {
   const db = getDb();
   const [row] = await db
@@ -36,6 +39,9 @@ export async function recordUsage(input: {
       inputTokens: input.inputTokens,
       outputTokens: input.outputTokens,
       estimatedCostUsd: String(input.estimatedCostUsd),
+      modelTier: input.modelTier ?? null,
+      webSearchCalls: input.webSearchCalls ?? 0,
+      tavilyRequests: input.tavilyRequests ?? 0,
     })
     .returning();
   return row;
@@ -83,22 +89,40 @@ export async function assertCostLimits(input: {
   }
 }
 
-export async function usageSummary(organizationId: string) {
+export async function usageSummary(organizationId: string, options?: { includeEvents?: boolean }) {
   const db = getDb();
   const day = startOfUtcDay();
   const month = startOfUtcMonth();
-  const events = await db
-    .select()
-    .from(aiUsageEvents)
-    .where(and(eq(aiUsageEvents.organizationId, organizationId), gte(aiUsageEvents.createdAt, month)));
-  const daily = events.filter((event) => event.createdAt >= day);
-  const sum = (rows: typeof events) =>
-    rows.reduce((total, event) => total + Number(event.estimatedCostUsd ?? 0), 0);
+  const includeEvents = options?.includeEvents !== false;
+  const [monthAgg, dayAgg, events] = await Promise.all([
+    db
+      .select({
+        cost: sql<string>`coalesce(sum(${aiUsageEvents.estimatedCostUsd}), 0)`,
+        runs: count(),
+      })
+      .from(aiUsageEvents)
+      .where(and(eq(aiUsageEvents.organizationId, organizationId), gte(aiUsageEvents.createdAt, month))),
+    db
+      .select({
+        cost: sql<string>`coalesce(sum(${aiUsageEvents.estimatedCostUsd}), 0)`,
+        runs: count(),
+      })
+      .from(aiUsageEvents)
+      .where(and(eq(aiUsageEvents.organizationId, organizationId), gte(aiUsageEvents.createdAt, day))),
+    includeEvents
+      ? db
+          .select()
+          .from(aiUsageEvents)
+          .where(and(eq(aiUsageEvents.organizationId, organizationId), gte(aiUsageEvents.createdAt, month)))
+          .orderBy(desc(aiUsageEvents.createdAt))
+          .limit(40)
+      : Promise.resolve([]),
+  ]);
   return {
-    monthCostUsd: sum(events),
-    dayCostUsd: sum(daily),
-    monthRuns: events.length,
-    dayRuns: daily.length,
+    monthCostUsd: Number(monthAgg[0]?.cost ?? 0),
+    dayCostUsd: Number(dayAgg[0]?.cost ?? 0),
+    monthRuns: Number(monthAgg[0]?.runs ?? 0),
+    dayRuns: Number(dayAgg[0]?.runs ?? 0),
     events,
   };
 }

@@ -17,6 +17,7 @@ const EXPECTED_MIGRATIONS = [
   "0007_chemical_quasar",
   "0008_cooing_blade",
   "0009_swift_saracen",
+  "0010_nostalgic_scarecrow",
 ];
 
 const KEY_TABLES = [
@@ -33,11 +34,14 @@ const KEY_TABLES = [
   "invoices",
   "billing_schedules",
   "audit_events",
-    "privacy_deletion_requests",
-    "rate_limit_buckets",
-    "skillbridge_profiles",
-    "scout_sessions",
-    "in_app_notifications",
+  "privacy_deletion_requests",
+  "rate_limit_buckets",
+  "skillbridge_profiles",
+  "scout_sessions",
+  "in_app_notifications",
+  "applications",
+  "job_requisitions",
+  "research_sessions",
 ];
 
 function redact(value: string) {

@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+### Phase 10 — Careers, applicant tracking, and onboarding
+
+- Extended WorkforceOS with job requisitions, job-description versions, public job postings, applications, interview plans/scorecards, pre-employment checks, offer versioning, employees, and onboarding templates. One global Candidate remains the person record.
+- Public careers: `/careers`, `/jobs/[slug]`, `/api/public/v1/jobs`, `/api/public/v1/applications`. Rate limiting, resume validation, and confidential-client redaction. Not a public job marketplace.
+- Added EmailProvider (Resend + mock), CalendarProvider (mock until live OAuth scheduling), BackgroundCheckProvider, and DrugScreenProvider. Checkr and drug-screen vendors stay unconfigured unless credentials are set.
+- Scout searches hiring queues; material rejection and external sends still require a human. Command Center includes live hiring metrics.
+- Added `npm run test:phase10`. Schema migration `drizzle/0010_nostalgic_scarecrow.sql` (also creates research session/cache tables that were already in the Drizzle schema). Development fixtures are fake applicants only and cannot seed production.
+
+### Post-Phase-9 stabilization
+
+- Locked Admin Approvals behind platform admin and organization scope. Command Center pending-approval widgets follow the same gate.
+- Command Center no longer loads full finance engagement economics or unbounded recruiting/integration lists for dashboard counts.
+- Scout SQL rejection no longer blocks natural-language UPDATE; result sets cap at 25; drafts are audited.
+- SkillBridge window math uses UTC calendar days; queue windows follow stored alert-rule thresholds; follow-up scan has a daily Inngest cron and a unique notification index (`drizzle/0009_swift_saracen.sql`).
+- Production-safe AI seed no longer requires a Managing Partner user row. Storage health is ready only for the working local adapter.
+- Added operations docs: migration runbook, performance audit, disaster recovery, pilot plan, and post-launch backlog.
+
 ### Phase 9 — Scout + SkillBridge operations
 
 - Added Scout, the persistent WorkforceOS intelligence assistant (tooltip: Open Scout). Right-side drawer on authenticated screens. Closed command registry; no model-generated SQL; chat is not the system of record.

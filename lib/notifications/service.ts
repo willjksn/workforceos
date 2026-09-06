@@ -11,7 +11,17 @@ type NotificationKind =
   | "interview_upcoming"
   | "approval_pending"
   | "conversion_decision_approaching"
-  | "scout_action";
+  | "scout_action"
+  | "application_received"
+  | "application_awaiting_review"
+  | "scorecard_overdue"
+  | "background_check_status"
+  | "drug_screen_status"
+  | "offer_approval"
+  | "offer_accepted"
+  | "offer_expiring"
+  | "onboarding_overdue"
+  | "new_hire_starting";
 
 export async function createInAppNotification(input: {
   organizationId: string;

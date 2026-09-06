@@ -31,6 +31,18 @@ export function isGoogleConfigured() {
   return Boolean(integrationCredential("GOOGLE_CLIENT_ID") && integrationCredential("GOOGLE_CLIENT_SECRET"));
 }
 
+export function isResendConfigured() {
+  return Boolean(integrationCredential("RESEND_API_KEY"));
+}
+
+export function isCheckrConfigured() {
+  return Boolean(integrationCredential("CHECKR_API_KEY"));
+}
+
+export function isDrugScreenConfigured() {
+  return Boolean(integrationCredential("DRUG_SCREEN_API_KEY"));
+}
+
 export function webhookSecret(provider: string) {
   return (
     integrationCredential(`${provider.toUpperCase().replace(/[^A-Z]/g, "_")}_WEBHOOK_SECRET`) ??

@@ -13,6 +13,7 @@ import {
 } from "./integrations";
 import { aiAutomationJob } from "./ai";
 import { skillbridgeFollowUpScanJob, skillbridgeMatchJob } from "./skillbridge";
+import { interviewReminderJob, offerExpirationJob, onboardingReminderJob } from "./hiring";
 
 export const internalTalentSearchJob = inngest.createFunction(
   {
@@ -50,4 +51,7 @@ export const inngestFunctions = [
   aiAutomationJob,
   skillbridgeFollowUpScanJob,
   skillbridgeMatchJob,
+  interviewReminderJob,
+  onboardingReminderJob,
+  offerExpirationJob,
 ];

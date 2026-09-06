@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import { activities, candidateJobMatches, candidates, scoutActions, scoutMessages, scoutSessions, skillbridgeProfiles } from "../../db/schema";
@@ -13,6 +13,8 @@ import {
   getSkillBridgeMetrics,
   updateSkillBridgeProfile,
 } from "../skillbridge/service";
+import { scheduleInterview } from "../hiring/service";
+import { getCalendarProvider } from "../calendar";
 import { scoutCommand } from "./commands";
 import type { ScoutPageContext } from "./page-context";
 import { parseScoutIntent, type ScoutCommandDto } from "./parse-intent";
@@ -317,8 +319,43 @@ async function executeAuthorizedCommand(input: {
     const candidateId = input.dto.candidateId ?? input.pageContext.entityId;
     const db = getDb();
     const [candidate] = candidateId
-      ? await db.select().from(candidates).where(eq(candidates.id, candidateId)).limit(1)
+      ? await db
+          .select()
+          .from(candidates)
+          .where(and(eq(candidates.id, candidateId), eq(candidates.organizationId, input.principal.organizationId)))
+          .limit(1)
       : [];
+    if (input.dto.draftKind === "rejection" || input.dto.draftKind === "interview_invitation" || input.dto.draftKind === "onboarding_welcome") {
+      const subject =
+        input.dto.draftKind === "rejection"
+          ? "Application update"
+          : input.dto.draftKind === "interview_invitation"
+            ? "Interview invitation"
+            : "Onboarding welcome";
+      const body =
+        input.dto.draftKind === "rejection"
+          ? `Hello ${candidate?.fullName ?? "there"}, thank you for your interest. We will not be moving forward with this application. This draft is for human review only.`
+          : input.dto.draftKind === "interview_invitation"
+            ? `Hello ${candidate?.fullName ?? "there"}, we would like to schedule an interview. This draft is for human review only.`
+            : `Hello ${candidate?.fullName ?? "there"}, welcome. Your onboarding tasks will be shared after a human sends this message.`;
+      if (!can(input.principal, "transactional_email.send") || !can(input.principal, "scout.external_actions")) {
+        await recordAuditEvent({
+          organizationId: input.principal.organizationId,
+          actor: { type: "human", userId: input.principal.id },
+          action: "scout.draft",
+          recordType: "scout_draft",
+          recordId: candidate?.id ?? input.principal.id,
+          after: { kind: input.dto.draftKind, sendAllowed: false },
+        });
+        return {
+          message: "Draft ready for human review. Scout cannot send external email without confirmation and transactional_email.send.",
+          cards: [],
+          confirmation: null,
+          draft: { subject, body, sendAllowed: false, facts: ["Scout does not send this message."] },
+          links: [],
+        };
+      }
+    }
     const draft = draftSkillBridgeMessage({
       kind: input.dto.draftKind ?? "follow_up",
       audience: "candidate",
@@ -326,6 +363,15 @@ async function executeAuthorizedCommand(input: {
       occupationTitle: candidate?.currentTitle,
       locationPreference: [candidate?.city, candidate?.region].filter(Boolean).join(", "),
       canReadPii,
+    });
+    await recordAuditEvent({
+      organizationId: input.principal.organizationId,
+      actor: { type: "human", userId: input.principal.id },
+      action: "scout.draft",
+      recordType: candidate ? "candidate" : "scout_draft",
+      recordId: candidate?.id ?? input.principal.id,
+      after: { kind: input.dto.draftKind ?? "follow_up", sendAllowed: false },
+      reason: "Scout drafted an external message for human review",
     });
     return {
       message: "Draft ready for human review. Scout will not send this message.",
@@ -392,6 +438,48 @@ async function executeAuthorizedCommand(input: {
       confirmation: null,
       draft: null,
       links: [{ href: `/app/military/skillbridge/${profileId}`, label: "SkillBridge record" }],
+    };
+  }
+
+  if (input.dto.family === "UPDATE" && input.dto.entity === "application_reject") {
+    throw new Error("Scout cannot independently reject a candidate. A human must confirm the disposition from the application page.");
+  }
+
+  if (input.dto.family === "CREATE" && input.dto.entity === "interview") {
+    const applicationId = input.dto.applicationId;
+    if (!applicationId) {
+      return {
+        message: "Confirm the application, then schedule from the application page. Scout will not create a calendar event without an application.",
+        cards: [],
+        confirmation: null,
+        draft: null,
+        links: [{ href: "/app/recruiting/applications", label: "Applications" }],
+      };
+    }
+    const slots = await getCalendarProvider().getAvailability({
+      owner: input.principal.id,
+      from: new Date(),
+      to: new Date(Date.now() + 7 * 86400000),
+      durationMinutes: 30,
+    });
+    const slot = slots[0];
+    if (!slot) {
+      return { message: "No available interview slots from the calendar adapter.", cards: [], confirmation: null, draft: null, links: [] };
+    }
+    const scheduled = await scheduleInterview({
+      principal: input.principal,
+      applicationId,
+      stageName: "Recruiter Screen",
+      start: slot.start,
+      end: slot.end,
+      timezone: slot.timezone,
+    });
+    return {
+      message: `Interview scheduled after confirmation (${scheduled.calendarEvent.externalEventId}).`,
+      cards: [],
+      confirmation: null,
+      draft: null,
+      links: [{ href: `/app/recruiting/applications/${applicationId}`, label: "Application" }],
     };
   }
 

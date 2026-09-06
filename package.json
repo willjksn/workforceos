@@ -19,6 +19,7 @@
     "test:phase7": "tsx scripts/test-phase7.ts",
     "test:phase8": "tsx scripts/test-phase8.ts",
     "test:phase9": "tsx scripts/test-phase9.ts",
+    "test:phase10": "tsx scripts/test-phase10.ts",
     "test:smoke": "tsx scripts/test-smoke.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",

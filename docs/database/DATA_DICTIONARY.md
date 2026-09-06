@@ -46,7 +46,10 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | `automation_rules` | Named event-driven automation rules. |
 | `automation_rule_runs` | Automation executions. |
 | `agent_handoffs` | Visible agent-to-agent handoffs. |
-| `ai_usage_events` | Token/cost ledger. |
+| `ai_usage_events` | Token/cost ledger. Optional `model_tier`, `web_search_calls`, and `tavily_requests` columns (migration `0010`). |
+| `research_sessions` | External research run metadata (query, providers, cost). Created with hiring tables in `0010` because the schema was already registered when that migration was generated. |
+| `external_research_results` | Sourced research rows tied to a research session. Not a second system of record. |
+| `research_cache` | Short-lived provider response cache keyed by query. |
 | `ai_circuit_breakers` | Repeated-failure circuit breakers. |
 | `meeting_extractions` | Meeting intelligence drafts pending human approval. |
 | `files` | Object-storage metadata only. Binaries are not stored in PostgreSQL. `retention_until` supports later deletion jobs. |
@@ -208,6 +211,17 @@ Workforce roles are planning-level. They do not duplicate recruiting `jobs`. For
 | `finance_cost_entries` / `finance_adjustments` | Optional delivery costs and approved write-offs, fee overrides, and schedule changes. |
 | `expansion_recommendations` | Suggested follow-on services. Human review required before creating revenue opportunities. |
 | `project_closeouts` | Closeout snapshot, lessons, and knowledge capture. |
+| `job_requisitions` | Formal headcount request. Approval uses the existing `approvals` table. |
+| `job_description_versions` | Versioned JD content. AI-generated rows need human approval before public publish. |
+| `job_postings` | Public/unlisted posting projection of a job. Never the confidential source of truth. |
+| `applications` | Candidate↔Job application. Not a person record. |
+| `application_answers` / `application_stage_history` | Normalized answers and immutable stage history. |
+| `interview_plans` / `interview_scorecards` | Reusable interview stages and interviewer feedback. |
+| `background_checks` / `drug_screens` | Provider-neutral pre-employment rows. Restricted. |
+| `offers` | Existing recruiting offers plus `application_id` and `version`. |
+| `employees` | Employment bridge to `candidate_id`. Not payroll. |
+| `onboarding_templates` / `onboarding_instances` / `onboarding_tasks` | New-hire checklists. |
+| `transactional_email_events` | Resend/mock send log. |
 
 ## Explicitly excluded
 

@@ -48,6 +48,7 @@ import { seedPhase7Ai } from "./phase7";
 import { seedLaunchServiceCatalog } from "./phase4-catalog";
 import { seedPhase3OperatingFixtures } from "./phase3";
 import { seedPhase9Fixtures, seedSkillBridgeAlertRules } from "./phase9";
+import { seedPhase10Fixtures } from "./phase10";
 import {
   CANDIDATE_ID,
   COMPANY_ID,
@@ -796,6 +797,7 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
   await seedPhase4Fixtures(db);
   await seedPhase5Fixtures(db);
   await seedPhase9Fixtures(db);
+  await seedPhase10Fixtures(db);
 }
 
 async function seedAdditionalOperatingFixtures(

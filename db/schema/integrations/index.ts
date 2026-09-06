@@ -18,6 +18,7 @@ export const integrationConnections = pgTable("integration_connections", {
   lastSyncAt: timestamp("last_sync_at", { withTimezone: true, mode: "date" }),
   lastSuccessAt: timestamp("last_success_at", { withTimezone: true, mode: "date" }),
   lastHealthCheckAt: timestamp("last_health_check_at", { withTimezone: true, mode: "date" }),
+  lastRequestAt: timestamp("last_request_at", { withTimezone: true, mode: "date" }),
   lastError: text("last_error"),
   retryCount: integer("retry_count").notNull().default(0),
   disabledAt: timestamp("disabled_at", { withTimezone: true, mode: "date" }),

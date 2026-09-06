@@ -261,6 +261,9 @@ export const aiUsageEvents = pgTable("ai_usage_events", {
   inputTokens: integer("input_tokens"),
   outputTokens: integer("output_tokens"),
   estimatedCostUsd: numeric("estimated_cost_usd", { precision: 12, scale: 6 }).notNull().default("0"),
+  modelTier: text("model_tier"),
+  webSearchCalls: integer("web_search_calls").notNull().default(0),
+  tavilyRequests: integer("tavily_requests").notNull().default(0),
   ...createdAtOnly(),
 }, (table) => [
   index("ai_usage_events_organization_id_idx").on(table.organizationId),

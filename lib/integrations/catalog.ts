@@ -78,7 +78,19 @@ export const INTEGRATION_CATALOG: IntegrationCatalogEntry[] = [
     id: "checkr",
     name: "Checkr",
     group: "Background checks",
-    summary: "Background check requests. Results attach to the candidate record.",
+    summary: "Background screening through a provider adapter. Human review is required; results are not hiring decisions.",
+  },
+  {
+    id: "resend",
+    name: "Resend",
+    group: "Transactional email",
+    summary: "System email for applications, interviews, offers, and onboarding. Not a recruiter mailbox.",
+  },
+  {
+    id: "drug-screen",
+    name: "Drug screen",
+    group: "Pre-employment",
+    summary: "Provider-neutral drug-screen adapter. Unconfigured: manual/mock workflow only.",
   },
 ];
 

@@ -134,7 +134,7 @@ async function main() {
     "Health details leaked a secret",
   );
   assert(
-    /phase(?:8|9)/.test(health.seedVersion),
+    /phase(?:8|9|10)/.test(health.seedVersion),
     "Seed version should reflect Phase 8 or later",
   );
 
@@ -188,6 +188,11 @@ async function main() {
     "docs/operations/WORKFORCEOS_OPERATING_PLAYBOOK.md",
     "docs/operations/ADMIN_RUNBOOK.md",
     "docs/operations/INCIDENT_RESPONSE.md",
+    "docs/operations/MIGRATION_RUNBOOK.md",
+    "docs/operations/PERFORMANCE_AUDIT.md",
+    "docs/operations/DISASTER_RECOVERY.md",
+    "docs/operations/PILOT_PLAN.md",
+    "docs/requirements/POST_LAUNCH_BACKLOG.md",
     "docs/database/INDEX_REVIEW.md",
     "docs/architecture/DATABASE_DEPLOYMENT.md",
     "docs/architecture/VERCEL_DEPLOYMENT_CHECKLIST.md",

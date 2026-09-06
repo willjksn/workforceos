@@ -147,6 +147,10 @@ export const offerStatusEnum = pgEnum("offer_status", [
   "declined",
   "withdrawn",
   "expired",
+  "pending_approval",
+  "approved",
+  "sent",
+  "rescinded",
 ]);
 
 export const militaryBranchEnum = pgEnum("military_branch", [
@@ -915,4 +919,123 @@ export const inAppNotificationKindEnum = pgEnum("in_app_notification_kind", [
   "approval_pending",
   "conversion_decision_approaching",
   "scout_action",
+  "application_received",
+  "application_awaiting_review",
+  "scorecard_overdue",
+  "background_check_status",
+  "drug_screen_status",
+  "offer_approval",
+  "offer_accepted",
+  "offer_expiring",
+  "onboarding_overdue",
+  "new_hire_starting",
+]);
+
+export const jobContextTypeEnum = pgEnum("job_context_type", ["internal", "client", "skillbridge"]);
+
+export const postingVisibilityEnum = pgEnum("posting_visibility", [
+  "public",
+  "unlisted",
+  "internal_only",
+  "closed",
+]);
+
+export const clientVisibilityEnum = pgEnum("client_visibility", ["public", "confidential", "internal_only"]);
+
+export const requisitionStatusEnum = pgEnum("requisition_status", [
+  "draft",
+  "pending_approval",
+  "approved",
+  "rejected",
+  "open",
+  "on_hold",
+  "filled",
+  "cancelled",
+  "closed",
+]);
+
+export const applicationSourceEnum = pgEnum("application_source", [
+  "career_site",
+  "referral",
+  "recruiter",
+  "linkedin",
+  "indeed",
+  "military_event",
+  "skillbridge",
+  "client_referral",
+  "internal",
+  "agency",
+  "other",
+]);
+
+export const applicationStatusEnum = pgEnum("application_status", [
+  "submitted",
+  "in_process",
+  "hired",
+  "rejected",
+  "withdrawn",
+  "nurture",
+  "position_closed",
+]);
+
+export const questionTypeEnum = pgEnum("application_question_type", [
+  "short_text",
+  "long_text",
+  "yes_no",
+  "single_select",
+  "multi_select",
+  "date",
+  "number",
+  "file",
+  "acknowledgement",
+]);
+
+export const backgroundCheckStatusEnum = pgEnum("background_check_status", [
+  "not_required",
+  "not_started",
+  "invited",
+  "consent_pending",
+  "in_progress",
+  "completed",
+  "review_required",
+  "cleared",
+  "adverse_review",
+  "cancelled",
+  "error",
+]);
+
+export const drugScreenStatusEnum = pgEnum("drug_screen_status", [
+  "not_required",
+  "not_started",
+  "ordered",
+  "scheduled",
+  "completed",
+  "review_required",
+  "cleared",
+  "cancelled",
+  "error",
+]);
+
+export const employeeStatusEnum = pgEnum("employee_status", [
+  "prehire",
+  "active",
+  "leave",
+  "inactive",
+  "terminated",
+]);
+
+export const scorecardRecommendationEnum = pgEnum("scorecard_recommendation", [
+  "strong_yes",
+  "yes",
+  "mixed",
+  "no",
+  "strong_no",
+]);
+
+export const transactionalEmailStatusEnum = pgEnum("transactional_email_status", [
+  "queued",
+  "sent",
+  "delivered",
+  "failed",
+  "bounced",
 ]);

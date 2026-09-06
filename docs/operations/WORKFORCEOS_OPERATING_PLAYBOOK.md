@@ -32,7 +32,7 @@ Preview vs production: preview uses Clerk test keys and a preview database. Prod
 ## Migrate
 
 - Change schema in `db/schema/`.
-- Generate `npm run db:generate`. Review SQL. Do not rewrite already-applied files `0000`–`0008`.
+- Generate `npm run db:generate`. Review SQL. Do not rewrite already-applied files `0000`–`0009`.
 - Apply with `npm run db:migrate` using `DATABASE_URL_UNPOOLED`.
 - Update `docs/database/MIGRATIONS.md` and `docs/database/DATA_DICTIONARY.md`.
 
@@ -101,6 +101,13 @@ SkillBridge is an overlay on Talent Network candidates at `/app/military/skillbr
 - My SkillBridge Queue is the owner's overdue follow-ups, windows, missing resumes, and employer feedback. Managers with `skillbridge.manage` can switch to the global queue.
 - Alert thresholds are `skillbridge_alert_rules` (not hardcoded). Inngest `workforceos/skillbridge-follow-up-scan` and `workforceos/skillbridge-match` populate in-app notifications.
 - Humans connect or submit to employers. Scout/agent drafts of briefs and emails stay drafts.
+
+## Careers and hiring (Phase 10)
+
+- Public careers: `/careers`. Internal queues: `/app/recruiting/workbench` and `/app/recruiting/applications`.
+- Transactional email is Resend (`EmailProvider`). Recruiter mailboxes remain Microsoft/Google. Verify the sending domain before production.
+- Background checks: Checkr when configured, otherwise manual. Drug screens: NOT CONFIGURED until a vendor is chosen. Never treat a vendor result as an automatic hiring decision.
+- Production seed must not load fake applicants.
 
 ## Backup / PITR / recovery
 

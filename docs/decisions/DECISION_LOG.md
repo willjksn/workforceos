@@ -533,6 +533,56 @@ Database mirror: `decision_log` table, seeded from this file.
 - Affected modules: military, recruiting, inngest, notifications, reports
 - Reconsideration: if email/SMS later ships, it still requires `scout.external_actions` (or equivalent) and human confirmation.
 
+## DEC-HIRE-001 — WorkforceOS is PierOne's ATS / pre-hire / onboarding OS
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Phase 10 makes WorkforceOS the central applicant-tracking, pre-employment, offer, and onboarding operating system for PierOne Partners. It is not a full HRIS. Payroll, benefits administration, compensation planning, performance management, timekeeping, PTO, and LMS remain out of scope.
+- Reason: WFOS-HIRE-013, WFOS-HIRE-014. One operating system for JOB → APPLICATION → HIRED without inventing a second product.
+- Affected modules: recruiting, hiring, onboarding, talent
+- Reconsideration: none for V1.
+
+## DEC-HIRE-002 — Candidate remains the global person identity
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: `candidates` stay the global person record across Talent Network, applications, SkillBridge, and employment. `applications` are Candidate↔Job relationships. `employees.candidate_id` bridges to internal employment. Do not duplicate identities for multiple applications.
+- Reason: WFOS-HIRE-001, WFOS-HIRE-002, WFOS-HIRE-006, WFOS-HIRE-013.
+- Affected modules: talent, hiring, skillbridge
+- Reconsideration: none for V1.
+
+## DEC-HIRE-003 — Public careers through controlled APIs
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: PierOne careers (`/careers`, `/jobs/[slug]`) consume WorkforceOS through `/api/public/v1/jobs` and `/api/public/v1/applications`. Public users never receive ORM access. Confidential client identity is hidden unless `client_visibility=public`. This is not a public job marketplace.
+- Reason: WFOS-HIRE-004, WFOS-HIRE-005, WFOS-HIRE-015.
+- Affected modules: hiring, security
+- Reconsideration: if pieronepartners.com hosts the pages, it still uses these APIs.
+
+## DEC-HIRE-004 — Resend is transactional email; Microsoft/Google remain human mailboxes
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: `EmailProvider` / `ResendEmailProvider` sends application, interview, offer, and onboarding system messages. Recruiter-authored email still uses connected Microsoft 365 or Google Workspace. Scout drafts; it does not send.
+- Reason: WFOS-HIRE-008, WFOS-HIRE-009.
+- Affected modules: email, integrations, scout
+- Reconsideration: sending domain DNS must be verified before production.
+
+## DEC-HIRE-005 — Screening adapters with human review
+
+- Date: 2026-09-05
+- Owner: Product Build
+- Status: accepted
+- Decision: Background screening uses `BackgroundCheckProvider` (Checkr preferred when configured; otherwise manual/mock). Drug screening uses a provider-neutral adapter until a vendor is selected (NOT CONFIGURED). Provider results never auto-reject. Adverse-action legal text is not invented in product copy.
+- Reason: WFOS-HIRE-010, WFOS-HIRE-011, WFOS-HIRE-012.
+- Affected modules: hiring, integrations, security
+- Reconsideration: live Checkr/vendor credentials stay sandbox-separated from production.
+
 ## DEC-OPS-002 — In-app notifications are a foundation, not a second inbox
 
 - Date: 2026-09-05

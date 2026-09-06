@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/page";
 import { requireCurrentPrincipal } from "@/lib/auth/session";
 import { moneyString } from "@/lib/finance/money";
-import { can } from "@/lib/rbac/permissions";
+import { can, isPlatformAdmin } from "@/lib/rbac/permissions";
 import { getExecutiveCommandCenter } from "@/lib/reporting/executive";
 import { evaluateOperationalAlerts } from "@/lib/alerts/evaluate";
 
@@ -34,13 +34,14 @@ export default async function CommandCenterPage() {
   const canCandidates = can(principal, "candidates.read");
   const canJobs = can(principal, "jobs.read");
   const canFinance = can(principal, "finance.read");
+  const canReviewApprovals = isPlatformAdmin(principal) || can(principal, "agents.read");
 
   return (
     <PageShell wide>
       <PageHeader
         eyebrow="WorkforceOS / Executive view"
         title="Workforce Command Center"
-        description="Live operating snapshot from PostgreSQL. Counts and amounts are stored records, not estimates."
+        description="Live snapshot of your firm's operating records. Figures come from saved data, not projections."
         metadata={`${principal.roleSlugs.join(", ") || "no roles"} · ${snapshot.generatedAt.toLocaleString()}`}
       />
 
@@ -84,6 +85,16 @@ export default async function CommandCenterPage() {
             <MetricCard href="/app/offers" label="Offers" value={snapshot.recruiting.offers} />
             <MetricCard href="/app/placements" label="Placements" value={snapshot.recruiting.placements} />
             <MetricCard href="/app/guarantees" label="Guarantee risk" value={snapshot.recruiting.guaranteeRisk} />
+            <MetricCard href="/app/jobs" label="Open jobs" value={snapshot.recruiting.hiring.openJobs} />
+            <MetricCard href="/app/recruiting/applications" label="New applications" value={snapshot.recruiting.hiring.newApplications} />
+            <MetricCard href="/app/recruiting/applications" label="Awaiting review" value={snapshot.recruiting.hiring.awaitingReview} />
+            <MetricCard href="/app/interviews" label="Interviews this week" value={snapshot.recruiting.hiring.interviewsThisWeek} />
+            <MetricCard href="/app/recruiting/workbench" label="Background pending" value={snapshot.recruiting.hiring.backgroundPending} />
+            <MetricCard href="/app/recruiting/workbench" label="Drug screens pending" value={snapshot.recruiting.hiring.drugPending} />
+            <MetricCard href="/app/offers" label="Offers outstanding" value={snapshot.recruiting.hiring.offersOutstanding} />
+            <MetricCard href="/app/offers" label="Offers accepted" value={snapshot.recruiting.hiring.offersAccepted} />
+            <MetricCard href="/app/onboarding" label="New hires starting" value={snapshot.recruiting.hiring.newHiresStarting} />
+            <MetricCard href="/app/onboarding" label="Onboarding at risk" value={snapshot.recruiting.hiring.onboardingAtRisk} />
           </div>
         </section>
       ) : null}
@@ -192,7 +203,7 @@ export default async function CommandCenterPage() {
               ))}
             </RecordList>
           </section>
-        ) : (
+        ) : canReviewApprovals ? (
           <section>
             <SectionHeader title="Pending approvals" />
             {snapshot.base.pendingApprovals.length === 0 ? (
@@ -210,7 +221,7 @@ export default async function CommandCenterPage() {
               </RecordList>
             )}
           </section>
-        )}
+        ) : null}
       </div>
     </PageShell>
   );

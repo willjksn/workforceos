@@ -24,13 +24,15 @@ export default async function Home() {
         <p className="eyebrow">Internal operating system</p>
         <h1 className="page-title mt-3">People. Workforce. Opportunity.</h1>
         <p className="mt-4 max-w-xl text-[16px] leading-7 text-muted-foreground">
-          WorkforceOS is the operating system behind PierOne Partners. PostgreSQL remains the system of
-          record. Agents draft; people approve.
+          WorkforceOS is the operating system behind PierOne Partners. Agents draft; people approve.
         </p>
       </div>
       <div className="flex gap-3">
         <Link className="rounded-[6px] bg-navy px-5 py-2.5 text-sm text-white" href="/sign-in">
           Sign in
+        </Link>
+        <Link className="rounded-[6px] border border-navy px-5 py-2.5 text-sm text-navy" href="/careers">
+          Careers
         </Link>
         <Link className="rounded-[6px] border border-navy px-5 py-2.5 text-sm text-navy" href="/app">
           Open app

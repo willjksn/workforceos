@@ -42,7 +42,9 @@ Adapters return a common result type. Missing credentials yield `not_configured`
 | Google | calendar/meeting/email references | workspace references only; not a second Gmail |
 | DocuSign | legal execution | adapter + manual execution if unconfigured; never mark executed without confirmation |
 | QuickBooks | finance/AR ledger | adapter maps customers/invoices/payments through `external_records`; labeled mock if unconfigured |
-| Checkr | background checks | placeholder |
+| Checkr | background checks | provider adapter; human review required; mock if unconfigured |
+| Resend | transactional recruiting/onboarding email | EmailProvider; not a recruiter mailbox |
+| Drug screen | pre-employment screening | provider-neutral adapter; NOT CONFIGURED until a vendor is selected |
 
 Do not implement unsupported APIs. Do not require credentials to boot the app.
 

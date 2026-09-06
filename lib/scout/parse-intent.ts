@@ -4,7 +4,10 @@ import { isRegisteredCommand, type ScoutCommandFamily } from "./commands";
 import type { ScoutPageContext } from "./page-context";
 
 const SQL_PATTERN =
-  /\b(select|insert|update|delete|drop|alter|truncate|create\s+table|grant|revoke|copy|execute)\b|\bpg_sleep\b|;?\s*--/i;
+  /\bselect\b[\s\S]*\bfrom\b|\binsert\s+into\b|\bdelete\s+from\b|\bdrop\s+(table|database|schema|index)\b|\balter\s+table\b|\btruncate\s+table\b|\bcreate\s+table\b|\bgrant\s+\w+\s+on\b|\brevoke\s+\w+\b|\bpg_sleep\s*\(|;\s*--|^\s*--/i;
+
+const UNSAFE_PROMPT_PATTERN =
+  /\b(delete\s+all|drop\s+all|ignore\s+(the\s+)?permissions|bypass\s+(rbac|authorization)|show\s+(me\s+)?every\s+candidate\s+email)\b/i;
 
 export const scoutSearchFiltersSchema = z.object({
   skill: z.string().trim().max(120).optional(),
@@ -49,6 +52,7 @@ export const scoutCommandDtoSchema = z.object({
   candidateIds: z.array(z.string().uuid()).optional(),
   jobId: z.string().uuid().optional(),
   candidateId: z.string().uuid().optional(),
+  applicationId: z.string().uuid().optional(),
   skillbridgeProfileId: z.string().uuid().optional(),
   companyId: z.string().uuid().optional(),
   draftKind: z.string().trim().max(80).optional(),
@@ -88,6 +92,13 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
       ok: false,
       error: "Scout cannot execute SQL. Use a registered command.",
       code: "sql_rejected",
+    };
+  }
+  if (UNSAFE_PROMPT_PATTERN.test(raw)) {
+    return {
+      ok: false,
+      error: "Scout cannot ignore permissions or run destructive bulk actions.",
+      code: "unknown_command",
     };
   }
 
@@ -167,6 +178,14 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
   if (/\bdraft\b/.test(text)) {
     family = "DRAFT";
     summary = "Draft a message for human review.";
+  } else if (/\breject (this |the )?(candidate|application)\b|\breject this person\b/.test(text)) {
+    family = "UPDATE";
+    entity = "application_reject";
+    summary = "Rejecting a candidate requires human confirmation.";
+  } else if (/\bschedule (an )?interview\b/.test(text)) {
+    family = "CREATE";
+    entity = "interview";
+    summary = "Schedule an interview (confirmation required).";
   } else if (/\bcreate a talent pool\b|\bcreate a watchlist\b|\bcreate a pool\b/.test(text)) {
     family = "ADD_TO_POOL";
     summary = "Create or populate a talent pool (confirmation required).";
@@ -201,6 +220,13 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
   } else if (/\bdaily brief\b|\btoday'?s priorities\b|\bwho needs my attention\b/.test(text)) {
     family = "SHOW_DASHBOARD";
     summary = "Show today's operating priorities.";
+  } else if (
+    /\bapplication|\bwho applied\b|\binterviews tomorrow\b|\bscorecards?\b|\bbackground check\b|\bdrug screen\b|\boffers? expire\b|\bnew hires?\b|\bonboarding\b/.test(
+      text,
+    )
+  ) {
+    entity = "applications";
+    summary = "Search hiring and application records.";
   } else if (/\bskillbridge\b/.test(text) || filters.windowWithinDays || filters.hasActiveOpportunity === false || filters.employerFeedbackOverdue) {
     entity = "skillbridge";
     summary = "Search SkillBridge operating records.";
@@ -217,13 +243,24 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
     poolName: poolName || (family === "ADD_TO_POOL" ? "Scout pool" : undefined),
     dashboard: family === "SHOW_DASHBOARD" ? "daily_brief" : undefined,
     draftKind: family === "DRAFT"
-      ? (/\bfollow-?up\b/.test(text) ? "follow_up" : /\bresume\b/.test(text) ? "resume_request" : "custom")
+      ? (/\bfollow-?up\b/.test(text)
+        ? "follow_up"
+        : /\breject/.test(text)
+          ? "rejection"
+          : /\binterview/.test(text)
+            ? "interview_invitation"
+            : /\bonboarding/.test(text)
+              ? "onboarding_welcome"
+              : /\bresume\b/.test(text)
+                ? "resume_request"
+                : "custom")
       : undefined,
     candidateId: pageContext?.entityType === "candidate" ? pageContext.entityId ?? undefined : undefined,
     jobId: pageContext?.entityType === "job" ? pageContext.entityId ?? undefined : undefined,
     skillbridgeProfileId:
       pageContext?.entityType === "skillbridge_profile" ? pageContext.entityId ?? undefined : undefined,
     companyId: pageContext?.entityType === "company" ? pageContext.entityId ?? undefined : undefined,
+    note: entity === "applications" || family === "DRAFT" ? raw.slice(0, 500) : undefined,
   };
 
   if (family === "FIND_MATCHES" && !dto.candidateId && pageContext?.entityType === "candidate") {

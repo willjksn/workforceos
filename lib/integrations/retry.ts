@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray, or, count } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import { integrationConnections, integrationEvents } from "../../db/schema";
@@ -130,6 +130,28 @@ export async function retryFailedEvent(input: {
 
 export async function listFailedIntegrationEvents(organizationId: string) {
   const db = getDb();
-  const rows = await db.select().from(integrationEvents).where(eq(integrationEvents.organizationId, organizationId));
-  return rows.filter((row) => row.deadLetter || row.status === "failed" || row.status === "error");
+  return db
+    .select()
+    .from(integrationEvents)
+    .where(
+      and(
+        eq(integrationEvents.organizationId, organizationId),
+        or(eq(integrationEvents.deadLetter, true), inArray(integrationEvents.status, ["failed", "error"])),
+      ),
+    )
+    .limit(50);
+}
+
+export async function countFailedIntegrationEvents(organizationId: string) {
+  const db = getDb();
+  const [row] = await db
+    .select({ value: count() })
+    .from(integrationEvents)
+    .where(
+      and(
+        eq(integrationEvents.organizationId, organizationId),
+        or(eq(integrationEvents.deadLetter, true), inArray(integrationEvents.status, ["failed", "error"])),
+      ),
+    );
+  return Number(row?.value ?? 0);
 }

@@ -71,6 +71,13 @@
       "when": 1788656408366,
       "tag": "0009_swift_saracen",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788663887268,
+      "tag": "0010_nostalgic_scarecrow",
+      "breakpoints": true
     }
   ]
 }

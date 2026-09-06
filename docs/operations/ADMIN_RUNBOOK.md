@@ -12,7 +12,7 @@ A disabled local user cannot use the app even with a live Clerk session.
 
 ## System status
 
-`/app/admin/system-health` shows app version, environment, database, migrations, `vector` / `pg_trgm`, Clerk, Inngest, storage, integrations, AI provider, 24h queue failures, and a backup reminder. It never displays secrets or connection strings.
+`/app/admin/system-health` shows app version, environment, database, migrations, `vector` / `pg_trgm`, Clerk, Inngest, storage, integrations, AI provider, Resend, calendar, background/drug providers, public careers API, 24h queue failures, and a backup reminder. It never displays secrets or connection strings.
 
 ## Data quality vs alerts
 

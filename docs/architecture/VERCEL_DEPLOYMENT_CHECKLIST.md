@@ -29,6 +29,10 @@ WorkforceOS deploys the existing GitHub repository `willjksn/workforceos` to Ver
 - [ ] Storage variables configured if file uploads are required (`STORAGE_PROVIDER=s3` plus `S3_*`)
 - [ ] `NEXT_PUBLIC_APP_URL` set per environment (preview Vercel URL; production `https://app.pieronepartners.com`)
 - [ ] `SENTRY_DSN` set when error monitoring is required (optional; logs still redact secrets/PII)
+- [ ] Resend: `RESEND_API_KEY`, `RESEND_FROM_EMAIL` after domain verification (`careers@` / `noreply@pieronepartners.com`)
+- [ ] `PUBLIC_CAREERS_URL` when pieronepartners.com/careers is live
+- [ ] Checkr keys only if the background adapter is going live (sandbox vs production separated)
+- [ ] Do not set unused `DRUG_SCREEN_*` until a vendor is selected
 
 ## Data
 

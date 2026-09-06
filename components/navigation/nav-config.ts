@@ -70,6 +70,9 @@ const NAV: NavGroup[] = [
   {
     label: "Recruiting",
     items: [
+      { href: "/app/recruiting/workbench", label: "Recruiting Workbench", icon: "clipboard", permission: "applications.read" },
+      { href: "/app/recruiting/applications", label: "Applications", icon: "users", permission: "applications.read" },
+      { href: "/app/recruiting/requisitions", label: "Requisitions", icon: "folder", permission: "jobs.read" },
       { href: "/app/jobs", label: "Jobs", icon: "clipboard", permission: "jobs.read" },
       { href: "/app/search-projects", label: "Search Projects", icon: "search", permission: "search_projects.read" },
       { href: "/app/pipeline", label: "Candidate Pipeline", icon: "layers", permission: "jobs.read" },
@@ -79,6 +82,7 @@ const NAV: NavGroup[] = [
       { href: "/app/placements", label: "Placements", icon: "checks", permission: "placements.read" },
       { href: "/app/guarantees", label: "Guarantees", icon: "bell", permission: "placements.read" },
       { href: "/app/recruiting/analytics", label: "Recruiting Analytics", icon: "dashboard", permission: "recruiting.analytics.read" },
+      { href: "/app/onboarding", label: "Onboarding", icon: "sprout", permission: "onboarding.read" },
     ],
   },
   {

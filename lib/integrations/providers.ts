@@ -17,11 +17,14 @@ import { recordAuditEvent } from "../audit/record-audit-event";
 import { canOpenExternalSourcing } from "../recruiting/external-sourcing";
 import {
   isApolloConfigured,
+  isCheckrConfigured,
   isDocuSignConfigured,
+  isDrugScreenConfigured,
   isGoogleConfigured,
   isMicrosoftConfigured,
   isOnetConfigured,
   isQuickBooksConfigured,
+  isResendConfigured,
   isSeekOutConfigured,
 } from "./credentials";
 import type { EsignAdapter, EsignResult } from "./esign";
@@ -512,7 +515,9 @@ export function buildProviderAdapters(): IntegrationAdapter[] {
     new WorkspaceAdapter("google"),
     new DocuSignAdapter(),
     new QuickBooksAdapter(),
-    new BaseAdapter("checkr", () => false),
+    new BaseAdapter("checkr", isCheckrConfigured),
+    new BaseAdapter("resend", isResendConfigured),
+    new BaseAdapter("drug-screen", isDrugScreenConfigured),
   ];
 }
 

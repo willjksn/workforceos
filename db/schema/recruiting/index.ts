@@ -17,12 +17,15 @@ import { organizations, users } from "../core";
 import { companies, companyLocations, contacts, opportunities } from "../crm";
 import {
   candidatePipelineStatusEnum,
+  clientVisibilityEnum,
   guaranteeStatusEnum,
   interviewStatusEnum,
+  jobContextTypeEnum,
   jobStatusEnum,
   mappingReviewStatusEnum,
   offerStatusEnum,
   placementStatusEnum,
+  postingVisibilityEnum,
   searchProjectStatusEnum,
   skillRequirementTypeEnum,
   submissionStatusEnum,
@@ -72,6 +75,12 @@ export const jobs = pgTable("jobs", {
   priority: text("priority").notNull().default("normal"),
   urgency: text("urgency").notNull().default("normal"),
   militaryCompatibility: text("military_compatibility"),
+  jobContextType: jobContextTypeEnum("job_context_type").notNull().default("client"),
+  department: text("department"),
+  postingVisibility: postingVisibilityEnum("posting_visibility").notNull().default("internal_only"),
+  clientVisibility: clientVisibilityEnum("client_visibility").notNull().default("internal_only"),
+  publicSlug: text("public_slug"),
+  skillbridgeEligible: boolean("skillbridge_eligible").notNull().default(false),
   lastActivityAt: timestamp("last_activity_at", { withTimezone: true, mode: "date" }),
   internalTalentSearchStartedAt: timestamp("internal_talent_search_started_at", {
     withTimezone: true,
@@ -91,6 +100,7 @@ export const jobs = pgTable("jobs", {
   index("jobs_hiring_manager_contact_id_idx").on(table.hiringManagerContactId),
   index("jobs_search_owner_user_id_idx").on(table.searchOwnerUserId),
   index("jobs_org_status_idx").on(table.organizationId, table.status),
+  unique("jobs_org_public_slug_uq").on(table.organizationId, table.publicSlug),
   index("jobs_title_trgm_idx").using("gin", sql`${table.title} gin_trgm_ops`),
 ]);
 
@@ -281,11 +291,13 @@ export const interviews = pgTable("interviews", {
   outcome: text("outcome"),
   nextStep: text("next_step"),
   notes: text("notes"),
+  applicationId: uuid("application_id"),
   ...timestamps(),
 }, (table) => [
   index("interviews_submission_id_idx").on(table.submissionId),
   index("interviews_candidate_id_idx").on(table.candidateId),
   index("interviews_job_id_idx").on(table.jobId),
+  index("interviews_application_id_idx").on(table.applicationId),
 ]);
 
 export const offers = pgTable("offers", {
@@ -311,11 +323,14 @@ export const offers = pgTable("offers", {
   delayedClientProcess: boolean("delayed_client_process").notNull().default(false),
   relocationConcern: boolean("relocation_concern").notNull().default(false),
   notes: text("notes"),
+  applicationId: uuid("application_id"),
+  version: integer("version").notNull().default(1),
   ...timestamps(),
 }, (table) => [
   index("offers_candidate_id_idx").on(table.candidateId),
   index("offers_job_id_idx").on(table.jobId),
   index("offers_search_project_id_idx").on(table.searchProjectId),
+  index("offers_application_id_idx").on(table.applicationId),
 ]);
 
 export const placements = pgTable("placements", {

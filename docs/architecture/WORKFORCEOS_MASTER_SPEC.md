@@ -1,6 +1,6 @@
 # WorkforceOS Master Specification
 
-Status: Phase 9 Scout + SkillBridge operations  
+Status: Phase 10 Careers, ATS, and employee onboarding  
 Audience: engineering agents and maintainers  
 Canonical: this file is the architecture source of truth for implementation.
 
@@ -10,7 +10,7 @@ WorkforceOS is an internal operating system for a Workforce & Talent Solutions f
 
 It will eventually manage company CRM, Talent CRM, recruiting/search, military talent translation, workforce development, legal document operations, finance/AR workflow, integrations, background AI agents, audit history, approvals, and institutional knowledge.
 
-Phase 1 built the technical foundation. Phase 4 activates service engines, proposals, contracts, and project delivery. Phase 5 expands Workforce Pipeline Assessment into workforce development and intelligence. Phase 6 activates operational finance and Integration Hub business adapters. Phase 7 activates AI operations, prompt versioning, the Review Queue, named automation, and approved knowledge retrieval. Phase 8 finishes executive reporting, the Command Center, operational alerts, data quality, and production hardening. Phase 9 adds Scout (the persistent in-app assistant) and SkillBridge operations as a first-class Military Talent workflow. Do not start Phase 10 unless explicitly asked.
+Phase 1 built the technical foundation. Phase 4 activates service engines, proposals, contracts, and project delivery. Phase 5 expands Workforce Pipeline Assessment into workforce development and intelligence. Phase 6 activates operational finance and Integration Hub business adapters. Phase 7 activates AI operations, prompt versioning, the Review Queue, named automation, and approved knowledge retrieval. Phase 8 finishes executive reporting, the Command Center, operational alerts, data quality, and production hardening. Phase 9 adds Scout (the persistent in-app assistant) and SkillBridge operations as a first-class Military Talent workflow. Phase 10 extends WorkforceOS into PierOne careers, applicant tracking, pre-employment, offers, and new-hire onboarding. It is not a public job marketplace and not a payroll/benefits HRIS. Do not start Phase 11 unless explicitly asked.
 
 ## Product boundaries
 
@@ -161,6 +161,16 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 - Follow-up, window, no-opportunity, employer-feedback, resume-missing, and conversion rules live in configurable `skillbridge_alert_rules`. Inngest runs scans. In-app notifications are the delivery channel.
 - Metrics and My SkillBridge Queue counts come from stored rows only. Permissions: `skillbridge.read`, `skillbridge.write`, `skillbridge.manage`, `skillbridge.export`. Restricted PII rules still apply.
 - Development fixtures include labeled SkillBridge people. Production seed (`db:seed:prod`) loads alert-rule defaults only, not those people.
+
+## Careers, ATS, and onboarding (Phase 10)
+
+- There is one global `candidates` record. `applications` are Candidate↔Job relationships. Never duplicate a person because they applied twice or later became an employee.
+- Jobs may be `internal`, `client`, or `skillbridge`. Approved jobs publish through `job_postings` to `/careers` and `/api/public/v1/jobs`. Public payloads omit confidential client identity, compensation internals, and recruiter notes.
+- Public applications enter WorkforceOS through `/api/public/v1/applications` (validation, rate limit, file checks). The public site never receives database credentials.
+- Interview scheduling uses `CalendarProvider` (Microsoft/Google when connected; mock otherwise). Transactional system email uses `EmailProvider` / Resend. Recruiter mailboxes stay on Microsoft/Google.
+- Background and drug screening use provider adapters (`BackgroundCheckProvider`, `DrugScreenProvider`). Checkr is the preferred future background provider. Drug screening is NOT CONFIGURED until a vendor is selected. Humans review results; adapters never auto-reject.
+- Offers reuse `offers` with versions. Onboarding uses templates and Inngest reminders. `employees` link to `candidate_id`; the Talent Network record remains. Phase 10 is not payroll, benefits, performance, timekeeping, or a full HRIS.
+- Scout can search hiring queues and draft messages. Scout cannot independently reject candidates or send transactional email.
 
 ## Related documents
 

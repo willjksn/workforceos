@@ -9,6 +9,9 @@ describe("route protection", () => {
     expect(isPublicPath("/sign-in/sso-callback")).toBe(true);
     expect(isPublicPath("/sign-up")).toBe(true);
     expect(isPublicPath("/api/inngest")).toBe(true);
+    expect(isPublicPath("/careers")).toBe(true);
+    expect(isPublicPath("/jobs/electrical-technician")).toBe(true);
+    expect(isPublicPath("/api/public/v1/jobs")).toBe(true);
   });
 
   it("requires authentication for internal operating routes", () => {

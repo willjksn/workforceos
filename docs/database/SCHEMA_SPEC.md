@@ -124,3 +124,8 @@ pg_trgm GIN indexes on:
 6. Add or adjust tests.
 
 Do not apply raw production SQL outside migrations unless an emergency runbook says otherwise.
+
+## Phase 10 hiring tables
+
+Add through a new Drizzle migration. Do not edit 0000–0009. Index `applications.candidate_id`, `applications.job_id`, `applications.status`, `applications.current_stage`, `applications.applied_at`, posting slug, interview/offer `application_id`, and `employees.candidate_id`. Unique person identity stays on `candidates`.
+
