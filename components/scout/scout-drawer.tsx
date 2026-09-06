@@ -9,6 +9,7 @@ import { scoutConfirmAction, scoutPromptAction, scoutSendDraftAction, type Scout
 import { suggestedScoutPrompts } from "@/lib/scout/prompts";
 import { parseScoutPageContext } from "@/lib/scout/page-context";
 import { cardsToQueueItems, writeScoutResultQueue } from "@/lib/scout/result-queue";
+import { useClientMounted } from "@/lib/client/use-client-mounted";
 import { buttonClassName } from "@/components/ui/button";
 
 export const OPEN_SCOUT_EVENT = "workforceos:open-scout";
@@ -25,7 +26,7 @@ export function OpenScoutButton({ className = "" }: { className?: string }) {
       title="Open Scout"
       onClick={() => requestOpenScout()}
     >
-      <Sparkles className="mr-2 h-4 w-4" strokeWidth={1.5} />
+      <Sparkles className="mr-2 h-4 w-4 text-navy fill-navy" strokeWidth={1.5} />
       Open Scout
     </button>
   );
@@ -57,7 +58,7 @@ export function ScoutLauncher({ enabled }: { enabled: boolean }) {
         aria-expanded={open}
         onClick={() => setOpen(true)}
       >
-        <Sparkles className="h-4 w-4" strokeWidth={1.5} />
+        <Sparkles className="h-4 w-4 text-navy fill-navy" strokeWidth={1.5} />
         Scout
       </button>
       {open ? (
@@ -114,7 +115,7 @@ function ScoutDrawer({
   const page = parseScoutPageContext(pathname);
   const [prompt, setPrompt] = useState("");
   const [pending, startTransition] = useTransition();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useClientMounted();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const prompts = suggestedScoutPrompts(page.module, page.entityType);
@@ -125,10 +126,6 @@ function ScoutDrawer({
     const items = cardsToQueueItems(nextCards);
     if (items.length) writeScoutResultQueue({ prompt: nextPrompt, items });
   }
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     const previous = document.body.style.overflow;
@@ -205,7 +202,7 @@ function ScoutDrawer({
               <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-teal">Scout</p>
               <p className="mt-1.5">
                 {enabled
-                  ? "Ask about authorized records on this page. I use stored PostgreSQL data and will not send messages or invent facts."
+                  ? "Ask about authorized records on this page. Scout uses stored WorkforceOS data and will not send messages or invent facts."
                   : "Scout is available after your WorkforceOS role includes scout.use. Ask an administrator to grant access."}
               </p>
             </div>

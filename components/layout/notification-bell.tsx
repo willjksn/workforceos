@@ -11,22 +11,15 @@ import {
   openNotificationAction,
   type NotificationListItem,
 } from "@/lib/actions/notifications";
+import { useClientMounted } from "@/lib/client/use-client-mounted";
 
 export function NotificationBell({ unreadCount }: { unreadCount: number }) {
   const router = useRouter();
+  const mounted = useClientMounted();
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [unread, setUnread] = useState(unreadCount);
   const [items, setItems] = useState<NotificationListItem[] | null>(null);
   const [pending, startTransition] = useTransition();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    setUnread(unreadCount);
-  }, [unreadCount]);
+  const unread = items ? items.filter((item) => !item.read).length : unreadCount;
 
   useEffect(() => {
     if (!open) return;
@@ -47,7 +40,6 @@ export function NotificationBell({ unreadCount }: { unreadCount: number }) {
   function openItem(item: NotificationListItem) {
     startTransition(async () => {
       const next = await openNotificationAction(item.id);
-      if (!item.read) setUnread((count) => Math.max(0, count - 1));
       setItems((current) =>
         current?.map((row) => (row.id === item.id ? { ...row, read: true } : row)) ?? current,
       );

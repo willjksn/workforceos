@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Sparkles, X } from "lucide-react";
 
@@ -10,28 +10,18 @@ import {
   indexInScoutQueue,
   readScoutResultQueue,
   scoutQueueNeighbor,
-  type ScoutResultQueue,
 } from "@/lib/scout/result-queue";
 import { requestOpenScout } from "@/components/scout/scout-drawer";
+
+function subscribeScoutQueue(onStoreChange: () => void) {
+  window.addEventListener(SCOUT_QUEUE_EVENT, onStoreChange);
+  return () => window.removeEventListener(SCOUT_QUEUE_EVENT, onStoreChange);
+}
 
 export function ScoutResultPager() {
   const pathname = usePathname();
   const router = useRouter();
-  const [queue, setQueue] = useState<ScoutResultQueue | null>(null);
-
-  useEffect(() => {
-    function refresh() {
-      setQueue(readScoutResultQueue());
-    }
-    refresh();
-    window.addEventListener(SCOUT_QUEUE_EVENT, refresh);
-    return () => window.removeEventListener(SCOUT_QUEUE_EVENT, refresh);
-  }, []);
-
-  useEffect(() => {
-    setQueue(readScoutResultQueue());
-  }, [pathname]);
-
+  const queue = useSyncExternalStore(subscribeScoutQueue, readScoutResultQueue, () => null);
   const index = queue ? indexInScoutQueue(queue.items, pathname) : -1;
   const previous = queue && index >= 0 ? scoutQueueNeighbor(queue.items, pathname, -1) : null;
   const next = queue && index >= 0 ? scoutQueueNeighbor(queue.items, pathname, 1) : null;
