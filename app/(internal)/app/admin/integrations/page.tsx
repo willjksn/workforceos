@@ -16,7 +16,7 @@ export default async function IntegrationsAdminPage() {
       <PageHeader
         eyebrow="Admin"
         title="Connected tools"
-        description="External products connect through the Integration Hub. They feed WorkforceOS; they do not replace PostgreSQL as the system of record."
+        description="Connected products send data into WorkforceOS. Your operating records stay here."
       />
       <div className="mt-8 space-y-8">
         {groups.map((group) => (

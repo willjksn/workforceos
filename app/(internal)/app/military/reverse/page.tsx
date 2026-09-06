@@ -28,7 +28,7 @@ export default async function ReverseSearchPage({
       <PageHeader
         eyebrow="Military talent"
         title="Reverse search"
-        description="Civilian role → stored military occupations. Compatibility, gaps, and installations come from reviewed mappings, not invented shortcuts."
+        description="Civilian role to stored military occupations. Compatibility, gaps, and installations come from reviewed mappings."
       />
       <MilitarySubnav active="/app/military/reverse" />
       <FilterBar>
@@ -42,7 +42,7 @@ export default async function ReverseSearchPage({
       </FilterBar>
       {hits.length === 0 ? (
         <EmptyState title={reverse?.trim() ? "No stored mappings match that civilian role." : "Enter a civilian occupation."}>
-          Compatibility and gaps come from reviewed mappings, not invented shortcuts.
+          Compatibility and gaps come from reviewed mappings.
         </EmptyState>
       ) : (
         <DataTable columns={["Civilian", "Military", "Compatibility", "Gaps", "Review", "Source"]}>

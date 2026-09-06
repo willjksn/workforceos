@@ -18,7 +18,7 @@ export default async function MilitarySupplyPage() {
       <PageHeader
         eyebrow="Workforce"
         title="Military supply overlay"
-        description="Reuses Phase 3 mappings. Occupations, installations, and bridge training are not duplicated. Installation maps remain deferred."
+        description="Uses existing military mappings. Occupations, installations, and bridge training are not duplicated here."
       />
       <WorkforceSubnav active="/app/workforce/military-supply" />
       <div className="mt-6 space-y-6">

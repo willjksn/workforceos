@@ -45,7 +45,7 @@ export default async function TalentSearchPage({
             <PageHeader
               eyebrow="Talent Network / Search"
               title="Talent Search"
-              description="Search the internal Talent Network. Restricted PII is hidden without candidate_pii.read."
+              description="Search the internal Talent Network. Restricted contact details stay hidden unless you have PII access."
             />
             <EmptyState title="Too many searches.">Wait a moment and try again. Ordinary browsing is not limited.</EmptyState>
           </PageShell>
@@ -66,7 +66,7 @@ export default async function TalentSearchPage({
       <PageHeader
         eyebrow="Talent Network / Search"
         title="Talent Search"
-        description="Search the internal Talent Network. Restricted PII is hidden without candidate_pii.read."
+        description="Search the internal Talent Network. Restricted contact details stay hidden unless you have PII access."
       />
       <FilterBar>
         <SearchForm action="/app/talent/search" q={q} placeholder="Search name or title" className="">

@@ -24,14 +24,14 @@ export default async function ReportsIndexPage() {
       <PageHeader
         eyebrow="Reports"
         title="Operating reports"
-        description="Server-side PostgreSQL aggregates with filters. This is not a BI dashboard builder."
+        description="Filter operating reports by date, client, service, and owner. Save the views your team uses often."
       />
       <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {REPORT_CATEGORIES.map((category) => (
           <Link key={category} href={`/app/reports/${category}`}>
             <Card>
               <p className="font-medium text-navy">{TITLES[category]}</p>
-              <p className="mt-1 text-sm text-muted-foreground">Stored records only.</p>
+              <p className="mt-1 text-sm text-muted-foreground">From your operating records.</p>
             </Card>
           </Link>
         ))}

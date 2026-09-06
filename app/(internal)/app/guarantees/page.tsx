@@ -14,7 +14,7 @@ export default async function GuaranteesPage() {
       <PageHeader
         eyebrow="Recruiting"
         title="Guarantees"
-        description="Windows are calculated from search-agreement days. Terms are never invented at placement time."
+        description="Windows are calculated from search-agreement days. Terms come from the stored agreement, not from this screen."
       />
       {guarantees.length === 0 ? (
         <EmptyState title="No guarantee windows.">

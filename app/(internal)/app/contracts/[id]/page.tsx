@@ -54,7 +54,7 @@ export default async function ContractDetailPage({
         <p className="mt-2 whitespace-pre-wrap text-sm">{contract.sow ?? "—"}</p>
       </Card>
       <p className="mt-3 text-xs text-muted-foreground">
-        E-sign uses a DocuSign-ready adapter. Credentials are not required for Phase 4; manual execution is available.
+        E-sign can use DocuSign when connected. Until then, contracts can be marked executed manually after review.
       </p>
       {can(principal, "contracts.approve") && contract.status !== "executed" ? (
         <ActionForm action={executeContractAction} className="mt-6 max-w-md space-y-3">

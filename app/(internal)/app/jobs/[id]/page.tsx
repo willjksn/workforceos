@@ -155,7 +155,7 @@ export default async function JobDetailPage({
         <h2 className="section-title">Internal Talent Network first</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           {internalComplete
-            ? "Internal search is complete. External provider hooks may be considered through the Integration Hub."
+            ? "Internal search is complete. External sourcing can be considered through connected tools."
             : "External sourcing stays blocked until internal search is run and marked complete."}
         </p>
         <p className="mt-2 text-sm">

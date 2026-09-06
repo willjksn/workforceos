@@ -204,7 +204,7 @@ export default async function ProjectDetailPage({
         <p className="mt-6 text-sm text-muted-foreground">
           {tab === "meetings" && bundle.meetings.length === 0
             ? "No meetings recorded."
-            : "Operating records for this tab appear when they are stored in PostgreSQL."}
+            : "Nothing recorded on this tab yet."}
         </p>
       ) : null}
 

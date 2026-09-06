@@ -12,7 +12,7 @@ export default async function AccessReviewPage() {
       <PageHeader
         eyebrow="Admin"
         title="Access review"
-        description="Local account status, roles, last login, and sensitive permissions. Clerk authenticates; these rows authorize."
+        description="Account status, roles, last login, and sensitive permissions. Sign-in is separate from what each person is allowed to do here."
       />
       {rows.length === 0 ? (
         <EmptyState>No people are recorded for this organization.</EmptyState>

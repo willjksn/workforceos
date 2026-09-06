@@ -86,7 +86,7 @@ export default async function CandidateDetailPage({
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
           <section>
             <p className="text-sm text-muted-foreground">
-              Email: {candidate.emailHidden ? "hidden without candidate_pii.read" : (candidate.email ?? "—")}
+              Email: {candidate.emailHidden ? "hidden" : (candidate.email ?? "—")}
             </p>
             <p className="mt-2 text-sm text-muted-foreground">Consent: {formatLabel(candidate.consentStatus)}</p>
             {record.experiences[0] ? (

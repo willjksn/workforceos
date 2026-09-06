@@ -31,7 +31,7 @@ export default async function MilitaryOccupationsPage({
       <PageHeader
         eyebrow="Military talent"
         title="Occupation library"
-        description="Stored MOS, ratings, AFSC, and specialty records. Development fixtures are labeled and are not authoritative production extracts."
+        description="MOS, ratings, AFSC, and specialty records. Development samples are labeled and are not production extracts."
       />
       <MilitarySubnav active="/app/military/occupations" />
       <FilterBar>

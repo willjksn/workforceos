@@ -14,7 +14,7 @@ export default async function FinanceOverviewPage() {
       <PageHeader
         eyebrow="Finance"
         title="Operating finance"
-        description="WorkforceOS owns billing schedules, invoice expectations, AR, and revenue events. QuickBooks remains the accounting ledger. Amounts come from stored contracts — they are never invented here."
+        description="Billing schedules, invoice expectations, AR, and revenue events. QuickBooks remains the accounting ledger. Amounts come from stored contracts."
       />
       <FinanceSubnav active="/app/finance" />
       <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

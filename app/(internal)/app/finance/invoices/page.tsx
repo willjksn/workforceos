@@ -19,7 +19,7 @@ export default async function InvoicesPage() {
       <PageHeader
         eyebrow="Finance"
         title="Invoices"
-        description="Operating invoice records. QuickBooks remains the accounting source of truth. Provider IDs are stored as external_records."
+        description="Operating invoice records. QuickBooks remains the accounting ledger."
       />
       <FinanceSubnav active="/app/finance/invoices" />
       {can(principal, "invoices.write") && events.length > 0 ? (

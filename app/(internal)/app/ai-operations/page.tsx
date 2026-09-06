@@ -28,7 +28,7 @@ export default async function AiOperationsPage() {
       <PageHeader
         eyebrow="AI Operations"
         title="Agent Command Center"
-        description="Agents draft and recommend on top of PostgreSQL, approved workflows, permissions, audit, and the Review Queue. They are not a second database and cannot approve their own material output. Chat lives in Scout — the labeled Scout control in the top bar, to the left of your profile."
+        description="Agents draft and recommend from WorkforceOS records, approved workflows, and the Review Queue. They cannot approve their own material output. Chat lives in Scout, in the top bar."
         actions={<OpenScoutButton />}
       />
       <AiSubnav active="/app/ai-operations" />

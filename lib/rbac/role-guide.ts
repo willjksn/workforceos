@@ -45,6 +45,6 @@ export function guideForRole(slug: string) {
   if (slug in ROLE_GUIDE) return ROLE_GUIDE[slug as RoleSlug];
   return {
     audience: "Assigned role",
-    access: "Access is granted from PostgreSQL roles, not Clerk metadata.",
+    access: "Access is granted from WorkforceOS roles, not sign-in profile metadata.",
   };
 }

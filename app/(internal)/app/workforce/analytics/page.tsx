@@ -19,7 +19,7 @@ export default async function WorkforceAnalyticsPage() {
       <PageHeader
         eyebrow="Workforce"
         title="Workforce analytics"
-        description="Live PostgreSQL aggregates. External labor-market values are shown only when a configured source returns them."
+        description="Live totals from workforce records. External labor-market figures appear only when a connected source returns them."
       />
       <WorkforceSubnav active="/app/workforce/analytics" />
       <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

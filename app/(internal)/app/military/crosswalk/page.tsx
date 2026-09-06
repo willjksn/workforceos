@@ -43,7 +43,7 @@ export default async function CrosswalkPage({
       {hits.length === 0 ? (
         <EmptyState title={reverse?.trim() ? "No stored mappings match." : "Enter a civilian occupation."}>
           {reverse?.trim()
-            ? "Results come from reviewed mappings in PostgreSQL, not invented shortcuts."
+            ? "Results come from reviewed mappings, not guessed shortcuts."
             : "One civilian role can map to many military occupations."}
         </EmptyState>
       ) : (

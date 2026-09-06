@@ -1,14 +1,19 @@
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 import { getDb } from "@/db";
 import { approvals } from "@/db/schema";
-import { requireCurrentPrincipal } from "@/lib/auth/session";
+import { requirePlatformAdmin } from "@/lib/auth/guard";
 import { DataTable, EmptyState, PageHeader, PageShell, StatusBadge, formatLabel } from "../../_components/ui";
 
 export default async function ApprovalsAdminPage() {
-  await requireCurrentPrincipal();
+  const principal = await requirePlatformAdmin();
   const db = getDb();
-  const rows = await db.select().from(approvals).orderBy(desc(approvals.createdAt)).limit(50);
+  const rows = await db
+    .select()
+    .from(approvals)
+    .where(eq(approvals.organizationId, principal.organizationId))
+    .orderBy(desc(approvals.createdAt))
+    .limit(50);
 
   return (
     <PageShell>

@@ -528,7 +528,7 @@ export default async function CompanyDetailPage({
               </div>
               <div>
                 <h2 className="section-title">Military opportunity</h2>
-                <p className="text-muted-foreground">Planning overlay reuses Phase 3 mappings. Open an assessment for occupation and installation counts. Candidate PII is not shown here.</p>
+                <p className="text-muted-foreground">Planning overlay uses stored military mappings. Open an assessment for occupation and installation counts. Candidate contact details are not shown here.</p>
               </div>
               <div>
                 <h2 className="section-title">Gaps</h2>

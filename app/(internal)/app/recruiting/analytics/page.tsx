@@ -17,7 +17,7 @@ export default async function RecruitingAnalyticsPage() {
       <PageHeader
         eyebrow="Recruiting"
         title="Recruiting analytics"
-        description="Live PostgreSQL counts only. No fabricated benchmarks."
+        description="Live counts from your searches and placements. Industry benchmarks are not included."
       />
       <div className="mt-6 grid gap-3 sm:grid-cols-4">
         <MetricCard label="Active searches" value={data.activeSearches} />

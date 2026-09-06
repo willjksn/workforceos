@@ -12,7 +12,7 @@ export default async function TrainingProgramsPage() {
   const canWrite = can(principal, "training_programs.write");
   return (
     <PageShell wide>
-      <PageHeader eyebrow="Workforce" title="Training programs" description="Completion and placement rates are shown only when source data exists. They are never fabricated." />
+      <PageHeader eyebrow="Workforce" title="Training programs" description="Completion and placement rates appear only when source data is on file." />
       <WorkforceSubnav active="/app/workforce/training-programs" />
       <DataTable columns={["Program", "Duration", "Capacity", "Completion", "Placement"]}>
         {rows.map((row) => (

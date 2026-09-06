@@ -11,7 +11,7 @@ export default async function WorkforceSupplyPage() {
       <PageHeader
         eyebrow="Workforce"
         title="Talent supply"
-        description="Internal, military, education, apprenticeship, and Talent Network supply. Unconfigured labor-market sources stay labeled fixtures."
+        description="Internal, military, education, apprenticeship, and Talent Network supply. Labor-market sources that are not connected stay marked as placeholders."
       />
       <WorkforceSubnav active="/app/workforce/supply" />
       <DataTable columns={["Role", "Source", "Estimated supply", "Quality"]}>

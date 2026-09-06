@@ -13,7 +13,7 @@ export default async function BillingSchedulesPage() {
       <PageHeader
         eyebrow="Finance"
         title="Billing schedules"
-        description="Expanded Phase 4 schedules. External accounting IDs live in the Integration Hub, not on these rows."
+        description="Billing schedules for fractional work, retainers, and milestones. Accounting IDs stay with the connected ledger."
       />
       <FinanceSubnav active="/app/finance/schedules" />
       {rows.length === 0 ? (

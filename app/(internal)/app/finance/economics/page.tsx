@@ -13,7 +13,7 @@ export default async function EngagementEconomicsPage() {
       <PageHeader
         eyebrow="Finance"
         title="Engagement economics"
-        description="Contract value, invoiced, collected, optional delivery costs, and a gross margin estimate. This is not a general ledger or cost-accounting system."
+        description="Contract value, invoiced, collected, optional delivery costs, and a gross margin estimate. This is operating economics, not a general ledger."
       />
       <FinanceSubnav active="/app/finance/economics" />
       {rows.length === 0 ? (
