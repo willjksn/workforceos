@@ -94,7 +94,7 @@ npx tsx scripts/grant-managing-partner.ts --email you@company.com
 
 ## Forward migrations only
 
-Future schema changes get a new `0009_*.sql` (or later) file. Never modify `0000`–`0008` after they have been applied. `0008_cooing_blade.sql` is the Phase 9 Scout and SkillBridge migration.
+Future schema changes get a new `0010_*.sql` (or later) file. Never modify `0000`–`0009` after they have been applied. `0009_swift_saracen.sql` is the notification-dedupe index. `0008_cooing_blade.sql` is the Phase 9 Scout and SkillBridge migration.
 
 ## Neon branch layout
 

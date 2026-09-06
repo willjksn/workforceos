@@ -4,30 +4,34 @@ import { getMySkillBridgeQueue, getSkillBridgeMetrics } from "../../skillbridge/
 import { findSkillBridgeMatches } from "../../skillbridge/matching";
 import { getDb } from "../../../db";
 import { skillbridgeProfiles, users } from "../../../db/schema";
+import { INTERNAL_ORG_ID } from "../../../db/seed/constants";
 import { and, eq, isNull } from "drizzle-orm";
 
 export const skillbridgeFollowUpScanJob = inngest.createFunction(
   {
     id: "workforceos-skillbridge-follow-up-scan",
-    triggers: [{ event: "workforceos/skillbridge-follow-up-scan" }],
+    triggers: [{ event: "workforceos/skillbridge-follow-up-scan" }, { cron: "0 13 * * *" }],
   },
   async ({ event }) => {
-    const data = event.data as { organizationId: string };
+    const organizationId =
+      event.data && typeof event.data === "object" && "organizationId" in event.data
+        ? String((event.data as { organizationId?: string }).organizationId ?? INTERNAL_ORG_ID)
+        : INTERNAL_ORG_ID;
     const db = getDb();
     const owners = await db
       .select({ id: users.id })
       .from(users)
-      .where(and(eq(users.organizationId, data.organizationId), eq(users.status, "active")));
+      .where(and(eq(users.organizationId, organizationId), eq(users.status, "active")));
     let created = 0;
     for (const owner of owners) {
       const queue = await getMySkillBridgeQueue({
-        organizationId: data.organizationId,
+        organizationId,
         ownerUserId: owner.id,
         canReadPii: false,
       });
       for (const card of queue.overdueFollowUps) {
         const row = await createInAppNotification({
-          organizationId: data.organizationId,
+          organizationId,
           userId: owner.id,
           kind: "follow_up_overdue",
           title: `Follow-up overdue: ${card.candidate.fullName}`,
@@ -39,7 +43,7 @@ export const skillbridgeFollowUpScanJob = inngest.createFunction(
       }
       for (const card of queue.windowsApproaching) {
         const row = await createInAppNotification({
-          organizationId: data.organizationId,
+          organizationId,
           userId: owner.id,
           kind: "skillbridge_window_approaching",
           title: `SkillBridge window approaching: ${card.candidate.fullName}`,
@@ -51,7 +55,7 @@ export const skillbridgeFollowUpScanJob = inngest.createFunction(
       }
       for (const card of queue.employerFollowUps) {
         const row = await createInAppNotification({
-          organizationId: data.organizationId,
+          organizationId,
           userId: owner.id,
           kind: "employer_response_overdue",
           title: `Employer feedback overdue: ${card.candidate.fullName}`,
@@ -63,7 +67,7 @@ export const skillbridgeFollowUpScanJob = inngest.createFunction(
       }
       for (const card of queue.documentsNeeded) {
         const row = await createInAppNotification({
-          organizationId: data.organizationId,
+          organizationId,
           userId: owner.id,
           kind: "resume_missing",
           title: `Resume missing: ${card.candidate.fullName}`,
@@ -75,7 +79,7 @@ export const skillbridgeFollowUpScanJob = inngest.createFunction(
       }
       for (const card of queue.conversionDecisions) {
         const row = await createInAppNotification({
-          organizationId: data.organizationId,
+          organizationId,
           userId: owner.id,
           kind: "conversion_decision_approaching",
           title: `Conversion decision: ${card.candidate.fullName}`,
@@ -86,7 +90,7 @@ export const skillbridgeFollowUpScanJob = inngest.createFunction(
         if (row) created += 1;
       }
     }
-    const metrics = await getSkillBridgeMetrics(data.organizationId);
+    const metrics = await getSkillBridgeMetrics(organizationId);
     return { created, activeCandidates: metrics.activeCandidates };
   },
 );

@@ -46,10 +46,25 @@ Never paste `DATABASE_URL`, Clerk secret keys, storage keys, or candidate emails
 3. For a candidate: privacy deletion if required; do not use ordinary archive as a substitute.
 4. Rotate signed URL / storage credentials if objects were public by mistake. Objects are private; signed URLs expire.
 
+## Background-job failure (Inngest)
+
+1. Check `/app/admin/system-health` queue failures and the Inngest dashboard for `workforceos-*` functions.
+2. SkillBridge follow-up scan runs on event `workforceos/skillbridge-follow-up-scan` and daily cron `0 13 * * *` UTC. An empty notification bell is expected until a scan has run.
+3. Retry from Inngest. Duplicate notifications for the same user/kind/record are suppressed by unique index `in_app_notifications_user_kind_record_uq`.
+4. The app remains usable if Inngest is down; scans and matching pause.
+
+## Observability
+
+Application errors POST to Sentry only when `SENTRY_DSN` is set (thin Store API poster, not the official Next.js SDK). Logs omit secrets and candidate contact fields. System health never displays credentials.
+
+## Bad migration
+
+If `0009` or later was applied incorrectly: PITR / restore a branch per `docs/operations/DISASTER_RECOVERY.md`. Do not edit applied SQL. Forward-fix with a new migration if the schema can be corrected in place.
+
 ## Deployment regression
 
 1. In Vercel, redeploy the previous production deployment.
-2. If the release included migration `0007` or later, restore Neon to before migrate rather than editing applied SQL.
+2. If the release included migration `0009` or later, restore Neon to before migrate rather than editing applied SQL.
 3. Confirm `/app/admin/system-health` version and a smoke path: sign-in, Command Center, one CRM read, one talent read.
 
 ## After-action

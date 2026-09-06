@@ -19,7 +19,7 @@ Migration: `drizzle/0007_chemical_quasar.sql`.
 | `invoices_org_status_due_idx` | `invoices` | AR and overdue-invoice alerts filter status + due date. |
 | `integration_events_org_status_idx` | `integration_events` | Failed sync / billing-sync alerts. |
 | `rate_limit_buckets_bucket_key_idx` | `rate_limit_buckets` | Lookup by bucket key (unique also covers key + window). |
-| `privacy_deletion_requests_*_idx` | `privacy_deletion_requests` | FK-style access by organization, candidate, requester. |
+| `in_app_notifications_user_kind_record_uq` | `in_app_notifications` | Unique `(user_id, kind, record_id)` so SkillBridge follow-up scans do not insert duplicate rows. Migration `0009_swift_saracen.sql`. |
 
 ## Not indexed
 

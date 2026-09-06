@@ -45,6 +45,7 @@ Do not enable these with ad-hoc production SQL if a migration can do it.
 | `drizzle/0006_mushy_iron_lad.sql` | Phase 7 AI operations: agent run contract, prompts, knowledge, automation, handoffs, usage, and circuit breakers. Do not rewrite `0000`–`0005`. |
 | `drizzle/0007_chemical_quasar.sql` | Phase 8: privacy deletion requests, rate-limit buckets, last login, privacy_deleted_at, file retention, report/alert indexes. Do not rewrite `0000`–`0006`. |
 | `drizzle/0008_cooing_blade.sql` | Phase 9: Scout sessions/messages/actions, SkillBridge operating tables, in-app notifications. Do not rewrite `0000`–`0007`. |
+| `drizzle/0009_swift_saracen.sql` | Post-Phase-9: unique index so SkillBridge follow-up scans do not duplicate in-app notifications. Do not rewrite `0000`–`0008`. |
 
 Enum values are added in a separate statement from column defaults that use those values. Postgres rejects `ADD VALUE` and `DEFAULT` of that value in the same transaction.
 
