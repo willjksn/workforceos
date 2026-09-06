@@ -137,13 +137,10 @@ export async function runAgentTask(input: {
     const heuristic = executeHeuristicTask(context);
     const completion = await completePrompt({
       taskType: input.taskKey,
-      provider: modelConfig?.provider,
-      model: modelConfig?.model,
+      agentSlug: input.agentSlug,
       temperature: modelConfig?.temperature ? Number(modelConfig.temperature) : undefined,
       timeoutMs: modelConfig?.timeoutMs,
       maxTokens: modelConfig?.maxTokens ?? undefined,
-      fallbackProvider: modelConfig?.fallbackProvider ?? undefined,
-      fallbackModel: modelConfig?.fallbackModel ?? undefined,
       messages: [
         {
           role: "system",
@@ -269,6 +266,7 @@ export async function runAgentTask(input: {
       inputTokens: completion.inputTokens,
       outputTokens: completion.outputTokens,
       estimatedCostUsd: completion.estimatedCostUsd,
+      modelTier: completion.modelTier,
     });
     await recordRunSuccess({ organizationId: input.actor.organizationId, agentId: agent.id });
     if (heuristic.humanReviewRequired) {
