@@ -39,17 +39,145 @@ export async function evaluateOperationalAlerts(organizationId: string): Promise
   const staleBefore = new Date(now.getTime() - STALE_MS);
   const alerts: OperationalAlert[] = [];
 
-  const staleOpps = await db
-    .select()
-    .from(opportunities)
-    .where(
-      and(
-        eq(opportunities.organizationId, organizationId),
-        isNull(opportunities.archivedAt),
-        notInArray(opportunities.stage, [...CLOSED_OPPORTUNITY_STAGES]),
-        lt(opportunities.updatedAt, staleBefore),
-      ),
-    );
+  const [
+    staleOpps,
+    agingProposals,
+    quietJobs,
+    overdueFeedback,
+    openOffers,
+    guarantees,
+    criticalGaps,
+    underCapacity,
+    overdueMilestones,
+    criticalRisks,
+    overdueInvoiceRows,
+    failedBilling,
+    failedAi,
+    reviewBacklog,
+    failedSyncs,
+  ] = await Promise.all([
+    db
+      .select()
+      .from(opportunities)
+      .where(
+        and(
+          eq(opportunities.organizationId, organizationId),
+          isNull(opportunities.archivedAt),
+          notInArray(opportunities.stage, [...CLOSED_OPPORTUNITY_STAGES]),
+          lt(opportunities.updatedAt, staleBefore),
+        ),
+      )
+      .limit(50),
+    db
+      .select()
+      .from(proposals)
+      .where(
+        and(
+          eq(proposals.organizationId, organizationId),
+          inArray(proposals.status, ["sent", "viewed"]),
+          lt(proposals.sentAt, new Date(now.getTime() - STALE_MS)),
+        ),
+      )
+      .limit(50),
+    db
+      .select()
+      .from(jobs)
+      .where(
+        and(
+          eq(jobs.organizationId, organizationId),
+          isNull(jobs.archivedAt),
+          inArray(jobs.status, ["open", "search_active"]),
+          or(isNull(jobs.lastActivityAt), lt(jobs.lastActivityAt, staleBefore)),
+        ),
+      )
+      .limit(50),
+    db
+      .select({ interview: interviews, job: jobs })
+      .from(interviews)
+      .innerJoin(jobs, eq(interviews.jobId, jobs.id))
+      .where(
+        and(
+          eq(jobs.organizationId, organizationId),
+          isNull(interviews.clientFeedback),
+          lte(interviews.clientFeedbackDueAt, now),
+        ),
+      )
+      .limit(50),
+    db
+      .select({ offer: offers, job: jobs })
+      .from(offers)
+      .innerJoin(jobs, eq(offers.jobId, jobs.id))
+      .where(
+        and(
+          eq(jobs.organizationId, organizationId),
+          inArray(offers.status, ["draft", "extended"]),
+          lte(offers.expirationDate, now.toISOString().slice(0, 10)),
+        ),
+      )
+      .limit(50),
+    db
+      .select({ guarantee: placementGuarantees, job: jobs })
+      .from(placementGuarantees)
+      .innerJoin(placements, eq(placementGuarantees.placementId, placements.id))
+      .innerJoin(jobs, eq(placements.jobId, jobs.id))
+      .where(and(eq(jobs.organizationId, organizationId), inArray(placementGuarantees.status, ["active", "expiring_soon"])))
+      .limit(50),
+    db
+      .select({ gap: workforceGaps, assessment: workforceAssessments })
+      .from(workforceGaps)
+      .innerJoin(workforceAssessments, eq(workforceGaps.assessmentId, workforceAssessments.id))
+      .where(and(eq(workforceAssessments.organizationId, organizationId), eq(workforceGaps.severity, "critical")))
+      .limit(50),
+    db
+      .select()
+      .from(talentPipelines)
+      .where(and(eq(talentPipelines.organizationId, organizationId), eq(talentPipelines.status, "at_risk")))
+      .limit(50),
+    db
+      .select()
+      .from(projects)
+      .where(and(eq(projects.organizationId, organizationId), eq(projects.status, "active"), lte(projects.endDate, now)))
+      .limit(50),
+    db
+      .select({ risk: projectRisks, project: projects })
+      .from(projectRisks)
+      .innerJoin(projects, eq(projectRisks.projectId, projects.id))
+      .where(
+        and(
+          eq(projects.organizationId, organizationId),
+          eq(projectRisks.status, "open"),
+          inArray(projectRisks.severity, ["critical", "high"]),
+        ),
+      )
+      .limit(50),
+    db
+      .select()
+      .from(invoices)
+      .where(and(eq(invoices.organizationId, organizationId), or(eq(invoices.status, "overdue"), lte(invoices.dueDate, now))))
+      .limit(50),
+    db
+      .select()
+      .from(integrationEvents)
+      .where(
+        and(
+          eq(integrationEvents.organizationId, organizationId),
+          eq(integrationEvents.provider, "quickbooks"),
+          inArray(integrationEvents.status, ["failed", "error"]),
+        ),
+      )
+      .limit(50),
+    db
+      .select()
+      .from(agentRuns)
+      .where(and(eq(agentRuns.organizationId, organizationId), eq(agentRuns.status, "failed")))
+      .limit(25),
+    db
+      .select()
+      .from(approvals)
+      .where(and(eq(approvals.organizationId, organizationId), eq(approvals.status, "pending")))
+      .limit(50),
+    listFailedIntegrationEvents(organizationId),
+  ]);
   for (const row of staleOpps) {
     alerts.push({
       code: "stale_opportunity",
@@ -61,16 +189,6 @@ export async function evaluateOperationalAlerts(organizationId: string): Promise
     });
   }
 
-  const agingProposals = await db
-    .select()
-    .from(proposals)
-    .where(
-      and(
-        eq(proposals.organizationId, organizationId),
-        inArray(proposals.status, ["sent", "viewed"]),
-        lt(proposals.sentAt, new Date(now.getTime() - STALE_MS)),
-      ),
-    );
   for (const row of agingProposals) {
     alerts.push({
       code: "proposal_aging",
@@ -82,17 +200,6 @@ export async function evaluateOperationalAlerts(organizationId: string): Promise
     });
   }
 
-  const quietJobs = await db
-    .select()
-    .from(jobs)
-    .where(
-      and(
-        eq(jobs.organizationId, organizationId),
-        isNull(jobs.archivedAt),
-        inArray(jobs.status, ["open", "search_active"]),
-        or(isNull(jobs.lastActivityAt), lt(jobs.lastActivityAt, staleBefore)),
-      ),
-    );
   for (const row of quietJobs) {
     alerts.push({
       code: "no_candidate_activity",
@@ -104,17 +211,6 @@ export async function evaluateOperationalAlerts(organizationId: string): Promise
     });
   }
 
-  const overdueFeedback = await db
-    .select({ interview: interviews, job: jobs })
-    .from(interviews)
-    .innerJoin(jobs, eq(interviews.jobId, jobs.id))
-    .where(
-      and(
-        eq(jobs.organizationId, organizationId),
-        isNull(interviews.clientFeedback),
-        lte(interviews.clientFeedbackDueAt, now),
-      ),
-    );
   for (const row of overdueFeedback) {
     alerts.push({
       code: "overdue_client_feedback",
@@ -126,17 +222,6 @@ export async function evaluateOperationalAlerts(organizationId: string): Promise
     });
   }
 
-  const openOffers = await db
-    .select({ offer: offers, job: jobs })
-    .from(offers)
-    .innerJoin(jobs, eq(offers.jobId, jobs.id))
-    .where(
-      and(
-        eq(jobs.organizationId, organizationId),
-        inArray(offers.status, ["draft", "extended"]),
-        lte(offers.expirationDate, now.toISOString().slice(0, 10)),
-      ),
-    );
   for (const row of openOffers) {
     alerts.push({
       code: "offer_expiring",
@@ -148,12 +233,6 @@ export async function evaluateOperationalAlerts(organizationId: string): Promise
     });
   }
 
-  const guarantees = await db
-    .select({ guarantee: placementGuarantees, job: jobs })
-    .from(placementGuarantees)
-    .innerJoin(placements, eq(placementGuarantees.placementId, placements.id))
-    .innerJoin(jobs, eq(placements.jobId, jobs.id))
-    .where(and(eq(jobs.organizationId, organizationId), inArray(placementGuarantees.status, ["active", "expiring_soon"])));
   for (const row of guarantees) {
     const ends = new Date(row.guarantee.endsOn);
     if (ends.getTime() - now.getTime() <= STALE_MS) {
@@ -168,11 +247,6 @@ export async function evaluateOperationalAlerts(organizationId: string): Promise
     }
   }
 
-  const criticalGaps = await db
-    .select({ gap: workforceGaps, assessment: workforceAssessments })
-    .from(workforceGaps)
-    .innerJoin(workforceAssessments, eq(workforceGaps.assessmentId, workforceAssessments.id))
-    .where(and(eq(workforceAssessments.organizationId, organizationId), eq(workforceGaps.severity, "critical")));
   for (const row of criticalGaps) {
     alerts.push({
       code: "critical_gap",
@@ -184,10 +258,6 @@ export async function evaluateOperationalAlerts(organizationId: string): Promise
     });
   }
 
-  const underCapacity = await db
-    .select()
-    .from(talentPipelines)
-    .where(and(eq(talentPipelines.organizationId, organizationId), eq(talentPipelines.status, "at_risk")));
   for (const row of underCapacity) {
     alerts.push({
       code: "pipeline_under_capacity",
@@ -199,10 +269,6 @@ export async function evaluateOperationalAlerts(organizationId: string): Promise
     });
   }
 
-  const overdueMilestones = await db
-    .select()
-    .from(projects)
-    .where(and(eq(projects.organizationId, organizationId), eq(projects.status, "active"), lte(projects.endDate, now)));
   for (const row of overdueMilestones) {
     alerts.push({
       code: "overdue_milestone",
@@ -214,17 +280,6 @@ export async function evaluateOperationalAlerts(organizationId: string): Promise
     });
   }
 
-  const criticalRisks = await db
-    .select({ risk: projectRisks, project: projects })
-    .from(projectRisks)
-    .innerJoin(projects, eq(projectRisks.projectId, projects.id))
-    .where(
-      and(
-        eq(projects.organizationId, organizationId),
-        eq(projectRisks.status, "open"),
-        inArray(projectRisks.severity, ["critical", "high"]),
-      ),
-    );
   for (const row of criticalRisks) {
     alerts.push({
       code: "unresolved_critical_risk",
@@ -236,11 +291,7 @@ export async function evaluateOperationalAlerts(organizationId: string): Promise
     });
   }
 
-  const overdueInvoices = await db
-    .select()
-    .from(invoices)
-    .where(and(eq(invoices.organizationId, organizationId), or(eq(invoices.status, "overdue"), lte(invoices.dueDate, now))));
-  for (const row of overdueInvoices.filter((invoice) => !["paid", "void", "draft"].includes(invoice.status))) {
+  for (const row of overdueInvoiceRows.filter((invoice) => !["paid", "void", "draft"].includes(invoice.status))) {
     alerts.push({
       code: "overdue_invoice",
       domain: "finance",
@@ -251,16 +302,6 @@ export async function evaluateOperationalAlerts(organizationId: string): Promise
     });
   }
 
-  const failedBilling = await db
-    .select()
-    .from(integrationEvents)
-    .where(
-      and(
-        eq(integrationEvents.organizationId, organizationId),
-        eq(integrationEvents.provider, "quickbooks"),
-        inArray(integrationEvents.status, ["failed", "error"]),
-      ),
-    );
   for (const row of failedBilling) {
     alerts.push({
       code: "failed_billing_sync",
@@ -272,11 +313,7 @@ export async function evaluateOperationalAlerts(organizationId: string): Promise
     });
   }
 
-  const failedAi = await db
-    .select()
-    .from(agentRuns)
-    .where(and(eq(agentRuns.organizationId, organizationId), eq(agentRuns.status, "failed")));
-  for (const row of failedAi.slice(0, 25)) {
+  for (const row of failedAi) {
     alerts.push({
       code: "failed_agent_run",
       domain: "ai",
@@ -287,10 +324,6 @@ export async function evaluateOperationalAlerts(organizationId: string): Promise
     });
   }
 
-  const reviewBacklog = await db
-    .select()
-    .from(approvals)
-    .where(and(eq(approvals.organizationId, organizationId), eq(approvals.status, "pending")));
   if (reviewBacklog.length > 0) {
     alerts.push({
       code: "review_backlog",
@@ -302,7 +335,6 @@ export async function evaluateOperationalAlerts(organizationId: string): Promise
     });
   }
 
-  const failedSyncs = await listFailedIntegrationEvents(organizationId);
   for (const row of failedSyncs) {
     alerts.push({
       code: "sync_failure",

@@ -14,17 +14,17 @@ export const DEFAULT_SKILLBRIDGE_ALERT_RULES = [
 
 export async function ensureSkillBridgeAlertRules(organizationId: string) {
   const db = getDb();
-  for (const rule of DEFAULT_SKILLBRIDGE_ALERT_RULES) {
-    await db
-      .insert(skillbridgeAlertRules)
-      .values({
+  await db
+    .insert(skillbridgeAlertRules)
+    .values(
+      DEFAULT_SKILLBRIDGE_ALERT_RULES.map((rule) => ({
         organizationId,
         code: rule.code,
         enabled: true,
         thresholdDays: rule.thresholdDays,
-      })
-      .onConflictDoNothing();
-  }
+      })),
+    )
+    .onConflictDoNothing();
 }
 
 export async function getSkillBridgeAlertRules(organizationId: string) {
@@ -49,19 +49,27 @@ export async function getSkillBridgeAlertRules(organizationId: string) {
   };
 }
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+function utcDayNumber(value: Date) {
+  return Math.floor(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()) / MS_PER_DAY);
+}
+
 export function daysFromNow(days: number, from = new Date()) {
-  return new Date(from.getTime() + days * 24 * 60 * 60 * 1000);
+  return new Date(from.getTime() + days * MS_PER_DAY);
 }
 
 export function daysBetween(from: Date | null | undefined, to = new Date()) {
   if (!from) return null;
-  return Math.round((to.getTime() - from.getTime()) / (24 * 60 * 60 * 1000));
+  return utcDayNumber(to) - utcDayNumber(from);
 }
 
 export function daysUntil(target: Date | null | undefined, from = new Date()) {
   if (!target) return null;
-  return Math.round((target.getTime() - from.getTime()) / (24 * 60 * 60 * 1000));
+  return utcDayNumber(target) - utcDayNumber(from);
 }
+
+export const STARTING_ENDING_SOON_DAYS = 14;
 
 export const ACTIVE_SKILLBRIDGE_STATUSES = [
   "new",

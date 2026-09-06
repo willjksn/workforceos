@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
@@ -6,7 +6,6 @@ import {
   candidates,
   companies,
   files,
-  interviews,
   jobs,
   militaryInstallations,
   militaryOccupations,
@@ -24,6 +23,7 @@ import { assertUploadAllowed } from "../storage/limits";
 import {
   ACTIVE_OPPORTUNITY_STAGES,
   ACTIVE_SKILLBRIDGE_STATUSES,
+  STARTING_ENDING_SOON_DAYS,
   daysUntil,
   getSkillBridgeAlertRules,
 } from "./rules";
@@ -480,12 +480,14 @@ export async function uploadSkillBridgeResume(input: {
 export async function listSkillBridgeCards(input: {
   organizationId: string;
   ownerUserId?: string | null;
+  profileId?: string | null;
   view?: string | null;
   canReadPii: boolean;
 }) {
   const db = getDb();
   const rules = await getSkillBridgeAlertRules(input.organizationId);
   const now = new Date();
+  const windowLimit = rules.windowApproachingDays ?? 90;
   const rows = await db
     .select({
       profile: skillbridgeProfiles,
@@ -503,6 +505,7 @@ export async function listSkillBridgeCards(input: {
         isNull(skillbridgeProfiles.archivedAt),
         notArchivedCandidate(),
         input.ownerUserId ? eq(skillbridgeProfiles.ownerUserId, input.ownerUserId) : undefined,
+        input.profileId ? eq(skillbridgeProfiles.id, input.profileId) : undefined,
       ),
     )
     .orderBy(desc(skillbridgeProfiles.updatedAt));
@@ -586,9 +589,9 @@ export async function listSkillBridgeCards(input: {
       employerOverdue,
       risks: [
         active.length === 0 ? "No opportunity" : null,
-        windowDays != null && windowDays >= 0 && windowDays <= 90 ? "Window approaching" : null,
+        windowDays != null && windowDays >= 0 && windowDays <= windowLimit ? "Window approaching" : null,
         overdueFollowUp ? "No recent contact" : null,
-        row.profile.resumeStatus === "missing" ? "Resume missing" : null,
+        rules.resumeMissingEnabled && row.profile.resumeStatus === "missing" ? "Resume missing" : null,
         employerOverdue ? "Employer response overdue" : null,
         row.profile.skillbridgeApprovalStatus === "pending" ? "Approval pending" : null,
       ].filter(Boolean) as string[],
@@ -598,7 +601,7 @@ export async function listSkillBridgeCards(input: {
   const view = input.view ?? "all";
   return cards.filter((card) => {
     if (view === "needs-action") return card.overdueFollowUp || card.risks.length > 0;
-    if (view === "windows") return card.windowDays != null && card.windowDays >= 0 && card.windowDays <= 90;
+    if (view === "windows") return card.windowDays != null && card.windowDays >= 0 && card.windowDays <= windowLimit;
     if (view === "without-opportunities") return !card.hasActiveOpportunity;
     if (view === "employer-feedback") return card.employerOverdue;
     if (view === "interviews") return card.currentOpportunity?.stage === "interview";
@@ -612,7 +615,7 @@ export async function listSkillBridgeCards(input: {
 
 export async function getSkillBridgeDetail(profileId: string, organizationId: string, canReadPii: boolean) {
   const db = getDb();
-  const cards = await listSkillBridgeCards({ organizationId, canReadPii });
+  const cards = await listSkillBridgeCards({ organizationId, profileId, canReadPii });
   const card = cards.find((item) => item.profile.id === profileId);
   if (!card) return null;
   const timeline = await db
@@ -658,7 +661,6 @@ export async function getSkillBridgeDetail(profileId: string, organizationId: st
 }
 
 export async function getSkillBridgeMetrics(organizationId: string) {
-  const db = getDb();
   const rules = await getSkillBridgeAlertRules(organizationId);
   const now = new Date();
   const cards = await listSkillBridgeCards({ organizationId, canReadPii: false });
@@ -667,18 +669,6 @@ export async function getSkillBridgeMetrics(organizationId: string) {
   );
   const windows = (days: number) =>
     active.filter((card) => card.windowDays != null && card.windowDays >= 0 && card.windowDays <= days).length;
-  const [interviewRows] = await db
-    .select({ value: count() })
-    .from(interviews)
-    .innerJoin(candidates, eq(candidates.id, interviews.candidateId))
-    .innerJoin(skillbridgeProfiles, eq(skillbridgeProfiles.candidateId, candidates.id))
-    .where(
-      and(
-        eq(skillbridgeProfiles.organizationId, organizationId),
-        eq(interviews.status, "scheduled"),
-        isNull(skillbridgeProfiles.archivedAt),
-      ),
-    );
   return {
     activeCandidates: active.length,
     windows30: windows(30),
@@ -688,7 +678,7 @@ export async function getSkillBridgeMetrics(organizationId: string) {
     withoutOpportunity: active.filter((card) => !card.hasActiveOpportunity).length,
     needsCandidateFollowUp: active.filter((card) => card.overdueFollowUp).length,
     needsEmployerFollowUp: active.filter((card) => card.employerOverdue).length,
-    interviewsUpcoming: Number(interviewRows?.value ?? 0),
+    interviewsUpcoming: active.filter((card) => card.currentOpportunity?.stage === "interview").length,
     pendingApproval: active.filter((card) => card.profile.candidateStatus === "skillbridge_pending").length,
     skillbridgeActive: active.filter((card) => card.profile.candidateStatus === "skillbridge_active").length,
     conversionPending: active.filter((card) => card.profile.candidateStatus === "conversion_pending").length,
@@ -710,17 +700,19 @@ export async function getMySkillBridgeQueue(input: {
     canReadPii: input.canReadPii,
   });
   const now = new Date();
-  const startSoon = cards.filter((card) => card.windowDays != null && card.windowDays >= 0 && card.windowDays <= 14);
+  const rules = await getSkillBridgeAlertRules(input.organizationId);
+  const windowLimit = rules.windowApproachingDays ?? 90;
+  const startSoon = cards.filter((card) => card.windowDays != null && card.windowDays >= 0 && card.windowDays <= STARTING_ENDING_SOON_DAYS);
   const endSoon = cards.filter((card) => {
     const remaining = daysUntil(card.profile.skillbridgeWindowEnd, now);
-    return remaining != null && remaining >= 0 && remaining <= 14;
+    return remaining != null && remaining >= 0 && remaining <= STARTING_ENDING_SOON_DAYS;
   });
   return {
     needsActionToday: cards.filter((card) => card.overdueFollowUp || (card.profile.nextActionDueAt && card.profile.nextActionDueAt <= now)),
     candidateFollowUps: cards.filter((card) => card.overdueFollowUp),
     employerFollowUps: cards.filter((card) => card.employerOverdue),
     documentsNeeded: cards.filter((card) => card.profile.resumeStatus === "missing" || card.profile.resumeStatus === "outdated"),
-    windowsApproaching: cards.filter((card) => card.windowDays != null && card.windowDays >= 0 && card.windowDays <= 90),
+    windowsApproaching: cards.filter((card) => card.windowDays != null && card.windowDays >= 0 && card.windowDays <= windowLimit),
     withoutOpportunities: cards.filter((card) => !card.hasActiveOpportunity),
     upcomingInterviews: cards.filter((card) => card.currentOpportunity?.stage === "interview"),
     startingSoon: startSoon,

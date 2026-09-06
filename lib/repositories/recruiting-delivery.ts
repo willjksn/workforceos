@@ -18,6 +18,17 @@ import { FinanceError, recordPlacementFeeEvent } from "../finance/engine";
 import { stalledRecruitingAlerts } from "../recruiting/alerts";
 import { guaranteeDates, guaranteeStatusOn, placementFeeFromTerms } from "../recruiting/guarantees";
 
+async function requireJobInOrganization(jobId: string, organizationId: string) {
+  const db = getDb();
+  const [job] = await db
+    .select()
+    .from(jobs)
+    .where(and(eq(jobs.id, jobId), eq(jobs.organizationId, organizationId)))
+    .limit(1);
+  if (!job) throw new Error("Job not found");
+  return job;
+}
+
 export async function listSubmissions(organizationId: string) {
   const db = getDb();
   return db
@@ -39,9 +50,15 @@ export async function createSubmission(input: {
   packet: Partial<typeof submissions.$inferInsert>;
 }) {
   const db = getDb();
-  const [candidate] = await db.select().from(candidates).where(eq(candidates.id, input.candidateId)).limit(1);
+  const job = await requireJobInOrganization(input.jobId, input.organizationId);
+  const [candidate] = await db
+    .select()
+    .from(candidates)
+    .where(and(eq(candidates.id, input.candidateId), eq(candidates.organizationId, input.organizationId)))
+    .limit(1);
   if (!candidate || candidate.archivedAt) throw new Error("Archived candidates cannot be newly submitted");
   if (candidate.doNotContact) throw new Error("Do-not-contact candidates cannot be submitted");
+  void job;
   const [match] = input.matchId
     ? await db.select().from(candidateJobMatches).where(eq(candidateJobMatches.id, input.matchId)).limit(1)
     : [];
@@ -83,7 +100,12 @@ export async function submitCandidateToClient(input: {
   submissionId: string;
 }) {
   const db = getDb();
-  const [before] = await db.select().from(submissions).where(eq(submissions.id, input.submissionId)).limit(1);
+  const [before] = await db
+    .select({ submission: submissions, jobId: jobs.id })
+    .from(submissions)
+    .innerJoin(jobs, eq(submissions.jobId, jobs.id))
+    .where(and(eq(submissions.id, input.submissionId), eq(jobs.organizationId, input.organizationId)))
+    .limit(1);
   if (!before) throw new Error("Submission not found");
   const [after] = await db
     .update(submissions)
@@ -102,7 +124,7 @@ export async function submitCandidateToClient(input: {
     action: "submission.submitted",
     recordType: "submission",
     recordId: after.id,
-    before: { status: before.status },
+    before: { status: before.submission.status },
     after: { status: after.status, submittedAt: after.submittedAt, submittedBy: input.actorUserId },
   });
   return after;
@@ -125,6 +147,7 @@ export async function createInterview(input: {
   values: typeof interviews.$inferInsert;
 }) {
   const db = getDb();
+  await requireJobInOrganization(input.values.jobId, input.organizationId);
   const [row] = await db.insert(interviews).values(input.values).returning();
   await recordAuditEvent({
     organizationId: input.organizationId,
@@ -144,7 +167,12 @@ export async function updateInterview(input: {
   values: Partial<typeof interviews.$inferInsert>;
 }) {
   const db = getDb();
-  const [before] = await db.select().from(interviews).where(eq(interviews.id, input.interviewId)).limit(1);
+  const [before] = await db
+    .select({ interview: interviews, jobId: jobs.id })
+    .from(interviews)
+    .innerJoin(jobs, eq(interviews.jobId, jobs.id))
+    .where(and(eq(interviews.id, input.interviewId), eq(jobs.organizationId, input.organizationId)))
+    .limit(1);
   if (!before) throw new Error("Interview not found");
   const [after] = await db
     .update(interviews)
@@ -157,7 +185,7 @@ export async function updateInterview(input: {
     action: "interview.updated",
     recordType: "interview",
     recordId: after.id,
-    before: { status: before.status, outcome: before.outcome },
+    before: { status: before.interview.status, outcome: before.interview.outcome },
     after: { status: after.status, outcome: after.outcome },
   });
   return after;
@@ -180,6 +208,7 @@ export async function createOffer(input: {
   values: typeof offers.$inferInsert;
 }) {
   const db = getDb();
+  await requireJobInOrganization(input.values.jobId, input.organizationId);
   const [row] = await db.insert(offers).values(input.values).returning();
   await recordAuditEvent({
     organizationId: input.organizationId,
@@ -200,7 +229,12 @@ export async function setOfferStatus(input: {
   declineReason?: string | null;
 }) {
   const db = getDb();
-  const [before] = await db.select().from(offers).where(eq(offers.id, input.offerId)).limit(1);
+  const [before] = await db
+    .select({ offer: offers, jobId: jobs.id })
+    .from(offers)
+    .innerJoin(jobs, eq(offers.jobId, jobs.id))
+    .where(and(eq(offers.id, input.offerId), eq(jobs.organizationId, input.organizationId)))
+    .limit(1);
   if (!before) throw new Error("Offer not found");
   const [after] = await db
     .update(offers)
@@ -213,7 +247,7 @@ export async function setOfferStatus(input: {
     action: "offer.status",
     recordType: "offer",
     recordId: after.id,
-    before: { status: before.status },
+    before: { status: before.offer.status },
     after: { status: after.status },
   });
   return after;
@@ -243,19 +277,24 @@ export async function createPlacementFromOffer(input: {
   startDate: Date;
 }) {
   const db = getDb();
-  const [offer] = await db.select().from(offers).where(eq(offers.id, input.offerId)).limit(1);
+  const [offer] = await db
+    .select({ offer: offers, jobOrg: jobs.organizationId })
+    .from(offers)
+    .innerJoin(jobs, eq(offers.jobId, jobs.id))
+    .where(and(eq(offers.id, input.offerId), eq(jobs.organizationId, input.organizationId)))
+    .limit(1);
   if (!offer) throw new Error("Offer not found");
-  if (offer.status !== "accepted") throw new Error("Placement requires an accepted offer");
-  const [job] = await db.select().from(jobs).where(eq(jobs.id, offer.jobId)).limit(1);
-  if (!job) throw new Error("Job not found");
-  const [project] = offer.searchProjectId
-    ? await db.select().from(searchProjects).where(eq(searchProjects.id, offer.searchProjectId)).limit(1)
-    : await db.select().from(searchProjects).where(eq(searchProjects.jobId, offer.jobId)).limit(1);
+  if (offer.offer.status !== "accepted") throw new Error("Placement requires an accepted offer");
+  const job = await requireJobInOrganization(offer.offer.jobId, input.organizationId);
+  const accepted = offer.offer;
+  const [project] = accepted.searchProjectId
+    ? await db.select().from(searchProjects).where(eq(searchProjects.id, accepted.searchProjectId)).limit(1)
+    : await db.select().from(searchProjects).where(eq(searchProjects.jobId, accepted.jobId)).limit(1);
   const guaranteeDays = project?.guaranteeDays;
   if (guaranteeDays == null) {
     throw new Error("Guarantee days must come from the search agreement");
   }
-  const salary = offer.baseSalary ? Number(offer.baseSalary) : null;
+  const salary = accepted.baseSalary ? Number(accepted.baseSalary) : null;
   const feePercent = project?.feePercent ? Number(project.feePercent) : null;
   const fee = placementFeeFromTerms({
     startingSalary: salary,
@@ -265,13 +304,13 @@ export async function createPlacementFromOffer(input: {
   const [placement] = await db
     .insert(placements)
     .values({
-      candidateId: offer.candidateId,
-      jobId: offer.jobId,
+      candidateId: accepted.candidateId,
+      jobId: accepted.jobId,
       companyId: job.companyId,
       searchProjectId: project?.id,
-      offerId: offer.id,
+      offerId: accepted.id,
       startDate: input.startDate,
-      startingSalary: offer.baseSalary,
+      startingSalary: accepted.baseSalary,
       feePercent: project?.feePercent,
       placementFee: fee != null ? String(fee) : null,
       guaranteeDays,
@@ -339,18 +378,20 @@ export async function listGuarantees(organizationId: string) {
 
 export async function recruitingAnalytics(organizationId: string) {
   const db = getDb();
-  const jobRows = await db.select().from(jobs).where(and(eq(jobs.organizationId, organizationId), isNull(jobs.archivedAt)));
-  const matchRows = await db
-    .select({ match: candidateJobMatches, job: jobs, candidate: candidates })
-    .from(candidateJobMatches)
-    .innerJoin(jobs, eq(candidateJobMatches.jobId, jobs.id))
-    .innerJoin(candidates, eq(candidateJobMatches.candidateId, candidates.id))
-    .where(eq(jobs.organizationId, organizationId));
-  const submissionRows = await listSubmissions(organizationId);
-  const interviewRows = await listInterviews(organizationId);
-  const offerRows = await listOffers(organizationId);
-  const placementRows = await listPlacements(organizationId);
-  const guaranteeRows = await listGuarantees(organizationId);
+  const [jobRows, matchRows, submissionRows, interviewRows, offerRows, placementRows, guaranteeRows] = await Promise.all([
+    db.select().from(jobs).where(and(eq(jobs.organizationId, organizationId), isNull(jobs.archivedAt))),
+    db
+      .select({ match: candidateJobMatches, job: jobs, candidate: candidates })
+      .from(candidateJobMatches)
+      .innerJoin(jobs, eq(candidateJobMatches.jobId, jobs.id))
+      .innerJoin(candidates, eq(candidateJobMatches.candidateId, candidates.id))
+      .where(eq(jobs.organizationId, organizationId)),
+    listSubmissions(organizationId),
+    listInterviews(organizationId),
+    listOffers(organizationId),
+    listPlacements(organizationId),
+    listGuarantees(organizationId),
+  ]);
 
   const byStatus = (status: string) => jobRows.filter((job) => job.status === status).length;
   const submitted = matchRows.filter((row) => ["submitted", "interview", "interviewing", "finalist", "offer", "offered", "placed"].includes(row.match.pipelineStatus));

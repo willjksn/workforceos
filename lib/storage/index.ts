@@ -30,11 +30,8 @@ export function getStorageProvider(): StorageProvider {
 
 export async function getStorageStatus() {
   const provider = getStorageProvider();
-  const env = getServerEnv();
   return {
     adapter: provider.name,
-    ready:
-      provider.name === "local" ||
-      (provider.name === "s3" && Boolean(env.S3_BUCKET)),
+    ready: provider.name === "local",
   };
 }

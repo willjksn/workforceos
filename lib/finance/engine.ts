@@ -1,6 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
-
-import { listFailedIntegrationEvents } from "../integrations/retry";
+import { and, count, desc, eq, inArray, lte, notInArray, or, sql } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
@@ -11,6 +9,7 @@ import {
   contracts,
   financeAdjustments,
   financeCostEntries,
+  integrationEvents,
   invoices,
   payments,
   placements,
@@ -1003,13 +1002,64 @@ export async function financeOverview(organizationId: string) {
 }
 
 export async function financeCommandSnapshot(organizationId: string) {
-  const overview = await financeOverview(organizationId);
-  const failed = await listFailedIntegrationEvents(organizationId);
+  const db = getDb();
+  const now = new Date();
+  const soon = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const [overdueRows, upcomingRows, recurringRows, placementRows, failedRows] = await Promise.all([
+    db
+      .select({ value: count() })
+      .from(invoices)
+      .where(
+        and(
+          eq(invoices.organizationId, organizationId),
+          or(eq(invoices.status, "overdue"), and(notInArray(invoices.status, ["paid", "void", "draft"]), lte(invoices.dueDate, now))),
+        ),
+      ),
+    db
+      .select({ value: count() })
+      .from(billingEvents)
+      .where(
+        and(
+          eq(billingEvents.organizationId, organizationId),
+          inArray(billingEvents.status, ["scheduled", "triggered"]),
+          lte(billingEvents.expectedDate, soon),
+        ),
+      ),
+    db
+      .select({ value: sql<string>`coalesce(sum(${billingSchedules.amount}), 0)` })
+      .from(billingSchedules)
+      .where(
+        and(
+          eq(billingSchedules.organizationId, organizationId),
+          eq(billingSchedules.billingType, "monthly_recurring"),
+          eq(billingSchedules.status, "active"),
+        ),
+      ),
+    db
+      .select({ value: sql<string>`coalesce(sum(${revenueEvents.amount}), 0)` })
+      .from(revenueEvents)
+      .where(
+        and(
+          eq(revenueEvents.organizationId, organizationId),
+          eq(revenueEvents.triggerType, "candidate_start"),
+          notInArray(revenueEvents.status, ["cancelled"]),
+        ),
+      ),
+    db
+      .select({ value: count() })
+      .from(integrationEvents)
+      .where(
+        and(
+          eq(integrationEvents.organizationId, organizationId),
+          or(eq(integrationEvents.deadLetter, true), inArray(integrationEvents.status, ["failed", "error"])),
+        ),
+      ),
+  ]);
   return {
-    overdueAr: overview.overdueInvoices.length,
-    upcomingInvoices: overview.upcomingBillingEvents.length,
-    monthlyRecurringRevenue: overview.recurringMonthlyRevenue,
-    upcomingPlacementFees: overview.placementFeesExpected,
-    failedIntegrationSyncs: failed.length,
+    overdueAr: Number(overdueRows[0]?.value ?? 0),
+    upcomingInvoices: Number(upcomingRows[0]?.value ?? 0),
+    monthlyRecurringRevenue: parseMoney(recurringRows[0]?.value) ?? 0,
+    upcomingPlacementFees: parseMoney(placementRows[0]?.value) ?? 0,
+    failedIntegrationSyncs: Number(failedRows[0]?.value ?? 0),
   };
 }

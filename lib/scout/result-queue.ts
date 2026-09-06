@@ -48,15 +48,29 @@ export function scoutQueueNeighbor(items: ScoutQueueItem[], pathname: string, de
   return items[index + delta] ?? null;
 }
 
+let cachedRaw: string | null | undefined;
+let cachedQueue: ScoutResultQueue | null = null;
+
 export function readScoutResultQueue(): ScoutResultQueue | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.sessionStorage.getItem(SCOUT_QUEUE_STORAGE_KEY);
-    if (!raw) return null;
+    if (raw === cachedRaw) return cachedQueue;
+    cachedRaw = raw;
+    if (!raw) {
+      cachedQueue = null;
+      return null;
+    }
     const parsed = JSON.parse(raw) as ScoutResultQueue;
-    if (!parsed || !Array.isArray(parsed.items) || parsed.items.length === 0) return null;
-    return { prompt: parsed.prompt ?? "", items: cardsToQueueItems(parsed.items) };
+    if (!parsed || !Array.isArray(parsed.items) || parsed.items.length === 0) {
+      cachedQueue = null;
+      return null;
+    }
+    cachedQueue = { prompt: parsed.prompt ?? "", items: cardsToQueueItems(parsed.items) };
+    return cachedQueue;
   } catch {
+    cachedRaw = null;
+    cachedQueue = null;
     return null;
   }
 }

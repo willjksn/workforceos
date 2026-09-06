@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNull, lte, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNull, lte, notInArray, or } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
@@ -1466,64 +1466,81 @@ export async function phase4CommandSnapshot(organizationId: string) {
   const db = getDb();
   const now = new Date();
   const soon = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const counted = async (query: Promise<Array<{ value: number }>>) => {
+    const [row] = await query;
+    return Number(row?.value ?? 0);
+  };
   const [awaitingProposals, awaitingContracts, atRisk, overdueDeliverables, upcomingBilling, closing, expansions] =
     await Promise.all([
-      db
-        .select()
-        .from(proposals)
-        .where(and(eq(proposals.organizationId, organizationId), inArray(proposals.status, ["draft", "internal_review"]))),
-      db
-        .select()
-        .from(contracts)
-        .where(
-          and(
-            eq(contracts.organizationId, organizationId),
-            inArray(contracts.status, ["draft", "internal_review", "client_review", "sent_for_signature"]),
+      counted(
+        db
+          .select({ value: count() })
+          .from(proposals)
+          .where(and(eq(proposals.organizationId, organizationId), inArray(proposals.status, ["draft", "internal_review"]))),
+      ),
+      counted(
+        db
+          .select({ value: count() })
+          .from(contracts)
+          .where(
+            and(
+              eq(contracts.organizationId, organizationId),
+              inArray(contracts.status, ["draft", "internal_review", "client_review", "sent_for_signature"]),
+            ),
           ),
-        ),
-      db
-        .select()
-        .from(projects)
-        .where(and(eq(projects.organizationId, organizationId), or(eq(projects.status, "at_risk"), eq(projects.health, "at_risk")))),
-      db
-        .select({
-          deliverable: projectDeliverables,
-        })
-        .from(projectDeliverables)
-        .innerJoin(projects, eq(projectDeliverables.projectId, projects.id))
-        .where(
-          and(
-            eq(projects.organizationId, organizationId),
-            lte(projectDeliverables.dueDate, now),
+      ),
+      counted(
+        db
+          .select({ value: count() })
+          .from(projects)
+          .where(and(eq(projects.organizationId, organizationId), or(eq(projects.status, "at_risk"), eq(projects.health, "at_risk")))),
+      ),
+      counted(
+        db
+          .select({ value: count() })
+          .from(projectDeliverables)
+          .innerJoin(projects, eq(projectDeliverables.projectId, projects.id))
+          .where(
+            and(
+              eq(projects.organizationId, organizationId),
+              lte(projectDeliverables.dueDate, now),
+              notInArray(projectDeliverables.status, ["delivered"]),
+            ),
           ),
-        ),
-      db
-        .select()
-        .from(billingEvents)
-        .where(
-          and(
-            eq(billingEvents.organizationId, organizationId),
-            inArray(billingEvents.status, ["scheduled", "triggered"]),
-            lte(billingEvents.expectedDate, soon),
+      ),
+      counted(
+        db
+          .select({ value: count() })
+          .from(billingEvents)
+          .where(
+            and(
+              eq(billingEvents.organizationId, organizationId),
+              inArray(billingEvents.status, ["scheduled", "triggered"]),
+              lte(billingEvents.expectedDate, soon),
+            ),
           ),
-        ),
-      db
-        .select()
-        .from(projects)
-        .where(and(eq(projects.organizationId, organizationId), eq(projects.status, "active"), lte(projects.endDate, soon))),
-      db
-        .select()
-        .from(expansionRecommendations)
-        .where(and(eq(expansionRecommendations.organizationId, organizationId), eq(expansionRecommendations.status, "suggested"))),
+      ),
+      counted(
+        db
+          .select({ value: count() })
+          .from(projects)
+          .where(and(eq(projects.organizationId, organizationId), eq(projects.status, "active"), lte(projects.endDate, soon))),
+      ),
+      counted(
+        db
+          .select({ value: count() })
+          .from(expansionRecommendations)
+          .where(and(eq(expansionRecommendations.organizationId, organizationId), eq(expansionRecommendations.status, "suggested"))),
+      ),
     ]);
   return {
-    proposalsAwaitingApproval: awaitingProposals.length,
-    contractsAwaitingSignature: awaitingContracts.length,
-    projectsAtRisk: atRisk.length,
-    deliverablesOverdue: overdueDeliverables.filter((row) => row.deliverable.status !== "delivered").length,
-    billingUpcoming: upcomingBilling.length,
-    engagementsClosingSoon: closing.length,
-    expansionOpportunities: expansions.length,
+    proposalsAwaitingApproval: awaitingProposals,
+    contractsAwaitingSignature: awaitingContracts,
+    projectsAtRisk: atRisk,
+    deliverablesOverdue: overdueDeliverables,
+    billingUpcoming: upcomingBilling,
+    engagementsClosingSoon: closing,
+    expansionOpportunities: expansions,
   };
 }
 
