@@ -1,23 +1,12 @@
 import { redirect } from "next/navigation";
-import { and, count, eq } from "drizzle-orm";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { navGroupsForPrincipal } from "@/components/navigation/nav-config";
-import { getDb } from "@/db";
-import { approvals } from "@/db/schema";
 import { getCurrentPrincipal } from "@/lib/auth/session";
+import { unreadNotificationCount } from "@/lib/notifications/service";
 import { AuthorizationError, can } from "@/lib/rbac/permissions";
 
 export const dynamic = "force-dynamic";
-
-async function pendingApprovalCount(organizationId: string) {
-  const db = getDb();
-  const [row] = await db
-    .select({ value: count() })
-    .from(approvals)
-    .where(and(eq(approvals.organizationId, organizationId), eq(approvals.status, "pending")));
-  return Number(row?.value ?? 0);
-}
 
 export default async function InternalAppLayout({
   children,
@@ -42,10 +31,10 @@ export default async function InternalAppLayout({
   }
 
   const groups = navGroupsForPrincipal(principal);
-  const pendingApprovals = await pendingApprovalCount(principal.organizationId);
+  const unreadNotifications = await unreadNotificationCount(principal.id, principal.organizationId);
 
   return (
-    <AppShell groups={groups} pendingApprovals={pendingApprovals} scoutEnabled={can(principal, "scout.use")}>
+    <AppShell groups={groups} unreadNotifications={unreadNotifications} scoutEnabled={can(principal, "scout.use")}>
       {children}
     </AppShell>
   );

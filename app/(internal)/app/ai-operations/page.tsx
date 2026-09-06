@@ -15,6 +15,7 @@ import {
   formatLabel,
   inputClassName,
 } from "../_components/ui";
+import { OpenScoutButton } from "@/components/scout/scout-drawer";
 import { AiSubnav } from "./_components/ai-subnav";
 
 export default async function AiOperationsPage() {
@@ -27,7 +28,8 @@ export default async function AiOperationsPage() {
       <PageHeader
         eyebrow="AI Operations"
         title="Agent Command Center"
-        description="Agents draft and recommend on top of PostgreSQL, approved workflows, permissions, audit, and the Review Queue. They are not a second database and cannot approve their own material output."
+        description="Agents draft and recommend on top of PostgreSQL, approved workflows, permissions, audit, and the Review Queue. They are not a second database and cannot approve their own material output. Chat lives in Scout — the labeled Scout control in the top bar, to the left of your profile."
+        actions={<OpenScoutButton />}
       />
       <AiSubnav active="/app/ai-operations" />
       <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

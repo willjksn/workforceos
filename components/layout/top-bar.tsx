@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Menu, Search } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 
 import { AuthControls } from "@/app/auth-controls";
+import { NotificationBell } from "@/components/layout/notification-bell";
 import { ScoutLauncher } from "@/components/scout/scout-drawer";
 
 const LABELS: Record<string, string> = {
@@ -56,11 +57,11 @@ function crumbsFromPath(pathname: string) {
 }
 
 export function TopBar({
-  pendingApprovals,
+  unreadNotifications,
   onMenuClick,
   scoutEnabled,
 }: {
-  pendingApprovals: number;
+  unreadNotifications: number;
   onMenuClick: () => void;
   scoutEnabled: boolean;
 }) {
@@ -96,18 +97,11 @@ export function TopBar({
           aria-label="Global search (coming later)"
         />
       </label>
-      <Link
-        href="/app/admin/approvals"
-        className="relative rounded-[6px] p-2 text-navy hover:bg-surface-muted"
-        aria-label={`Pending approvals: ${pendingApprovals}`}
-      >
-        <Bell className="h-4 w-4" strokeWidth={1.5} />
-        {pendingApprovals > 0 ? (
-          <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-warning" />
-        ) : null}
-      </Link>
-      <ScoutLauncher enabled={scoutEnabled} />
-      <AuthControls />
+      <div className="ml-auto flex shrink-0 items-center gap-1">
+        <NotificationBell unreadCount={unreadNotifications} />
+        <ScoutLauncher enabled={scoutEnabled} />
+        <AuthControls />
+      </div>
     </header>
   );
 }

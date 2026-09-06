@@ -5,6 +5,7 @@ import { parseScoutPageContext } from "../lib/scout/page-context";
 import { parseScoutIntent } from "../lib/scout/parse-intent";
 import { stripScoutPii } from "../lib/scout/pii";
 import { ROLE_PERMISSIONS, can, type Principal } from "../lib/rbac/permissions";
+import { cardsToQueueItems, indexInScoutQueue, scoutQueueNeighbor } from "../lib/scout/result-queue";
 
 function principalFor(role: keyof typeof ROLE_PERMISSIONS): Principal {
   return {
@@ -46,5 +47,20 @@ describe("Phase 9 Scout", () => {
     expect(can(reader, "scout.search")).toBe(true);
     expect(can(reader, "candidate_pii.read")).toBe(false);
     expect(can(reader, "scout.internal_actions")).toBe(false);
+  });
+
+  it("builds a Scout result queue that can step to previous and next records", () => {
+    const items = cardsToQueueItems([
+      { href: "/app/talent/a", title: "Ann", type: "candidate", id: "a" },
+      { href: "/app/talent/a", title: "Ann duplicate", type: "candidate", id: "a" },
+      { href: "/app/talent/b", title: "Blake", type: "candidate", id: "b" },
+      { href: "/app/military/skillbridge/c", title: "Carter", type: "skillbridge", id: "c" },
+    ]);
+    expect(items).toHaveLength(3);
+    expect(indexInScoutQueue(items, "/app/talent/b")).toBe(1);
+    expect(scoutQueueNeighbor(items, "/app/talent/b", -1)?.title).toBe("Ann");
+    expect(scoutQueueNeighbor(items, "/app/talent/b", 1)?.title).toBe("Carter");
+    expect(scoutQueueNeighbor(items, "/app/talent/a", -1)).toBeNull();
+    expect(scoutQueueNeighbor(items, "/app/jobs/missing", 1)).toBeNull();
   });
 });
