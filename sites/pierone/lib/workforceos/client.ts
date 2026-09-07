@@ -22,21 +22,31 @@ function apiBase() {
   return url.replace(/\/$/, "");
 }
 
+async function throwIfWriteFailed(response: Response, fallback: string) {
+  if (response.ok) return;
+  const data = (await response.json().catch(() => ({}))) as { error?: string };
+  throw new Error(data.error ?? `${fallback} (${response.status})`);
+}
+
 async function postSigned(pathname: string, body: string | Uint8Array, contentType: string) {
   const { sha256Hex, signWorkforceOsHeaders, toArrayBuffer, workforceOsWriteUrl } = await import(
     "@/lib/workforceos/hmac"
   );
   const url = workforceOsWriteUrl(apiBase(), pathname);
   const bodyHash = sha256Hex(typeof body === "string" ? body : body);
-  return fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": contentType,
-      ...signWorkforceOsHeaders({ method: "POST", path: url.pathname, bodyHash }),
-    },
-    body: typeof body === "string" ? body : toArrayBuffer(body),
-    cache: "no-store",
-  });
+  try {
+    return await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": contentType,
+        ...signWorkforceOsHeaders({ method: "POST", path: url.pathname, bodyHash }),
+      },
+      body: typeof body === "string" ? body : toArrayBuffer(body),
+      cache: "no-store",
+    });
+  } catch {
+    throw new Error(`Unable to reach WorkforceOS (${url.host}). Check WORKFORCEOS_PUBLIC_API_URL.`);
+  }
 }
 
 export class WorkforceOSPublicClient {
@@ -78,10 +88,7 @@ export class WorkforceOSPublicClient {
   async submitInquiry(payload: InquiryPayload) {
     const body = JSON.stringify(inquiryPayloadSchema.parse(payload));
     const response = await postSigned("/inquiries", body, "application/json");
-    if (!response.ok) {
-      const data = (await response.json().catch(() => ({}))) as { error?: string };
-      throw new Error(data.error ?? "INQUIRY_FAILED");
-    }
+    await throwIfWriteFailed(response, "INQUIRY_FAILED");
     return inquiryAcceptedSchema.parse(await response.json());
   }
 
@@ -94,10 +101,7 @@ export class WorkforceOSPublicClient {
     form.set("resume", resume);
     const { bytes, contentType } = await serializeFormBody(form);
     const response = await postSigned("/applications", bytes, contentType);
-    if (!response.ok) {
-      const data = (await response.json().catch(() => ({}))) as { error?: string };
-      throw new Error(data.error ?? "APPLICATION_FAILED");
-    }
+    await throwIfWriteFailed(response, "APPLICATION_FAILED");
     return applicationAcceptedSchema.parse(await response.json());
   }
 
@@ -110,10 +114,7 @@ export class WorkforceOSPublicClient {
     if (resume) form.set("resume", resume);
     const { bytes, contentType } = await serializeFormBody(form);
     const response = await postSigned("/military-talent", bytes, contentType);
-    if (!response.ok) {
-      const data = (await response.json().catch(() => ({}))) as { error?: string };
-      throw new Error(data.error ?? "MILITARY_TALENT_FAILED");
-    }
+    await throwIfWriteFailed(response, "MILITARY_TALENT_FAILED");
     return militaryTalentAcceptedSchema.parse(await response.json());
   }
 }

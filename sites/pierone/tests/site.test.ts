@@ -1,6 +1,6 @@
 import { createHmac } from "node:crypto";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { PRIMARY_NAV, SERVICES, SOLUTIONS_NAV } from "../lib/content";
 import { inquiryPayloadSchema, publicContentResponseSchema, EMPTY_PUBLIC_CONTENT } from "../lib/contracts";
@@ -11,6 +11,7 @@ import {
   serializeFormBody,
   sha256Hex,
   signPublicSiteRequest,
+  signWorkforceOsHeaders,
   workforceOsWriteUrl,
 } from "../lib/workforceos/hmac";
 
@@ -77,6 +78,10 @@ describe("PierOne public website", () => {
 });
 
 describe("PierOne WorkforceOS HMAC signing", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("signs METHOD/PATH/TIMESTAMP/REQUEST_ID/BODY_HASH", () => {
     const timestamp = "1710000000000";
     const requestId = "11111111-1111-4111-8111-111111111111";
@@ -112,5 +117,31 @@ describe("PierOne WorkforceOS HMAC signing", () => {
     const decoder = new TextDecoder();
     expect(decoder.decode(bytes)).toContain("electrical-technician");
     expect(HMAC_HEADER_REQUEST_ID).toBe("x-pierone-request-id");
+  });
+
+  it("does not require HMAC on Vercel preview when the secret is unset", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("WORKFORCEOS_SITE_SECRET", "");
+    expect(
+      signWorkforceOsHeaders({
+        method: "POST",
+        path: "/api/public/v1/military-talent",
+        bodyHash: "abc",
+      }),
+    ).toEqual({});
+  });
+
+  it("requires HMAC on Vercel production when the secret is unset", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("WORKFORCEOS_SITE_SECRET", "");
+    expect(() =>
+      signWorkforceOsHeaders({
+        method: "POST",
+        path: "/api/public/v1/military-talent",
+        bodyHash: "abc",
+      }),
+    ).toThrow(/WORKFORCEOS_SITE_SECRET/);
   });
 });

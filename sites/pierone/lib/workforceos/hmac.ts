@@ -54,6 +54,13 @@ export function workforceOsWriteUrl(apiBase: string, pathname: string) {
   return new URL(relative, `${apiBase.replace(/\/$/, "")}/`);
 }
 
+function isFailClosedProduction() {
+  if (process.env.VERCEL_ENV) {
+    return process.env.VERCEL_ENV === "production";
+  }
+  return process.env.NODE_ENV === "production";
+}
+
 export function signWorkforceOsHeaders(input: {
   method: string;
   path: string;
@@ -61,7 +68,7 @@ export function signWorkforceOsHeaders(input: {
 }) {
   const secret = process.env.WORKFORCEOS_SITE_SECRET;
   if (!secret) {
-    if (process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production") {
+    if (isFailClosedProduction()) {
       throw new Error("WORKFORCEOS_SITE_SECRET is required for production writes.");
     }
     return {} as Record<string, string>;

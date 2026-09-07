@@ -1,4 +1,4 @@
-import { getAppUrl, getServerEnv } from "../env";
+import { getAppUrl, getServerEnv, isFailClosedProduction } from "../env";
 import { RATE_LIMITS, RateLimitError, assertRateLimit } from "../security/rate-limit";
 import {
   HMAC_HEADER_REQUEST_ID,
@@ -49,11 +49,6 @@ function allowedOrigins() {
   return configured;
 }
 
-function isProductionEnv() {
-  const env = getServerEnv();
-  return env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
-}
-
 export function isSameAppOrigin(request: Request) {
   const origin = originFromRequest(request);
   const appUrl = getAppUrl();
@@ -66,7 +61,7 @@ export async function signSameAppPublicWrite(request: Request, rawBody: Uint8Arr
   }
   const secret = getServerEnv().PUBLIC_SITE_INTEGRATION_SECRET;
   if (!secret) {
-    if (isProductionEnv()) {
+    if (isFailClosedProduction()) {
       throw new PublicGatewayError("Signed request required.", 401);
     }
     return request;
@@ -114,7 +109,7 @@ export async function assertPublicWriteAccess(request: Request, rawBody: string 
 
   const secret = env.PUBLIC_SITE_INTEGRATION_SECRET;
   if (!secret) {
-    if (isProductionEnv()) {
+    if (isFailClosedProduction()) {
       throw new PublicGatewayError("Signed request required.", 401);
     }
     return { signed: false as const };

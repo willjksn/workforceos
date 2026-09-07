@@ -38,8 +38,10 @@ export async function POST(request: Request) {
   try {
     await workforceOsPublic.submitMilitaryTalent(parsed.data, resume);
     return NextResponse.json({ accepted: true });
-  } catch {
-    return NextResponse.json({ error: "Unable to submit right now. Please try again." }, { status: 503 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unable to submit right now. Please try again.";
+    const status = /signed request required/i.test(message) ? 401 : 503;
+    return NextResponse.json({ error: message }, { status });
   }
 }
 

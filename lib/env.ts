@@ -146,3 +146,10 @@ export function getAppUrl(env: ServerEnv = getServerEnv()): string | undefined {
   if (env.NODE_ENV !== "production") return "http://localhost:3000";
   return undefined;
 }
+
+export function isFailClosedProduction(env: ServerEnv = getServerEnv()) {
+  if (process.env.VERCEL_ENV) {
+    return process.env.VERCEL_ENV === "production";
+  }
+  return env.NODE_ENV === "production";
+}

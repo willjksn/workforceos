@@ -35,11 +35,9 @@ export async function POST(request: Request) {
     await workforceOsPublic.submitInquiry(parsed.data);
     return NextResponse.json({ accepted: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "INQUIRY_FAILED";
-    if (message === "WORKFORCEOS_PUBLIC_API_URL is not configured." || message.includes("fetch")) {
-      return NextResponse.json({ error: "Unable to reach PierOne right now. Please try again." }, { status: 503 });
-    }
-    return NextResponse.json({ error: "Unable to submit inquiry right now. Please try again." }, { status: 503 });
+    const message = error instanceof Error ? error.message : "Unable to submit inquiry right now. Please try again.";
+    const status = /signed request required/i.test(message) ? 401 : 503;
+    return NextResponse.json({ error: message }, { status });
   }
 }
 

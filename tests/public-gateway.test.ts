@@ -32,6 +32,7 @@ const BODY = JSON.stringify({ company: "Example Energy" });
 
 function productionEnv() {
   vi.stubEnv("NODE_ENV", "production");
+  vi.stubEnv("VERCEL_ENV", "production");
   vi.stubEnv("PUBLIC_SITE_INTEGRATION_SECRET", SECRET);
   vi.stubEnv("PUBLIC_SITE_ALLOWED_ORIGINS", "https://pieronepartners.com");
   vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://app.pieronepartners.com");
@@ -271,12 +272,24 @@ describe("public gateway HMAC", () => {
 
   it("rejects unsigned production writes", async () => {
     vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL_ENV", "production");
     vi.stubEnv("PUBLIC_SITE_INTEGRATION_SECRET", "");
     vi.stubEnv("PUBLIC_SITE_ALLOWED_ORIGINS", "https://pieronepartners.com");
     resetServerEnvCache();
     await expect(
       assertPublicWriteAccess(makeRequest({ origin: "https://pieronepartners.com" }), BODY),
     ).rejects.toMatchObject({ status: 401 });
+  });
+
+  it("allows unsigned writes on Vercel preview when HMAC is not configured", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("PUBLIC_SITE_INTEGRATION_SECRET", "");
+    vi.stubEnv("PUBLIC_SITE_ALLOWED_ORIGINS", "https://pieronepartners.com");
+    resetServerEnvCache();
+    await expect(
+      assertPublicWriteAccess(makeRequest({ origin: "https://pieronepartners.com" }), BODY),
+    ).resolves.toMatchObject({ signed: false });
   });
 
   it("rejects spoofed Origin matching NEXT_PUBLIC_APP_URL without HMAC", async () => {
