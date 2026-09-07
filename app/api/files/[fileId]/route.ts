@@ -1,24 +1,26 @@
 import { NextResponse } from "next/server";
 
 import { requireCurrentPrincipal } from "@/lib/auth/session";
+import { storedFileContentHeaders } from "@/lib/hiring/files";
 import { downloadStoredFile, HiringError } from "@/lib/hiring/service";
 import { AuthorizationError } from "@/lib/rbac/permissions";
 
-export async function GET(_request: Request, context: { params: Promise<{ fileId: string }> }) {
+export async function GET(request: Request, context: { params: Promise<{ fileId: string }> }) {
   try {
     const principal = await requireCurrentPrincipal();
     const { fileId } = await context.params;
+    const download = new URL(request.url).searchParams.get("download") === "1";
     const { file, body } = await downloadStoredFile(principal, fileId);
-    const filename = file.filename.replace(/[\r\n"]/g, "_");
     const payload = new Uint8Array(body.byteLength);
     payload.set(body);
     return new NextResponse(payload, {
-      headers: {
-        "Content-Type": file.mimeType,
-        "Content-Disposition": `inline; filename="${filename}"`,
-        "X-Content-Type-Options": "nosniff",
-        "Cache-Control": "private, no-store",
-      },
+      headers: storedFileContentHeaders({
+        filename: file.filename,
+        mimeType: file.mimeType,
+        sizeBytes: payload.byteLength,
+        download,
+        body: payload,
+      }),
     });
   } catch (error) {
     if (error instanceof AuthorizationError) {

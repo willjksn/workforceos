@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { canPreviewResumeInline, FileValidationError, validateResumeUpload } from "../lib/hiring/files";
+import { canPreviewResumeInline, FileValidationError, storedFileContentHeaders, validateResumeUpload } from "../lib/hiring/files";
 import { parseScoutIntent } from "../lib/scout/parse-intent";
 import { ALLOWED_DISPOSITION_REASONS, assertDispositionReason } from "../lib/hiring/stages";
 import { getBackgroundCheckProvider } from "../lib/background-checks";
@@ -78,6 +78,26 @@ describe("phase 10 public file validation", () => {
         filename: "resume.docx",
       }),
     ).toBe(false);
+  });
+
+  it("serves PDFs inline and only attaches when download is requested", () => {
+    const pdfHeaders = storedFileContentHeaders({
+      filename: "resume.pdf",
+      mimeType: "application/octet-stream",
+      sizeBytes: 12,
+      download: false,
+      body: pdfBody,
+    }) as Record<string, string>;
+    expect(pdfHeaders["Content-Type"]).toBe("application/pdf");
+    expect(pdfHeaders["Content-Disposition"]).toBe("inline");
+    const downloadHeaders = storedFileContentHeaders({
+      filename: "resume.pdf",
+      mimeType: "application/pdf",
+      sizeBytes: 12,
+      download: true,
+      body: pdfBody,
+    }) as Record<string, string>;
+    expect(downloadHeaders["Content-Disposition"]).toBe('attachment; filename="resume.pdf"');
   });
 });
 

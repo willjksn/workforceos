@@ -32,6 +32,42 @@ export function canPreviewResumeInline(input: { mimeType?: string | null; filena
   return mime === PDF_MIME || ext === ".pdf";
 }
 
+export function looksLikePdf(input: {
+  mimeType?: string | null;
+  filename?: string | null;
+  body?: Uint8Array | null;
+}) {
+  const body = input.body;
+  if (body && body.length >= 4 && body[0] === 0x25 && body[1] === 0x50 && body[2] === 0x44 && body[3] === 0x46) {
+    return true;
+  }
+  return canPreviewResumeInline(input);
+}
+
+export function storedFileContentHeaders(input: {
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  download: boolean;
+  body?: Uint8Array | null;
+}): HeadersInit {
+  const filename = input.filename.replace(/[\r\n"]/g, "_") || "file";
+  const pdf = looksLikePdf(input);
+  const contentType = pdf ? PDF_MIME : input.mimeType || "application/octet-stream";
+  const contentDisposition = input.download
+    ? `attachment; filename="${filename}"`
+    : pdf
+      ? "inline"
+      : `inline; filename="${filename}"`;
+  return {
+    "Content-Type": contentType,
+    "Content-Disposition": contentDisposition,
+    "Content-Length": String(input.sizeBytes),
+    "X-Content-Type-Options": "nosniff",
+    "Cache-Control": "private, no-store",
+  };
+}
+
 export function sanitizeResumeFilename(filename: string) {
   const trimmed = filename.trim().replace(/\\/g, "/").split("/").pop() ?? "resume";
   const safe = trimmed.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);
