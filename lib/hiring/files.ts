@@ -26,6 +26,12 @@ export function extensionOf(filename: string) {
   return idx >= 0 ? filename.slice(idx).toLowerCase() : "";
 }
 
+export function canPreviewResumeInline(input: { mimeType?: string | null; filename?: string | null }) {
+  const mime = (input.mimeType ?? "").toLowerCase().split(";")[0]?.trim();
+  const ext = extensionOf(input.filename ?? "");
+  return mime === PDF_MIME || ext === ".pdf";
+}
+
 export function sanitizeResumeFilename(filename: string) {
   const trimmed = filename.trim().replace(/\\/g, "/").split("/").pop() ?? "resume";
   const safe = trimmed.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);

@@ -18,6 +18,7 @@ import { companies } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { PrimaryButton } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/display";
+import { ResumeViewer } from "../../../_components/resume-viewer";
 import { PageHeader, PageShell, formatDate, formatLabel } from "../../../_components/ui";
 import { MilitarySubnav } from "../../_components/military-subnav";
 
@@ -110,15 +111,12 @@ export default async function SkillBridgeDetailPage({
       <section className="mt-10">
         <h2 className="section-title">Resume</h2>
         {canReadPii && detail.resumeFile ? (
-          <p className="mt-3 text-sm">
-            <a className="text-navy underline" href={`/api/files/${detail.resumeFile.id}`}>
-              {detail.resumeFile.filename}
-            </a>
-            <span className="text-muted-foreground">
-              {" "}
-              · {formatLabel(detail.card.profile.resumeStatus)} · {formatDate(detail.resumeFile.createdAt)}
-            </span>
-          </p>
+          <div className="mt-3">
+            <ResumeViewer
+              file={detail.resumeFile}
+              meta={`${formatLabel(detail.card.profile.resumeStatus)} · ${formatDate(detail.resumeFile.createdAt)}`}
+            />
+          </div>
         ) : detail.card.candidate.currentResumeFileId || detail.card.profile.resumeStatus !== "missing" ? (
           <p className="mt-3 text-sm text-muted-foreground">
             {canReadPii

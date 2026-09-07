@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { FileValidationError, validateResumeUpload } from "../lib/hiring/files";
+import { canPreviewResumeInline, FileValidationError, validateResumeUpload } from "../lib/hiring/files";
 import { parseScoutIntent } from "../lib/scout/parse-intent";
 import { ALLOWED_DISPOSITION_REASONS, assertDispositionReason } from "../lib/hiring/stages";
 import { getBackgroundCheckProvider } from "../lib/background-checks";
@@ -66,6 +66,18 @@ describe("phase 10 public file validation", () => {
         body: new TextEncoder().encode("text"),
       }),
     ).toThrow(FileValidationError);
+  });
+
+  it("previews PDFs inline and leaves Word files for download", () => {
+    expect(canPreviewResumeInline({ mimeType: "application/pdf", filename: "resume.pdf" })).toBe(true);
+    expect(canPreviewResumeInline({ mimeType: "application/octet-stream", filename: "resume.PDF" })).toBe(true);
+    expect(canPreviewResumeInline({ mimeType: "application/msword", filename: "resume.doc" })).toBe(false);
+    expect(
+      canPreviewResumeInline({
+        mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        filename: "resume.docx",
+      }),
+    ).toBe(false);
   });
 });
 

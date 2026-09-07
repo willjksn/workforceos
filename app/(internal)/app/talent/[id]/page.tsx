@@ -12,6 +12,7 @@ import { presentCandidate } from "@/lib/privacy/present-candidate";
 import { getCandidateWithRelationships, listTalentPools } from "@/lib/repositories/talent";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../_components/action-form";
+import { ResumeViewer } from "../../_components/resume-viewer";
 import { Field, PageHeader, PageShell, PrimaryButton, formatDate, formatLabel, inputClassName } from "../../_components/ui";
 
 const TABS = [
@@ -83,52 +84,52 @@ export default async function CandidateDetailPage({
       <TabNav items={tabs} activeId={tab} />
 
       {tab === "overview" ? (
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
-          <section>
-            <p className="text-sm text-muted-foreground">
-              Email: {candidate.emailHidden ? "hidden without candidate_pii.read" : (candidate.email ?? "—")}
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground">Consent: {formatLabel(candidate.consentStatus)}</p>
-            {record.experiences[0] ? (
-              <p className="mt-6 text-sm">
-                <span className="font-medium text-navy">{record.experiences[0].title}</span> · {record.experiences[0].employer}
+        <div className="mt-6 space-y-10">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
+            <section>
+              <p className="text-sm text-muted-foreground">
+                Email: {candidate.emailHidden ? "hidden without candidate_pii.read" : (candidate.email ?? "—")}
               </p>
-            ) : null}
-            <div className="mt-6 text-sm">
-              <p className="font-medium text-navy">Resume</p>
-              {canReadPii && record.resumeFile ? (
-                <p className="mt-1">
-                  <a className="text-navy underline" href={`/api/files/${record.resumeFile.id}`}>
-                    {record.resumeFile.filename}
-                  </a>
+              <p className="mt-2 text-sm text-muted-foreground">Consent: {formatLabel(candidate.consentStatus)}</p>
+              {record.experiences[0] ? (
+                <p className="mt-6 text-sm">
+                  <span className="font-medium text-navy">{record.experiences[0].title}</span> · {record.experiences[0].employer}
                 </p>
-              ) : record.candidate.currentResumeFileId ? (
-                <p className="mt-1 text-muted-foreground">
-                  {canReadPii ? "Resume file record is missing." : "Hidden without candidate_pii.read"}
-                </p>
-              ) : (
-                <p className="mt-1 text-muted-foreground">No resume on file.</p>
-              )}
-            </div>
+              ) : null}
+            </section>
+            <ProfileSnapshot
+              items={[
+                { label: "Years experience", value: candidate.yearsExperience ?? "—" },
+                { label: "Skills", value: record.skills.length },
+                { label: "Pools", value: record.pools.length },
+                { label: "Last contact", value: formatDate(candidate.lastContactedAt) },
+                { label: "Availability", value: formatLabel(candidate.availability) },
+                { label: "Profile completeness", value: `${completeness}%` },
+                {
+                  label: "Resume",
+                  value: canReadPii
+                    ? record.resumeFile?.filename ?? "None on file"
+                    : record.candidate.currentResumeFileId
+                      ? "Hidden without candidate_pii.read"
+                      : "None on file",
+                },
+              ]}
+            />
+          </div>
+          <section>
+            <h2 className="section-title">Resume</h2>
+            {canReadPii && record.resumeFile ? (
+              <div className="mt-3">
+                <ResumeViewer file={record.resumeFile} />
+              </div>
+            ) : record.candidate.currentResumeFileId ? (
+              <p className="mt-3 text-sm text-muted-foreground">
+                {canReadPii ? "Resume file record is missing." : "Hidden without candidate_pii.read"}
+              </p>
+            ) : (
+              <p className="mt-3 text-sm text-muted-foreground">No resume on file.</p>
+            )}
           </section>
-          <ProfileSnapshot
-            items={[
-              { label: "Years experience", value: candidate.yearsExperience ?? "—" },
-              { label: "Skills", value: record.skills.length },
-              { label: "Pools", value: record.pools.length },
-              { label: "Last contact", value: formatDate(candidate.lastContactedAt) },
-              { label: "Availability", value: formatLabel(candidate.availability) },
-              { label: "Profile completeness", value: `${completeness}%` },
-              {
-                label: "Resume",
-                value: canReadPii
-                  ? record.resumeFile?.filename ?? "None on file"
-                  : record.candidate.currentResumeFileId
-                    ? "Hidden without candidate_pii.read"
-                    : "None on file",
-              },
-            ]}
-          />
         </div>
       ) : null}
 
