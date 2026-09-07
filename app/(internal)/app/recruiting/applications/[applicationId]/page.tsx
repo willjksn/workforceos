@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import {
@@ -8,11 +9,13 @@ import {
   requestDrugScreenAction,
   startOnboardingAction,
 } from "@/lib/actions/hiring";
+import { applyResumeToCandidateAction } from "@/lib/actions/talent";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { getApplicationDetail } from "@/lib/hiring/service";
 import { ALLOWED_DISPOSITION_REASONS } from "@/lib/hiring/stages";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../../_components/action-form";
+import { ResumeViewer } from "../../../_components/resume-viewer";
 import { PageHeader, PageShell, PrimaryButton, formatLabel, inputClassName } from "../../../_components/ui";
 
 export default async function ApplicationDetailPage({ params }: { params: Promise<{ applicationId: string }> }) {
@@ -25,12 +28,19 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
   const canOnboard = can(principal, "onboarding.manage");
   const canBackground = can(principal, "background_checks.request");
   const canDrug = can(principal, "drug_screens.request");
+  const canReadPii = can(principal, "candidate_pii.read");
+  const canFillResume = can(principal, "candidates.write") && canReadPii;
 
   return (
     <PageShell wide>
       <PageHeader
         title={detail.candidate.fullName}
         description={`${detail.job.title} · ${formatLabel(detail.application.source)} · ${detail.application.appliedAt.toLocaleDateString()}`}
+        metadata={
+          <Link className="text-sm font-medium text-navy underline" href={`/app/talent/${detail.candidate.id}`}>
+            Talent Network profile
+          </Link>
+        }
       />
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <section className="lg:col-span-2 space-y-4">
@@ -45,12 +55,19 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
               ))}
             </dl>
             {detail.resumeFile ? (
-              <p className="mt-4 text-sm">
-                Resume:{" "}
-                <a className="text-navy underline" href={`/api/files/${detail.resumeFile.id}`}>
-                  {detail.resumeFile.filename}
-                </a>
-              </p>
+              <div className="mt-4 space-y-3">
+                <ResumeViewer file={detail.resumeFile} />
+                {canFillResume ? (
+                  <ActionForm action={applyResumeToCandidateAction} className="space-y-2">
+                    <input type="hidden" name="candidateId" value={detail.candidate.id} />
+                    <input type="hidden" name="redirectTo" value={`/app/recruiting/applications/${detail.application.id}`} />
+                    <p className="text-sm text-muted-foreground">
+                      Fills blank Talent Network fields from this resume. Existing values are not overwritten. The application stays linked to the same person.
+                    </p>
+                    <PrimaryButton>Fill empty fields from resume</PrimaryButton>
+                  </ActionForm>
+                ) : null}
+              </div>
             ) : (
               <p className="mt-4 text-sm text-muted-foreground">No resume on file, or resume is hidden without candidate PII access.</p>
             )}

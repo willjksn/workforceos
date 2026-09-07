@@ -19,6 +19,7 @@ import {
   skillbridgeTargetRoles,
 } from "../../db/schema";
 import { recordAuditEvent } from "../audit/record-audit-event";
+import { tryApplyResumeToCandidate } from "../talent/apply-resume";
 import { getStorageProvider } from "../storage";
 import { assertUploadAllowed } from "../storage/limits";
 import {
@@ -459,6 +460,15 @@ export async function uploadSkillBridgeResume(input: {
     .update(candidates)
     .set({ currentResumeFileId: file.id, updatedAt: new Date() })
     .where(eq(candidates.id, profile.candidateId));
+  await tryApplyResumeToCandidate({
+    organizationId: input.actor.organizationId,
+    candidateId: profile.candidateId,
+    fileId: file.id,
+    filename: input.filename,
+    mimeType: input.mimeType,
+    body: input.body,
+    actor: { type: "human", userId: input.actor.userId },
+  });
   const [updated] = await db
     .update(skillbridgeProfiles)
     .set({ resumeStatus: "current", updatedAt: new Date() })

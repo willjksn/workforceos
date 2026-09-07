@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 
-type ActionState = { error?: string };
+type ActionState = { error?: string; message?: string };
 
 export function ActionForm({
   action,
@@ -17,6 +17,7 @@ export function ActionForm({
   return (
     <form action={formAction} className={className}>
       {state.error ? <p className="text-sm text-danger">{state.error}</p> : null}
+      {state.message ? <p className="text-sm text-muted-foreground">{state.message}</p> : null}
       {children}
     </form>
   );

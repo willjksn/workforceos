@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import {
   addCandidateToPoolAction,
   addExperienceAction,
+  applyResumeToCandidateAction,
 } from "@/lib/actions/talent";
 import { requestPrivacyDeletionAction } from "@/lib/actions/privacy";
 import { ProfileSnapshot, StatusBadge, TabNav } from "@/components/ui/display";
@@ -88,8 +89,18 @@ export default async function CandidateDetailPage({
           <section className="min-w-0">
             <h2 className="section-title">Resume</h2>
             {canReadPii && record.resumeFile ? (
-              <div className="mt-3">
+              <div className="mt-3 space-y-3">
                 <ResumeViewer file={record.resumeFile} />
+                {canWrite ? (
+                  <ActionForm action={applyResumeToCandidateAction} className="space-y-2">
+                    <input type="hidden" name="candidateId" value={candidate.id} />
+                    <input type="hidden" name="redirectTo" value={`/app/talent/${candidate.id}`} />
+                    <p className="text-sm text-muted-foreground">
+                      Fills blank Talent Network fields from this resume. Existing values are not overwritten.
+                    </p>
+                    <PrimaryButton>Fill empty fields from resume</PrimaryButton>
+                  </ActionForm>
+                ) : null}
               </div>
             ) : record.candidate.currentResumeFileId ? (
               <p className="mt-3 text-sm text-muted-foreground">

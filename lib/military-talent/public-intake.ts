@@ -20,6 +20,7 @@ import { stripHtml } from "../public-api/normalize";
 import { linkSkillBridgeResumeDocument } from "../skillbridge/service";
 import { getStorageProvider } from "../storage";
 import { resumeStorageFailureMessage } from "../storage/diagnostics";
+import { tryApplyResumeToCandidate } from "../talent/apply-resume";
 import type { MilitaryTalentPayload } from "@pierone/public-api-contracts";
 
 export class MilitaryTalentError extends Error {
@@ -213,6 +214,17 @@ export async function submitMilitaryTalentProfile(input: MilitaryTalentPayload &
       candidateId,
       fileId: resumeFileId,
     });
+    if (input.resume) {
+      await tryApplyResumeToCandidate({
+        organizationId,
+        candidateId,
+        fileId: resumeFileId,
+        filename: input.resume.filename,
+        mimeType: input.resume.mimeType,
+        body: input.resume.body,
+        actor: { type: "system" },
+      });
+    }
   }
 
   if (input.targetCivilianRoles) {

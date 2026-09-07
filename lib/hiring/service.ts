@@ -47,6 +47,7 @@ import { createJobWithInternalSearch } from "../repositories/recruiting";
 import { createSkillBridgeOpportunity, createSkillBridgeProfile } from "../skillbridge/service";
 import { getStorageProvider } from "../storage";
 import { resumeStorageFailureMessage } from "../storage/diagnostics";
+import { tryApplyResumeToCandidate } from "../talent/apply-resume";
 import { matchExistingCandidate, normalizeEmail } from "./dedupe";
 import { sanitizeResumeFilename, validateResumeUpload } from "./files";
 import { assertDispositionReason, defaultPipelineName, type JobContextType } from "./stages";
@@ -681,6 +682,18 @@ export async function submitPublicApplication(input: PublicApplicationInput) {
         source: "public_application",
       });
     }
+  }
+
+  if (resumeFileId && input.resume) {
+    await tryApplyResumeToCandidate({
+      organizationId: job.organizationId,
+      candidateId,
+      fileId: resumeFileId,
+      filename: input.resume.filename,
+      mimeType: input.resume.mimeType,
+      body: input.resume.body,
+      actor: { type: "system" },
+    });
   }
 
   await recordAuditEvent({

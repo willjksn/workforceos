@@ -8,6 +8,7 @@ import {
   addSkillBridgeOpportunityAction,
   advanceSkillBridgeStageAction,
 } from "@/lib/actions/skillbridge";
+import { applyResumeToCandidateAction } from "@/lib/actions/talent";
 import { requireAnyAppPermission } from "@/lib/auth/guard";
 import { can } from "@/lib/rbac/permissions";
 import { getSkillBridgeDetail } from "@/lib/skillbridge/service";
@@ -96,11 +97,21 @@ export default async function SkillBridgeDetailPage({
         <section className="min-w-0">
           <h2 className="section-title">Resume</h2>
           {canReadPii && detail.resumeFile ? (
-            <div className="mt-3">
+            <div className="mt-3 space-y-3">
               <ResumeViewer
                 file={detail.resumeFile}
                 meta={`${formatLabel(detail.card.profile.resumeStatus)} · ${formatDate(detail.resumeFile.createdAt)}`}
               />
+              {can(principal, "candidates.write") ? (
+                <ActionForm action={applyResumeToCandidateAction} className="space-y-2">
+                  <input type="hidden" name="candidateId" value={detail.card.candidate.id} />
+                  <input type="hidden" name="redirectTo" value={`/app/military/skillbridge/${id}`} />
+                  <p className="text-sm text-muted-foreground">
+                    Fills blank Talent Network fields from this resume. Existing values are not overwritten.
+                  </p>
+                  <PrimaryButton>Fill empty fields from resume</PrimaryButton>
+                </ActionForm>
+              ) : null}
             </div>
           ) : detail.card.candidate.currentResumeFileId || detail.card.profile.resumeStatus !== "missing" ? (
             <p className="mt-3 text-sm text-muted-foreground">

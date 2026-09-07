@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { requireAppPermission } from "@/lib/auth/guard";
-import { AuthorizationError } from "@/lib/rbac/permissions";
+import { downloadStoredFile } from "@/lib/hiring/service";
+import { AuthorizationError, requirePermission } from "@/lib/rbac/permissions";
 import {
   addCandidateExperience,
   addCandidateToPool,
@@ -13,9 +14,10 @@ import {
   getCandidateWithRelationships,
   getTalentPool,
 } from "@/lib/repositories/talent";
+import { applyResumeToCandidate } from "@/lib/talent/apply-resume";
 import { emptyToNull } from "@/lib/validation/forms";
 
-export type ActionState = { error?: string };
+export type ActionState = { error?: string; message?: string };
 
 const availabilitySchema = z.enum([
   "unknown",
@@ -169,6 +171,55 @@ export async function createTalentPoolAction(
       description: parsed.description ?? null,
     });
     redirect(`/app/talent/pools/${pool.id}`);
+  } catch (error) {
+    if (isNextControlFlow(error)) throw error;
+    return fail(error);
+  }
+}
+
+const candidateResumeReturnPath = z
+  .string()
+  .regex(
+    /^\/app\/(?:talent|military\/skillbridge|recruiting\/applications)\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+    "Invalid return path",
+  );
+
+export async function applyResumeToCandidateAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  try {
+    const principal = await requireAppPermission("candidates.write");
+    requirePermission(principal, "candidate_pii.read");
+    const parsed = z
+      .object({
+        candidateId: z.string().uuid(),
+        redirectTo: candidateResumeReturnPath,
+      })
+      .parse({
+        candidateId: formData.get("candidateId"),
+        redirectTo: formData.get("redirectTo"),
+      });
+    const existing = await getCandidateWithRelationships(parsed.candidateId, principal.organizationId);
+    if (!existing) return { error: "Candidate not found" };
+    const fileId = existing.candidate.currentResumeFileId;
+    if (!fileId || !existing.resumeFile) return { error: "No resume on file" };
+    const { file, body } = await downloadStoredFile(principal, fileId);
+    const result = await applyResumeToCandidate({
+      organizationId: principal.organizationId,
+      candidateId: parsed.candidateId,
+      fileId: file.id,
+      filename: file.filename,
+      mimeType: file.mimeType,
+      body,
+      actor: { type: "human", userId: principal.id },
+    });
+    if (!result.filled.length) {
+      return {
+        message: "No empty fields to fill. Existing recruiter-entered values were left unchanged.",
+      };
+    }
+    redirect(parsed.redirectTo);
   } catch (error) {
     if (isNextControlFlow(error)) throw error;
     return fail(error);
