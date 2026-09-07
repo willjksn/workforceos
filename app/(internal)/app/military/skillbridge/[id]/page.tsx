@@ -92,41 +92,44 @@ export default async function SkillBridgeDetailPage({
       />
       <MilitarySubnav active="/app/military/skillbridge" />
 
-      <dl className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <Item label="Branch / MOS" value={[detail.card.occupation?.branch, detail.card.occupation?.code ?? detail.card.profile.mosRateAfscDisplay].filter(Boolean).join(" · ")} />
-        <Item label="Rank" value={detail.card.profile.rankTitle ?? detail.card.profile.payGrade} />
-        <Item label="Installation" value={detail.card.installation?.name ?? detail.card.profile.currentDutyLocation} />
-        <Item label="End of service" value={formatDate(detail.card.profile.endOfServiceDate)} />
-        <Item label="Window start" value={formatDate(detail.card.profile.skillbridgeWindowStart)} />
-        <Item label="Window end" value={formatDate(detail.card.profile.skillbridgeWindowEnd)} />
-        <Item label="Preferred location" value={detail.card.profile.preferredLocationPrimary} />
-        <Item label="Ideal employer" value={detail.card.profile.idealEmployer} />
-        <Item label="Resume status" value={formatLabel(detail.card.profile.resumeStatus)} />
-        <Item label="Last contact" value={formatDate(detail.card.profile.lastContactedAt)} />
-        <Item label="Next action" value={detail.card.profile.nextAction} />
-        <Item label="Next due" value={formatDate(detail.card.profile.nextActionDueAt)} />
-      </dl>
-      {detail.card.risks.length ? <p className="mt-4 text-sm text-warning">{detail.card.risks.join(" · ")}</p> : null}
-
-      <section className="mt-10">
-        <h2 className="section-title">Resume</h2>
-        {canReadPii && detail.resumeFile ? (
-          <div className="mt-3">
-            <ResumeViewer
-              file={detail.resumeFile}
-              meta={`${formatLabel(detail.card.profile.resumeStatus)} · ${formatDate(detail.resumeFile.createdAt)}`}
-            />
-          </div>
-        ) : detail.card.candidate.currentResumeFileId || detail.card.profile.resumeStatus !== "missing" ? (
-          <p className="mt-3 text-sm text-muted-foreground">
-            {canReadPii
-              ? "Resume metadata is missing. Re-upload from this profile if the file cannot be opened."
-              : "Resume on file is hidden without candidate_pii.read."}
-          </p>
-        ) : (
-          <p className="mt-3 text-sm text-muted-foreground">No resume on file.</p>
-        )}
-      </section>
+      <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)]">
+        <section className="min-w-0">
+          <h2 className="section-title">Resume</h2>
+          {canReadPii && detail.resumeFile ? (
+            <div className="mt-3">
+              <ResumeViewer
+                file={detail.resumeFile}
+                meta={`${formatLabel(detail.card.profile.resumeStatus)} · ${formatDate(detail.resumeFile.createdAt)}`}
+              />
+            </div>
+          ) : detail.card.candidate.currentResumeFileId || detail.card.profile.resumeStatus !== "missing" ? (
+            <p className="mt-3 text-sm text-muted-foreground">
+              {canReadPii
+                ? "Resume metadata is missing. Re-upload from this profile if the file cannot be opened."
+                : "Resume on file is hidden without candidate_pii.read."}
+            </p>
+          ) : (
+            <p className="mt-3 text-sm text-muted-foreground">No resume on file.</p>
+          )}
+        </section>
+        <aside className="min-w-0 lg:sticky lg:top-6">
+          <dl className="grid gap-3">
+            <Item label="Branch / MOS" value={[detail.card.occupation?.branch, detail.card.occupation?.code ?? detail.card.profile.mosRateAfscDisplay].filter(Boolean).join(" · ")} />
+            <Item label="Rank" value={detail.card.profile.rankTitle ?? detail.card.profile.payGrade} />
+            <Item label="Installation" value={detail.card.installation?.name ?? detail.card.profile.currentDutyLocation} />
+            <Item label="End of service" value={formatDate(detail.card.profile.endOfServiceDate)} />
+            <Item label="Window start" value={formatDate(detail.card.profile.skillbridgeWindowStart)} />
+            <Item label="Window end" value={formatDate(detail.card.profile.skillbridgeWindowEnd)} />
+            <Item label="Preferred location" value={detail.card.profile.preferredLocationPrimary} />
+            <Item label="Ideal employer" value={detail.card.profile.idealEmployer} />
+            <Item label="Resume status" value={formatLabel(detail.card.profile.resumeStatus)} />
+            <Item label="Last contact" value={formatDate(detail.card.profile.lastContactedAt)} />
+            <Item label="Next action" value={detail.card.profile.nextAction} />
+            <Item label="Next due" value={formatDate(detail.card.profile.nextActionDueAt)} />
+          </dl>
+          {detail.card.risks.length ? <p className="mt-4 text-sm text-warning">{detail.card.risks.join(" · ")}</p> : null}
+        </aside>
+      </div>
 
       <section className="mt-10">
         <h2 className="section-title">Employer opportunities</h2>

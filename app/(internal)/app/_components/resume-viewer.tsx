@@ -86,7 +86,7 @@ export function ResumeViewer({
               title={`Resume preview: ${file.filename}`}
               data={previewUrl}
               type="application/pdf"
-              className="block h-[80vh] min-h-[36rem] w-full"
+              className="block h-[32rem] max-h-[70vh] w-full"
             >
               <p className="p-4 text-sm text-muted-foreground">
                 Preview did not render.{" "}
@@ -103,8 +103,8 @@ export function ResumeViewer({
       ) : kind === "docx" ? (
         <div className="mt-3 overflow-hidden rounded-[8px] border border-card-border bg-white shadow-[var(--shadow-card)]">
           {html ? (
-            <div className="max-h-[80vh] overflow-y-auto px-6 py-8 sm:px-10 sm:py-10">
-              <article className="resume-html mx-auto max-w-[46rem]" dangerouslySetInnerHTML={{ __html: html }} />
+            <div className="h-[32rem] max-h-[70vh] overflow-y-auto px-5 py-5">
+              <article className="resume-html" dangerouslySetInnerHTML={{ __html: html }} />
             </div>
           ) : (
             <p className="p-4 text-sm text-muted-foreground">{error ?? "Loading resume…"}</p>

@@ -84,29 +84,8 @@ export default async function CandidateDetailPage({
       <TabNav items={tabs} activeId={tab} />
 
       {tab === "overview" ? (
-        <div className="mt-6 space-y-8">
-          <section>
-            <p className="text-sm text-muted-foreground">
-              Email: {candidate.emailHidden ? "hidden without candidate_pii.read" : (candidate.email ?? "—")}
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground">Consent: {formatLabel(candidate.consentStatus)}</p>
-            {record.experiences[0] ? (
-              <p className="mt-4 text-sm">
-                <span className="font-medium text-navy">{record.experiences[0].title}</span> · {record.experiences[0].employer}
-              </p>
-            ) : null}
-          </section>
-          <ProfileSnapshot
-            items={[
-              { label: "Years experience", value: candidate.yearsExperience ?? "—" },
-              { label: "Skills", value: record.skills.length },
-              { label: "Pools", value: record.pools.length },
-              { label: "Last contact", value: formatDate(candidate.lastContactedAt) },
-              { label: "Availability", value: formatLabel(candidate.availability) },
-              { label: "Profile completeness", value: `${completeness}%` },
-            ]}
-          />
-          <section>
+        <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)]">
+          <section className="min-w-0">
             <h2 className="section-title">Resume</h2>
             {canReadPii && record.resumeFile ? (
               <div className="mt-3">
@@ -120,6 +99,29 @@ export default async function CandidateDetailPage({
               <p className="mt-3 text-sm text-muted-foreground">No resume on file.</p>
             )}
           </section>
+          <aside className="min-w-0 space-y-4 lg:sticky lg:top-6">
+            <section>
+              <p className="text-sm text-muted-foreground">
+                Email: {candidate.emailHidden ? "hidden without candidate_pii.read" : (candidate.email ?? "—")}
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">Consent: {formatLabel(candidate.consentStatus)}</p>
+              {record.experiences[0] ? (
+                <p className="mt-4 text-sm">
+                  <span className="font-medium text-navy">{record.experiences[0].title}</span> · {record.experiences[0].employer}
+                </p>
+              ) : null}
+            </section>
+            <ProfileSnapshot
+              items={[
+                { label: "Years experience", value: candidate.yearsExperience ?? "—" },
+                { label: "Skills", value: record.skills.length },
+                { label: "Pools", value: record.pools.length },
+                { label: "Last contact", value: formatDate(candidate.lastContactedAt) },
+                { label: "Availability", value: formatLabel(candidate.availability) },
+                { label: "Profile completeness", value: `${completeness}%` },
+              ]}
+            />
+          </aside>
         </div>
       ) : null}
 
