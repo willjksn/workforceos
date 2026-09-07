@@ -10,9 +10,13 @@ import {
   promptVersions,
 } from "../schema";
 import { APPROVED_AGENTS, AUTOMATION_RULE_SPECS } from "../../lib/ai/registry";
-import { INTERNAL_ORG_ID, USER_IDS } from "./constants";
+import { INTERNAL_ORG_ID } from "./constants";
 
-export async function seedPhase7Ai(db: ReturnType<typeof getDb>) {
+export async function seedPhase7Ai(
+  db: ReturnType<typeof getDb>,
+  options: { approvedByUserId?: string | null } = {},
+) {
+  const approvedByUserId = options.approvedByUserId ?? null;
   for (const definition of APPROVED_AGENTS) {
     await db
       .insert(agents)
@@ -64,7 +68,7 @@ export async function seedPhase7Ai(db: ReturnType<typeof getDb>) {
           status: "approved",
           content: `WorkforceOS ${definition.name} task ${task}. Use only supplied PostgreSQL context, approved workflows, and approved knowledge. Label sourced facts separately from inference. Never invent labor-market statistics, fees, or legal language. Never approve your own output. Never send external communications or execute contracts.`,
           changeReason: "Phase 7 initial approved prompt",
-          approvedByUserId: USER_IDS.managingPartner,
+          approvedByUserId,
           approvedAt: new Date(),
         })
         .onConflictDoNothing();
@@ -154,7 +158,7 @@ export async function seedPhase7Ai(db: ReturnType<typeof getDb>) {
         version: "1.0",
         privacyClass: "internal",
         requiredPermission: "knowledge.read",
-        approvedByUserId: USER_IDS.managingPartner,
+        approvedByUserId,
         approvedAt: new Date(),
         changeReason: "Phase 7 catalog seed",
       })

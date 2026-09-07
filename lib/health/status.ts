@@ -8,6 +8,7 @@ import { getIntegrationHubStatus } from "../integrations/hub";
 import { calendarProviderStatus } from "../calendar";
 import { isCheckrConfigured, isCheckrLiveApiWired, isGoogleConfigured, isMicrosoftConfigured, isResendConfigured } from "../integrations/credentials";
 import { drugScreenProviderStatus } from "../drug-screens";
+import { getPublicContentPayload } from "../public-content/service";
 import { getStorageStatus } from "../storage";
 
 export type HealthCheck = {
@@ -47,6 +48,15 @@ export async function getSystemHealth() {
   const storage = await getStorageStatus();
   const integrations = await getIntegrationHubStatus();
   const clerkOk = isClerkConfigured();
+  const clerkPublishableKey = env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
+  const clerkIsLive = clerkPublishableKey.startsWith("pk_live_");
+  const clerkIsTest = clerkPublishableKey.startsWith("pk_test_");
+  const productionRuntime = env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
+  const clerkProductionOk = clerkOk && (!productionRuntime || clerkIsLive);
+  const content = await probe(async () => {
+    await getPublicContentPayload();
+    return true;
+  });
   const jobsOk = isInngestConfigured();
   const searchOk = extensions.ok && extensions.value.vector && extensions.value.trigram;
   const aiConfigured = Boolean(env.AI_API_KEY);
@@ -99,10 +109,12 @@ export async function getSystemHealth() {
     },
     {
       title: "Clerk",
-      ok: clerkOk,
-      detail: clerkOk
-        ? "Sign-in is configured. WorkforceOS roles still control access."
-        : "Clerk keys are not set.",
+      ok: clerkProductionOk,
+      detail: !clerkOk
+        ? "Clerk keys are not set."
+        : productionRuntime && clerkIsTest
+          ? "NOT READY — production is using Clerk test keys. Signed-out /app fails until pk_live / sk_live are set. Live keys stay on Vercel production only."
+          : "Sign-in is configured. WorkforceOS roles still control access.",
     },
     {
       title: "Inngest",
@@ -178,10 +190,12 @@ export async function getSystemHealth() {
     },
     {
       title: "Public Content API",
-      ok: database.ok,
-      detail: database.ok
+      ok: content.ok,
+      detail: content.ok
         ? "GET /api/public/v1/content. Active-window items only. Closed jobs drop from featured payloads without a website deploy. Cached 60s."
-        : "Public content cannot be served until the database is connected.",
+        : content.error.includes("public_content_items") || /does not exist|relation/i.test(content.error)
+          ? "NOT READY — public_content_items is missing or unreadable. Apply migration 0012_wise_scourge on this database."
+          : `NOT READY — GET /api/public/v1/content failed. ${content.error.slice(0, 180)}`,
     },
     {
       title: "Public site HMAC",

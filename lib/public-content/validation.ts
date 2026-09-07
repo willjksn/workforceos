@@ -95,7 +95,7 @@ export function normalizePublicContentInput(input: PublicContentWriteInput): Pub
   if (featureImageKey && !featureImageKey.startsWith("/images/") && !featureImageKey.startsWith("brand/")) {
     throw new PublicContentError("Image reference must be a site image path.");
   }
-  let industryCode = input.industryCode?.trim() || null;
+  const industryCode = input.industryCode?.trim() || null;
   if (industryCode && !PUBLIC_INDUSTRY_CODES.includes(industryCode as (typeof PUBLIC_INDUSTRY_CODES)[number])) {
     throw new PublicContentError("Unknown industry.");
   }

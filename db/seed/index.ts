@@ -280,7 +280,9 @@ export async function seedFoundation(
       })
       .onConflictDoNothing();
   }
-  await seedPhase7Ai(db);
+  await seedPhase7Ai(db, {
+    approvedByUserId: includeDevelopmentFixtures ? USER_IDS.managingPartner : null,
+  });
   await seedSkillBridgeAlertRules(db);
 
   if (includeDevelopmentFixtures) {

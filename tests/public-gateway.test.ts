@@ -299,6 +299,24 @@ describe("public gateway HMAC", () => {
     ).rejects.toMatchObject({ status: 401 });
   });
 
+  it("rejects unsigned writes from a disallowed origin with 401, not 403", async () => {
+    productionEnv();
+    await expect(
+      assertPublicWriteAccess(makeRequest({ origin: "https://evil.example" }), BODY),
+    ).rejects.toMatchObject({ status: 401, message: "Signed request required." });
+  });
+
+  it("rejects a valid HMAC from a disallowed origin", async () => {
+    productionEnv();
+    const { timestamp, signature, requestId, body } = signedHeaders();
+    await expect(
+      assertPublicWriteAccess(
+        makeRequest({ origin: "https://evil.example", timestamp, signature, requestId, body }),
+        body,
+      ),
+    ).rejects.toMatchObject({ status: 403, message: "Request origin is not allowed." });
+  });
+
   it("rejects spoofed Referer matching the app origin without HMAC", async () => {
     productionEnv();
     await expect(

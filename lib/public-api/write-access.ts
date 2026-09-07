@@ -49,6 +49,14 @@ function allowedOrigins() {
   return configured;
 }
 
+function assertOriginAllowed(request: Request) {
+  const origin = originFromRequest(request);
+  const allowed = allowedOrigins();
+  if (origin && allowed.length > 0 && !allowed.includes(origin) && !isSameAppOrigin(request)) {
+    throw new PublicGatewayError("Request origin is not allowed.", 403);
+  }
+}
+
 export function isSameAppOrigin(request: Request) {
   const origin = originFromRequest(request);
   const appUrl = getAppUrl();
@@ -101,17 +109,12 @@ async function assertUnusedRequestId(requestId: string) {
 
 export async function assertPublicWriteAccess(request: Request, rawBody: string | Uint8Array) {
   const env = getServerEnv();
-  const origin = originFromRequest(request);
-  const allowed = allowedOrigins();
-  if (origin && allowed.length > 0 && !allowed.includes(origin) && !isSameAppOrigin(request)) {
-    throw new PublicGatewayError("Request origin is not allowed.", 403);
-  }
-
   const secret = env.PUBLIC_SITE_INTEGRATION_SECRET;
   if (!secret) {
     if (isFailClosedProduction()) {
       throw new PublicGatewayError("Signed request required.", 401);
     }
+    assertOriginAllowed(request);
     return { signed: false as const };
   }
 
@@ -134,5 +137,6 @@ export async function assertPublicWriteAccess(request: Request, rawBody: string 
     throw new PublicGatewayError("Signed request required.", 401);
   }
   await assertUnusedRequestId(requestId);
+  assertOriginAllowed(request);
   return { signed: true as const };
 }

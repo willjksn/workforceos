@@ -12,8 +12,8 @@ export async function POST(request: Request) {
   const { replay, raw } = await readReplayableBody(request);
   const ip = clientIp(request);
   try {
-    await assertRateLimit({ key: `public-application:${ip}`, ...RATE_LIMITS.publicApplication });
     await assertPublicWriteAccess(replay, raw);
+    await assertRateLimit({ key: `public-application:${ip}`, ...RATE_LIMITS.publicApplication });
   } catch (error) {
     if (error instanceof RateLimitError) {
       return NextResponse.json({ error: "Too many applications. Try again shortly." }, { status: 429 });

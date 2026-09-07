@@ -14,8 +14,8 @@ export async function POST(request: Request) {
   const { replay, raw, text } = await readReplayableBody(request);
   const ip = clientIp(request);
   try {
-    await assertRateLimit({ key: `public-inquiry:${ip}`, ...RATE_LIMITS.publicInquiry });
     await assertPublicWriteAccess(replay, raw);
+    await assertRateLimit({ key: `public-inquiry:${ip}`, ...RATE_LIMITS.publicInquiry });
   } catch (error) {
     if (error instanceof RateLimitError) {
       return NextResponse.json({ error: "Too many inquiries. Try again shortly." }, { status: 429 });
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await submitWebsiteInquiry({ ...parsed.data, ip });
+    await submitWebsiteInquiry({ ...parsed.data, ip });
     return NextResponse.json(
       { accepted: true },
       { headers: { "Cache-Control": "no-store" } },

@@ -129,7 +129,7 @@ export async function completePrompt(request: CompletionRequest): Promise<Comple
       maxTokens: request.maxTokens,
       timeoutMs,
     });
-  } catch (error) {
+  } catch {
     const fallbackModel = request.fallbackModel ?? env.AI_FALLBACK_MODEL;
     if (fallbackModel && fallbackModel !== model) {
       try {
