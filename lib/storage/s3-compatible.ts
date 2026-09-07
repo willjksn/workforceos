@@ -6,6 +6,7 @@ import {
   HeadObjectCommand,
   PutObjectCommand,
   S3Client,
+  type S3ClientConfig,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -42,6 +43,27 @@ async function bodyToBytes(body: unknown): Promise<Uint8Array> {
   return out;
 }
 
+export function s3CompatibleClientConfig(options: {
+  bucket?: string;
+  region?: string;
+  endpoint?: string;
+  accessKeyId?: string;
+  secretAccessKey?: string;
+}): S3ClientConfig {
+  return {
+    region: options.region || "auto",
+    endpoint: options.endpoint,
+    credentials: {
+      accessKeyId: options.accessKeyId as string,
+      secretAccessKey: options.secretAccessKey as string,
+    },
+    forcePathStyle: Boolean(options.endpoint),
+    // R2 and other S3-compatible stores reject the SDK's default CRC32 checksums.
+    requestChecksumCalculation: "WHEN_REQUIRED",
+    responseChecksumValidation: "WHEN_REQUIRED",
+  };
+}
+
 export class S3CompatibleStorageProvider implements StorageProvider {
   name = "s3";
   private client: S3Client | null = null;
@@ -73,15 +95,7 @@ export class S3CompatibleStorageProvider implements StorageProvider {
   private getClient() {
     this.assertConfigured();
     if (!this.client) {
-      this.client = new S3Client({
-        region: this.options.region || "auto",
-        endpoint: this.options.endpoint,
-        credentials: {
-          accessKeyId: this.options.accessKeyId as string,
-          secretAccessKey: this.options.secretAccessKey as string,
-        },
-        forcePathStyle: Boolean(this.options.endpoint),
-      });
+      this.client = new S3Client(s3CompatibleClientConfig(this.options));
     }
     return this.client;
   }

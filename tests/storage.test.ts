@@ -7,7 +7,7 @@ import { resetServerEnvCache } from "../lib/env";
 import { getStorageProvider, getStorageStatus } from "../lib/storage";
 import { objectKeyPrefix } from "../lib/storage/diagnostics";
 import { LocalStorageProvider } from "../lib/storage/local";
-import { S3CompatibleStorageProvider } from "../lib/storage/s3-compatible";
+import { S3CompatibleStorageProvider, s3CompatibleClientConfig } from "../lib/storage/s3-compatible";
 import { UnconfiguredStorageProvider } from "../lib/storage/unconfigured";
 
 afterEach(() => {
@@ -168,5 +168,20 @@ describe("storage diagnostics", () => {
     expect(payload).not.toContain("%PDF");
     expect(payload).not.toContain("test-secret-key");
     info.mockRestore();
+  });
+});
+
+describe("S3-compatible client", () => {
+  it("disables default CRC32 checksums so R2 PutObject can succeed", () => {
+    const config = s3CompatibleClientConfig({
+      bucket: "pierone-resumes",
+      region: "auto",
+      endpoint: "https://example.r2.cloudflarestorage.com",
+      accessKeyId: "test-access-key",
+      secretAccessKey: "test-secret-key",
+    });
+    expect(config.requestChecksumCalculation).toBe("WHEN_REQUIRED");
+    expect(config.responseChecksumValidation).toBe("WHEN_REQUIRED");
+    expect(config.forcePathStyle).toBe(true);
   });
 });

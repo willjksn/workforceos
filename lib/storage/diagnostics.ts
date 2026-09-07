@@ -8,7 +8,7 @@ export function objectKeyPrefix(key: string) {
   return `${parts[0]}/${parts[1]}`;
 }
 
-function safeErrorMessage(error: unknown) {
+export function safeErrorMessage(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
   return message
     .replace(/S3_SECRET_ACCESS_KEY/gi, "S3 credentials")
