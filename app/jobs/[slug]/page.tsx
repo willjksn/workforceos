@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { PublicApplyForm } from "@/components/careers/public-apply-form";
 import { getPublicJobBySlug } from "@/lib/hiring/service";
 
+export const dynamic = "force-dynamic";
+
 export default async function PublicJobPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const job = await getPublicJobBySlug(slug);
