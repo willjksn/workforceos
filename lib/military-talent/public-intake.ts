@@ -18,7 +18,7 @@ import { resolvePublicOrganizationId } from "../public-api/organization";
 import { createInAppNotification } from "../notifications/service";
 import { stripHtml } from "../public-api/normalize";
 import { getStorageProvider } from "../storage";
-import { safeErrorMessage } from "../storage/diagnostics";
+import { resumeStorageFailureMessage } from "../storage/diagnostics";
 import type { MilitaryTalentPayload } from "@pierone/public-api-contracts";
 
 export class MilitaryTalentError extends Error {
@@ -134,12 +134,7 @@ export async function submitMilitaryTalentProfile(input: MilitaryTalentPayload &
         filename: safeName,
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "";
-      if (/storage is not configured/i.test(message)) {
-        throw new MilitaryTalentError(message, 503);
-      }
-      const detail = safeErrorMessage(error);
-      throw new MilitaryTalentError(detail ? `Resume storage failed. ${detail}` : "Resume storage failed.", 503);
+      throw new MilitaryTalentError(resumeStorageFailureMessage(error), 503);
     }
     const [file] = await db
       .insert(files)

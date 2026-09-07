@@ -7,7 +7,7 @@ import { resetServerEnvCache } from "../lib/env";
 import { getStorageProvider, getStorageStatus } from "../lib/storage";
 import { objectKeyPrefix } from "../lib/storage/diagnostics";
 import { LocalStorageProvider } from "../lib/storage/local";
-import { S3CompatibleStorageProvider, s3CompatibleClientConfig } from "../lib/storage/s3-compatible";
+import { S3CompatibleStorageProvider, s3Addressing, s3CompatibleClientConfig } from "../lib/storage/s3-compatible";
 import { UnconfiguredStorageProvider } from "../lib/storage/unconfigured";
 
 afterEach(() => {
@@ -183,5 +183,23 @@ describe("S3-compatible client", () => {
     expect(config.requestChecksumCalculation).toBe("WHEN_REQUIRED");
     expect(config.responseChecksumValidation).toBe("WHEN_REQUIRED");
     expect(config.forcePathStyle).toBe(true);
+  });
+
+  it("uses path-style addressing for an R2 account endpoint", () => {
+    expect(
+      s3Addressing({
+        bucket: "pierone-resumes",
+        endpoint: "https://abc123.r2.cloudflarestorage.com",
+      }),
+    ).toMatchObject({ forcePathStyle: true });
+  });
+
+  it("does not double the bucket when the endpoint already includes it", () => {
+    expect(
+      s3Addressing({
+        bucket: "pierone-resumes",
+        endpoint: "https://pierone-resumes.abc123.r2.cloudflarestorage.com",
+      }),
+    ).toMatchObject({ forcePathStyle: false });
   });
 });

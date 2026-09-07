@@ -50,18 +50,38 @@ export function s3CompatibleClientConfig(options: {
   accessKeyId?: string;
   secretAccessKey?: string;
 }): S3ClientConfig {
+  const { endpoint, forcePathStyle } = s3Addressing(options);
   return {
     region: options.region || "auto",
-    endpoint: options.endpoint,
+    endpoint,
     credentials: {
       accessKeyId: options.accessKeyId as string,
       secretAccessKey: options.secretAccessKey as string,
     },
-    forcePathStyle: Boolean(options.endpoint),
+    forcePathStyle,
     // R2 and other S3-compatible stores reject the SDK's default CRC32 checksums.
     requestChecksumCalculation: "WHEN_REQUIRED",
     responseChecksumValidation: "WHEN_REQUIRED",
   };
+}
+
+export function s3Addressing(options: { endpoint?: string; bucket?: string }) {
+  const endpoint = options.endpoint?.trim().replace(/\/$/, "");
+  if (!endpoint) {
+    return { endpoint: undefined, forcePathStyle: false };
+  }
+  try {
+    const url = new URL(endpoint);
+    const bucket = options.bucket?.trim().toLowerCase();
+    if (bucket && url.pathname.replace(/\/+$/, "") === `/${bucket}`) {
+      url.pathname = "/";
+    }
+    const host = url.hostname.toLowerCase();
+    const forcePathStyle = !(bucket && (host === bucket || host.startsWith(`${bucket}.`)));
+    return { endpoint: url.toString().replace(/\/$/, ""), forcePathStyle };
+  } catch {
+    return { endpoint, forcePathStyle: true };
+  }
 }
 
 export class S3CompatibleStorageProvider implements StorageProvider {

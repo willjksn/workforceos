@@ -46,7 +46,7 @@ import { can, requirePermission, type Principal } from "../rbac/permissions";
 import { createJobWithInternalSearch } from "../repositories/recruiting";
 import { createSkillBridgeOpportunity, createSkillBridgeProfile } from "../skillbridge/service";
 import { getStorageProvider } from "../storage";
-import { safeErrorMessage } from "../storage/diagnostics";
+import { resumeStorageFailureMessage } from "../storage/diagnostics";
 import { matchExistingCandidate, normalizeEmail } from "./dedupe";
 import { sanitizeResumeFilename, validateResumeUpload } from "./files";
 import { assertDispositionReason, defaultPipelineName, type JobContextType } from "./stages";
@@ -570,12 +570,7 @@ export async function submitPublicApplication(input: PublicApplicationInput) {
         filename: safeName,
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "";
-      throw new HiringError(
-        /storage is not configured/i.test(message)
-          ? message
-          : `Resume storage failed. ${safeErrorMessage(error)}`.trim(),
-      );
+      throw new HiringError(resumeStorageFailureMessage(error));
     }
     const [file] = await db
       .insert(files)
