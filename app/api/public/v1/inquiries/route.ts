@@ -11,11 +11,11 @@ import { RATE_LIMITS, RateLimitError, assertRateLimit } from "@/lib/security/rat
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
-  const { replay, text } = await readReplayableBody(request);
+  const { replay, raw, text } = await readReplayableBody(request);
   const ip = clientIp(request);
   try {
     await assertRateLimit({ key: `public-inquiry:${ip}`, ...RATE_LIMITS.publicInquiry });
-    await assertPublicWriteAccess(replay, text);
+    await assertPublicWriteAccess(replay, raw);
   } catch (error) {
     if (error instanceof RateLimitError) {
       return NextResponse.json({ error: "Too many inquiries. Try again shortly." }, { status: 429 });

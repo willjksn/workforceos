@@ -169,6 +169,7 @@ export const publicHealthSchema = z.object({
 
 export const HMAC_HEADER_TIMESTAMP = "x-pierone-site-timestamp";
 export const HMAC_HEADER_SIGNATURE = "x-pierone-site-signature";
+export const HMAC_HEADER_REQUEST_ID = "x-pierone-request-id";
 
 export const publicFeaturedJobSchema = z.object({
   slug: z.string(),

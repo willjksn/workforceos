@@ -36,6 +36,7 @@ async function main() {
     method: "POST",
     path: "/api/public/v1/inquiries",
     timestamp: "1",
+    requestId: "11111111-1111-4111-8111-111111111111",
     bodyHash: sha256Hex("{}"),
   });
   assert(signature.length === 64, "HMAC hex length");

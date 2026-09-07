@@ -1,8 +1,4 @@
-import { createHash, createHmac } from "node:crypto";
-
 import {
-  HMAC_HEADER_SIGNATURE,
-  HMAC_HEADER_TIMESTAMP,
   applicationAcceptedSchema,
   inquiryAcceptedSchema,
   inquiryPayloadSchema,
@@ -26,32 +22,21 @@ function apiBase() {
   return url.replace(/\/$/, "");
 }
 
-function sha256Hex(value: string) {
-  return createHash("sha256").update(value).digest("hex");
-}
-
-function sign(method: string, path: string, timestamp: string, bodyHash: string) {
-  const secret = process.env.WORKFORCEOS_SITE_SECRET;
-  if (!secret) {
-    if (process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production") {
-      throw new Error("WORKFORCEOS_SITE_SECRET is required for production writes.");
-    }
-    return {} as Record<string, string>;
-  }
-  const payload = `${method.toUpperCase()}\n${path}\n${timestamp}\n${bodyHash}`;
-  const signature = createHmac("sha256", secret).update(payload).digest("hex");
-  return {
-    [HMAC_HEADER_TIMESTAMP]: timestamp,
-    [HMAC_HEADER_SIGNATURE]: signature,
-  };
-}
-
-function gatewayPath(pathname: string) {
-  try {
-    return new URL(pathname, apiBase()).pathname;
-  } catch {
-    return pathname;
-  }
+async function postSigned(pathname: string, body: string | Uint8Array, contentType: string) {
+  const { sha256Hex, signWorkforceOsHeaders, toArrayBuffer, workforceOsWriteUrl } = await import(
+    "@/lib/workforceos/hmac"
+  );
+  const url = workforceOsWriteUrl(apiBase(), pathname);
+  const bodyHash = sha256Hex(typeof body === "string" ? body : body);
+  return fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": contentType,
+      ...signWorkforceOsHeaders({ method: "POST", path: url.pathname, bodyHash }),
+    },
+    body: typeof body === "string" ? body : toArrayBuffer(body),
+    cache: "no-store",
+  });
 }
 
 export class WorkforceOSPublicClient {
@@ -92,17 +77,7 @@ export class WorkforceOSPublicClient {
 
   async submitInquiry(payload: InquiryPayload) {
     const body = JSON.stringify(inquiryPayloadSchema.parse(payload));
-    const path = gatewayPath("/inquiries");
-    const timestamp = String(Date.now());
-    const response = await fetch(`${apiBase()}/inquiries`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...sign("POST", path, timestamp, sha256Hex(body)),
-      },
-      body,
-      cache: "no-store",
-    });
+    const response = await postSigned("/inquiries", body, "application/json");
     if (!response.ok) {
       const data = (await response.json().catch(() => ({}))) as { error?: string };
       throw new Error(data.error ?? "INQUIRY_FAILED");
@@ -111,20 +86,14 @@ export class WorkforceOSPublicClient {
   }
 
   async submitApplication(payload: ApplicationPayload, resume: File) {
+    const { serializeFormBody } = await import("@/lib/workforceos/hmac");
     const form = new FormData();
     for (const [key, value] of Object.entries(payload)) {
       if (value) form.set(key, String(value));
     }
     form.set("resume", resume);
-    const path = gatewayPath("/applications");
-    const timestamp = String(Date.now());
-    const bodyHash = sha256Hex(`POST\n${path}\n${timestamp}`);
-    const response = await fetch(`${apiBase()}/applications`, {
-      method: "POST",
-      headers: sign("POST", path, timestamp, bodyHash),
-      body: form,
-      cache: "no-store",
-    });
+    const { bytes, contentType } = await serializeFormBody(form);
+    const response = await postSigned("/applications", bytes, contentType);
     if (!response.ok) {
       const data = (await response.json().catch(() => ({}))) as { error?: string };
       throw new Error(data.error ?? "APPLICATION_FAILED");
@@ -133,20 +102,14 @@ export class WorkforceOSPublicClient {
   }
 
   async submitMilitaryTalent(payload: MilitaryTalentPayload, resume?: File | null) {
+    const { serializeFormBody } = await import("@/lib/workforceos/hmac");
     const form = new FormData();
     for (const [key, value] of Object.entries(payload)) {
       if (value) form.set(key, String(value));
     }
     if (resume) form.set("resume", resume);
-    const path = gatewayPath("/military-talent");
-    const timestamp = String(Date.now());
-    const bodyHash = sha256Hex(`POST\n${path}\n${timestamp}`);
-    const response = await fetch(`${apiBase()}/military-talent`, {
-      method: "POST",
-      headers: sign("POST", path, timestamp, bodyHash),
-      body: form,
-      cache: "no-store",
-    });
+    const { bytes, contentType } = await serializeFormBody(form);
+    const response = await postSigned("/military-talent", bytes, contentType);
     if (!response.ok) {
       const data = (await response.json().catch(() => ({}))) as { error?: string };
       throw new Error(data.error ?? "MILITARY_TALENT_FAILED");

@@ -6,6 +6,10 @@ import type { StorageProvider } from "./provider";
 import { S3CompatibleStorageProvider } from "./s3-compatible";
 import { UnconfiguredStorageProvider } from "./unconfigured";
 
+function isProductionStorageEnv(env: { NODE_ENV: string }) {
+  return env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
+}
+
 export function getStorageProvider(): StorageProvider {
   const env = getServerEnv();
   if (env.STORAGE_PROVIDER === "s3") {
@@ -18,7 +22,7 @@ export function getStorageProvider(): StorageProvider {
     });
   }
 
-  if (env.NODE_ENV === "production") {
+  if (isProductionStorageEnv(env)) {
     return new UnconfiguredStorageProvider();
   }
 
@@ -31,10 +35,14 @@ export function getStorageProvider(): StorageProvider {
 export async function getStorageStatus() {
   const provider = getStorageProvider();
   const env = getServerEnv();
+  const production = isProductionStorageEnv(env);
+  const s3CredentialsPresent = Boolean(env.S3_BUCKET && env.S3_ACCESS_KEY_ID && env.S3_SECRET_ACCESS_KEY);
+  const s3Ready = provider.name === "s3" && s3CredentialsPresent && Boolean(env.S3_ENDPOINT);
   return {
     adapter: provider.name,
-    ready:
-      provider.name === "local" ||
-      (provider.name === "s3" && Boolean(env.S3_BUCKET && env.S3_ACCESS_KEY_ID && env.S3_SECRET_ACCESS_KEY)),
+    bucket: env.S3_BUCKET ?? null,
+    endpointConfigured: Boolean(env.S3_ENDPOINT),
+    regionConfigured: Boolean(env.S3_REGION),
+    ready: production ? s3Ready : provider.name === "local" || s3Ready,
   };
 }

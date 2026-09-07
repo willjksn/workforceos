@@ -14,7 +14,7 @@ Canonical host: `https://pieronepartners.com`. WorkforceOS: `https://app.pierone
 - [ ] Resend domain verified in the Resend dashboard (do not invent DNS)
 - [ ] Inquiry, application, and military-talent acknowledgement tests to safe inboxes
 - [ ] `PUBLIC_SITE_INTEGRATION_SECRET` = `WORKFORCEOS_SITE_SECRET`; production unsigned writes rejected
-- [ ] HMAC tests: valid / invalid / wrong secret / stale / tampered body / unsigned production
+- [ ] HMAC tests: valid / invalid / wrong secret / stale / tampered body / spoofed Origin / spoofed Referer / unsigned production / multipart field and resume tamper
 - [ ] PierOne Website Vercel project: Root Directory `sites/pierone`
 - [ ] Existing WorkforceOS Vercel project unchanged at repo root
 - [ ] Preview website cannot write to production

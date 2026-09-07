@@ -113,8 +113,10 @@ export async function getSystemHealth() {
       title: "Storage",
       ok: storage.ready,
       detail: storage.ready
-        ? `Ready (${storage.adapter === "local" ? "local files" : "S3-compatible"}).`
-        : "Storage is not ready. Uploads will fail.",
+        ? `Ready (provider=${storage.adapter}, bucket=${storage.bucket ?? "n/a"}, endpoint=${storage.endpointConfigured ? "set" : "unset"}). Resume keys use applications/, military-talent/, and skillbridge/ prefixes.`
+        : storage.adapter === "s3"
+          ? `NOT READY — STORAGE_PROVIDER=s3 but bucket=${storage.bucket ? "set" : "unset"}, endpoint=${storage.endpointConfigured ? "set" : "unset"}. Credentials are not displayed. Uploads will fail.`
+          : "NOT CONFIGURED — production uploads fail until STORAGE_PROVIDER=s3 plus S3_BUCKET, S3_ENDPOINT, S3_ACCESS_KEY_ID, and S3_SECRET_ACCESS_KEY.",
     },
     {
       title: "Integrations",
@@ -185,7 +187,7 @@ export async function getSystemHealth() {
       title: "Public site HMAC",
       ok: env.NODE_ENV === "production" ? Boolean(env.PUBLIC_SITE_INTEGRATION_SECRET) : true,
       detail: env.PUBLIC_SITE_INTEGRATION_SECRET
-        ? "PUBLIC_SITE_INTEGRATION_SECRET is set. Cross-origin public writes require a valid HMAC. The secret is not displayed."
+        ? "PUBLIC_SITE_INTEGRATION_SECRET is set. Unauthenticated public writes require a valid HMAC. Origin/Referer cannot skip signing. The secret is not displayed."
         : env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production"
           ? "NOT CONFIGURED — production public writes are rejected until PUBLIC_SITE_INTEGRATION_SECRET is set."
           : "NOT CONFIGURED — development public writes may omit HMAC. Production requires the secret.",
@@ -202,7 +204,7 @@ export async function getSystemHealth() {
           ? "NOT READY — resume upload requires STORAGE_PROVIDER=s3 plus S3 credentials in production."
           : env.NODE_ENV === "production" && !env.PUBLIC_SITE_INTEGRATION_SECRET
             ? "NOT READY — production applications require HMAC signing."
-            : "POST /api/public/v1/applications. Rate-limited. Resume binaries go to StorageProvider.",
+            : "POST /api/public/v1/applications. HMAC required in production. WorkforceOS /careers posts via /api/careers/applications. Resume binaries go to StorageProvider.",
     },
     {
       title: "Public Inquiry API",

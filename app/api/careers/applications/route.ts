@@ -3,17 +3,21 @@ import { NextResponse } from "next/server";
 import { FileValidationError } from "@/lib/hiring/files";
 import { HiringError, submitPublicApplication } from "@/lib/hiring/service";
 import { parseApplicationRequest } from "@/lib/public-api/application-intake";
+import { toArrayBuffer } from "@/lib/public-api/hmac";
 import { clientIp } from "@/lib/public-api/normalize";
 import { readReplayableBody } from "@/lib/public-api/read-body";
-import { PublicGatewayError, assertPublicWriteAccess } from "@/lib/public-api/write-access";
+import { PublicGatewayError, assertPublicWriteAccess, signSameAppPublicWrite } from "@/lib/public-api/write-access";
 import { RATE_LIMITS, RateLimitError, assertRateLimit } from "@/lib/security/rate-limit";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
-  const { replay, raw } = await readReplayableBody(request);
+  const { raw } = await readReplayableBody(request);
   const ip = clientIp(request);
   try {
     await assertRateLimit({ key: `public-application:${ip}`, ...RATE_LIMITS.publicApplication });
-    await assertPublicWriteAccess(replay, raw);
+    const signed = await signSameAppPublicWrite(request, raw);
+    await assertPublicWriteAccess(signed, raw);
   } catch (error) {
     if (error instanceof RateLimitError) {
       return NextResponse.json({ error: "Too many applications. Try again shortly." }, { status: 429 });
@@ -24,6 +28,11 @@ export async function POST(request: Request) {
     throw error;
   }
 
+  const replay = new Request(request.url, {
+    method: request.method,
+    headers: request.headers,
+    body: toArrayBuffer(raw),
+  });
   const parsed = await parseApplicationRequest(replay);
   if ("error" in parsed) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });

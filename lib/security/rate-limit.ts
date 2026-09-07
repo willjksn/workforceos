@@ -27,6 +27,7 @@ export const RATE_LIMITS = {
   publicApplication: { limit: 5, windowSeconds: 60 },
   publicInquiry: { limit: 5, windowSeconds: 60 },
   publicMilitaryTalent: { limit: 5, windowSeconds: 60 },
+  hmacReplay: { limit: 1, windowSeconds: 10 * 60 },
 } as const;
 
 function windowStart(windowSeconds: number, now = Date.now()) {

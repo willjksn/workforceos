@@ -12,7 +12,7 @@ export function PublicApplyForm({ slug, jobTitle }: { slug: string; jobTitle: st
     const form = event.currentTarget;
     const payload = new FormData(form);
     payload.set("slug", slug);
-    const response = await fetch("/api/public/v1/applications", {
+    const response = await fetch("/api/careers/applications", {
       method: "POST",
       body: payload,
     });

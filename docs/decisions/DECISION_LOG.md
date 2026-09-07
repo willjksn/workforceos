@@ -638,7 +638,7 @@ Database mirror: `decision_log` table, seeded from this file.
 - Date: 2026-09-06
 - Owner: Product Build
 - Status: accepted
-- Decision: `PUBLIC_SITE_INTEGRATION_SECRET` (WorkforceOS) and `WORKFORCEOS_SITE_SECRET` (public site) must be set to the same value in production. Cross-origin public writes without a valid timestamped HMAC are rejected. Development may omit the secret. Same-origin WorkforceOS `/careers` posts may omit HMAC when the secret is set. GET public jobs remain unsigned per the public read policy.
+- Decision: `PUBLIC_SITE_INTEGRATION_SECRET` (WorkforceOS) and `WORKFORCEOS_SITE_SECRET` (public site) must be set to the same value in production. Unauthenticated public writes without a valid timestamped HMAC are rejected. Origin/Referer is not an authentication bypass. Development may omit the secret. GET public jobs remain unsigned per the public read policy. See DEC-WEB-011.
 - Reason: The public website and WorkforceOS are separate Vercel projects. Unsigned production writes are not an acceptable first-party control.
 - Affected modules: public API, public website, security
 - Reconsideration: none for launch.
@@ -692,4 +692,14 @@ Database mirror: `decision_log` table, seeded from this file.
 - Reason: Launch needs operational publishing without turning WorkforceOS into a website editor.
 - Affected modules: public content, Scout, RBAC
 - Reconsideration: additional content types may be added as enum values without rewriting the module.
+
+## DEC-WEB-011 — Public write HMAC cannot be skipped by Origin/Referer
+
+- Date: 2026-09-07
+- Owner: Product Build
+- Status: accepted
+- Decision: `POST /api/public/v1/inquiries`, `POST /api/public/v1/applications`, and `POST /api/public/v1/military-talent` require a valid HMAC in production. Origin and Referer are not authentication. WorkforceOS `/careers` apply posts to `/api/careers/applications`, which CSRF-checks same-app origin then server-signs with `PUBLIC_SITE_INTEGRATION_SECRET` and verifies through the same HMAC helper. Multipart MACs hash the exact outbound/inbound body bytes. Signed payload is `METHOD\nPATH\nTIMESTAMP\nREQUEST_ID\nBODY_HASH`. Request IDs are UUID v4 and replay-blocked for 10 minutes via `rate_limit_buckets`. GET public endpoints stay unsigned.
+- Reason: Spoofed Origin/Referer could skip HMAC. Multipart signatures previously omitted resume and form bytes.
+- Affected modules: public API, public website, careers apply form, security
+- Reconsideration: none for launch.
 

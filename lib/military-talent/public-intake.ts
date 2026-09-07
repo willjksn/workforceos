@@ -133,10 +133,9 @@ export async function submitMilitaryTalentProfile(input: MilitaryTalentPayload &
         filename: safeName,
       });
     } catch (error) {
+      const message = error instanceof Error ? error.message : "";
       throw new MilitaryTalentError(
-        error instanceof Error
-          ? error.message
-          : "Resume storage failed. Object storage is not configured for this environment.",
+        /storage is not configured/i.test(message) ? message : "Resume storage failed.",
         503,
       );
     }

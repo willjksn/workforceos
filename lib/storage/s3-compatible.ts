@@ -9,6 +9,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
+import { logStorageOperation } from "./diagnostics";
 import { assertUploadAllowed } from "./limits";
 import type { StorageProvider, StoredFileMetadata } from "./provider";
 
@@ -56,13 +57,15 @@ export class S3CompatibleStorageProvider implements StorageProvider {
   ) {}
 
   isConfigured() {
-    return Boolean(this.options.bucket && this.options.accessKeyId && this.options.secretAccessKey);
+    return Boolean(
+      this.options.bucket && this.options.endpoint && this.options.accessKeyId && this.options.secretAccessKey,
+    );
   }
 
   private assertConfigured() {
     if (!this.isConfigured()) {
       throw new Error(
-        "S3-compatible storage is not configured. Set S3_BUCKET, S3_ACCESS_KEY_ID, and S3_SECRET_ACCESS_KEY.",
+        "S3-compatible storage is not configured. Set S3_BUCKET, S3_ENDPOINT, S3_ACCESS_KEY_ID, and S3_SECRET_ACCESS_KEY.",
       );
     }
   }
@@ -89,88 +92,186 @@ export class S3CompatibleStorageProvider implements StorageProvider {
     mimeType: string;
     filename: string;
   }): Promise<StoredFileMetadata> {
-    this.assertConfigured();
     const key = normalizeKey(params.key);
-    assertUploadAllowed({
-      sizeBytes: params.body.byteLength,
-      mimeType: params.mimeType,
-      filename: params.filename,
-    });
-    const checksum = createHash("sha256").update(params.body).digest("hex");
-    await this.getClient().send(
-      new PutObjectCommand({
-        Bucket: this.options.bucket,
-        Key: key,
-        Body: params.body,
-        ContentType: params.mimeType,
-        ContentDisposition: `attachment; filename="${params.filename.replace(/"/g, "")}"`,
-        Metadata: {
-          filename: params.filename,
-          checksum,
-          privacy: "restricted_pii",
-        },
-        CacheControl: "private, no-store",
-      }),
-    );
-    return {
-      key,
-      filename: params.filename,
-      mimeType: params.mimeType,
-      sizeBytes: params.body.byteLength,
-      checksum,
-    };
+    try {
+      this.assertConfigured();
+      assertUploadAllowed({
+        sizeBytes: params.body.byteLength,
+        mimeType: params.mimeType,
+        filename: params.filename,
+      });
+      const checksum = createHash("sha256").update(params.body).digest("hex");
+      await this.getClient().send(
+        new PutObjectCommand({
+          Bucket: this.options.bucket,
+          Key: key,
+          Body: params.body,
+          ContentType: params.mimeType,
+          ContentDisposition: `attachment; filename="${params.filename.replace(/"/g, "")}"`,
+          Metadata: {
+            filename: params.filename,
+            checksum,
+            privacy: "restricted_pii",
+          },
+          CacheControl: "private, no-store",
+        }),
+      );
+      logStorageOperation({
+        action: "upload",
+        provider: this.name,
+        bucket: this.options.bucket,
+        key,
+        ok: true,
+      });
+      return {
+        key,
+        filename: params.filename,
+        mimeType: params.mimeType,
+        sizeBytes: params.body.byteLength,
+        checksum,
+      };
+    } catch (error) {
+      logStorageOperation({
+        action: "upload",
+        provider: this.name,
+        bucket: this.options.bucket,
+        key,
+        ok: false,
+        error,
+      });
+      throw error;
+    }
   }
 
   async download(key: string): Promise<Uint8Array> {
-    this.assertConfigured();
-    const response = await this.getClient().send(
-      new GetObjectCommand({
-        Bucket: this.options.bucket,
-        Key: normalizeKey(key),
-      }),
-    );
-    return bodyToBytes(response.Body);
+    const normalized = normalizeKey(key);
+    try {
+      this.assertConfigured();
+      const response = await this.getClient().send(
+        new GetObjectCommand({
+          Bucket: this.options.bucket,
+          Key: normalized,
+        }),
+      );
+      const bytes = await bodyToBytes(response.Body);
+      logStorageOperation({
+        action: "download",
+        provider: this.name,
+        bucket: this.options.bucket,
+        key: normalized,
+        ok: true,
+      });
+      return bytes;
+    } catch (error) {
+      logStorageOperation({
+        action: "download",
+        provider: this.name,
+        bucket: this.options.bucket,
+        key: normalized,
+        ok: false,
+        error,
+      });
+      throw error;
+    }
   }
 
   async delete(key: string): Promise<void> {
-    this.assertConfigured();
-    await this.getClient().send(
-      new DeleteObjectCommand({
-        Bucket: this.options.bucket,
-        Key: normalizeKey(key),
-      }),
-    );
+    const normalized = normalizeKey(key);
+    try {
+      this.assertConfigured();
+      await this.getClient().send(
+        new DeleteObjectCommand({
+          Bucket: this.options.bucket,
+          Key: normalized,
+        }),
+      );
+      logStorageOperation({
+        action: "delete",
+        provider: this.name,
+        bucket: this.options.bucket,
+        key: normalized,
+        ok: true,
+      });
+    } catch (error) {
+      logStorageOperation({
+        action: "delete",
+        provider: this.name,
+        bucket: this.options.bucket,
+        key: normalized,
+        ok: false,
+        error,
+      });
+      throw error;
+    }
   }
 
   async getSignedUrl(key: string, expiresInSeconds = 120): Promise<string> {
-    this.assertConfigured();
-    return getSignedUrl(
-      this.getClient(),
-      new GetObjectCommand({
-        Bucket: this.options.bucket,
-        Key: normalizeKey(key),
-      }),
-      { expiresIn: Math.min(Math.max(expiresInSeconds, 30), 300) },
-    );
+    const normalized = normalizeKey(key);
+    try {
+      this.assertConfigured();
+      const url = await getSignedUrl(
+        this.getClient(),
+        new GetObjectCommand({
+          Bucket: this.options.bucket,
+          Key: normalized,
+        }),
+        { expiresIn: Math.min(Math.max(expiresInSeconds, 30), 300) },
+      );
+      logStorageOperation({
+        action: "sign",
+        provider: this.name,
+        bucket: this.options.bucket,
+        key: normalized,
+        ok: true,
+      });
+      return url;
+    } catch (error) {
+      logStorageOperation({
+        action: "sign",
+        provider: this.name,
+        bucket: this.options.bucket,
+        key: normalized,
+        ok: false,
+        error,
+      });
+      throw error;
+    }
   }
 
   async metadata(key: string): Promise<StoredFileMetadata | null> {
-    this.assertConfigured();
+    const normalized = normalizeKey(key);
     try {
+      this.assertConfigured();
       const response = await this.getClient().send(
         new HeadObjectCommand({
           Bucket: this.options.bucket,
-          Key: normalizeKey(key),
+          Key: normalized,
         }),
       );
+      logStorageOperation({
+        action: "head",
+        provider: this.name,
+        bucket: this.options.bucket,
+        key: normalized,
+        ok: true,
+      });
       return {
-        key: normalizeKey(key),
-        filename: response.Metadata?.filename ?? key.split("/").pop() ?? key,
+        key: normalized,
+        filename: response.Metadata?.filename ?? normalized.split("/").pop() ?? normalized,
         mimeType: response.ContentType ?? "application/octet-stream",
         sizeBytes: response.ContentLength ?? 0,
         checksum: response.Metadata?.checksum,
       };
-    } catch {
+    } catch (error) {
+      logStorageOperation({
+        action: "head",
+        provider: this.name,
+        bucket: this.options.bucket,
+        key: normalized,
+        ok: false,
+        error,
+      });
+      if (!this.isConfigured()) throw error;
       return null;
     }
   }

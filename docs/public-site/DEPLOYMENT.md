@@ -26,7 +26,7 @@ Local WorkforceOS continues on port 3000. Public site: `npm run dev --prefix sit
 
 | Variable | Purpose |
 | --- | --- |
-| `PUBLIC_SITE_INTEGRATION_SECRET` | Same value as `WORKFORCEOS_SITE_SECRET`. Required in production. Cross-origin public **write** endpoints require a valid HMAC. Unsigned production writes are rejected. |
+| `PUBLIC_SITE_INTEGRATION_SECRET` | Same value as `WORKFORCEOS_SITE_SECRET`. Required in production. Unauthenticated public **write** endpoints require a valid HMAC. Origin/Referer cannot skip signing. Unsigned production writes are rejected. |
 | `PUBLIC_SITE_ALLOWED_ORIGINS` | Comma-separated origins (e.g. `https://pieronepartners.com,https://www.pieronepartners.com`). Used for origin checks. |
 | `PUBLIC_CAREERS_URL` | Canonical public careers URL when the marketing site is live (`https://pieronepartners.com/careers`). |
 | `STORAGE_PROVIDER=s3` plus `S3_*` | Required before production resume upload. |

@@ -12,6 +12,7 @@ describe("route protection", () => {
     expect(isPublicPath("/careers")).toBe(true);
     expect(isPublicPath("/jobs/electrical-technician")).toBe(true);
     expect(isPublicPath("/api/public/v1/jobs")).toBe(true);
+    expect(isPublicPath("/api/careers/applications")).toBe(true);
     expect(isPublicPath("/onboarding/access")).toBe(true);
   });
 

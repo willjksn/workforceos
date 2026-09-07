@@ -31,6 +31,8 @@ Run only after P0 blockers pass and production domains resolve. Use **clearly fa
 ## Security spot-checks
 
 - Unsigned or bad HMAC POST to `/api/public/v1/inquiries` → 401
+- Spoofed `Origin: https://app.pieronepartners.com` without HMAC → 401
+- Tampered multipart resume or form field → 401
 - Closed/expired job apply → rejected
 - Honeypot field filled → rejected
 - Confidential client job: no client legal name in HTML or JobPosting JSON-LD

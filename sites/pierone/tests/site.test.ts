@@ -1,8 +1,18 @@
+import { createHmac } from "node:crypto";
+
 import { describe, expect, it } from "vitest";
 
 import { PRIMARY_NAV, SERVICES, SOLUTIONS_NAV } from "../lib/content";
 import { inquiryPayloadSchema, publicContentResponseSchema, EMPTY_PUBLIC_CONTENT } from "../lib/contracts";
 import { IMAGES } from "../lib/images";
+import {
+  HMAC_HEADER_REQUEST_ID,
+  publicSiteSignaturePayload,
+  serializeFormBody,
+  sha256Hex,
+  signPublicSiteRequest,
+  workforceOsWriteUrl,
+} from "../lib/workforceos/hmac";
 
 describe("PierOne public website", () => {
   it("defines five commercial services", () => {
@@ -63,5 +73,44 @@ describe("PierOne public website", () => {
       expect(slot.src.startsWith("/images/placeholders/")).toBe(true);
       expect(slot.alt.length).toBeGreaterThan(12);
     }
+  });
+});
+
+describe("PierOne WorkforceOS HMAC signing", () => {
+  it("signs METHOD/PATH/TIMESTAMP/REQUEST_ID/BODY_HASH", () => {
+    const timestamp = "1710000000000";
+    const requestId = "11111111-1111-4111-8111-111111111111";
+    const path = "/api/public/v1/inquiries";
+    const bodyHash = sha256Hex('{"company":"Example Energy"}');
+    const payload = publicSiteSignaturePayload({ method: "POST", path, timestamp, requestId, bodyHash });
+    expect(payload).toBe(`POST\n${path}\n${timestamp}\n${requestId}\n${bodyHash}`);
+    const signature = signPublicSiteRequest({
+      secret: "test-site-secret",
+      method: "POST",
+      path,
+      timestamp,
+      requestId,
+      bodyHash,
+    });
+    expect(signature).toBe(createHmac("sha256", "test-site-secret").update(payload).digest("hex"));
+  });
+
+  it("signs the actual public gateway pathname, not a stripped /inquiries path", () => {
+    const url = workforceOsWriteUrl("https://app.pieronepartners.com/api/public/v1", "/applications");
+    expect(url.href).toBe("https://app.pieronepartners.com/api/public/v1/applications");
+    expect(url.pathname).toBe("/api/public/v1/applications");
+  });
+
+  it("hashes exact multipart bytes including resume content", async () => {
+    const form = new FormData();
+    form.set("slug", "electrical-technician");
+    form.set("firstName", "Alex");
+    form.set("resume", new File([new Uint8Array([0x25, 0x50, 0x44, 0x46])], "resume.pdf", { type: "application/pdf" }));
+    const { bytes, contentType } = await serializeFormBody(form);
+    expect(contentType).toMatch(/^multipart\/form-data;\s*boundary=/);
+    expect(bytes.byteLength).toBeGreaterThan(20);
+    const decoder = new TextDecoder();
+    expect(decoder.decode(bytes)).toContain("electrical-technician");
+    expect(HMAC_HEADER_REQUEST_ID).toBe("x-pierone-request-id");
   });
 });

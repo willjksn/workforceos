@@ -6,6 +6,7 @@ export const PUBLIC_PATH_PREFIXES = [
   "/careers",
   "/jobs",
   "/api/public",
+  "/api/careers",
   "/onboarding/access",
 ] as const;
 

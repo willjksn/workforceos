@@ -1,14 +1,8 @@
-import { createHash, createHmac, randomUUID, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomUUID } from "node:crypto";
 
 export const HMAC_HEADER_TIMESTAMP = "x-pierone-site-timestamp";
 export const HMAC_HEADER_SIGNATURE = "x-pierone-site-signature";
 export const HMAC_HEADER_REQUEST_ID = "x-pierone-request-id";
-
-export const HMAC_MAX_SKEW_MS = 5 * 60 * 1000;
-export const HMAC_REPLAY_WINDOW_SECONDS = 10 * 60;
-
-const REQUEST_ID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export function sha256Hex(value: string | Uint8Array) {
   return createHash("sha256").update(value).digest("hex");
@@ -16,10 +10,6 @@ export function sha256Hex(value: string | Uint8Array) {
 
 export function createPublicRequestId() {
   return randomUUID();
-}
-
-export function isPublicRequestId(value: string) {
-  return REQUEST_ID_PATTERN.test(value);
 }
 
 export function publicSiteSignaturePayload(input: {
@@ -45,19 +35,6 @@ export function signPublicSiteRequest(input: {
     .digest("hex");
 }
 
-export function signaturesMatch(expected: string, provided: string) {
-  const left = Buffer.from(expected);
-  const right = Buffer.from(provided);
-  if (left.length !== right.length) return false;
-  return timingSafeEqual(left, right);
-}
-
-export function isTimestampFresh(timestamp: string, now = Date.now(), maxSkewMs = HMAC_MAX_SKEW_MS) {
-  const value = Number(timestamp);
-  if (!Number.isFinite(value)) return false;
-  return Math.abs(now - value) <= maxSkewMs;
-}
-
 export function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
   const copy = new Uint8Array(bytes.byteLength);
   copy.set(bytes);
@@ -69,5 +46,39 @@ export async function serializeFormBody(form: FormData) {
   return {
     bytes: new Uint8Array(await blob.arrayBuffer()),
     contentType: blob.type || "multipart/form-data",
+  };
+}
+
+export function workforceOsWriteUrl(apiBase: string, pathname: string) {
+  const relative = pathname.replace(/^\//, "");
+  return new URL(relative, `${apiBase.replace(/\/$/, "")}/`);
+}
+
+export function signWorkforceOsHeaders(input: {
+  method: string;
+  path: string;
+  bodyHash: string;
+}) {
+  const secret = process.env.WORKFORCEOS_SITE_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production") {
+      throw new Error("WORKFORCEOS_SITE_SECRET is required for production writes.");
+    }
+    return {} as Record<string, string>;
+  }
+  const timestamp = String(Date.now());
+  const requestId = createPublicRequestId();
+  const signature = signPublicSiteRequest({
+    secret,
+    method: input.method,
+    path: input.path,
+    timestamp,
+    requestId,
+    bodyHash: input.bodyHash,
+  });
+  return {
+    [HMAC_HEADER_TIMESTAMP]: timestamp,
+    [HMAC_HEADER_SIGNATURE]: signature,
+    [HMAC_HEADER_REQUEST_ID]: requestId,
   };
 }

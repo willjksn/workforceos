@@ -26,11 +26,11 @@ async function resumeFromFile(file: File | null) {
 }
 
 export async function POST(request: Request) {
-  const { replay, text } = await readReplayableBody(request);
+  const { replay, raw, text } = await readReplayableBody(request);
   const ip = clientIp(request);
   try {
     await assertRateLimit({ key: `public-military-talent:${ip}`, ...RATE_LIMITS.publicMilitaryTalent });
-    await assertPublicWriteAccess(replay, text);
+    await assertPublicWriteAccess(replay, raw);
   } catch (error) {
     if (error instanceof RateLimitError) {
       return NextResponse.json({ error: "Too many submissions. Try again shortly." }, { status: 429 });

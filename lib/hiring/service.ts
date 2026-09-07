@@ -569,10 +569,11 @@ export async function submitPublicApplication(input: PublicApplicationInput) {
         filename: safeName,
       });
     } catch (error) {
+      const message = error instanceof Error ? error.message : "";
       throw new HiringError(
-        error instanceof Error
-          ? error.message
-          : "Resume storage failed. Object storage is not configured for this environment.",
+        /storage is not configured/i.test(message)
+          ? message
+          : "Resume storage failed.",
       );
     }
     const [file] = await db
