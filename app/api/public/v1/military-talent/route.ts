@@ -4,12 +4,14 @@ import { militaryTalentPayloadSchema } from "@pierone/public-api-contracts";
 
 import { FileValidationError } from "@/lib/hiring/files";
 import { MilitaryTalentError, submitMilitaryTalentProfile } from "@/lib/military-talent/public-intake";
+import { captureException } from "@/lib/observability/monitor";
 import { clientIp } from "@/lib/public-api/normalize";
 import { readReplayableBody } from "@/lib/public-api/read-body";
 import { PublicGatewayError, assertPublicWriteAccess } from "@/lib/public-api/write-access";
 import { RATE_LIMITS, RateLimitError, assertRateLimit } from "@/lib/security/rate-limit";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 function optionalText(value: FormDataEntryValue | null) {
   const text = typeof value === "string" ? value.trim() : "";
@@ -25,7 +27,22 @@ async function resumeFromFile(file: File | null) {
   };
 }
 
+function publicFailure(error: unknown) {
+  void captureException(error, { route: "/api/public/v1/military-talent" });
+  const message = error instanceof Error ? error.message : "Unable to submit right now.";
+  const safe = message.replace(/postgres(?:ql)?:\/\/\S+/gi, "[redacted]").slice(0, 200);
+  return NextResponse.json({ error: safe || "Unable to submit right now." }, { status: 503 });
+}
+
 export async function POST(request: Request) {
+  try {
+    return await handleMilitaryTalentPost(request);
+  } catch (error) {
+    return publicFailure(error);
+  }
+}
+
+async function handleMilitaryTalentPost(request: Request) {
   const { replay, raw, text } = await readReplayableBody(request);
   const ip = clientIp(request);
   try {
@@ -38,7 +55,7 @@ export async function POST(request: Request) {
     if (error instanceof PublicGatewayError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    throw error;
+    return publicFailure(error);
   }
 
   const contentType = request.headers.get("content-type") ?? "";
@@ -99,6 +116,6 @@ export async function POST(request: Request) {
     if (error instanceof FileValidationError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
-    return NextResponse.json({ error: "Unable to submit right now." }, { status: 503 });
+    return publicFailure(error);
   }
 }

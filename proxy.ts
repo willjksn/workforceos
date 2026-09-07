@@ -9,6 +9,9 @@ const clerkConfigured = Boolean(
 
 export default clerkConfigured
   ? clerkMiddleware(async (auth, request) => {
+      if (request.nextUrl.pathname.startsWith("/api/public")) {
+        return NextResponse.next();
+      }
       if (!isPublicPath(request.nextUrl.pathname)) {
         await auth.protect();
       }
@@ -22,8 +25,8 @@ export default clerkConfigured
 
 export const config = {
   matcher: [
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    "/(api|trpc)(.*)",
+    "/((?!_next|api/public|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/trpc/(.*)",
     "/__clerk/:path*",
   ],
 };

@@ -149,6 +149,9 @@ export async function submitMilitaryTalentProfile(input: MilitaryTalentPayload &
         privacyClass: "restricted_pii",
       })
       .returning();
+    if (!file) {
+      throw new MilitaryTalentError("Resume was stored but the file record could not be saved.", 503);
+    }
     await db.update(candidates).set({ currentResumeFileId: file.id, updatedAt: new Date() }).where(eq(candidates.id, candidateId));
   }
 

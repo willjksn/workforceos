@@ -139,7 +139,7 @@ export class S3CompatibleStorageProvider implements StorageProvider {
         new PutObjectCommand({
           Bucket: this.options.bucket,
           Key: key,
-          Body: params.body,
+          Body: Buffer.from(params.body),
           ContentType: params.mimeType,
           ContentDisposition: `attachment; filename="${params.filename.replace(/"/g, "")}"`,
           Metadata: {
