@@ -9,6 +9,7 @@ import {
   candidateTalentPools,
   candidateDesignations,
   candidates,
+  files,
   jobs,
   militaryOccupations,
   skills,
@@ -61,7 +62,29 @@ export async function getCandidateWithRelationships(candidateId: string, organiz
     )
     .where(eq(candidateMilitaryExperiences.candidateId, candidateId));
 
-  return { candidate, experiences, skills: skillRows, pools, matches, military };
+  let resumeFile: {
+    id: string;
+    filename: string;
+    mimeType: string;
+    sizeBytes: number;
+    createdAt: Date;
+  } | null = null;
+  if (candidate.currentResumeFileId) {
+    const [file] = await db
+      .select({
+        id: files.id,
+        filename: files.filename,
+        mimeType: files.mimeType,
+        sizeBytes: files.sizeBytes,
+        createdAt: files.createdAt,
+      })
+      .from(files)
+      .where(eq(files.id, candidate.currentResumeFileId))
+      .limit(1);
+    resumeFile = file ?? null;
+  }
+
+  return { candidate, experiences, skills: skillRows, pools, matches, military, resumeFile };
 }
 
 export async function archiveCandidate(candidateId: string, organizationId?: string) {

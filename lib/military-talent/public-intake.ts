@@ -17,6 +17,7 @@ import { resolveMilitaryTalentOwner } from "../inquiries/service";
 import { resolvePublicOrganizationId } from "../public-api/organization";
 import { createInAppNotification } from "../notifications/service";
 import { stripHtml } from "../public-api/normalize";
+import { linkSkillBridgeResumeDocument } from "../skillbridge/service";
 import { getStorageProvider } from "../storage";
 import { resumeStorageFailureMessage } from "../storage/diagnostics";
 import type { MilitaryTalentPayload } from "@pierone/public-api-contracts";
@@ -115,6 +116,7 @@ export async function submitMilitaryTalentProfile(input: MilitaryTalentPayload &
     }
   }
 
+  let resumeFileId: string | null = null;
   if (input.resume) {
     const checked = validateResumeUpload({
       filename: input.resume.filename,
@@ -152,6 +154,7 @@ export async function submitMilitaryTalentProfile(input: MilitaryTalentPayload &
     if (!file) {
       throw new MilitaryTalentError("Resume was stored but the file record could not be saved.", 503);
     }
+    resumeFileId = file.id;
     await db.update(candidates).set({ currentResumeFileId: file.id, updatedAt: new Date() }).where(eq(candidates.id, candidateId));
   }
 
@@ -201,6 +204,15 @@ export async function submitMilitaryTalentProfile(input: MilitaryTalentPayload &
       })
       .returning();
     profileId = created.id;
+  }
+
+  if (resumeFileId) {
+    await linkSkillBridgeResumeDocument({
+      organizationId,
+      profileId,
+      candidateId,
+      fileId: resumeFileId,
+    });
   }
 
   if (input.targetCivilianRoles) {

@@ -449,13 +449,11 @@ export async function uploadSkillBridgeResume(input: {
       uploadedByUserId: input.actor.userId,
     })
     .returning();
-  await db.insert(skillbridgeDocuments).values({
+  await linkSkillBridgeResumeDocument({
     organizationId: input.actor.organizationId,
-    skillbridgeProfileId: profile.id,
+    profileId: profile.id,
     candidateId: profile.candidateId,
     fileId: file.id,
-    documentType: "resume",
-    isCurrent: true,
   });
   await db
     .update(candidates)
@@ -475,6 +473,38 @@ export async function uploadSkillBridgeResume(input: {
     after: { fileId: file.id, filename: file.filename, resumeStatus: "current" },
   });
   return { file, profile: updated };
+}
+
+export async function linkSkillBridgeResumeDocument(input: {
+  organizationId: string;
+  profileId: string;
+  candidateId: string;
+  fileId: string;
+}) {
+  const db = getDb();
+  const [existing] = await db
+    .select({ id: skillbridgeDocuments.id })
+    .from(skillbridgeDocuments)
+    .where(
+      and(
+        eq(skillbridgeDocuments.skillbridgeProfileId, input.profileId),
+        eq(skillbridgeDocuments.fileId, input.fileId),
+      ),
+    )
+    .limit(1);
+  if (existing) return existing;
+  const [row] = await db
+    .insert(skillbridgeDocuments)
+    .values({
+      organizationId: input.organizationId,
+      skillbridgeProfileId: input.profileId,
+      candidateId: input.candidateId,
+      fileId: input.fileId,
+      documentType: "resume",
+      isCurrent: true,
+    })
+    .returning();
+  return row;
 }
 
 export async function listSkillBridgeCards(input: {
@@ -565,6 +595,7 @@ export async function listSkillBridgeCards(input: {
         city: row.candidate.city,
         region: row.candidate.region,
         availability: row.candidate.availability,
+        currentResumeFileId: row.candidate.currentResumeFileId,
         email: input.canReadPii ? row.candidate.email : null,
         phone: input.canReadPii ? row.candidate.phone : null,
       },
@@ -627,11 +658,41 @@ export async function getSkillBridgeDetail(profileId: string, organizationId: st
     .from(skillbridgeNotes)
     .where(eq(skillbridgeNotes.skillbridgeProfileId, profileId))
     .orderBy(desc(skillbridgeNotes.createdAt));
-  const documents = await db
+  let documents = await db
     .select({ document: skillbridgeDocuments, file: files })
     .from(skillbridgeDocuments)
     .innerJoin(files, eq(files.id, skillbridgeDocuments.fileId))
     .where(eq(skillbridgeDocuments.skillbridgeProfileId, profileId));
+  let resumeFile: { id: string; filename: string; mimeType: string; sizeBytes: number; createdAt: Date } | null = null;
+  if (card.candidate.currentResumeFileId) {
+    const [file] = await db
+      .select({
+        id: files.id,
+        filename: files.filename,
+        mimeType: files.mimeType,
+        sizeBytes: files.sizeBytes,
+        createdAt: files.createdAt,
+      })
+      .from(files)
+      .where(eq(files.id, card.candidate.currentResumeFileId))
+      .limit(1);
+    if (file) {
+      resumeFile = file;
+      if (!documents.some((row) => row.file.id === file.id)) {
+        await linkSkillBridgeResumeDocument({
+          organizationId,
+          profileId,
+          candidateId: card.candidate.id,
+          fileId: file.id,
+        });
+        documents = await db
+          .select({ document: skillbridgeDocuments, file: files })
+          .from(skillbridgeDocuments)
+          .innerJoin(files, eq(files.id, skillbridgeDocuments.fileId))
+          .where(eq(skillbridgeDocuments.skillbridgeProfileId, profileId));
+      }
+    }
+  }
   const opportunities = await db
     .select({
       opportunity: skillbridgeOpportunities,
@@ -654,7 +715,7 @@ export async function getSkillBridgeDetail(profileId: string, organizationId: st
         )
         .orderBy(desc(skillbridgeOpportunityStageHistory.changedAt))
     : [];
-  return { card, timeline, notes, documents, opportunities, history };
+  return { card, timeline, notes, documents, resumeFile, opportunities, history };
 }
 
 export async function getSkillBridgeMetrics(organizationId: string) {

@@ -108,6 +108,29 @@ export default async function SkillBridgeDetailPage({
       {detail.card.risks.length ? <p className="mt-4 text-sm text-warning">{detail.card.risks.join(" · ")}</p> : null}
 
       <section className="mt-10">
+        <h2 className="section-title">Resume</h2>
+        {canReadPii && detail.resumeFile ? (
+          <p className="mt-3 text-sm">
+            <a className="text-navy underline" href={`/api/files/${detail.resumeFile.id}`}>
+              {detail.resumeFile.filename}
+            </a>
+            <span className="text-muted-foreground">
+              {" "}
+              · {formatLabel(detail.card.profile.resumeStatus)} · {formatDate(detail.resumeFile.createdAt)}
+            </span>
+          </p>
+        ) : detail.card.candidate.currentResumeFileId || detail.card.profile.resumeStatus !== "missing" ? (
+          <p className="mt-3 text-sm text-muted-foreground">
+            {canReadPii
+              ? "Resume metadata is missing. Re-upload from this profile if the file cannot be opened."
+              : "Resume on file is hidden without candidate_pii.read."}
+          </p>
+        ) : (
+          <p className="mt-3 text-sm text-muted-foreground">No resume on file.</p>
+        )}
+      </section>
+
+      <section className="mt-10">
         <h2 className="section-title">Employer opportunities</h2>
         <div className="mt-3 space-y-3">
           {detail.opportunities.map((row) => (
@@ -182,7 +205,15 @@ export default async function SkillBridgeDetailPage({
           <ul className="mt-3 space-y-2 text-sm">
             {detail.documents.map((row) => (
               <li key={row.document.id}>
-                {row.file.filename} · {formatLabel(row.document.documentType)} · {formatDate(row.file.createdAt)} · {formatLabel(row.file.privacyClass)}
+                {canReadPii ? (
+                  <a className="text-navy underline" href={`/api/files/${row.file.id}`}>
+                    {row.file.filename}
+                  </a>
+                ) : (
+                  <span>File on record</span>
+                )}
+                {" · "}
+                {formatLabel(row.document.documentType)} · {formatDate(row.file.createdAt)} · {formatLabel(row.file.privacyClass)}
               </li>
             ))}
             {detail.documents.length === 0 ? <li className="text-muted-foreground">No files linked. Binaries stay in object storage.</li> : null}

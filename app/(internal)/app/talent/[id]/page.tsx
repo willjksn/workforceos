@@ -94,6 +94,22 @@ export default async function CandidateDetailPage({
                 <span className="font-medium text-navy">{record.experiences[0].title}</span> · {record.experiences[0].employer}
               </p>
             ) : null}
+            <div className="mt-6 text-sm">
+              <p className="font-medium text-navy">Resume</p>
+              {canReadPii && record.resumeFile ? (
+                <p className="mt-1">
+                  <a className="text-navy underline" href={`/api/files/${record.resumeFile.id}`}>
+                    {record.resumeFile.filename}
+                  </a>
+                </p>
+              ) : record.candidate.currentResumeFileId ? (
+                <p className="mt-1 text-muted-foreground">
+                  {canReadPii ? "Resume file record is missing." : "Hidden without candidate_pii.read"}
+                </p>
+              ) : (
+                <p className="mt-1 text-muted-foreground">No resume on file.</p>
+              )}
+            </div>
           </section>
           <ProfileSnapshot
             items={[
@@ -103,6 +119,14 @@ export default async function CandidateDetailPage({
               { label: "Last contact", value: formatDate(candidate.lastContactedAt) },
               { label: "Availability", value: formatLabel(candidate.availability) },
               { label: "Profile completeness", value: `${completeness}%` },
+              {
+                label: "Resume",
+                value: canReadPii
+                  ? record.resumeFile?.filename ?? "None on file"
+                  : record.candidate.currentResumeFileId
+                    ? "Hidden without candidate_pii.read"
+                    : "None on file",
+              },
             ]}
           />
         </div>

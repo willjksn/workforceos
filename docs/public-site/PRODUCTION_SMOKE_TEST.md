@@ -26,7 +26,8 @@ Run only after P0 blockers pass and production domains resolve. Use **clearly fa
 1. Submit a fake join profile from `/skillbridge/join`.
 2. Confirm Candidate + SkillBridge profile reuse (no duplicate person).
 3. Confirm acknowledgement email.
-4. Scout: “Show military talent profiles submitted today.”
+4. Recruiter with `candidate_pii.read` can open the resume from `/app/military/skillbridge/[id]` or `/app/talent/[id]` via `/api/files/[fileId]`.
+5. Scout: “Show military talent profiles submitted today.”
 
 ## Security spot-checks
 
