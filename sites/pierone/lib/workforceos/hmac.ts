@@ -66,7 +66,7 @@ export function signWorkforceOsHeaders(input: {
   path: string;
   bodyHash: string;
 }) {
-  const secret = process.env.WORKFORCEOS_SITE_SECRET;
+  const secret = process.env.WORKFORCEOS_SITE_SECRET?.trim();
   if (!secret) {
     if (isFailClosedProduction()) {
       throw new Error("WORKFORCEOS_SITE_SECRET is required for production writes.");
