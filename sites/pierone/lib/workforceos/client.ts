@@ -22,6 +22,12 @@ function apiBase() {
   return url.replace(/\/$/, "");
 }
 
+function workforceOsRequestHeaders(extra: Record<string, string> = {}) {
+  const bypass = process.env.WORKFORCEOS_PROTECTION_BYPASS;
+  if (!bypass) return extra;
+  return { ...extra, "x-vercel-protection-bypass": bypass };
+}
+
 async function throwIfWriteFailed(response: Response, fallback: string) {
   if (response.ok) return;
   const data = (await response.json().catch(() => ({}))) as { error?: string };
@@ -37,10 +43,10 @@ async function postSigned(pathname: string, body: string | Uint8Array, contentTy
   try {
     return await fetch(url, {
       method: "POST",
-      headers: {
+      headers: workforceOsRequestHeaders({
         "Content-Type": contentType,
         ...signWorkforceOsHeaders({ method: "POST", path: url.pathname, bodyHash }),
-      },
+      }),
       body: typeof body === "string" ? body : toArrayBuffer(body),
       cache: "no-store",
     });
@@ -54,6 +60,7 @@ export class WorkforceOSPublicClient {
     try {
       const response = await fetch(`${apiBase()}/content`, {
         next: { revalidate: 60, tags: ["public-content"] },
+        headers: workforceOsRequestHeaders(),
       });
       if (!response.ok) throw new Error("CONTENT_UNAVAILABLE");
       const parsed = publicContentResponseSchema.safeParse(await response.json());
@@ -67,6 +74,7 @@ export class WorkforceOSPublicClient {
   async getJobs(): Promise<PublicJob[]> {
     const response = await fetch(`${apiBase()}/jobs`, {
       next: { revalidate: 60 },
+      headers: workforceOsRequestHeaders(),
     });
     if (!response.ok) throw new Error("JOBS_UNAVAILABLE");
     const parsed = publicJobsResponseSchema.safeParse(await response.json());
@@ -77,6 +85,7 @@ export class WorkforceOSPublicClient {
   async getJob(slug: string): Promise<PublicJob | null> {
     const response = await fetch(`${apiBase()}/jobs/${encodeURIComponent(slug)}`, {
       next: { revalidate: 60 },
+      headers: workforceOsRequestHeaders(),
     });
     if (response.status === 404) return null;
     if (!response.ok) throw new Error("JOB_UNAVAILABLE");
