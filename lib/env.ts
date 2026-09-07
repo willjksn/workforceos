@@ -6,7 +6,10 @@ if (typeof window !== "undefined") {
 
 const emptyToUndefined = (value: unknown) => {
   if (value === undefined || value === null) return undefined;
-  if (typeof value === "string" && value.trim() === "") return undefined;
+  if (typeof value === "string") {
+    const trimmed = value.trim().replace(/(?:\\r)?\\n$/u, "").trim();
+    return trimmed === "" ? undefined : trimmed;
+  }
   return value;
 };
 

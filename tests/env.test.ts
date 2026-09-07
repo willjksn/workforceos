@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getAppUrl, isFailClosedProduction, resetServerEnvCache } from "../lib/env";
+import { getAppUrl, getServerEnv, isFailClosedProduction, resetServerEnvCache } from "../lib/env";
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -44,5 +44,13 @@ describe("fail-closed production", () => {
     vi.stubEnv("VERCEL_ENV", "");
     resetServerEnvCache();
     expect(isFailClosedProduction()).toBe(true);
+  });
+});
+
+describe("storage provider env", () => {
+  it("accepts STORAGE_PROVIDER=s3 when PowerShell appended an escaped CRLF", () => {
+    vi.stubEnv("STORAGE_PROVIDER", "s3\\r\\n");
+    resetServerEnvCache();
+    expect(getServerEnv().STORAGE_PROVIDER).toBe("s3");
   });
 });
