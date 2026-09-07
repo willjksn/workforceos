@@ -13,7 +13,7 @@ Flow:
 1. Validate and rate-limit.
 2. Dedupe Candidate by email/phone. Never create a second person for the same email.
 3. Create or update `skillbridge_profiles` (1:1 with Candidate).
-4. If a resume is uploaded, store it via `StorageProvider`, set `candidates.current_resume_file_id`, and link `skillbridge_documents` (`document_type=resume`). Resume status becomes `needs_review`. Recruiters with `candidate_pii.read` review PDFs on the SkillBridge or candidate profile. Word files stay in private storage and are opened via `/api/files/[fileId]` — not an external viewer.
+4. If a resume is uploaded, store it via `StorageProvider`, set `candidates.current_resume_file_id`, and link `skillbridge_documents` (`document_type=resume`). Resume status becomes `needs_review`. Recruiters with `candidate_pii.read` review PDFs and DOCX resumes on the SkillBridge or candidate profile. Conversion stays in WorkforceOS; external document viewers are not used. Legacy `.doc` files download via `/api/files/[fileId]`.
 5. Record a candidate engagement. Notify the configured SkillBridge/military talent owner role.
 6. Send acknowledgement email. No guarantee of matching, approval, or employment.
 

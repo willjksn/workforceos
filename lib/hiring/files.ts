@@ -26,12 +26,6 @@ export function extensionOf(filename: string) {
   return idx >= 0 ? filename.slice(idx).toLowerCase() : "";
 }
 
-export function canPreviewResumeInline(input: { mimeType?: string | null; filename?: string | null }) {
-  const mime = (input.mimeType ?? "").toLowerCase().split(";")[0]?.trim();
-  const ext = extensionOf(input.filename ?? "");
-  return mime === PDF_MIME || ext === ".pdf";
-}
-
 export function looksLikePdf(input: {
   mimeType?: string | null;
   filename?: string | null;
@@ -41,7 +35,29 @@ export function looksLikePdf(input: {
   if (body && body.length >= 4 && body[0] === 0x25 && body[1] === 0x50 && body[2] === 0x44 && body[3] === 0x46) {
     return true;
   }
-  return canPreviewResumeInline(input);
+  const mime = (input.mimeType ?? "").toLowerCase().split(";")[0]?.trim();
+  const ext = extensionOf(input.filename ?? "");
+  return mime === PDF_MIME || ext === ".pdf";
+}
+
+export function resumePreviewKind(input: {
+  mimeType?: string | null;
+  filename?: string | null;
+  body?: Uint8Array | null;
+}): "pdf" | "docx" | "none" {
+  if (looksLikePdf(input)) return "pdf";
+  const mime = (input.mimeType ?? "").toLowerCase().split(";")[0]?.trim();
+  const ext = extensionOf(input.filename ?? "");
+  if (ext === ".docx" || mime === DOCX_MIME) return "docx";
+  return "none";
+}
+
+export function canPreviewResumeInline(input: {
+  mimeType?: string | null;
+  filename?: string | null;
+  body?: Uint8Array | null;
+}) {
+  return resumePreviewKind(input) !== "none";
 }
 
 export function storedFileContentHeaders(input: {

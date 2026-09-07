@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { canPreviewResumeInline } from "@/lib/hiring/files";
+import { resumePreviewKind } from "@/lib/hiring/files";
 
 export function ResumeViewer({
   file,
@@ -11,18 +11,35 @@ export function ResumeViewer({
   file: { id: string; filename: string; mimeType: string };
   meta?: string | null;
 }) {
-  const previewInline = canPreviewResumeInline(file);
+  const kind = resumePreviewKind(file);
   const downloadHref = `/api/files/${file.id}?download=1`;
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [html, setHtml] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!previewInline) return;
+    if (kind === "none") return;
     let objectUrl: string | null = null;
     const controller = new AbortController();
 
     async function load() {
       try {
+        if (kind === "docx") {
+          const response = await fetch(`/api/files/${file.id}/preview`, {
+            signal: controller.signal,
+            credentials: "same-origin",
+            cache: "no-store",
+          });
+          const payload = (await response.json()) as { html?: string; error?: string };
+          if (!response.ok || !payload.html) {
+            throw new Error(payload.error || "Could not load resume.");
+          }
+          setHtml(payload.html);
+          setPreviewUrl(null);
+          setError(null);
+          return;
+        }
+
         const response = await fetch(`/api/files/${file.id}`, {
           signal: controller.signal,
           credentials: "same-origin",
@@ -34,10 +51,12 @@ export function ResumeViewer({
         const buffer = await response.arrayBuffer();
         objectUrl = URL.createObjectURL(new Blob([buffer], { type: "application/pdf" }));
         setPreviewUrl(objectUrl);
+        setHtml(null);
         setError(null);
       } catch (loadError) {
         if (controller.signal.aborted) return;
         setPreviewUrl(null);
+        setHtml(null);
         setError(loadError instanceof Error ? loadError.message : "Could not load resume.");
       }
     }
@@ -47,7 +66,7 @@ export function ResumeViewer({
       controller.abort();
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [file.id, previewInline]);
+  }, [file.id, kind]);
 
   return (
     <div className="min-w-0">
@@ -55,19 +74,19 @@ export function ResumeViewer({
         <p className="min-w-0 truncate text-sm text-navy">{file.filename}</p>
         <p className="shrink-0 text-sm">
           <a className="text-navy underline" href={downloadHref}>
-            Download
+            Download original
           </a>
           {meta ? <span className="text-muted-foreground"> · {meta}</span> : null}
         </p>
       </div>
-      {previewInline ? (
-        <div className="mt-3 overflow-hidden rounded-[8px] border border-card-border bg-white">
+      {kind === "pdf" ? (
+        <div className="mt-3 overflow-hidden rounded-[8px] border border-card-border bg-white shadow-[var(--shadow-card)]">
           {previewUrl ? (
             <object
               title={`Resume preview: ${file.filename}`}
               data={previewUrl}
               type="application/pdf"
-              className="block h-[70vh] min-h-[32rem] w-full"
+              className="block h-[80vh] min-h-[36rem] w-full"
             >
               <p className="p-4 text-sm text-muted-foreground">
                 Preview did not render.{" "}
@@ -81,10 +100,19 @@ export function ResumeViewer({
             <p className="p-4 text-sm text-muted-foreground">{error ?? "Loading resume…"}</p>
           )}
         </div>
+      ) : kind === "docx" ? (
+        <div className="mt-3 overflow-hidden rounded-[8px] border border-card-border bg-white shadow-[var(--shadow-card)]">
+          {html ? (
+            <div className="max-h-[80vh] overflow-y-auto px-6 py-8 sm:px-10 sm:py-10">
+              <article className="resume-html mx-auto max-w-[46rem]" dangerouslySetInnerHTML={{ __html: html }} />
+            </div>
+          ) : (
+            <p className="p-4 text-sm text-muted-foreground">{error ?? "Loading resume…"}</p>
+          )}
+        </div>
       ) : (
         <p className="mt-3 rounded-[8px] border border-card-border bg-card p-4 text-sm text-muted-foreground">
-          In-page preview is available for PDFs. Word resumes stay in private storage — download the file to review it.
-          External document viewers are not used because resumes are Restricted PII.
+          Legacy .doc files cannot be previewed in WorkforceOS. Download the original to review it.
         </p>
       )}
     </div>

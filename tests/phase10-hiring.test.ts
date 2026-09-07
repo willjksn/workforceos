@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { canPreviewResumeInline, FileValidationError, storedFileContentHeaders, validateResumeUpload } from "../lib/hiring/files";
+import { canPreviewResumeInline, FileValidationError, resumePreviewKind, storedFileContentHeaders, validateResumeUpload } from "../lib/hiring/files";
+import { sanitizeResumeHtml } from "../lib/hiring/resume-html";
 import { parseScoutIntent } from "../lib/scout/parse-intent";
 import { ALLOWED_DISPOSITION_REASONS, assertDispositionReason } from "../lib/hiring/stages";
 import { getBackgroundCheckProvider } from "../lib/background-checks";
@@ -68,16 +69,28 @@ describe("phase 10 public file validation", () => {
     ).toThrow(FileValidationError);
   });
 
-  it("previews PDFs inline and leaves Word files for download", () => {
-    expect(canPreviewResumeInline({ mimeType: "application/pdf", filename: "resume.pdf" })).toBe(true);
+  it("previews PDFs and DOCX inline and leaves legacy DOC for download", () => {
+    expect(resumePreviewKind({ mimeType: "application/pdf", filename: "resume.pdf" })).toBe("pdf");
     expect(canPreviewResumeInline({ mimeType: "application/octet-stream", filename: "resume.PDF" })).toBe(true);
-    expect(canPreviewResumeInline({ mimeType: "application/msword", filename: "resume.doc" })).toBe(false);
+    expect(resumePreviewKind({ mimeType: "application/msword", filename: "resume.doc" })).toBe("none");
     expect(
-      canPreviewResumeInline({
+      resumePreviewKind({
         mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         filename: "resume.docx",
       }),
-    ).toBe(false);
+    ).toBe("docx");
+  });
+
+  it("strips unsafe markup from Word resume HTML", () => {
+    const html = sanitizeResumeHtml(
+      `<p>Hello</p><script>alert(1)</script><a href="javascript:alert(1)">x</a><a href="https://example.com">ok</a><img src="data:image/png;base64,abc" onerror="alert(1)">`,
+    );
+    expect(html).toContain("<p>Hello</p>");
+    expect(html).not.toContain("script");
+    expect(html).not.toContain("javascript:");
+    expect(html).toContain('href="https://example.com"');
+    expect(html).toContain("data:image/png;base64,abc");
+    expect(html).not.toContain("onerror");
   });
 
   it("serves PDFs inline and only attaches when download is requested", () => {

@@ -84,39 +84,29 @@ export default async function CandidateDetailPage({
       <TabNav items={tabs} activeId={tab} />
 
       {tab === "overview" ? (
-        <div className="mt-6 grid items-start gap-8 xl:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
-          <div className="min-w-0 space-y-6">
-            <section>
-              <p className="text-sm text-muted-foreground">
-                Email: {candidate.emailHidden ? "hidden without candidate_pii.read" : (candidate.email ?? "—")}
+        <div className="mt-6 space-y-8">
+          <section>
+            <p className="text-sm text-muted-foreground">
+              Email: {candidate.emailHidden ? "hidden without candidate_pii.read" : (candidate.email ?? "—")}
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">Consent: {formatLabel(candidate.consentStatus)}</p>
+            {record.experiences[0] ? (
+              <p className="mt-4 text-sm">
+                <span className="font-medium text-navy">{record.experiences[0].title}</span> · {record.experiences[0].employer}
               </p>
-              <p className="mt-2 text-sm text-muted-foreground">Consent: {formatLabel(candidate.consentStatus)}</p>
-              {record.experiences[0] ? (
-                <p className="mt-6 text-sm">
-                  <span className="font-medium text-navy">{record.experiences[0].title}</span> · {record.experiences[0].employer}
-                </p>
-              ) : null}
-            </section>
-            <ProfileSnapshot
-              items={[
-                { label: "Years experience", value: candidate.yearsExperience ?? "—" },
-                { label: "Skills", value: record.skills.length },
-                { label: "Pools", value: record.pools.length },
-                { label: "Last contact", value: formatDate(candidate.lastContactedAt) },
-                { label: "Availability", value: formatLabel(candidate.availability) },
-                { label: "Profile completeness", value: `${completeness}%` },
-                {
-                  label: "Resume",
-                  value: canReadPii
-                    ? record.resumeFile?.filename ?? "None on file"
-                    : record.candidate.currentResumeFileId
-                      ? "Hidden without candidate_pii.read"
-                      : "None on file",
-                },
-              ]}
-            />
-          </div>
-          <section className="min-w-0">
+            ) : null}
+          </section>
+          <ProfileSnapshot
+            items={[
+              { label: "Years experience", value: candidate.yearsExperience ?? "—" },
+              { label: "Skills", value: record.skills.length },
+              { label: "Pools", value: record.pools.length },
+              { label: "Last contact", value: formatDate(candidate.lastContactedAt) },
+              { label: "Availability", value: formatLabel(candidate.availability) },
+              { label: "Profile completeness", value: `${completeness}%` },
+            ]}
+          />
+          <section>
             <h2 className="section-title">Resume</h2>
             {canReadPii && record.resumeFile ? (
               <div className="mt-3">

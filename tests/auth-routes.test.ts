@@ -22,5 +22,6 @@ describe("route protection", () => {
       expect(isPublicPath(path)).toBe(false);
     }
     expect(isPublicPath("/api/files/00000000-0000-4000-8000-000000000401")).toBe(false);
+    expect(isPublicPath("/api/files/00000000-0000-4000-8000-000000000401/preview")).toBe(false);
   });
 });

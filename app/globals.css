@@ -151,3 +151,72 @@ a {
 .app-main tbody tr:last-child td {
   border-bottom: none;
 }
+
+.resume-html {
+  color: var(--text-primary);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.resume-html p {
+  margin: 0 0 0.7em;
+}
+
+.resume-html p:last-child {
+  margin-bottom: 0;
+}
+
+.resume-html h1,
+.resume-html h2,
+.resume-html h3,
+.resume-html h4 {
+  color: var(--brand-navy);
+  font-family: var(--font-serif);
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 1.1em 0 0.4em;
+}
+
+.resume-html h1 { font-size: 1.6rem; }
+.resume-html h2 { font-size: 1.25rem; }
+.resume-html h3 { font-size: 1.1rem; }
+
+.resume-html ul,
+.resume-html ol {
+  margin: 0 0 0.85em;
+  padding-left: 1.3rem;
+}
+
+.resume-html li {
+  margin: 0.15em 0;
+}
+
+.resume-html a {
+  color: var(--brand-navy);
+  text-decoration: underline;
+}
+
+.resume-html img {
+  height: auto;
+  max-width: 100%;
+}
+
+.app-main .resume-html table {
+  font-size: 14px;
+  margin: 0 0 0.85em;
+}
+
+.app-main .resume-html thead th,
+.app-main .resume-html tbody td {
+  background: transparent;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  font-weight: inherit;
+  letter-spacing: normal;
+  padding: 0.35rem 0.5rem;
+  text-transform: none;
+}
+
+.app-main .resume-html tbody tr:hover td {
+  background: transparent;
+}
