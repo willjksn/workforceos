@@ -48,32 +48,52 @@ export function scoutQueueNeighbor(items: ScoutQueueItem[], pathname: string, de
   return items[index + delta] ?? null;
 }
 
-export function readScoutResultQueue(): ScoutResultQueue | null {
-  if (typeof window === "undefined") return null;
+let snapshotRaw: string | null = null;
+let snapshotValue: ScoutResultQueue | null = null;
+let snapshotInitialized = false;
+
+function parseQueue(raw: string | null): ScoutResultQueue | null {
+  if (!raw) return null;
   try {
-    const raw = window.sessionStorage.getItem(SCOUT_QUEUE_STORAGE_KEY);
-    if (!raw) return null;
     const parsed = JSON.parse(raw) as ScoutResultQueue;
     if (!parsed || !Array.isArray(parsed.items) || parsed.items.length === 0) return null;
-    return { prompt: parsed.prompt ?? "", items: cardsToQueueItems(parsed.items) };
+    const items = cardsToQueueItems(parsed.items);
+    if (!items.length) return null;
+    return { prompt: parsed.prompt ?? "", items };
   } catch {
     return null;
   }
+}
+
+function rememberSnapshot(raw: string | null, value: ScoutResultQueue | null) {
+  snapshotInitialized = true;
+  snapshotRaw = raw;
+  snapshotValue = value;
+}
+
+export function readScoutResultQueue(): ScoutResultQueue | null {
+  if (typeof window === "undefined") return null;
+  const raw = window.sessionStorage.getItem(SCOUT_QUEUE_STORAGE_KEY);
+  if (snapshotInitialized && raw === snapshotRaw) return snapshotValue;
+  const value = parseQueue(raw);
+  rememberSnapshot(raw, value);
+  return value;
 }
 
 export function writeScoutResultQueue(queue: ScoutResultQueue) {
   if (typeof window === "undefined") return;
   const items = cardsToQueueItems(queue.items);
   if (!items.length) return;
-  window.sessionStorage.setItem(
-    SCOUT_QUEUE_STORAGE_KEY,
-    JSON.stringify({ prompt: queue.prompt, items }),
-  );
+  const next = { prompt: queue.prompt, items };
+  const raw = JSON.stringify(next);
+  window.sessionStorage.setItem(SCOUT_QUEUE_STORAGE_KEY, raw);
+  rememberSnapshot(raw, next);
   window.dispatchEvent(new Event(SCOUT_QUEUE_EVENT));
 }
 
 export function clearScoutResultQueue() {
   if (typeof window === "undefined") return;
   window.sessionStorage.removeItem(SCOUT_QUEUE_STORAGE_KEY);
+  rememberSnapshot(null, null);
   window.dispatchEvent(new Event(SCOUT_QUEUE_EVENT));
 }

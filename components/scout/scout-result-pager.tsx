@@ -15,7 +15,11 @@ import { requestOpenScout } from "@/components/scout/scout-drawer";
 
 function subscribeScoutQueue(onStoreChange: () => void) {
   window.addEventListener(SCOUT_QUEUE_EVENT, onStoreChange);
-  return () => window.removeEventListener(SCOUT_QUEUE_EVENT, onStoreChange);
+  window.addEventListener("storage", onStoreChange);
+  return () => {
+    window.removeEventListener(SCOUT_QUEUE_EVENT, onStoreChange);
+    window.removeEventListener("storage", onStoreChange);
+  };
 }
 
 export function ScoutResultPager() {

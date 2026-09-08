@@ -1,11 +1,18 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { isRegisteredCommand } from "../lib/scout/commands";
 import { parseScoutPageContext } from "../lib/scout/page-context";
 import { parseScoutIntent } from "../lib/scout/parse-intent";
 import { stripScoutPii } from "../lib/scout/pii";
 import { ROLE_PERMISSIONS, can, type Principal } from "../lib/rbac/permissions";
-import { cardsToQueueItems, indexInScoutQueue, scoutQueueNeighbor } from "../lib/scout/result-queue";
+import {
+  cardsToQueueItems,
+  clearScoutResultQueue,
+  indexInScoutQueue,
+  readScoutResultQueue,
+  scoutQueueNeighbor,
+  writeScoutResultQueue,
+} from "../lib/scout/result-queue";
 
 function principalFor(role: keyof typeof ROLE_PERMISSIONS): Principal {
   return {
@@ -18,6 +25,10 @@ function principalFor(role: keyof typeof ROLE_PERMISSIONS): Principal {
 }
 
 describe("Phase 9 Scout", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("rejects SQL and unknown commands", () => {
     expect(parseScoutIntent("SELECT email FROM candidates").ok).toBe(false);
     expect(parseScoutIntent("DELETE FROM candidates").ok).toBe(false);
@@ -70,6 +81,38 @@ describe("Phase 9 Scout", () => {
     expect(scoutQueueNeighbor(items, "/app/talent/b", 1)?.title).toBe("Carter");
     expect(scoutQueueNeighbor(items, "/app/talent/a", -1)).toBeNull();
     expect(scoutQueueNeighbor(items, "/app/jobs/missing", 1)).toBeNull();
+  });
+
+  it("returns a referentially stable Scout queue snapshot for the result pager", () => {
+    const store = new Map<string, string>();
+    vi.stubGlobal("window", {
+      sessionStorage: {
+        getItem: (key: string) => store.get(key) ?? null,
+        setItem: (key: string, value: string) => {
+          store.set(key, value);
+        },
+        removeItem: (key: string) => {
+          store.delete(key);
+        },
+      },
+      dispatchEvent: () => true,
+    });
+
+    writeScoutResultQueue({
+      prompt: "website inquiries",
+      items: [{ href: "/app/crm/inquiries/1", title: "Test User", type: "inquiry", id: "1" }],
+    });
+    const first = readScoutResultQueue();
+    const second = readScoutResultQueue();
+    expect(first).toEqual({
+      prompt: "website inquiries",
+      items: [{ href: "/app/crm/inquiries/1", title: "Test User", type: "inquiry", id: "1" }],
+    });
+    expect(first).toBe(second);
+
+    clearScoutResultQueue();
+    expect(readScoutResultQueue()).toBeNull();
+    expect(readScoutResultQueue()).toBeNull();
   });
 
   it("parses public website publishing commands with confirmation", () => {
