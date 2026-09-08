@@ -30,8 +30,10 @@ export async function POST(request: Request) {
     await workforceOsPublic.submitApplication(parsed.data, resumeEntry);
     return NextResponse.json({ accepted: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "APPLICATION_FAILED";
-    return NextResponse.json({ error: message === "APPLICATION_FAILED" ? "Unable to submit application right now." : message }, { status: 400 });
+    const { publicSafeErrorMessage, PUBLIC_SERVICE_UNAVAILABLE } = await import("@/lib/public-errors");
+    const message = publicSafeErrorMessage(error, PUBLIC_SERVICE_UNAVAILABLE);
+    const status = /signed request required/i.test(message) ? 401 : 503;
+    return NextResponse.json({ error: message }, { status });
   }
 }
 

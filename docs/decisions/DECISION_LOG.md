@@ -703,3 +703,13 @@ Database mirror: `decision_log` table, seeded from this file.
 - Affected modules: public API, public website, careers apply form, security
 - Reconsideration: none for launch.
 
+## DEC-MIL-005 — PierOne is the military-talent intermediary
+
+- Date: 2026-09-07
+- Owner: Product Build
+- Status: accepted
+- Decision: PierOne is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is a transition pathway and opportunity type within PierOne's Military Talent operations, not a PierOne-owned generic SkillBridge program. PierOne is generally not the SkillBridge host. Public and internal product language uses Military Talent, transitioning service members, Transition Talent Profile, employer/host-company opportunity, and SkillBridge-eligible opportunity. The physical tables `skillbridge_profiles` and `skillbridge_opportunities` are retained. A public job posting is not required before a transitioning service member can join the Talent Network.
+- Reason: Correct the operating model so SkillBridge is not presented as PierOne's own program and so matching can begin from a transition profile.
+- Affected modules: military, SkillBridge, public website, Scout, public content, email
+- Reconsideration: only if PierOne later becomes a SkillBridge host for a specific, documented engagement.
+

@@ -52,9 +52,11 @@ Do not create a second SkillBridge person database. One candidate, one `skillbri
 Scout validation script (measure correctness, permissions, latency, hallucination, action safety):
 
 - “Who needs my attention today?”
-- “Show all SkillBridge candidates without opportunities.”
+- “Show transitioning service members who do not have an employer match.”
+- “Show military talent with a SkillBridge window in the next 90 days.”
+- “Show SkillBridge-eligible employer opportunities.”
 - “Show electrical candidates in North Carolina.”
-- “Show SkillBridge candidates transitioning in the next six months.”
+- “Show transitioning service members with a window in the next six months.”
 - “Draft a follow-up to this candidate.”
 - “Find opportunities for this candidate.”
 - “Create a follow-up task.”

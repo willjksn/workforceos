@@ -728,6 +728,41 @@ export async function getSkillBridgeDetail(profileId: string, organizationId: st
   return { card, timeline, notes, documents, resumeFile, opportunities, history };
 }
 
+export async function listEmployerOpportunityCards(organizationId: string) {
+  const db = getDb();
+  const rows = await db
+    .select({
+      opportunity: skillbridgeOpportunities,
+      company: companies,
+      job: jobs,
+      profile: skillbridgeProfiles,
+      candidate: candidates,
+    })
+    .from(skillbridgeOpportunities)
+    .innerJoin(companies, eq(companies.id, skillbridgeOpportunities.companyId))
+    .innerJoin(skillbridgeProfiles, eq(skillbridgeProfiles.id, skillbridgeOpportunities.skillbridgeProfileId))
+    .innerJoin(candidates, eq(candidates.id, skillbridgeOpportunities.candidateId))
+    .leftJoin(jobs, eq(jobs.id, skillbridgeOpportunities.jobId))
+    .where(
+      and(
+        eq(skillbridgeOpportunities.organizationId, organizationId),
+        isNull(skillbridgeOpportunities.archivedAt),
+        isNull(skillbridgeProfiles.archivedAt),
+        notArchivedCandidate(),
+      ),
+    )
+    .orderBy(desc(skillbridgeOpportunities.updatedAt));
+
+  return rows.map((row) => ({
+    ...row,
+    candidateName: row.candidate.fullName,
+    hostCompanyName: row.company.name,
+    roleTitle: row.job?.title ?? null,
+    skillbridgeEligible: Boolean(row.job?.skillbridgeEligible || row.job?.jobContextType === "skillbridge"),
+    intermediaryNote: "PierOne is the intermediary. The host company/employer is the opportunity owner.",
+  }));
+}
+
 export async function getSkillBridgeMetrics(organizationId: string) {
   const db = getDb();
   const rules = await getSkillBridgeAlertRules(organizationId);

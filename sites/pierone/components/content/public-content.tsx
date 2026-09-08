@@ -82,14 +82,17 @@ export function UrgentHiringNotice({ notices }: { notices: PublicContentResponse
 export function FeaturedJobStrip({
   jobs,
   heading,
+  intro,
 }: {
   jobs: PublicContentResponse["featuredJobs"];
   heading: string;
+  intro?: string;
 }) {
   if (!jobs.length) return null;
   return (
     <section className="mt-10">
       <h2 className="font-serif text-2xl text-navy">{heading}</h2>
+      {intro ? <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">{intro}</p> : null}
       <ul className="mt-4 divide-y divide-border border-y border-border">
         {jobs.map((job) => (
           <li key={job.slug}>

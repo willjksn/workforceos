@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { SERVICE_INTEREST } from "@/lib/contracts";
+import { readPublicJsonError } from "@/lib/public-errors";
 import { buttonPrimaryClass, fieldClass } from "@/components/ui-classes";
 
 const LABELS: Record<(typeof SERVICE_INTEREST)[number], string> = {
@@ -30,10 +31,9 @@ export function InquiryForm({
     const form = event.currentTarget;
     const data = new FormData(form);
     const response = await fetch("/api/inquiry", { method: "POST", body: data });
-    const payload = (await response.json()) as { error?: string };
     if (!response.ok) {
       setStatus("error");
-      setMessage(payload.error ?? "Unable to submit right now. Please try again.");
+      setMessage(await readPublicJsonError(response, "Unable to submit right now. Please try again."));
       return;
     }
     setStatus("done");

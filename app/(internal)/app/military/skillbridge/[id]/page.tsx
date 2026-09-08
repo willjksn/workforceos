@@ -82,9 +82,9 @@ export default async function SkillBridgeDetailPage({
   return (
     <PageShell wide>
       <PageHeader
-        eyebrow="SkillBridge"
+        eyebrow="Transition Talent Profile"
         title={detail.card.candidate.fullName}
-        description="Same Talent Network candidate. SkillBridge dates and opportunities are operating records, not a second person."
+        description="Same Talent Network candidate. This is a military transition overlay, not ownership by a PierOne SkillBridge program. PierOne matches this person to employer/host-company opportunities."
         actions={
           <Link href={`/app/talent/${detail.card.candidate.id}`} className="text-sm text-navy underline">
             Open full candidate profile
@@ -129,8 +129,8 @@ export default async function SkillBridgeDetailPage({
             <Item label="Rank" value={detail.card.profile.rankTitle ?? detail.card.profile.payGrade} />
             <Item label="Installation" value={detail.card.installation?.name ?? detail.card.profile.currentDutyLocation} />
             <Item label="End of service" value={formatDate(detail.card.profile.endOfServiceDate)} />
-            <Item label="Window start" value={formatDate(detail.card.profile.skillbridgeWindowStart)} />
-            <Item label="Window end" value={formatDate(detail.card.profile.skillbridgeWindowEnd)} />
+            <Item label="SkillBridge window start" value={formatDate(detail.card.profile.skillbridgeWindowStart)} />
+            <Item label="SkillBridge window end" value={formatDate(detail.card.profile.skillbridgeWindowEnd)} />
             <Item label="Preferred location" value={detail.card.profile.preferredLocationPrimary} />
             <Item label="Ideal employer" value={detail.card.profile.idealEmployer} />
             <Item label="Resume status" value={formatLabel(detail.card.profile.resumeStatus)} />
@@ -143,7 +143,10 @@ export default async function SkillBridgeDetailPage({
       </div>
 
       <section className="mt-10">
-        <h2 className="section-title">Employer opportunities</h2>
+        <h2 className="section-title">Employer / host-company opportunities</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          PierOne is the intermediary. The company below is the employer or SkillBridge host. A public job posting is not required.
+        </p>
         <div className="mt-3 space-y-3">
           {detail.opportunities.map((row) => (
             <div key={row.opportunity.id} className="rounded-[8px] border border-card-border bg-card p-4">
@@ -169,21 +172,23 @@ export default async function SkillBridgeDetailPage({
           <ActionForm action={addSkillBridgeOpportunityAction} className="mt-4 max-w-xl space-y-3">
             <input type="hidden" name="profileId" value={id} />
             <label className="block text-sm">
-              Company
+              Company (host / employer)
               <select name="companyId" className="mt-1 w-full rounded-[6px] border border-border px-3 py-2" required>
                 {companyRows.filter((row) => row).map((row) => (
                   <option key={row.id} value={row.id}>{row.name}</option>
                 ))}
               </select>
             </label>
-            <PrimaryButton>Add opportunity</PrimaryButton>
+            <PrimaryButton>Add employer opportunity</PrimaryButton>
           </ActionForm>
         ) : null}
       </section>
 
       <section className="mt-10">
-        <h2 className="section-title">Stored job matches</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Explainable scores from the existing match architecture. Humans connect or submit.</p>
+        <h2 className="section-title">Employer opportunity matches</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Transition Talent Profile compared to employer opportunities using skills, occupation, translated role, location, and timing. Humans connect or submit. A public posting is not required to keep this person in the network.
+        </p>
         <ul className="mt-3 space-y-2">
           {matches.map((match) => (
             <li key={match.jobId}>

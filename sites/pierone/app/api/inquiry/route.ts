@@ -35,7 +35,8 @@ export async function POST(request: Request) {
     await workforceOsPublic.submitInquiry(parsed.data);
     return NextResponse.json({ accepted: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to submit inquiry right now. Please try again.";
+    const { publicSafeErrorMessage, PUBLIC_SERVICE_UNAVAILABLE } = await import("@/lib/public-errors");
+    const message = publicSafeErrorMessage(error, PUBLIC_SERVICE_UNAVAILABLE);
     const status = /signed request required/i.test(message) ? 401 : 503;
     return NextResponse.json({ error: message }, { status });
   }

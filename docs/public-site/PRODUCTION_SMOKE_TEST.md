@@ -21,13 +21,14 @@ Run only after P0 blockers pass and production domains resolve. Use **clearly fa
 6. Internal candidate UUID is not in the public response.
 7. Delete/archive the test file and records.
 
-## SkillBridge / military talent
+## Military Talent / SkillBridge
 
-1. Submit a fake join profile from `/skillbridge/join`.
-2. Confirm Candidate + SkillBridge profile reuse (no duplicate person).
-3. Confirm acknowledgement email.
+1. Submit a fake transition profile from `/military-talent/join` (not framed as a PierOne SkillBridge program).
+2. Confirm Candidate + Transition Talent Profile reuse (no duplicate person). Matching can begin without a preexisting job.
+3. Confirm acknowledgement email (no placement/interview/approval promise).
 4. Recruiter with `candidate_pii.read` can open the resume from `/app/military/skillbridge/[id]` or `/app/talent/[id]` via `/api/files/[fileId]`.
-5. Scout: “Show military talent profiles submitted today.”
+5. Scout: “Show transitioning service members submitted today.”
+6. Create or use a fake SkillBridge-eligible employer opportunity with an explicit host company. Confirm PierOne is not implied as the host.
 
 ## Security spot-checks
 

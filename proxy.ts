@@ -7,18 +7,31 @@ const clerkConfigured = Boolean(
   process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY,
 );
 
+function redirectToSignIn(request: NextRequest) {
+  const signIn = new URL("/sign-in", request.url);
+  const returnPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+  if (returnPath && returnPath !== "/sign-in") {
+    signIn.searchParams.set("redirect_url", returnPath);
+  }
+  return NextResponse.redirect(signIn);
+}
+
 export default clerkConfigured
   ? clerkMiddleware(async (auth, request) => {
       if (request.nextUrl.pathname.startsWith("/api/public")) {
         return NextResponse.next();
       }
-      if (!isPublicPath(request.nextUrl.pathname)) {
-        await auth.protect();
+      if (isPublicPath(request.nextUrl.pathname)) {
+        return NextResponse.next();
+      }
+      const { userId } = await auth();
+      if (!userId) {
+        return redirectToSignIn(request);
       }
     })
   : function proxy(request: NextRequest) {
       if (!isPublicPath(request.nextUrl.pathname)) {
-        return NextResponse.redirect(new URL("/sign-in", request.url));
+        return redirectToSignIn(request);
       }
       return NextResponse.next();
     };

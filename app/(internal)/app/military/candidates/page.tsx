@@ -24,8 +24,8 @@ export default async function MilitaryCandidatesPage() {
     <PageShell>
       <PageHeader
         eyebrow="Military talent"
-        title="Military candidates"
-        description="A filtered Talent Network view. These people are the same candidate records used in recruiting—not a separate military database."
+        title="Transitioning talent"
+        description="Transitioning service members and other military talent in the Talent Network. These are the same candidate records used in recruiting — not a PierOne SkillBridge program roster."
       />
       <MilitarySubnav active="/app/military/candidates" />
       {rows.length === 0 ? (

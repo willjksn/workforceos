@@ -22,7 +22,7 @@ import { archivePublicContentAction, togglePublicContentAction } from "@/lib/act
 const TABS: Array<{ id: string; href: string; label: string; type?: PublicContentType }> = [
   { id: "overview", href: "/app/public-content", label: "Overview" },
   { id: "featured_job", href: "/app/public-content?type=featured_job", label: "Featured jobs" },
-  { id: "featured_skillbridge", href: "/app/public-content?type=featured_skillbridge", label: "SkillBridge features" },
+  { id: "featured_skillbridge", href: "/app/public-content?type=featured_skillbridge", label: "Featured SkillBridge Opportunities" },
   { id: "homepage_banner", href: "/app/public-content?type=homepage_banner", label: "Banners" },
   { id: "urgent_hiring_notice", href: "/app/public-content?type=urgent_hiring_notice", label: "Urgent notices" },
   { id: "temporary_announcement", href: "/app/public-content?type=temporary_announcement", label: "Announcements" },
@@ -57,7 +57,7 @@ export default async function PublicContentPage({
       <PageHeader
         eyebrow="Public website"
         title="Public content"
-        description="Control featured jobs, hiring banners, and temporary announcements without redeploying pieronepartners.com. Stable brand copy stays in the website codebase."
+        description="Control featured jobs, SkillBridge-eligible employer opportunities, hiring banners, and temporary announcements without redeploying pieronepartners.com. Featured SkillBridge items are host-company/employer postings facilitated by PierOne, not PierOne-owned slots. Stable brand copy stays in the website codebase."
         actions={
           canManage ? (
             <ButtonLink href="/app/public-content/new">New item</ButtonLink>

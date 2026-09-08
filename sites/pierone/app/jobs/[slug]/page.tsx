@@ -75,7 +75,7 @@ export default async function JobPage({ params }: { params: Promise<{ slug: stri
             ))}
             {job.skillbridgeEligible ? (
               <span className="rounded-[6px] border border-teal/40 bg-teal/20 px-2.5 py-1 text-xs text-white">
-                SkillBridge
+                SkillBridge-eligible employer opportunity
               </span>
             ) : null}
           </div>
@@ -83,7 +83,7 @@ export default async function JobPage({ params }: { params: Promise<{ slug: stri
           {job.skillbridgeEligible ? (
             <p className="mt-4 max-w-2xl text-sm text-white/75">
               {job.skillbridgeDisclaimer ??
-                "SkillBridge participation depends on employer needs and approval requirements. Applying does not guarantee approval or employment."}
+                "This is a SkillBridge-eligible employer or host-company opportunity facilitated by PierOne. PierOne is not automatically the host. Participation depends on the employer and approval requirements. Applying does not guarantee approval or employment."}
             </p>
           ) : null}
         </Container>

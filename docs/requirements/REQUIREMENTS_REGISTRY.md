@@ -339,7 +339,15 @@ Database mirror: `requirements` table.
 - Module: military
 - Priority: locked
 - Status: approved
-- Acceptance: `skillbridge_profiles` link 1:1 to existing `candidates`. Creating a SkillBridge profile does not duplicate a person. Employer opportunities are many-to-many with stage history.
+- Acceptance: `skillbridge_profiles` link 1:1 to existing `candidates` as a Transition Talent Profile overlay. Creating a profile does not duplicate a person. Employer/host-company opportunities are many-to-many with stage history. A public job posting is not required to join the Military Talent Network.
+
+### WFOS-MIL-009
+
+- Title: PierOne is the military-talent intermediary, not a generic SkillBridge host program
+- Module: military
+- Priority: locked
+- Status: approved
+- Acceptance: Public and internal language treats PierOne as the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is a pathway/opportunity type. Copy must not imply a PierOne-owned SkillBridge program, automatic host status, guaranteed placement, or that every military-talent profile is an application to PierOne.
 
 ### WFOS-HIRE-001
 

@@ -81,4 +81,31 @@ describe("Phase 9 Scout", () => {
     if (create.ok) expect(create.dto.family).toBe("CREATE");
     expect(isRegisteredCommand("CREATE")).toBe(true);
   });
+
+  it("parses Military Talent intermediary commands", () => {
+    const unmatched = parseScoutIntent("Show transitioning service members who need an employer match.");
+    expect(unmatched.ok).toBe(true);
+    if (unmatched.ok) {
+      expect(unmatched.dto.entity).toBe("skillbridge");
+      expect(unmatched.dto.filters?.hasActiveOpportunity).toBe(false);
+    }
+    const windowed = parseScoutIntent("Show military talent with a SkillBridge window in the next 90 days.");
+    expect(windowed.ok).toBe(true);
+    if (windowed.ok) {
+      expect(windowed.dto.entity).toBe("skillbridge");
+      expect(windowed.dto.filters?.windowWithinDays).toBe(90);
+    }
+    const employers = parseScoutIntent("Show SkillBridge-eligible employer opportunities.");
+    expect(employers.ok).toBe(true);
+    if (employers.ok) {
+      expect(employers.dto.entity).toBe("jobs");
+      expect(employers.dto.filters?.skillbridgeEligible).toBe(true);
+    }
+    const matches = parseScoutIntent("Find employer opportunities for this transitioning service member.");
+    expect(matches.ok).toBe(true);
+    if (matches.ok) expect(matches.dto.family).toBe("FIND_MATCHES");
+    const conversion = parseScoutIntent("Show military placements likely to convert.");
+    expect(conversion.ok).toBe(true);
+    if (conversion.ok) expect(conversion.dto.filters?.conversionPending).toBe(true);
+  });
 });

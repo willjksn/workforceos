@@ -13,9 +13,9 @@ const columns = [
     title: "Talent",
     links: [
       { href: "/military-talent", label: "Military Talent" },
-      { href: "/skillbridge", label: "SkillBridge" },
+      { href: "/skillbridge", label: "SkillBridge-eligible opportunities" },
       { href: "/careers", label: "Careers" },
-      { href: "/skillbridge/join", label: "Join the network" },
+      { href: "/military-talent/join", label: "Join the Military Talent Network" },
     ],
   },
   {

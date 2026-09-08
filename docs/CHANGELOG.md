@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Military Talent intermediary model
+
+- Locked: PierOne is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is a pathway/opportunity type, not a PierOne-owned SkillBridge program.
+- Public site copy, CTAs, emails, Scout, and WorkforceOS Military Talent navigation now use Transition Talent Profile / employer opportunity language. `/military-talent/join` is the canonical network intake; `/skillbridge/join` redirects there.
+- Public gateway errors map HTML/non-JSON upstream responses to a safe "Service temporarily unavailable." message. Signed-out `/app` redirects to `/sign-in` instead of relying on Clerk `protect()` 404 behavior.
+
 ### PierOne public website + WorkforceOS public gateway
 
 - Added a separately deployable public website at `sites/pierone` (Vercel root `sites/pierone`) without relocating WorkforceOS `app/`.

@@ -100,6 +100,7 @@ export const militaryTalentPayloadSchema = z.object({
   relocationWillingness: z.string().trim().max(80).optional(),
   remotePreference: z.string().trim().max(80).optional(),
   targetCivilianRoles: z.string().trim().max(2000).optional(),
+  employmentPreference: z.string().trim().max(80).optional(),
   idealIndustry: z.string().trim().max(200).optional(),
   idealEmployer: z.string().trim().max(200).optional(),
   linkedinUrl: z.string().trim().max(300).optional(),

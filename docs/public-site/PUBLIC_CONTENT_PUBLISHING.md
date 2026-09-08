@@ -8,7 +8,7 @@ This is a lightweight publishing layer, not a CMS.
 | Belongs in WorkforceOS | Remains in public website code |
 | --- | --- |
 | Featured jobs | Homepage core positioning |
-| Featured SkillBridge roles | About, services, industries structure |
+| Featured SkillBridge Opportunities | About, services, industries structure |
 | Homepage hiring banner | Permanent brand copy |
 | Urgent hiring notice | Legal pages |
 | Temporary announcements | Visual system (navy, teal, slate, Cormorant, Inter) |
@@ -16,7 +16,7 @@ This is a lightweight publishing layer, not a CMS.
 
 Jobs and SkillBridge public roles stay single-source in WorkforceOS `jobs` / `job_postings`. Featured rows reference those records. They do not duplicate website job pages.
 
-Public SkillBridge features are **published SkillBridge-eligible job postings**, not `skillbridge_opportunities` (those are candidate–employer operating records with Restricted PII).
+Public SkillBridge features are **published SkillBridge-eligible employer/host-company job postings** facilitated by PierOne, not PierOne-owned slots and not `skillbridge_opportunities` (those are candidate–employer operating records with Restricted PII).
 
 ## Roles and permissions
 

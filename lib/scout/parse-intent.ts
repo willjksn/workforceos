@@ -23,6 +23,10 @@ export const scoutSearchFiltersSchema = z.object({
   employerFeedbackOverdue: z.boolean().optional(),
   lastContactedDays: z.number().int().positive().max(365).optional(),
   needsFollowUp: z.boolean().optional(),
+  skillbridgeEligible: z.boolean().optional(),
+  conversionPending: z.boolean().optional(),
+  windowEndingDays: z.number().int().positive().max(365).optional(),
+  submittedToday: z.boolean().optional(),
   industry: z.string().trim().max(120).optional(),
   idealEmployer: z.string().trim().max(200).optional(),
   installation: z.string().trim().max(200).optional(),
@@ -155,7 +159,13 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
     filters.windowWithinDays = 180;
   }
 
-  if (/\bwithout (an )?active (employer )?opportunit/.test(text) || /\bno opportunit/.test(text)) {
+  if (
+    /\bwithout (an )?active (employer )?opportunit/.test(text) ||
+    /\bno opportunit/.test(text) ||
+    /\bno active employer/.test(text) ||
+    /\bneed an employer match\b/.test(text) ||
+    /\bunmatched (military )?talent\b/.test(text)
+  ) {
     filters.hasActiveOpportunity = false;
   }
   if (/\bemployer feedback overdue\b|\bwaiting on feedback\b/.test(text)) {
@@ -207,17 +217,17 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
   } else if (/\bassign\b/.test(text) && /\bowner\b/.test(text)) {
     family = "ASSIGN";
     summary = "Assign an owner (confirmation required).";
-  } else if (/\bfind (matching )?(jobs|opportunities)|opportunities for\b|\bmatches for\b/.test(text)) {
+  } else if (/\bfind (matching )?(jobs|opportunities)|opportunities for\b|\bmatches for\b|\bmatch this (candidate|service member|transitioning)|\bfind employer opportunit/.test(text)) {
     family = "FIND_MATCHES";
     entity = "jobs";
-    summary = "Find matching jobs or employer opportunities.";
+    summary = "Find matching employer opportunities for this transitioning service member.";
   } else if (/\bsummarize\b/.test(text)) {
     family = "SUMMARIZE";
     summary = "Summarize the current authorized record.";
   } else if (/\bopen the skillbridge record\b|\bshow the record\b/.test(text)) {
     family = "SHOW_RECORD";
     entity = "skillbridge_profile";
-    summary = "Open the current SkillBridge record.";
+    summary = "Open the current Transition Talent Profile.";
   } else if (/\bdaily brief\b|\btoday'?s priorities\b|\bwho needs my attention\b/.test(text)) {
     family = "SHOW_DASHBOARD";
     summary = "Show today's operating priorities.";
@@ -256,7 +266,7 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
   } else if (/\bfeature this skillbridge\b|\bfeature this (skillbridge )?role\b/.test(text)) {
     family = "CREATE";
     entity = "public_content_feature_skillbridge";
-    summary = "Feature this SkillBridge role (confirmation required).";
+    summary = "Feature this SkillBridge-eligible employer opportunity (confirmation required).";
   } else if (/\bcreate a hiring banner\b|\bhiring banner for this role\b/.test(text)) {
     family = "CREATE";
     entity = "public_content_banner";
@@ -266,15 +276,40 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
     entity = "public_content_deactivate_urgent";
     summary = "Remove the current urgent hiring notice (confirmation required).";
   } else if (
+    /\bskillbridge-eligible employer opportunit|\bskillbridge eligible employer opportunit|\bemployer opportunities that are skillbridge/.test(
+      text,
+    )
+  ) {
+    entity = "jobs";
+    filters.skillbridgeEligible = true;
+    summary = "Search SkillBridge-eligible employer opportunities.";
+  } else if (
     /\bapplication|\bwho applied\b|\binterviews tomorrow\b|\bscorecards?\b|\bbackground check\b|\bdrug screen\b|\boffers? expire\b|\bnew hires?\b|\bonboarding\b|\bcareers site\b/.test(
       text,
     )
   ) {
     entity = "applications";
     summary = "Search hiring and application records.";
-  } else if (/\bskillbridge\b/.test(text) || filters.windowWithinDays || filters.hasActiveOpportunity === false || filters.employerFeedbackOverdue) {
+  } else if (
+    /\b(transitioning service members?|military talent|unmatched military|employer match|no active employer opportunit|placements? ending|likely to convert|submitted today)/.test(
+      text,
+    ) ||
+    /\bskillbridge\b/.test(text) ||
+    filters.windowWithinDays ||
+    filters.hasActiveOpportunity === false ||
+    filters.employerFeedbackOverdue
+  ) {
     entity = "skillbridge";
-    summary = "Search SkillBridge operating records.";
+    summary = "Search transitioning service members and Military Talent operating records.";
+    if (/\bsubmitted today\b|\bsubmitted through the website today\b/.test(text)) {
+      filters.submittedToday = true;
+    }
+    if (/\bplacements? ending\b|\bending in the next 30\b/.test(text)) {
+      filters.windowEndingDays = 30;
+    }
+    if (/\blikely to convert\b|\bconversion\b/.test(text)) {
+      filters.conversionPending = true;
+    }
   } else if (/\bopen jobs\b|\bjobs that match\b/.test(text)) {
     entity = "jobs";
     summary = "Search jobs.";

@@ -1,13 +1,15 @@
 import { TabNav } from "@/components/ui/display";
 
 const ITEMS = [
-  { href: "/app/military/translator", label: "Skills Translator" },
-  { href: "/app/military/candidates", label: "Military Candidates" },
+  { href: "/app/military", label: "Overview" },
+  { href: "/app/military/candidates", label: "Transitioning Talent" },
+  { href: "/app/military/opportunities", label: "Employer Opportunities" },
   { href: "/app/military/skillbridge", label: "SkillBridge" },
+  { href: "/app/military/translator", label: "Skills Translator" },
   { href: "/app/military/occupations", label: "Occupation Library" },
   { href: "/app/military/installation-mapping", label: "Installation Mapping" },
   { href: "/app/military/bridge-training", label: "Bridge Training" },
-  { href: "/app/military/analytics", label: "Military Analytics" },
+  { href: "/app/military/analytics", label: "Analytics" },
   { href: "/app/military/crosswalk", label: "Crosswalk" },
   { href: "/app/military/reverse", label: "Reverse search" },
   { href: "/app/military/installations", label: "Installations" },

@@ -71,16 +71,16 @@ export function draftSkillBridgeMessage(input: {
 
   const body =
     input.audience === "employer"
-      ? `I am sharing a SkillBridge candidate brief for ${input.candidateName}. Military background: ${occupation}. Civilian translation (approved/on file): ${translation}. Relevant recorded skills: ${skills}. SkillBridge availability: ${windowLabel}. Preferred location: ${location}. Target role: ${role}. This draft uses stored WorkforceOS records only and is not an employment guarantee.`
-      : `Hi ${input.candidateName.split(" ")[0]}, checking in on your SkillBridge timeline (${windowLabel}). We have ${occupation} on file${input.companyName ? ` and ${company} / ${role}` : ""}. This is a draft for human review and will not send until you confirm.`;
+      ? `I am sharing a transitioning service member brief for ${input.candidateName}. Military background: ${occupation}. Civilian translation (approved/on file): ${translation}. Relevant recorded skills: ${skills}. Transition / SkillBridge window: ${windowLabel}. Preferred location: ${location}. Target role: ${role}. PierOne is the intermediary; the employer/host company owns any SkillBridge opportunity. This draft uses stored WorkforceOS records only and is not an employment guarantee.`
+      : `Hi ${input.candidateName.split(" ")[0]}, checking in on your military transition timeline (${windowLabel}). We have ${occupation} on file${input.companyName ? ` and ${company} / ${role}` : ""}. This is a draft for human review and will not send until you confirm.`;
 
   return {
     kind: input.kind,
     audience: input.audience,
     subject:
       input.audience === "employer"
-        ? `SkillBridge candidate overview — ${input.candidateName}`
-        : `SkillBridge check-in — ${input.candidateName}`,
+        ? `Transitioning talent overview — ${input.candidateName}`
+        : `Military transition check-in — ${input.candidateName}`,
     body,
     facts,
     invented: false,

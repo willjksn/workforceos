@@ -152,15 +152,16 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 - Permissions: `scout.use`, `scout.search`, `scout.draft`, `scout.internal_actions`, `scout.external_actions`. Scout cannot self-approve, send contracts, execute offers, reject candidates solely via AI, or bypass RBAC.
 - `scout_sessions` / `scout_messages` / `scout_actions` are usability memory. PostgreSQL business tables remain the system of record.
 
-## SkillBridge operations (Phase 9)
+## Military Talent operations (Phase 9)
 
-- SkillBridge people are existing Talent Network `candidates`. `skillbridge_profiles` are a 1:1 overlay. Do not duplicate a candidate per employer or job.
-- Preferred locations and target roles are junction tables. Employer connections are `skillbridge_opportunities` with stage history. Filtered fields are relational columns, not JSONB.
+- PierOne is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is a transition pathway and opportunity type within Military Talent operations, not a PierOne-owned generic SkillBridge program. PierOne is generally not the SkillBridge host.
+- Transitioning people are existing Talent Network `candidates`. `skillbridge_profiles` are a 1:1 Transition Talent Profile overlay. UI language may say Transition Talent Profile while the physical table name stays `skillbridge_profiles`. Do not duplicate a candidate per employer or job. A public job posting is not required before someone can join the Military Talent Network.
+- Preferred locations and target roles are junction tables. Employer connections are `skillbridge_opportunities` (UI: Employer / host-company opportunities) with stage history. Filtered fields are relational columns, not JSONB.
 - Resume status is `missing | outdated | current | needs_review` — not a quality score. Files use the existing storage abstraction; binaries stay out of PostgreSQL.
-- Matching reuses the existing job-match architecture. Humans connect or submit. Employer briefs and message drafts require human review.
+- Matching is Transition Talent Profile ↔ employer opportunity using skills, military occupation, translated civilian role, location, timing, SkillBridge window, certifications, clearance when required, industry, and preferences. It reuses the existing job-match architecture. Humans connect or submit. Employer briefs and message drafts require human review.
 - Follow-up, window, no-opportunity, employer-feedback, resume-missing, and conversion rules live in configurable `skillbridge_alert_rules`. Inngest runs scans. In-app notifications are the delivery channel.
 - Metrics and My SkillBridge Queue counts come from stored rows only. Permissions: `skillbridge.read`, `skillbridge.write`, `skillbridge.manage`, `skillbridge.export`. Restricted PII rules still apply.
-- Development fixtures include labeled SkillBridge people. Production seed (`db:seed:prod`) loads alert-rule defaults only, not those people.
+- Development fixtures include labeled transitioning talent. Production seed (`db:seed:prod`) loads alert-rule defaults only, not those people.
 
 ## Careers, ATS, and onboarding (Phase 10)
 

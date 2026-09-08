@@ -66,7 +66,7 @@ async function assertLinkedJob(input: {
     throw new PublicContentError("Only public, published, open jobs can be featured.");
   }
   if (input.contentType === "featured_skillbridge" && !row.posting.skillbridgeEligible && row.job.jobContextType !== "skillbridge") {
-    throw new PublicContentError("That role is not a SkillBridge job.");
+    throw new PublicContentError("That role is not a SkillBridge-eligible employer opportunity.");
   }
   return row;
 }

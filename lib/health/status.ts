@@ -236,7 +236,7 @@ export async function getSystemHealth() {
         ? "Military talent intake cannot be stored until the database is connected."
         : env.NODE_ENV === "production" && !env.PUBLIC_SITE_INTEGRATION_SECRET
           ? "NOT READY — production military-talent intake requires HMAC signing."
-          : "POST /api/public/v1/military-talent reuses Candidate + SkillBridge profile records.",
+          : "POST /api/public/v1/military-talent reuses Candidate + Transition Talent Profile (skillbridge_profiles) records. A public job is not required.",
     },
     {
       title: "Public careers URL",

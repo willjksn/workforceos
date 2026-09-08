@@ -92,11 +92,12 @@ Scout is the persistent in-app assistant (tooltip: Open Scout). It is a right-si
 - Drafts never send. Copy or a later human-approved send path is required. `scout.external_actions` is required before any external send is even proposed.
 - Do not treat Scout chat as the system of record. Correct data on the candidate, job, company, or SkillBridge record.
 
-## SkillBridge
+## Military Talent / SkillBridge
 
-SkillBridge is an overlay on Talent Network candidates at `/app/military/skillbridge`.
+PierOne is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is one pathway at `/app/military/skillbridge`, not a PierOne-owned program.
 
-- Create a profile against an existing candidate. Do not create a second person.
+- Create a Transition Talent Profile against an existing candidate (`skillbridge_profiles`). Do not create a second person. A public job posting is not required first.
+- Employer opportunities (`skillbridge_opportunities`) must name a host company/employer. PierOne facilitates the match.
 - My SkillBridge Queue is the owner's overdue follow-ups, windows, missing resumes, and employer feedback. Managers with `skillbridge.manage` can switch to the global queue.
 - Alert thresholds are `skillbridge_alert_rules` (not hardcoded). Inngest `workforceos/skillbridge-follow-up-scan` and `workforceos/skillbridge-match` populate in-app notifications.
 - Humans connect or submit to employers. Scout/agent drafts of briefs and emails stay drafts.

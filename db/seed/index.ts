@@ -1088,6 +1088,7 @@ async function seedRequirementsAndDecisions(db: ReturnType<typeof getDb>) {
     ["WFOS-AI-005", "ai", "Scout parses natural language into a closed command registry and never generates SQL."],
     ["WFOS-AI-006", "ai", "Scout enforces RBAC and Restricted PII before model context and requires confirmation for material writes."],
     ["WFOS-MIL-008", "military", "SkillBridge profiles link to existing Talent Network candidates and do not duplicate people."],
+    ["WFOS-MIL-009", "military", "PierOne is the intermediary between transitioning service members and employer/host-company opportunities."],
   ] as const;
 
   for (const [code, module, description] of requirementSeed) {
@@ -1152,6 +1153,7 @@ async function seedRequirementsAndDecisions(db: ReturnType<typeof getDb>) {
     ["DEC-AI-010", "Scout page context and confirmation", "RBAC and PII stripping happen before model context. Material writes confirm. Drafts do not auto-send."],
     ["DEC-MIL-003", "SkillBridge people are Talent Network candidates", "skillbridge_profiles link to candidates. No duplicate person records."],
     ["DEC-MIL-004", "SkillBridge matching and alerts stay human-gated", "Configurable alert rules, Inngest scans, in-app notifications. Humans connect/submit."],
+    ["DEC-MIL-005", "PierOne is the military-talent intermediary", "SkillBridge is a pathway/opportunity type, not a PierOne-owned SkillBridge program. Physical tables are retained."],
     ["DEC-OPS-002", "In-app notifications are a foundation", "Not a second inbox. Point at source records."],
   ] as const;
 

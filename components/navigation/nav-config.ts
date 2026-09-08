@@ -89,13 +89,15 @@ const NAV: NavGroup[] = [
   {
     label: "Military Talent",
     items: [
-      { href: "/app/military/translator", label: "Skills Translator", icon: "sparkles", permission: "military.read" },
-      { href: "/app/military/candidates", label: "Military Candidates", icon: "user", permission: "military.read" },
+      { href: "/app/military", label: "Overview", icon: "shield", permission: "military.read" },
+      { href: "/app/military/candidates", label: "Transitioning Talent", icon: "user", permission: "military.read" },
+      { href: "/app/military/opportunities", label: "Employer Opportunities", icon: "briefcase", anyPermission: ["skillbridge.read", "military.read"] },
       { href: "/app/military/skillbridge", label: "SkillBridge", icon: "sprout", anyPermission: ["skillbridge.read", "military.read"] },
+      { href: "/app/military/translator", label: "Skills Translator", icon: "sparkles", permission: "military.read" },
       { href: "/app/military/occupations", label: "Occupation Library", icon: "layers", permission: "military.read" },
       { href: "/app/military/installation-mapping", label: "Installation Mapping", icon: "network", permission: "military.read" },
       { href: "/app/military/bridge-training", label: "Bridge Training", icon: "sprout", permission: "military.read" },
-      { href: "/app/military/analytics", label: "Military Analytics", icon: "dashboard", permission: "military.read" },
+      { href: "/app/military/analytics", label: "Analytics", icon: "dashboard", permission: "military.read" },
       { href: "/app/military/crosswalk", label: "Civilian Crosswalk", icon: "rotate", permission: "military.read" },
       { href: "/app/military/reverse", label: "Reverse Search", icon: "search", permission: "military.read" },
       { href: "/app/military/installations", label: "Installations", icon: "building", permission: "military.read" },

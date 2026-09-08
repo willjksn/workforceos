@@ -84,6 +84,7 @@ async function handleMilitaryTalentPost(request: Request) {
         relocationWillingness: optionalText(form.get("relocationWillingness")),
         remotePreference: optionalText(form.get("remotePreference")),
         targetCivilianRoles: optionalText(form.get("targetCivilianRoles")),
+        employmentPreference: optionalText(form.get("employmentPreference")),
         idealIndustry: optionalText(form.get("idealIndustry")),
         idealEmployer: optionalText(form.get("idealEmployer")),
         linkedinUrl: optionalText(form.get("linkedinUrl")),

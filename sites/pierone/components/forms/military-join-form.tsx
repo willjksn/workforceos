@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { buttonPrimaryClass, fieldClass } from "@/components/ui-classes";
+import { readPublicJsonError } from "@/lib/public-errors";
 
 export function MilitaryJoinForm() {
   const [status, setStatus] = useState<"idle" | "submitting" | "done" | "error">("idle");
@@ -12,10 +13,9 @@ export function MilitaryJoinForm() {
     event.preventDefault();
     setStatus("submitting");
     const response = await fetch("/api/military-talent", { method: "POST", body: new FormData(event.currentTarget) });
-    const payload = (await response.json()) as { error?: string };
     if (!response.ok) {
       setStatus("error");
-      setMessage(payload.error ?? "Unable to submit right now.");
+      setMessage(await readPublicJsonError(response, "Unable to submit right now."));
       return;
     }
     setStatus("done");
@@ -26,8 +26,10 @@ export function MilitaryJoinForm() {
       <div className="rounded-[6px] border border-border bg-white p-6">
         <h2 className="font-serif text-2xl text-navy">Submission received</h2>
         <p className="mt-3 text-sm leading-6 text-muted">
-          Thank you. Joining the Military Talent Network does not guarantee a SkillBridge approval, interview, placement,
-          or employment.
+          Thanks for joining the PierOne Military Talent Network. We received your transition profile. Our team may use
+          your military experience, career goals, location preferences, and transition timing to identify potential
+          employer and SkillBridge-eligible opportunities. Joining does not guarantee a SkillBridge approval, interview,
+          placement, or employment.
         </p>
       </div>
     );
@@ -65,6 +67,15 @@ export function MilitaryJoinForm() {
         <Field label="Remote preference" name="remotePreference" />
         <Field label="Ideal industry" name="idealIndustry" />
         <Field label="Ideal employer (optional)" name="idealEmployer" />
+        <label className="block text-sm">
+          Employment preference
+          <select name="employmentPreference" className={fieldClass}>
+            <option value="">Select</option>
+            <option value="skillbridge">SkillBridge-eligible opportunity</option>
+            <option value="direct_hire">Direct civilian employment</option>
+            <option value="either">Either / open</option>
+          </select>
+        </label>
         <Field label="LinkedIn (optional)" name="linkedinUrl" className="sm:col-span-2" />
       </div>
       <label className="block text-sm">
@@ -92,7 +103,7 @@ export function MilitaryJoinForm() {
       </label>
       {status === "error" ? <p className="text-sm text-red-800">{message}</p> : null}
       <button type="submit" disabled={status === "submitting"} className={buttonPrimaryClass}>
-        {status === "submitting" ? "Submitting…" : "Join the network"}
+        {status === "submitting" ? "Submitting…" : "Join the Military Talent Network"}
       </button>
     </form>
   );

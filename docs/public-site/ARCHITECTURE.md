@@ -7,7 +7,7 @@ This is not Phase 11 of WorkforceOS. It is the public business front door for Pi
 
 | Surface | Origin | Role |
 | --- | --- | --- |
-| Public website | `pieronepartners.com` / `www.pieronepartners.com` | Marketing, employer inquiry, careers rendering, SkillBridge / military talent intake |
+| Public website | `pieronepartners.com` / `www.pieronepartners.com` | Marketing, employer inquiry, careers rendering, Military Talent Network intake, SkillBridge-eligible employer opportunities |
 | WorkforceOS | `app.pieronepartners.com` | Private operating system; system of record |
 
 ## Request path

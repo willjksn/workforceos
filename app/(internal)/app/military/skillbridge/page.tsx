@@ -48,12 +48,12 @@ export default async function SkillBridgeDashboardPage({
       <PageHeader
         eyebrow="Military talent"
         title="SkillBridge"
-        description="Operating overlay on Talent Network candidates. Counts come from stored SkillBridge profiles only."
+        description="SkillBridge is one pathway inside Military Talent operations. Profiles are Transition Talent overlays on Talent Network candidates. PierOne is the intermediary; host companies/employers own SkillBridge-eligible opportunities."
       />
       <MilitarySubnav active="/app/military/skillbridge" />
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Active SkillBridge candidates" value={metrics.activeCandidates} />
+        <MetricCard label="Active transitioning talent" value={metrics.activeCandidates} />
         <MetricCard label="Windows next 30 days" value={metrics.windows30} />
         <MetricCard label="Windows next 60 days" value={metrics.windows60} />
         <MetricCard label="Windows next 90 days" value={metrics.windows90} />
@@ -69,7 +69,7 @@ export default async function SkillBridgeDashboardPage({
       </div>
 
       <section className="mt-10">
-        <h2 className="section-title">My SkillBridge Queue</h2>
+        <h2 className="section-title">My SkillBridge queue</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           {canManage ? (
             <Link href={params.queue === "all" ? "/app/military/skillbridge" : "/app/military/skillbridge?queue=all"} className="text-navy underline">
@@ -108,8 +108,8 @@ export default async function SkillBridgeDashboardPage({
 
       <div className="mt-6 space-y-3">
         {cards.length === 0 ? (
-          <EmptyState title="No SkillBridge candidates in this view.">
-            SkillBridge people are existing Talent Network candidates. Create a profile from a candidate record.
+          <EmptyState title="No transitioning talent in this view.">
+            These people are existing Talent Network candidates with a Transition Talent Profile. Create a profile from a candidate record. A public job posting is not required first.
           </EmptyState>
         ) : (
           cards.map((card) => (
@@ -145,7 +145,7 @@ export default async function SkillBridgeDashboardPage({
               ) : null}
               <div className="mt-4 flex flex-wrap gap-3 text-sm">
                 <Link className="text-navy underline" href={`/app/military/skillbridge/${card.profile.id}`}>
-                  Open SkillBridge
+                  Open transition profile
                 </Link>
                 <Link className="text-navy underline" href={`/app/talent/${card.candidate.id}`}>
                   Open full candidate profile

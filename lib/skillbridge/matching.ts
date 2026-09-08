@@ -81,6 +81,7 @@ export async function findSkillBridgeMatches(input: {
     preferredCity: primary?.city ?? profile.candidate.city,
     preferredRegion: primary?.region ?? profile.candidate.region,
     targetRoles: roles.map((row) => row.roleTitle),
+    preferSkillbridgeEligible: Boolean(profile.profile.skillbridgeWindowStart || profile.profile.skillbridgeWindowEnd),
     limit: input.limit ?? 8,
   });
 }
@@ -92,6 +93,7 @@ async function matchCandidateToOpenJobs(input: {
   preferredCity?: string | null;
   preferredRegion?: string | null;
   targetRoles: string[];
+  preferSkillbridgeEligible?: boolean;
   limit: number;
 }) {
   const db = getDb();
@@ -144,12 +146,18 @@ async function matchCandidateToOpenJobs(input: {
         location: job.locationLabel,
         status: job.status,
         overall: scored.overall,
+        skillbridgeEligible: job.skillbridgeEligible || job.jobContextType === "skillbridge",
         explanation: scored.explanation,
         strengths: scored.strengths,
         gaps: scored.gaps,
         href: `/app/jobs/${job.id}`,
       };
     })
-    .sort((a, b) => b.overall - a.overall)
+    .sort((a, b) => {
+      if (input.preferSkillbridgeEligible && a.skillbridgeEligible !== b.skillbridgeEligible) {
+        return a.skillbridgeEligible ? -1 : 1;
+      }
+      return b.overall - a.overall;
+    })
     .slice(0, input.limit);
 }

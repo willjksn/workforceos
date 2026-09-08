@@ -51,16 +51,16 @@ export function assertSafeCtaUrl(value: string | null | undefined) {
     }
     return trimmed;
   }
-  let parsed: URL;
   try {
-    parsed = new URL(trimmed);
-  } catch {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== "https:") {
+      throw new PublicContentError("CTA URL must be an https URL or a site path.");
+    }
+    return parsed.toString();
+  } catch (error) {
+    if (error instanceof PublicContentError) throw error;
     throw new PublicContentError("CTA URL is not valid.");
   }
-  if (parsed.protocol !== "https:") {
-    throw new PublicContentError("CTA URL must be an https URL or a site path.");
-  }
-  return parsed.toString();
 }
 
 export function defaultPlacement(contentType: PublicContentWriteInput["contentType"]) {

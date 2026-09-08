@@ -62,7 +62,7 @@ export function JobList({ jobs }: { jobs: PublicJob[] }) {
         </label>
         <label className="flex items-end gap-2 pb-2 text-sm text-navy">
           <input type="checkbox" checked={skillbridge} onChange={(event) => setSkillbridge(event.target.checked)} />
-          SkillBridge only
+          SkillBridge-eligible only
         </label>
       </form>
       {filtered.length === 0 ? (
@@ -86,7 +86,7 @@ export function JobList({ jobs }: { jobs: PublicJob[] }) {
                     <span className="rounded-[6px] border border-border px-2 py-1 text-muted">{job.workplaceType}</span>
                   ) : null}
                   {job.skillbridgeEligible ? (
-                    <span className="rounded-[6px] border border-teal/30 bg-teal/10 px-2 py-1 text-navy">SkillBridge</span>
+                    <span className="rounded-[6px] border border-teal/30 bg-teal/10 px-2 py-1 text-navy">SkillBridge-eligible</span>
                   ) : null}
                 </span>
               </Link>

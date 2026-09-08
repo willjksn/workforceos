@@ -30,8 +30,22 @@ function workforceOsRequestHeaders(extra: Record<string, string> = {}) {
 
 async function throwIfWriteFailed(response: Response, fallback: string) {
   if (response.ok) return;
-  const data = (await response.json().catch(() => ({}))) as { error?: string };
-  throw new Error(data.error ?? `${fallback} (${response.status})`);
+  const { publicSafeErrorMessage, PUBLIC_SERVICE_UNAVAILABLE } = await import("@/lib/public-errors");
+  const contentType = response.headers.get("content-type") ?? "";
+  const text = await response.text();
+  if (!contentType.includes("application/json") || text.trim().startsWith("<")) {
+    console.error("WorkforceOS public write returned non-JSON", {
+      status: response.status,
+      host: new URL(response.url).host,
+    });
+    throw new Error(PUBLIC_SERVICE_UNAVAILABLE);
+  }
+  try {
+    throw new Error(publicSafeErrorMessage(JSON.parse(text), fallback || PUBLIC_SERVICE_UNAVAILABLE));
+  } catch (error) {
+    if (error instanceof SyntaxError) throw new Error(PUBLIC_SERVICE_UNAVAILABLE);
+    throw error instanceof Error ? error : new Error(PUBLIC_SERVICE_UNAVAILABLE);
+  }
 }
 
 async function postSigned(pathname: string, body: string | Uint8Array, contentType: string) {

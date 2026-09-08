@@ -234,12 +234,12 @@ async function executeAuthorizedCommand(input: {
       const id = input.dto.skillbridgeProfileId ?? input.pageContext.entityId;
       if (id && (input.pageContext.entityType === "skillbridge_profile" || input.dto.entity === "skillbridge_profile")) {
         return {
-          message: "Open the SkillBridge record.",
+          message: "Open the Transition Talent Profile.",
           cards: [
             {
               type: "skillbridge",
               id,
-              title: "SkillBridge record",
+              title: "Transition Talent Profile",
               href: `/app/military/skillbridge/${id}`,
               meta: "Current page context",
               fields: {},
@@ -247,7 +247,7 @@ async function executeAuthorizedCommand(input: {
           ],
           confirmation: null,
           draft: null,
-          links: [{ href: `/app/military/skillbridge/${id}`, label: "Open SkillBridge" }],
+          links: [{ href: `/app/military/skillbridge/${id}`, label: "Open transition profile" }],
         };
       }
     }
@@ -284,7 +284,7 @@ async function executeAuthorizedCommand(input: {
         fields: { status: card.profile.candidateStatus },
       }));
     return {
-      message: cards.length ? "Today's SkillBridge priorities from stored records." : "No stored SkillBridge priorities for today.",
+      message: cards.length ? "Today's Military Talent priorities from stored records." : "No stored Military Talent priorities for today.",
       cards,
       confirmation: null,
       draft: null,
@@ -312,7 +312,7 @@ async function executeAuthorizedCommand(input: {
       return {
         message: detail
           ? `${detail.card.candidate.fullName}: ${detail.card.profile.candidateStatus.replaceAll("_", " ")}. Window ${detail.card.profile.skillbridgeWindowStart?.toLocaleDateString() ?? "not on file"}.`
-          : "No SkillBridge record in context.",
+          : "No Transition Talent Profile in context.",
         cards: [],
         confirmation: null,
         draft: null,
@@ -321,11 +321,11 @@ async function executeAuthorizedCommand(input: {
     }
     const metrics = await getSkillBridgeMetrics(input.principal.organizationId);
     return {
-      message: `Active SkillBridge candidates: ${metrics.activeCandidates}. Windows in 90 days: ${metrics.windows90}. Without opportunity: ${metrics.withoutOpportunity}.`,
+      message: `Transitioning talent in active Military Talent operations: ${metrics.activeCandidates}. SkillBridge windows in 90 days: ${metrics.windows90}. Without an employer match: ${metrics.withoutOpportunity}.`,
       cards: [],
       confirmation: null,
       draft: null,
-      links: [{ href: "/app/military/skillbridge", label: "SkillBridge" }],
+      links: [{ href: "/app/military", label: "Military Talent" }],
     };
   }
 
@@ -437,7 +437,7 @@ async function executeAuthorizedCommand(input: {
   if (input.dto.family === "CREATE_FOLLOW_UP") {
     const profileId = input.dto.skillbridgeProfileId ?? input.pageContext.entityId;
     if (!profileId) {
-      return { message: "No SkillBridge profile in context for follow-up.", cards: [], confirmation: null, draft: null, links: [] };
+      return { message: "No Transition Talent Profile in context for follow-up.", cards: [], confirmation: null, draft: null, links: [] };
     }
     const followUpAt = input.dto.followUpAt ? new Date(input.dto.followUpAt) : new Date(Date.now() + 7 * 86400000);
     await addSkillBridgeFollowUp({
@@ -447,7 +447,7 @@ async function executeAuthorizedCommand(input: {
       followUpAt,
     });
     return {
-      message: "Follow-up recorded on the SkillBridge profile.",
+      message: "Follow-up recorded on the Transition Talent Profile.",
       cards: [],
       confirmation: null,
       draft: null,
@@ -525,7 +525,7 @@ async function executeAuthorizedCommand(input: {
   if (input.dto.family === "UPDATE" && input.dto.preferredLocation) {
     const profileId = input.dto.skillbridgeProfileId ?? input.pageContext.entityId;
     if (!profileId) {
-      return { message: "No SkillBridge profile to update.", cards: [], confirmation: null, draft: null, links: [] };
+      return { message: "No Transition Talent Profile to update.", cards: [], confirmation: null, draft: null, links: [] };
     }
     await updateSkillBridgeProfile({
       actor: { organizationId: input.principal.organizationId, userId: input.principal.id },
@@ -588,14 +588,14 @@ async function executeAuthorizedCommand(input: {
           principal: input.principal,
           data: {
             contentType: skillbridge ? "featured_skillbridge" : "featured_job",
-            title: skillbridge ? "Featured SkillBridge role" : "Featured job",
+            title: skillbridge ? "Featured SkillBridge-eligible employer opportunity" : "Featured job",
             linkedJobId: jobId,
             placement: skillbridge ? "skillbridge" : "careers",
             isActive: true,
           },
         });
         return {
-          message: skillbridge ? "SkillBridge role featured on the public site." : "Job featured on the public site.",
+          message: skillbridge ? "SkillBridge-eligible employer opportunity featured on the public site." : "Job featured on the public site.",
           cards: [],
           confirmation: null,
           draft: null,
@@ -639,7 +639,7 @@ async function executeAuthorizedCommand(input: {
   if (input.dto.family === "ASSIGN") {
     const profileId = input.dto.skillbridgeProfileId ?? input.pageContext.entityId;
     if (!profileId || !input.dto.ownerUserId) {
-      return { message: "Owner assignment needs a SkillBridge profile and owner.", cards: [], confirmation: null, draft: null, links: [] };
+      return { message: "Owner assignment needs a Transition Talent Profile and owner.", cards: [], confirmation: null, draft: null, links: [] };
     }
     await updateSkillBridgeProfile({
       actor: { organizationId: input.principal.organizationId, userId: input.principal.id },

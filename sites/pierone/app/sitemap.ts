@@ -16,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/contact",
     "/skillbridge",
     "/skillbridge/join",
+    "/military-talent/join",
     "/privacy",
     "/candidate-privacy",
     "/terms",

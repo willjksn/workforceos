@@ -5,13 +5,13 @@ export function suggestedScoutPrompts(module: string, entityType: string | null)
       "Draft follow-up",
       "Show communication history",
       "Summarize this candidate",
-      "Find similar candidates",
+      "Find employer opportunities for this transitioning service member",
     ];
   }
   if (entityType === "job" || module === "recruiting") {
     return [
       "Find internal candidates",
-      "Find SkillBridge candidates",
+      "Find transitioning service members",
       "Show military matches",
       "Draft outreach",
       "Show pipeline risks",
@@ -20,10 +20,10 @@ export function suggestedScoutPrompts(module: string, entityType: string | null)
   if (module === "skillbridge") {
     return [
       "Who needs follow-up?",
-      "Windows opening in 90 days",
-      "Candidates without opportunities",
-      "Draft check-in messages",
-      "Employer feedback overdue",
+      "Show military talent with a SkillBridge window in the next 90 days",
+      "Show transitioning service members who need an employer match",
+      "Show SkillBridge-eligible employer opportunities",
+      "Show military placements likely to convert",
     ];
   }
   if (entityType === "company" || module === "crm") {
@@ -37,8 +37,8 @@ export function suggestedScoutPrompts(module: string, entityType: string | null)
   }
   return [
     "Who needs my attention today?",
-    "Show SkillBridge candidates with no opportunity",
-    "Show SkillBridge windows opening in 90 days",
+    "Show transitioning service members who do not have an employer match",
+    "Show unmatched military talent",
     "Today's priorities",
   ];
 }

@@ -183,6 +183,9 @@ export async function submitMilitaryTalentProfile(input: MilitaryTalentPayload &
     remotePreference: input.remotePreference ? stripHtml(input.remotePreference) : null,
     idealIndustry: input.idealIndustry ? stripHtml(input.idealIndustry) : null,
     idealEmployer: input.idealEmployer ? stripHtml(input.idealEmployer) : null,
+    idealEmployerNotes: input.employmentPreference
+      ? `Employment preference: ${stripHtml(input.employmentPreference)}`
+      : existing?.idealEmployerNotes ?? null,
     candidateStatus: existing?.candidateStatus === "new" || !existing ? ("new" as const) : existing.candidateStatus,
     resumeStatus: input.resume ? ("needs_review" as const) : existing?.resumeStatus ?? ("missing" as const),
     ownerUserId: existing?.ownerUserId ?? ownerUserId,

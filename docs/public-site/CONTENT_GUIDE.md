@@ -2,13 +2,13 @@
 
 Stable marketing copy lives in `sites/pierone/lib/content.ts` and page files. Do not invent statistics, client logos, testimonials, or team bios.
 
-WorkforceOS owns jobs, applications, candidates, SkillBridge profiles, CRM inquiries after submission, and **frequently changing public operational content** (`public_content_items`): featured jobs, featured SkillBridge roles, homepage banners, urgent hiring notices, temporary announcements, and industry campaigns.
+WorkforceOS owns jobs, applications, candidates, Transition Talent Profiles (`skillbridge_profiles`), CRM inquiries after submission, and **frequently changing public operational content** (`public_content_items`): featured jobs, featured SkillBridge-eligible employer opportunities, homepage banners, urgent hiring notices, temporary announcements, and industry campaigns.
 
 Do not use WorkforceOS Public Content as a general website editor. About, services, industries structure, legal pages, and permanent brand copy stay in the website codebase.
 
 Public site pages omit a section when no active content is returned. They must not fail.
 
-Do not describe PierOne as a high-volume staffing agency or promise SkillBridge approval.
+Do not describe PierOne as a high-volume staffing agency, as a generic SkillBridge host program, or promise SkillBridge approval or placement.
 
 Five public services only:
 

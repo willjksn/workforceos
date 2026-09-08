@@ -145,3 +145,18 @@ describe("PierOne WorkforceOS HMAC signing", () => {
     ).toThrow(/WORKFORCEOS_SITE_SECRET/);
   });
 });
+
+describe("PierOne public error mapping", () => {
+  it("maps HTML and object errors to a safe public message", async () => {
+    const { publicSafeErrorMessage, readPublicJsonError, PUBLIC_SERVICE_UNAVAILABLE } = await import("../lib/public-errors");
+    expect(publicSafeErrorMessage("<html>Login</html>")).toBe(PUBLIC_SERVICE_UNAVAILABLE);
+    expect(publicSafeErrorMessage({ error: { issues: ["x"] } })).toBe(PUBLIC_SERVICE_UNAVAILABLE);
+    expect(publicSafeErrorMessage("[object Object]")).toBe(PUBLIC_SERVICE_UNAVAILABLE);
+    expect(publicSafeErrorMessage("Signed request required.")).toBe("Signed request required.");
+    const htmlResponse = new Response("<!DOCTYPE html><html></html>", {
+      status: 401,
+      headers: { "content-type": "text/html" },
+    });
+    expect(await readPublicJsonError(htmlResponse)).toBe(PUBLIC_SERVICE_UNAVAILABLE);
+  });
+});

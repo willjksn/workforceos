@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { buttonPrimaryClass, fieldClass } from "@/components/ui-classes";
+import { readPublicJsonError } from "@/lib/public-errors";
 
 export function ApplyForm({ slug, jobTitle }: { slug: string; jobTitle: string }) {
   const [status, setStatus] = useState<"idle" | "submitting" | "done" | "error">("idle");
@@ -14,10 +15,9 @@ export function ApplyForm({ slug, jobTitle }: { slug: string; jobTitle: string }
     const form = new FormData(event.currentTarget);
     form.set("slug", slug);
     const response = await fetch("/api/apply", { method: "POST", body: form });
-    const payload = (await response.json()) as { error?: string };
     if (!response.ok) {
       setStatus("error");
-      setMessage(payload.error ?? "Unable to submit this application.");
+      setMessage(await readPublicJsonError(response, "Unable to submit this application."));
       return;
     }
     setStatus("done");

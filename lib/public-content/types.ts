@@ -30,7 +30,7 @@ export type PublicIndustryCode = (typeof PUBLIC_INDUSTRY_CODES)[number];
 
 export const PUBLIC_CONTENT_TYPE_LABELS: Record<PublicContentType, string> = {
   featured_job: "Featured job",
-  featured_skillbridge: "Featured SkillBridge role",
+  featured_skillbridge: "Featured SkillBridge-eligible employer opportunity",
   homepage_banner: "Homepage banner",
   urgent_hiring_notice: "Urgent hiring notice",
   temporary_announcement: "Temporary announcement",

@@ -43,7 +43,7 @@ export async function executeScoutSearch(input: {
         profileId: input.dto.skillbridgeProfileId,
       });
       return {
-        summary: `Found ${matches.length} stored job matches.`,
+    summary: `Found ${matches.length} employer opportunity matches.`,
         cards: matches.map((match) => ({
           type: "job" as const,
           id: match.jobId,
@@ -59,7 +59,7 @@ export async function executeScoutSearch(input: {
         })),
       };
     }
-    return searchJobs(input.organizationId, filters.title ?? filters.skill, filters.city ?? filters.region);
+    return searchJobs(input.organizationId, filters.title ?? filters.skill, filters.city ?? filters.region, filters.skillbridgeEligible === true);
   }
 
   if (input.dto.entity === "public_content") {
@@ -144,7 +144,7 @@ export async function executeScoutSearch(input: {
 
   if (input.dto.entity === "skillbridge" || filters.windowWithinDays || filters.hasActiveOpportunity === false || filters.employerFeedbackOverdue || filters.needsFollowUp) {
     if (!input.permissions.has("skillbridge.read") && !input.permissions.has("military.read")) {
-      return { summary: "No SkillBridge access.", cards: [] };
+      return { summary: "No Military Talent access.", cards: [] };
     }
     return searchSkillBridge(input);
   }
@@ -222,7 +222,7 @@ async function searchCandidates(input: {
   return { summary: `Found ${cards.length} authorized candidate records.`, cards };
 }
 
-async function searchJobs(organizationId: string, query?: string, location?: string) {
+async function searchJobs(organizationId: string, query?: string, location?: string, skillbridgeEligible?: boolean) {
   const db = getDb();
   const rows = await db
     .select({ job: jobs, company: companies })
@@ -232,13 +232,16 @@ async function searchJobs(organizationId: string, query?: string, location?: str
       and(
         eq(jobs.organizationId, organizationId),
         isNull(jobs.archivedAt),
+        skillbridgeEligible ? or(eq(jobs.skillbridgeEligible, true), eq(jobs.jobContextType, "skillbridge")) : undefined,
         query ? or(ilike(jobs.title, `%${query}%`), ilike(jobs.locationLabel, `%${query}%`)) : undefined,
         location ? or(ilike(jobs.locationLabel, `%${location}%`), ilike(jobs.title, `%${location}%`)) : undefined,
       ),
     )
     .limit(SCOUT_RESULT_LIMIT);
   return {
-    summary: `Found ${rows.length} jobs.`,
+    summary: skillbridgeEligible
+      ? `Found ${rows.length} SkillBridge-eligible employer opportunities.`
+      : `Found ${rows.length} jobs.`,
     cards: rows.map(({ job, company }) => ({
       type: "job" as const,
       id: job.id,
@@ -310,12 +313,24 @@ async function searchSkillBridge(input: {
         if ((card.occupation?.code ?? "") !== "EM") return false;
       }
     }
+    if (filters.submittedToday) {
+      const created = card.profile.createdAt;
+      if (!created) return false;
+      if (created.toDateString() !== now.toDateString()) return false;
+    }
+    if (filters.conversionPending && card.profile.candidateStatus !== "conversion_pending") return false;
+    if (filters.windowEndingDays) {
+      const end = card.profile.skillbridgeWindowEnd;
+      if (!end) return false;
+      const days = (end.getTime() - now.getTime()) / 86400000;
+      if (days < 0 || days > filters.windowEndingDays) return false;
+    }
     return true;
   });
 
   const limited = filtered.slice(0, SCOUT_RESULT_LIMIT);
   return {
-    summary: `Found ${limited.length} SkillBridge records.`,
+    summary: `Found ${limited.length} transitioning service members.`,
     cards: limited.map((card) => ({
       type: "skillbridge" as const,
       id: card.profile.id,

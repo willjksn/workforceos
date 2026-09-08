@@ -25,6 +25,7 @@ export async function POST(request: Request) {
     relocationWillingness: optional(form.get("relocationWillingness")),
     remotePreference: optional(form.get("remotePreference")),
     targetCivilianRoles: optional(form.get("targetCivilianRoles")),
+    employmentPreference: optional(form.get("employmentPreference")),
     idealIndustry: optional(form.get("idealIndustry")),
     idealEmployer: optional(form.get("idealEmployer")),
     linkedinUrl: optional(form.get("linkedinUrl")),
@@ -39,7 +40,8 @@ export async function POST(request: Request) {
     await workforceOsPublic.submitMilitaryTalent(parsed.data, resume);
     return NextResponse.json({ accepted: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to submit right now. Please try again.";
+    const { publicSafeErrorMessage, PUBLIC_SERVICE_UNAVAILABLE } = await import("@/lib/public-errors");
+    const message = publicSafeErrorMessage(error, PUBLIC_SERVICE_UNAVAILABLE);
     const status = /signed request required/i.test(message) ? 401 : 503;
     return NextResponse.json({ error: message }, { status });
   }

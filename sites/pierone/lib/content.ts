@@ -52,11 +52,11 @@ export const SERVICES = [
     problem:
       "Employers often know they want military talent but cannot see which roles, locations, and pipelines actually fit.",
     whatWeDo:
-      "PierOne analyzes job families, translates military occupations and skills into civilian work, maps relevant installations and talent markets, and identifies transition pipelines including SkillBridge where it is relevant.",
+      "PierOne analyzes job families, translates military occupations and skills into civilian work, maps relevant installations and talent markets, and matches transitioning service members to employer opportunities — including SkillBridge-eligible host-company roles where they are relevant. PierOne is the intermediary, not automatically the SkillBridge host.",
     clientReceives:
-      "An actionable military talent strategy grounded in occupation translation and geography. SkillBridge participation depends on employer needs and service/command approval. PierOne does not guarantee approvals, placements, or conversions.",
+      "An actionable military talent strategy grounded in occupation translation, geography, and employer matching. SkillBridge participation depends on a host employer, timing, and service/command approval. PierOne does not guarantee approvals, placements, or conversions.",
     whoFor:
-      "Organizations exploring military hiring, SkillBridge, or regional talent adjacent to installations.",
+      "Organizations exploring military hiring, SkillBridge-eligible host opportunities, or regional talent adjacent to installations.",
     engagement:
       "A scoped assessment: workforce/job-family review, translation, installation/talent-market mapping, and recommended next steps.",
   },

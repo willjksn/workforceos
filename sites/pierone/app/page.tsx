@@ -114,13 +114,14 @@ export default async function HomePage() {
             <Heading>Military experience is workforce experience.</Heading>
             <p className="mt-5 text-[17px] leading-8 text-muted">
               PierOne translates military occupations and skills into civilian work, maps installation talent geography,
-              and identifies SkillBridge and other transition pathways where they actually fit. The work is disciplined
-              mapping, not a guarantee of approval or hire.
+              and matches transitioning service members to employer and SkillBridge-eligible host-company opportunities
+              where they actually fit. PierOne is the intermediary, not automatically the SkillBridge host. The work is
+              disciplined matching, not a guarantee of approval or hire.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <CtaLink href="/military-talent">Explore Military Talent</CtaLink>
-              <CtaLink href="/skillbridge" variant="secondary">
-                View SkillBridge Opportunities
+              <CtaLink href="/military-talent/join" variant="secondary">
+                Join the Military Talent Network
               </CtaLink>
             </div>
           </div>
@@ -202,18 +203,19 @@ export default async function HomePage() {
           />
         </div>
         <Container className="relative">
-          <Eyebrow className="text-white/70">Careers & SkillBridge</Eyebrow>
+          <Eyebrow className="text-white/70">Careers & Military Talent</Eyebrow>
           <h2 className="mt-3 max-w-2xl font-serif text-3xl font-semibold md:text-5xl">Your next opportunity may start here.</h2>
           <p className="mt-4 max-w-2xl text-white/80">
-            Open roles are published from WorkforceOS. Applying does not guarantee an interview. SkillBridge depends on
-            employer needs and approval requirements.
+            Open roles are published from WorkforceOS. Applying does not guarantee an interview. SkillBridge-eligible
+            roles are employer or host-company opportunities facilitated by PierOne; approval and placement are not
+            guaranteed.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <CtaLink href="/careers" variant="inverse">
               Explore Careers
             </CtaLink>
-            <CtaLink href="/skillbridge" variant="ghostOnNavy">
-              Explore SkillBridge
+            <CtaLink href="/military-talent/join" variant="ghostOnNavy">
+              Join the Military Talent Network
             </CtaLink>
           </div>
         </Container>
@@ -223,7 +225,11 @@ export default async function HomePage() {
         <Section>
           <Container>
             <FeaturedJobStrip jobs={content.featuredJobs} heading="Featured roles" />
-            <FeaturedJobStrip jobs={content.featuredSkillBridge} heading="Featured SkillBridge roles" />
+            <FeaturedJobStrip
+              jobs={content.featuredSkillBridge}
+              heading="Featured SkillBridge Opportunities"
+              intro="Employer or host-company SkillBridge-eligible opportunities facilitated by PierOne."
+            />
             <IndustryCampaign campaigns={content.campaigns} />
           </Container>
         </Section>
