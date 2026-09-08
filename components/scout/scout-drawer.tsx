@@ -78,7 +78,7 @@ export function ScoutLauncher({ enabled }: { enabled: boolean }) {
 }
 
 const PAGE_LABELS: Record<string, string> = {
-  skillbridge: "SkillBridge",
+  skillbridge: "Pathway operations",
   command_center: "Command Center",
   talent: "Talent",
   recruiting: "Recruiting",

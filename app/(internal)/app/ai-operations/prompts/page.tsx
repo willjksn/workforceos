@@ -19,7 +19,7 @@ import {
 import { AiSubnav } from "../_components/ai-subnav";
 
 export default async function PromptVersionsPage() {
-  const principal = await requireAppPermission("agents.read");
+  const principal = await requireAppPermission("agents.manage");
   const rows = await listPromptVersions(principal.organizationId);
   const agents = await listAgents(principal.organizationId);
   const canManage = can(principal, "agents.manage");

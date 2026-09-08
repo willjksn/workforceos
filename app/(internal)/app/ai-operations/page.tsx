@@ -19,7 +19,7 @@ import { OpenScoutButton } from "@/components/scout/scout-drawer";
 import { AiSubnav } from "./_components/ai-subnav";
 
 export default async function AiOperationsPage() {
-  const principal = await requireAppPermission("agents.read");
+  const principal = await requireAppPermission("agents.manage");
   const snapshot = await commandCenterSnapshot(principal.organizationId);
   const canRun = can(principal, "agents.manage");
 
@@ -27,7 +27,7 @@ export default async function AiOperationsPage() {
     <PageShell wide>
       <PageHeader
         eyebrow="AI Operations"
-        title="Agent Command Center"
+        title="AI administration"
         description="Agents draft and recommend on top of PostgreSQL, approved workflows, permissions, audit, and the Review Queue. They are not a second database and cannot approve their own material output. Chat lives in Scout — the labeled Scout control in the top bar, to the left of your profile."
         actions={<OpenScoutButton />}
       />

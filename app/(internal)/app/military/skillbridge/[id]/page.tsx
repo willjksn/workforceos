@@ -117,7 +117,7 @@ export default async function SkillBridgeDetailPage({
             <p className="mt-3 text-sm text-muted-foreground">
               {canReadPii
                 ? "Resume metadata is missing. Re-upload from this profile if the file cannot be opened."
-                : "Resume on file is hidden without candidate_pii.read."}
+                : "Resume on file is hidden without candidate contact access."
             </p>
           ) : (
             <p className="mt-3 text-sm text-muted-foreground">No resume on file.</p>
@@ -268,7 +268,14 @@ export default async function SkillBridgeDetailPage({
         <h2 className="section-title">Draft check-in (human review)</h2>
         <p className="mt-2 whitespace-pre-wrap rounded-[8px] border border-card-border bg-card p-4 text-sm">{draft.body}</p>
         <h2 className="mt-8 section-title">Employer brief (human review)</h2>
-        <pre className="mt-2 overflow-auto rounded-[8px] border border-card-border bg-card p-4 text-xs">{JSON.stringify(brief, null, 2)}</pre>
+        <p className="mt-2 whitespace-pre-wrap rounded-[8px] border border-card-border bg-card p-4 text-sm leading-6">{brief.body}</p>
+        {brief.facts.length ? (
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+            {brief.facts.map((fact) => (
+              <li key={fact}>{fact}</li>
+            ))}
+          </ul>
+        ) : null}
       </section>
     </PageShell>
   );

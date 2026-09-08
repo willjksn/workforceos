@@ -185,6 +185,17 @@ export async function seedFoundation(
         })
         .onConflictDoNothing();
     }
+
+    const allowedPermissionIds = ROLE_PERMISSIONS[role.slug]
+      .map((permissionSlug) => permissionIdBySlug[permissionSlug])
+      .filter((id): id is string => Boolean(id));
+    if (allowedPermissionIds.length === 0) {
+      await db.delete(rolePermissions).where(eq(rolePermissions.roleId, role.id));
+    } else {
+      await db
+        .delete(rolePermissions)
+        .where(and(eq(rolePermissions.roleId, role.id), notInArray(rolePermissions.permissionId, allowedPermissionIds)));
+    }
   }
 
   const userSeed = [

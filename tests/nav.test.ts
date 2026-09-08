@@ -21,7 +21,11 @@ describe("admin navigation", () => {
   it("hides Admin from operating staff", () => {
     const links = hrefs(principalFor("recruiter"));
     expect(links.some((href) => href.startsWith("/app/admin"))).toBe(false);
-    expect(links).toContain("/app/ai-operations");
+    expect(links).not.toContain("/app/ai-operations");
+    expect(links).not.toContain("/app/ai-operations/costs");
+    expect(links).not.toContain("/app/ai-operations/runs");
+    expect(links).not.toContain("/app/ai-operations/prompts");
+    expect(links).not.toContain("/app/ai-operations/knowledge");
     expect(links).toContain("/app/reports");
     expect(links).toContain("/app/alerts");
   });
@@ -38,15 +42,34 @@ describe("admin navigation", () => {
     expect(links).toContain("/app/reports");
     expect(links).toContain("/app/alerts");
     expect(links).toContain("/app/ai-operations");
+    expect(links).toContain("/app/ai-operations/costs");
     expect(links).not.toContain("/app/admin/agents");
     expect(links).not.toContain("/app/admin/requirements");
     expect(links).not.toContain("/app/admin/decisions");
     expect(links).not.toContain("/app/admin/agents");
   });
 
+  it("labels Military Talent pathway operations instead of a SkillBridge program", () => {
+    const military = navGroupsForPrincipal(principalFor("recruiter")).find((group) => group.label === "Military Talent");
+    expect(military?.items.some((item) => item.label === "Pathway operations")).toBe(true);
+    expect(military?.items.some((item) => item.label === "SkillBridge")).toBe(false);
+  });
+
   it("does not show role configuration to Operations Administrator", () => {
     const links = hrefs(principalFor("operations-administrator"));
     expect(links).toContain("/app/admin/users");
     expect(links).not.toContain("/app/admin/roles");
+    expect(links).toContain("/app/ai-operations/review");
+    expect(links).not.toContain("/app/ai-operations/costs");
+  });
+
+  it("keeps Talent Partner on Scout and playbooks without AI cost consoles", () => {
+    const groups = navGroupsForPrincipal(principalFor("talent-partner"));
+    const ai = groups.find((group) => group.label === "AI Operations");
+    const links = hrefs(principalFor("talent-partner"));
+    expect(links).not.toContain("/app/ai-operations/costs");
+    expect(links).not.toContain("/app/ai-operations/runs");
+    expect(ai?.items.some((item) => item.label === "AI administration")).toBe(false);
+    expect(ai?.items.some((item) => item.href === "/app/ai-operations/knowledge")).toBe(true);
   });
 });

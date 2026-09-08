@@ -4,7 +4,7 @@ import { EmptyState, PageHeader, PageShell, RecordList, RecordRow, formatLabel }
 import { AiSubnav } from "../_components/ai-subnav";
 
 export default async function AgentOutputsPage() {
-  const principal = await requireAppPermission("agents.read");
+  const principal = await requireAppPermission("agents.manage");
   const rows = await listAgentOutputs(principal.organizationId);
   return (
     <PageShell wide>

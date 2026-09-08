@@ -22,7 +22,7 @@ import { archivePublicContentAction, togglePublicContentAction } from "@/lib/act
 const TABS: Array<{ id: string; href: string; label: string; type?: PublicContentType }> = [
   { id: "overview", href: "/app/public-content", label: "Overview" },
   { id: "featured_job", href: "/app/public-content?type=featured_job", label: "Featured jobs" },
-  { id: "featured_skillbridge", href: "/app/public-content?type=featured_skillbridge", label: "Featured SkillBridge Opportunities" },
+  { id: "featured_skillbridge", href: "/app/public-content?type=featured_skillbridge", label: "Featured SkillBridge-eligible opportunities" },
   { id: "homepage_banner", href: "/app/public-content?type=homepage_banner", label: "Banners" },
   { id: "urgent_hiring_notice", href: "/app/public-content?type=urgent_hiring_notice", label: "Urgent notices" },
   { id: "temporary_announcement", href: "/app/public-content?type=temporary_announcement", label: "Announcements" },

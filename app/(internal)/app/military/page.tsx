@@ -30,7 +30,7 @@ export default async function MilitaryOverviewPage() {
       <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <OverviewCard href="/app/military/candidates" title="Transitioning Talent" body="Talent Network candidates with military experience. Same person record used in recruiting." />
         <OverviewCard href="/app/military/opportunities" title="Employer Opportunities" body="Host-company and employer matching records. PierOne facilitates; the employer is explicit." />
-        <OverviewCard href="/app/military/skillbridge" title="SkillBridge" body="SkillBridge-eligible windows, approvals, placements, and conversion — one part of Military Talent operations." />
+        <OverviewCard href="/app/military/skillbridge" title="Pathway operations" body="SkillBridge-eligible windows, approvals, placements, and conversion — one pathway inside Military Talent operations." />
         <OverviewCard href="/app/military/translator" title="Skills Translator" body="Translate military occupations and skills into civilian workforce value." />
         <OverviewCard href="/app/military/occupations" title="Occupation Library" body="MOS, Rating, and AFSC mappings used in matching." />
         <OverviewCard href="/app/military/analytics" title="Analytics" body="Stored counts for windows, unmatched talent, placements, and conversion." />

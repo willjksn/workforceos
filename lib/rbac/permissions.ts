@@ -151,7 +151,8 @@ const READ_ONLY = PERMISSIONS.filter(
     permission.endsWith(".read") &&
     permission !== "candidate_pii.read" &&
     permission !== "background_checks.read" &&
-    permission !== "drug_screens.read",
+    permission !== "drug_screens.read" &&
+    permission !== "agents.read",
 );
 
 export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
@@ -329,7 +330,6 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "finance.read",
     "invoices.read",
     "payments.read",
-    "agents.read",
     "knowledge.read",
     "knowledge.write",
     "workforce.read",
@@ -408,8 +408,6 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "projects.read",
     "deliverables.read",
     "workforce.read",
-    "agents.read",
-    "knowledge.read",
     "reports.read",
     "scout.use",
     "scout.search",
@@ -484,7 +482,6 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "training_programs.write",
     "scenario_models.read",
     "scenario_models.write",
-    "agents.read",
     "knowledge.read",
     "knowledge.write",
     "reports.read",
@@ -521,7 +518,6 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "workforce.read",
     "forecasts.read",
     "pipelines.read",
-    "agents.read",
     "knowledge.read",
     "reports.read",
     "scout.use",

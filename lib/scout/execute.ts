@@ -288,7 +288,7 @@ async function executeAuthorizedCommand(input: {
       cards,
       confirmation: null,
       draft: null,
-      links: [{ href: "/app/military/skillbridge", label: "SkillBridge dashboard" }],
+      links: [{ href: "/app/military/skillbridge", label: "Military Talent priorities" }],
     };
   }
 
@@ -451,7 +451,7 @@ async function executeAuthorizedCommand(input: {
       cards: [],
       confirmation: null,
       draft: null,
-      links: [{ href: `/app/military/skillbridge/${profileId}`, label: "SkillBridge record" }],
+      links: [{ href: `/app/military/skillbridge/${profileId}`, label: "Transition Talent Profile" }],
     };
   }
 
@@ -537,7 +537,7 @@ async function executeAuthorizedCommand(input: {
       cards: [],
       confirmation: null,
       draft: null,
-      links: [{ href: `/app/military/skillbridge/${profileId}`, label: "SkillBridge record" }],
+      links: [{ href: `/app/military/skillbridge/${profileId}`, label: "Transition Talent Profile" }],
     };
   }
 
@@ -651,7 +651,7 @@ async function executeAuthorizedCommand(input: {
       cards: [],
       confirmation: null,
       draft: null,
-      links: [{ href: `/app/military/skillbridge/${profileId}`, label: "SkillBridge record" }],
+      links: [{ href: `/app/military/skillbridge/${profileId}`, label: "Transition Talent Profile" }],
     };
   }
 

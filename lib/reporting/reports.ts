@@ -357,7 +357,7 @@ async function militaryReport(organizationId: string, filters: ReportFilters) {
   return {
     category: "military" as const,
     title: "Military Talent",
-    description: "Occupation coverage and military candidate counts from stored translator records. SkillBridge metrics appear only when program records exist.",
+    description: "Occupation coverage and military candidate counts from stored translator records. Transition Talent Profile and employer opportunity metrics appear when those records exist.",
     metrics: [
       { label: "Occupations mapped", value: Number(occupations[0]?.value ?? 0) },
       { label: "Civilian role coverage", value: Number(mappings[0]?.value ?? 0) },
@@ -365,9 +365,9 @@ async function militaryReport(organizationId: string, filters: ReportFilters) {
       { label: "Installation targeting links", value: Number(targeting[0]?.value ?? 0) },
       { label: "Military candidates", value: Number(militaryCandidates[0]?.value ?? 0) },
       { label: "Military hires", value: Number(hireRows[0]?.value ?? 0) },
-      { label: "SkillBridge/program notes", value: Number(skillbridge[0]?.value ?? 0), hint: "Occupation-installation rows with a SkillBridge note" },
-      { label: "SkillBridge profiles", value: Number(skillbridgeProfilesCount[0]?.value ?? 0) },
-      { label: "SkillBridge employer opportunities", value: Number(skillbridgeOppCount[0]?.value ?? 0) },
+      { label: "SkillBridge-eligible notes", value: Number(skillbridge[0]?.value ?? 0), hint: "Occupation-installation rows with a SkillBridge-eligible note" },
+      { label: "Transition Talent Profiles", value: Number(skillbridgeProfilesCount[0]?.value ?? 0) },
+      { label: "Employer / host-company opportunities", value: Number(skillbridgeOppCount[0]?.value ?? 0) },
     ],
     columns: ["Import", "Source", "Created"],
     rows: imports.map((row) => ({

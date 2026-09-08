@@ -98,7 +98,7 @@ export function NotificationBell({ unreadCount }: { unreadCount: number }) {
                     </ul>
                   ) : (
                     <p className="px-4 py-8 text-sm text-muted-foreground">
-                      No notifications yet. SkillBridge follow-ups and windows appear here when a scan creates them.
+                      No notifications yet. Military Talent follow-ups and windows appear here when a scan creates them.
                     </p>
                   )}
                 </div>

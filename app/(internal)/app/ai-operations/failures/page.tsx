@@ -7,7 +7,7 @@ import { EmptyState, PageHeader, PageShell, PrimaryButton, RecordList, RecordRow
 import { AiSubnav } from "../_components/ai-subnav";
 
 export default async function FailuresPage() {
-  const principal = await requireAppPermission("agents.read");
+  const principal = await requireAppPermission("agents.manage");
   const rows = await listAgentRuns(principal.organizationId, true);
   const canRetry = can(principal, "agents.manage");
   return (

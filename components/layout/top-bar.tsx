@@ -22,7 +22,7 @@ const LABELS: Record<string, string> = {
   rediscovery: "Rediscovery",
   nurture: "Nurture",
   jobs: "Jobs",
-  skillbridge: "SkillBridge",
+  skillbridge: "Pathway operations",
   services: "Services",
   workforce: "Workforce",
   projects: "Projects",

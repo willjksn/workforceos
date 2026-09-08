@@ -77,7 +77,7 @@ export function PublicContentForm({
           {jobs.map((job) => (
             <option key={job.jobId} value={job.jobId}>
               {job.title}
-              {job.skillbridgeEligible ? " (SkillBridge)" : ""} — {job.slug}
+              {job.skillbridgeEligible ? " (SkillBridge-eligible)" : ""} — {job.slug}
             </option>
           ))}
         </select>

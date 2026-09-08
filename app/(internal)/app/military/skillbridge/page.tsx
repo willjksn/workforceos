@@ -47,8 +47,8 @@ export default async function SkillBridgeDashboardPage({
     <PageShell wide>
       <PageHeader
         eyebrow="Military talent"
-        title="SkillBridge"
-        description="SkillBridge is one pathway inside Military Talent operations. Profiles are Transition Talent overlays on Talent Network candidates. PierOne is the intermediary; host companies/employers own SkillBridge-eligible opportunities."
+        title="Pathway operations"
+        description="SkillBridge is one pathway inside Military Talent operations, not a PierOne-owned program. Profiles are Transition Talent overlays on Talent Network candidates. PierOne is the intermediary; host companies and employers own SkillBridge-eligible opportunities."
       />
       <MilitarySubnav active="/app/military/skillbridge" />
 
@@ -69,7 +69,7 @@ export default async function SkillBridgeDashboardPage({
       </div>
 
       <section className="mt-10">
-        <h2 className="section-title">My SkillBridge queue</h2>
+        <h2 className="section-title">My Military Talent queue</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           {canManage ? (
             <Link href={params.queue === "all" ? "/app/military/skillbridge" : "/app/military/skillbridge?queue=all"} className="text-navy underline">
@@ -94,7 +94,7 @@ export default async function SkillBridgeDashboardPage({
         </div>
       </section>
 
-      <nav className="mt-10 flex flex-wrap gap-2" aria-label="SkillBridge views">
+      <nav className="mt-10 flex flex-wrap gap-2" aria-label="Military Talent pathway views">
         {VIEWS.map((item) => (
           <Link
             key={item.id}

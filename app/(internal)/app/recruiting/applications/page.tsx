@@ -24,7 +24,7 @@ export default async function ApplicationsPage({
       <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <p className="border border-border bg-white p-4 text-sm">New this week: {metrics.newApplications}</p>
         <p className="border border-border bg-white p-4 text-sm">Awaiting review: {metrics.awaitingReview}</p>
-        <p className="border border-border bg-white p-4 text-sm">SkillBridge: {metrics.skillbridgeApplicants}</p>
+        <p className="border border-border bg-white p-4 text-sm">SkillBridge-eligible: {metrics.skillbridgeApplicants}</p>
         <p className="border border-border bg-white p-4 text-sm">Onboarding at risk: {metrics.onboardingAtRisk}</p>
       </div>
       <div className="mb-4 flex flex-wrap gap-2 text-sm">

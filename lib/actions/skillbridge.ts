@@ -20,7 +20,7 @@ function fail(error: unknown): ActionState {
     return { error: error instanceof z.ZodError ? error.issues[0]?.message : error.message };
   }
   if (error instanceof Error) return { error: error.message };
-  return { error: "Unable to save SkillBridge record" };
+  return { error: "Unable to save the Transition Talent Profile" };
 }
 
 export async function addSkillBridgeOpportunityAction(

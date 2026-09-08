@@ -21,7 +21,7 @@ export default async function AgentRunsPage({
 }: {
   searchParams: Promise<{ id?: string }>;
 }) {
-  const principal = await requireAppPermission("agents.read");
+  const principal = await requireAppPermission("agents.manage");
   const { id } = await searchParams;
   const rows = await listAgentRuns(principal.organizationId);
   const detail = id ? await getAgentRun(principal.organizationId, id) : null;

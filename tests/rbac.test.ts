@@ -49,6 +49,24 @@ describe("RBAC", () => {
     expect(isPlatformAdmin(principalFor("talent-partner"))).toBe(false);
   });
 
+  it("keeps AI cost consoles off Scout operators", () => {
+    const recruiter = principalFor("recruiter");
+    const talentPartner = principalFor("talent-partner");
+    const consultant = principalFor("workforce-consultant");
+    const specialist = principalFor("military-talent-specialist");
+    const ops = principalFor("operations-administrator");
+    const tech = principalFor("strategy-technology-administrator");
+    expect(can(recruiter, "agents.read")).toBe(false);
+    expect(can(recruiter, "agents.manage")).toBe(false);
+    expect(can(talentPartner, "agents.read")).toBe(false);
+    expect(can(talentPartner, "agents.manage")).toBe(false);
+    expect(can(consultant, "agents.read")).toBe(false);
+    expect(can(specialist, "agents.read")).toBe(false);
+    expect(can(ops, "agents.read")).toBe(true);
+    expect(can(ops, "agents.manage")).toBe(false);
+    expect(can(tech, "agents.manage")).toBe(true);
+  });
+
   it("rejects disabled users even if they still have roles", () => {
     const disabled = principalFor("managing-partner", "disabled");
     expect(can(disabled, "companies.read")).toBe(false);

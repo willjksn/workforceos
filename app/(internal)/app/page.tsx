@@ -138,20 +138,26 @@ export default async function CommandCenterPage() {
         </section>
       ) : null}
 
-      {can(principal, "agents.read") ? (
+      {can(principal, "agents.read") || can(principal, "agents.manage") ? (
         <section className="mt-8">
           <SectionHeader title="AI" />
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard href="/app/ai-operations/review" label="Pending reviews" value={snapshot.ai.pendingReviews} />
-            <MetricCard href="/app/ai-operations/failures" label="Failed runs" value={snapshot.ai.failedRuns} />
-            <MetricCard href="/app/ai-operations/costs" label="Usage / cost" value={money(snapshot.ai.usageCost)} />
+            {can(principal, "agents.read") ? (
+              <MetricCard href="/app/ai-operations/review" label="Pending reviews" value={snapshot.ai.pendingReviews} />
+            ) : null}
+            {can(principal, "agents.manage") ? (
+              <>
+                <MetricCard href="/app/ai-operations/failures" label="Failed runs" value={snapshot.ai.failedRuns} />
+                <MetricCard href="/app/ai-operations/costs" label="Usage / cost" value={money(snapshot.ai.usageCost)} />
+              </>
+            ) : null}
           </div>
         </section>
       ) : null}
 
       {can(principal, "skillbridge.read") || can(principal, "military.read") ? (
         <section className="mt-8">
-          <SectionHeader title="SkillBridge" />
+          <SectionHeader title="Military Talent" />
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard href="/app/military/skillbridge?view=needs-action" label="Needs attention" value={snapshot.skillbridge.needsAttention} />
             <MetricCard href="/app/military/skillbridge?view=windows" label="Windows opening soon" value={snapshot.skillbridge.windowsOpeningSoon} />

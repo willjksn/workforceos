@@ -5,7 +5,7 @@ import { AiSubnav } from "../_components/ai-subnav";
 import { MetricCard } from "@/components/ui/display";
 
 export default async function CostsPage() {
-  const principal = await requireAppPermission("agents.read");
+  const principal = await requireAppPermission("agents.manage");
   const usage = await usageSummary(principal.organizationId);
   return (
     <PageShell wide>

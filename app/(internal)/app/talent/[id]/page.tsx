@@ -104,7 +104,7 @@ export default async function CandidateDetailPage({
               </div>
             ) : record.candidate.currentResumeFileId ? (
               <p className="mt-3 text-sm text-muted-foreground">
-                {canReadPii ? "Resume file record is missing." : "Hidden without candidate_pii.read"}
+                {canReadPii ? "Resume file record is missing." : "Resume on file is hidden without candidate contact access."}
               </p>
             ) : (
               <p className="mt-3 text-sm text-muted-foreground">No resume on file.</p>
@@ -113,7 +113,7 @@ export default async function CandidateDetailPage({
           <aside className="min-w-0 space-y-4 lg:sticky lg:top-6">
             <section>
               <p className="text-sm text-muted-foreground">
-                Email: {candidate.emailHidden ? "hidden without candidate_pii.read" : (candidate.email ?? "—")}
+                Email: {candidate.emailHidden ? "hidden without candidate contact access" : (candidate.email ?? "—")}
               </p>
               <p className="mt-2 text-sm text-muted-foreground">Consent: {formatLabel(candidate.consentStatus)}</p>
               {record.experiences[0] ? (
