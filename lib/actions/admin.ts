@@ -3,12 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { inviteOrganizationUser } from "@/lib/admin/invite-user";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { assignableRoleSlugs } from "@/lib/rbac/assign-role";
-import { AuthorizationError, ROLE_SLUGS } from "@/lib/rbac/permissions";
+import { AuthorizationError, ROLE_SLUGS, requirePermission } from "@/lib/rbac/permissions";
 import { archiveUser, assignUserRole, setUserAccessStatus } from "@/lib/repositories/platform";
+import { emptyToNull } from "@/lib/validation/forms";
 
-export type ActionState = { error?: string; ok?: boolean; roleSlug?: string };
+export type ActionState = { error?: string; ok?: boolean; roleSlug?: string; message?: string };
 
 function fail(error: unknown): ActionState {
   if (error instanceof AuthorizationError || error instanceof z.ZodError) {
@@ -83,6 +85,41 @@ export async function setUserAccessStatusAction(
     }
     refreshPeople();
     return { ok: true };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function inviteUserAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    const principal = await requireAppPermission("admin.users");
+    requirePermission(principal, "admin.roles");
+    const { assertRateLimit, RATE_LIMITS } = await import("@/lib/security/rate-limit");
+    await assertRateLimit({ key: `auth:${principal.id}`, ...RATE_LIMITS.authSensitive });
+    const parsed = z
+      .object({
+        email: z.string().trim().email("Enter a valid work email.").transform((value) => value.toLowerCase()),
+        fullName: z.string().trim().max(200).optional(),
+        roleSlug: z.string().refine((value): value is (typeof ROLE_SLUGS)[number] =>
+          (ROLE_SLUGS as readonly string[]).includes(value),
+        ),
+      })
+      .parse({
+        email: formData.get("email"),
+        fullName: emptyToNull(formData.get("fullName")) ?? undefined,
+        roleSlug: formData.get("roleSlug"),
+      });
+    if (!assignableRoleSlugs(principal).includes(parsed.roleSlug)) {
+      throw new AuthorizationError("Only a Managing Partner can assign the Managing Partner role.");
+    }
+    const result = await inviteOrganizationUser({
+      actor: principal,
+      email: parsed.email,
+      fullName: parsed.fullName,
+      roleSlug: parsed.roleSlug,
+    });
+    refreshPeople();
+    return { ok: true, roleSlug: result.roleSlug, message: result.message };
   } catch (error) {
     return fail(error);
   }

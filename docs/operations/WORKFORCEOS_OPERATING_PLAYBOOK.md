@@ -55,10 +55,9 @@ npm run db:bootstrap-admin -- --email you@company.com
 
 ## User onboarding
 
-1. Invite the person in Clerk (invite-only; public sign-up off).
-2. They sign in at `/sign-in`. Local `users` syncs from Clerk.
-3. A Managing Partner or Strategy & Technology Administrator assigns a local role on `/app/admin/users`. Clerk metadata is not authorization.
-4. Disabled local users are rejected even if a Clerk session still exists.
+1. A Managing Partner or Strategy & Technology Administrator invites from `/app/admin/users` (**Invite person**) and chooses the role then. Clerk emails the invite; the local `users` row is recorded as invited with that role. Clerk metadata is not authorization.
+2. They accept the email and sign in at `/sign-in` (or complete `/sign-up` from the invite). Local sync attaches their Clerk id and activates the invited row; the role is already assigned.
+3. To resend, submit **Invite person** again with the same email. Disabled local users are rejected even if a Clerk session still exists.
 
 ## Role changes
 

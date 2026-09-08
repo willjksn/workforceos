@@ -1,9 +1,19 @@
-import { assignUserRoleAction, setUserAccessStatusAction } from "@/lib/actions/admin";
+import { assignUserRoleAction, inviteUserAction, setUserAccessStatusAction } from "@/lib/actions/admin";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { assignableRoleSlugs } from "@/lib/rbac/assign-role";
 import { can, type RoleSlug } from "@/lib/rbac/permissions";
 import { listOrganizationRoles, listOrganizationUsers } from "@/lib/repositories/platform";
-import { DataTable, EmptyState, PageHeader, PageShell } from "../../_components/ui";
+import { ActionForm } from "../../_components/action-form";
+import {
+  CreatePanel,
+  DataTable,
+  EmptyState,
+  Field,
+  PageHeader,
+  PageShell,
+  PrimaryButton,
+  inputClassName,
+} from "../../_components/ui";
 import { RoleAssignField, UserStatusField } from "../_components/role-assign-field";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +33,7 @@ export default async function AdminUsersPage() {
       <PageHeader
         eyebrow="Admin"
         title="People"
-        description="Clerk signs people in. The role here is what they can do. Active can sign in. Disabled cannot, but stays on this list. Archived is hidden, not deleted."
+        description="Invite from this page and pick their role at the same time. Clerk emails the invite. The role is stored here, so the first sign-in is not Command Center-only. Active can sign in. Disabled cannot, but stays on this list. Archived is hidden, not deleted."
       />
       {rows.length === 0 ? (
         <EmptyState>No people are recorded for this organization.</EmptyState>
@@ -71,6 +81,34 @@ export default async function AdminUsersPage() {
             })}
         </DataTable>
       )}
+      {canAssign && assignableRoles.length > 0 ? (
+        <CreatePanel
+          title="Invite person"
+          description="Sends a Clerk invitation email and records them as invited with the role you choose. When they accept and sign in, that role is already assigned."
+        >
+          <ActionForm action={inviteUserAction} className="max-w-xl space-y-3">
+            <Field label="Work email" name="email">
+              <input className={inputClassName} id="email" name="email" type="email" autoComplete="off" required />
+            </Field>
+            <Field label="Name" name="fullName">
+              <input className={inputClassName} id="fullName" name="fullName" autoComplete="off" placeholder="Optional" />
+            </Field>
+            <Field label="Role" name="roleSlug">
+              <select className={inputClassName} id="roleSlug" name="roleSlug" required defaultValue="">
+                <option value="" disabled>
+                  Choose a role
+                </option>
+                {assignableRoles.map((role) => (
+                  <option key={role.id} value={role.slug}>
+                    {role.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <PrimaryButton>Send invite</PrimaryButton>
+          </ActionForm>
+        </CreatePanel>
+      ) : null}
     </PageShell>
   );
 }

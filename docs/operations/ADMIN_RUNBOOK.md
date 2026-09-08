@@ -4,7 +4,7 @@ Day-to-day operating tasks for WorkforceOS administrators. Managing Partner, Ope
 
 ## People and access
 
-- `/app/admin/users` — invite mapping is Clerk; roles are local. Disable rather than delete when someone leaves.
+- `/app/admin/users` — **Invite person** sends the Clerk email and assigns the local role at the same time. Do not invite only in the Clerk Dashboard; that signs them in with no role (Command Center only). Disable rather than delete when someone leaves. Clerk metadata is not authorization.
 - `/app/admin/roles` — Strategy & Technology Administrator and Managing Partner. Operations Administrator cannot open this screen.
 - `/app/admin/access-review` — last login, account status, sensitive permissions (`candidate_pii.read`, `reports.export_pii`, `privacy.delete`, admin/finance/contract approvals), stale accounts (no login in 30 days).
 
