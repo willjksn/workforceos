@@ -44,6 +44,12 @@ export const clientStatusEnum = pgEnum("client_status", [
   "former",
 ]);
 
+/** 90-day GTM target-account tier. Not a parallel accounts table. */
+export const gtmTierEnum = pgEnum("gtm_tier", ["tier_1", "tier_2"]);
+
+/** Southeast BD vs national recruiting motion on a company. */
+export const gtmRegionEnum = pgEnum("gtm_region", ["southeast", "national"]);
+
 export const relationshipStrengthEnum = pgEnum("relationship_strength", [
   "unknown",
   "weak",

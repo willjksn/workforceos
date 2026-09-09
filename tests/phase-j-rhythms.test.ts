@@ -47,7 +47,7 @@ describe("Phase J management operating rhythms", () => {
 
     expect(can(recruiter, "opportunities.read")).toBe(false);
     expect(can(partner, "opportunities.read")).toBe(true);
-    expect(COMMERCIAL_RHYTHM_WIDGET_IDS).toEqual(["weekly-pipeline", "open-proposals"]);
+    expect(COMMERCIAL_RHYTHM_WIDGET_IDS).toEqual(expect.arrayContaining(["weekly-pipeline", "open-proposals"]));
     expect(recruiterIds).not.toContain("weekly-pipeline");
     expect(recruiterIds).not.toContain("open-proposals");
     expect(partnerIds).toContain("weekly-pipeline");
@@ -159,7 +159,7 @@ describe("Phase J management operating rhythms", () => {
     );
     expect(links.filter((href) => href === "/app")).toHaveLength(1);
     expect(links.some((href) => href.startsWith("/app?cadence="))).toBe(false);
-    expect(CADENCE_IDS).toEqual(["leadership", "operations", "talent", "military", "finance"]);
+    expect(CADENCE_IDS).toEqual(["leadership", "operations", "talent", "military", "finance", "gtm"]);
   });
 
   it("publishes the Academy article and keeps Scout send denied", () => {

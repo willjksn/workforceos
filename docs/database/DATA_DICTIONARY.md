@@ -75,7 +75,7 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 
 | Table | Purpose |
 | --- | --- |
-| `companies` | Prospect/client companies. Operating size fields (`employee_count`, `annual_revenue`) are not ownership data. |
+| `companies` | Prospect/client companies. Operating size fields (`employee_count`, `annual_revenue`) are not ownership data. Optional `gtm_tier` (`tier_1` / `tier_2`) and `gtm_region` (`southeast` / `national`) mark the 90-day target-account list. Not a second accounts table. |
 | `company_locations` | Company sites. |
 | `contacts` | People at companies. First-class records, not nested-only. |
 | `company_contacts` | Company/contact relationships. |

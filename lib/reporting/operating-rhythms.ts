@@ -1,10 +1,12 @@
-import { and, count, desc, eq, gte, inArray, isNull, lt, lte, not, notExists, notInArray, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, ilike, inArray, isNotNull, isNull, lt, lte, not, notExists, notInArray, or, sql } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
+  activities,
   candidates,
   companies,
   contracts,
+  discoveries,
   integrationConnections,
   interviews,
   invoices,
@@ -17,14 +19,21 @@ import {
   projectTasks,
   projects,
   proposals,
+  publicContentItems,
   revenueEvents,
   skillbridgeOpportunities,
   skillbridgeProfiles,
   staffOnboarding,
   submissions,
   users,
+  websiteInquiries,
 } from "../../db/schema";
 import { CLOSED_OPPORTUNITY_STAGES } from "../crm/stages";
+import {
+  GTM_FOCUS_INDUSTRY_PATTERNS,
+  GTM_MILITARY_SERVICE_CODE,
+  GTM_TIERS,
+} from "../gtm/focus";
 import { moneyString } from "../finance/money";
 import { countFailedIntegrationEvents } from "../integrations/retry";
 import { can, type Permission, type Principal } from "../rbac/permissions";
@@ -52,7 +61,7 @@ export const SKILLBRIDGE_NO_CONTACT_DAYS =
 export const SKILLBRIDGE_EMPLOYER_FEEDBACK_DAYS =
   DEFAULT_SKILLBRIDGE_ALERT_RULES.find((rule) => rule.code === "employer_feedback_overdue")?.thresholdDays ?? 7;
 
-export const CADENCE_IDS = ["leadership", "operations", "talent", "military", "finance"] as const;
+export const CADENCE_IDS = ["leadership", "operations", "talent", "military", "finance", "gtm"] as const;
 export type CadenceId = (typeof CADENCE_IDS)[number];
 
 export const CADENCE_LABELS: Record<CadenceId, string> = {
@@ -61,6 +70,7 @@ export const CADENCE_LABELS: Record<CadenceId, string> = {
   talent: "Talent",
   military: "Military Talent",
   finance: "Finance",
+  gtm: "GTM",
 };
 
 export const CADENCE_SUMMARIES: Record<CadenceId, string> = {
@@ -69,6 +79,7 @@ export const CADENCE_SUMMARIES: Record<CadenceId, string> = {
   talent: "Jobs, Talent Network, submissions, interviews, aging, and placements.",
   military: "Transition Talent Profiles, SkillBridge pathway windows, unmatched talent, and employer/host matches.",
   finance: "Operating invoices, AR aging, cash received, and expected revenue. Not a general ledger.",
+  gtm: "90-day GTM review: target-account tiers, Southeast BD vs national recruiting, conversion and delivery counts from live records.",
 };
 
 export type RhythmException = {
@@ -321,7 +332,88 @@ export const RHYTHM_WIDGET_DEFS: RhythmWidgetDef[] = [
     href: "/app/finance",
     anyPermission: ["finance.read"],
   },
+  {
+    id: "gtm-target-accounts",
+    cadence: "gtm",
+    question: "How many 90-day target accounts are tagged Tier 1 vs Tier 2?",
+    href: "/app/companies",
+    windowHint: "Uses companies.gtm_tier. Industry remains the human label. Not a second accounts table.",
+    anyPermission: ["companies.read", "opportunities.read"],
+    commercial: true,
+  },
+  {
+    id: "gtm-open-opportunities",
+    cadence: "gtm",
+    question: "Which commercial opportunities are open on GTM accounts or focus industries?",
+    href: "/app/opportunities",
+    windowHint: "Joined to gtm_tier or a locked focus-industry label. Recruiter Standard cannot see this board.",
+    anyPermission: ["opportunities.read"],
+    commercial: true,
+  },
+  {
+    id: "gtm-discovery",
+    cadence: "gtm",
+    question: "Which discoveries are still in draft or internal review on GTM accounts?",
+    href: "/app/discovery",
+    anyPermission: ["opportunities.read", "discovery.read"],
+    commercial: true,
+  },
+  {
+    id: "gtm-proposals",
+    cadence: "gtm",
+    question: "Which proposals are still in draft, internal review, sent, or viewed on GTM accounts?",
+    href: "/app/proposals",
+    anyPermission: ["opportunities.read"],
+    commercial: true,
+  },
+  {
+    id: "gtm-win-conversion",
+    cadence: "gtm",
+    question: "What share of closed GTM opportunities are stored as won?",
+    href: "/app/opportunities",
+    windowHint: "won ÷ (won + lost + abandoned) on GTM-tiered or focus-industry companies. Not a forecast.",
+    anyPermission: ["opportunities.read"],
+    commercial: true,
+  },
+  {
+    id: "gtm-military-employers",
+    cadence: "gtm",
+    question: "How many military employer conversations are open?",
+    href: "/app/military/opportunities",
+    windowHint: "Military Talent Opportunity Assessment opportunities, plus SkillBridge-eligible employer/host matches when permitted. PierOne is the intermediary.",
+    anyPermission: ["opportunities.read"],
+    commercial: true,
+  },
+  {
+    id: "gtm-inquiries",
+    cadence: "gtm",
+    question: "How many website inquiries are still intake (not converted or closed)?",
+    href: "/app/crm/inquiries",
+    windowHint: "Inquiries are intake, not auto-opportunities (DEC-WEB-004).",
+    anyPermission: ["opportunities.read"],
+    commercial: true,
+  },
+  {
+    id: "gtm-thought-leadership",
+    cadence: "gtm",
+    question: "How many industry campaigns are active in Public Content?",
+    href: "/app/public-content?type=featured_industry_campaign",
+    windowHint: "Existing Public Content — not a CMS rebuild (DEC-WEB-010).",
+    anyPermission: ["opportunities.read", "public_content.read"],
+    commercial: true,
+  },
+  {
+    id: "gtm-overdue-followups",
+    cadence: "gtm",
+    question: "Which GTM target accounts have an overdue stored follow-up?",
+    href: "/app/companies",
+    windowHint: "Derived from companies.next_action_at and activities.follow_up_at on GTM-tiered accounts. Not a sequencer product.",
+    anyPermission: ["opportunities.read", "companies.read"],
+    commercial: true,
+  },
 ];
+
+export const GTM_RHYTHM_WIDGET_IDS = RHYTHM_WIDGET_DEFS.filter((def) => def.cadence === "gtm").map((def) => def.id);
 
 export const COMMERCIAL_RHYTHM_WIDGET_IDS = RHYTHM_WIDGET_DEFS.filter((def) => def.commercial).map((def) => def.id);
 
@@ -419,9 +511,497 @@ async function loadCadenceWidgets(principal: Principal, cadence: CadenceId, now:
       return loadMilitaryWidgets(principal, now);
     case "finance":
       return loadFinanceWidgets(principal, now);
+    case "gtm":
+      return loadGtmWidgets(principal, now);
     default:
       return [];
   }
+}
+
+function gtmAccountMatch() {
+  return or(
+    inArray(companies.gtmTier, [...GTM_TIERS]),
+    ...GTM_FOCUS_INDUSTRY_PATTERNS.map((pattern) => ilike(companies.industry, pattern)),
+  );
+}
+
+function gtmTaggedAccount() {
+  return inArray(companies.gtmTier, [...GTM_TIERS]);
+}
+
+async function loadGtmWidgets(principal: Principal, now: Date): Promise<RhythmWidget[]> {
+  const org = principal.organizationId;
+  const db = getDb();
+  const widgets: RhythmWidget[] = [];
+  const companyScope = and(eq(companies.organizationId, org), isNull(companies.archivedAt));
+  const opportunityScope = and(eq(opportunities.organizationId, org), isNull(opportunities.archivedAt));
+  const gtmCompanies = and(companyScope, gtmAccountMatch());
+  const taggedCompanies = and(companyScope, gtmTaggedAccount());
+
+  if (canSeeRhythmWidget(principal, defById("gtm-target-accounts"))) {
+    const [tier1, tier2, exceptions] = await Promise.all([
+      counted(
+        db
+          .select({ value: count() })
+          .from(companies)
+          .where(and(companyScope, eq(companies.gtmTier, "tier_1"))),
+      ),
+      counted(
+        db
+          .select({ value: count() })
+          .from(companies)
+          .where(and(companyScope, eq(companies.gtmTier, "tier_2"))),
+      ),
+      db
+        .select({
+          id: companies.id,
+          title: companies.name,
+          gtmTier: companies.gtmTier,
+          gtmRegion: companies.gtmRegion,
+          industry: companies.industry,
+        })
+        .from(companies)
+        .where(taggedCompanies)
+        .orderBy(desc(companies.updatedAt))
+        .limit(RHYTHM_EXCEPTION_LIMIT),
+    ]);
+    widgets.push(
+      emptyWidget(
+        defById("gtm-target-accounts"),
+        `${tier1} tier 1 · ${tier2} tier 2`,
+        exceptions.map((row) => ({
+          id: row.id,
+          title: row.title,
+          meta: [row.gtmTier?.replace("_", " "), row.gtmRegion, row.industry].filter(Boolean).join(" · ") || "tagged",
+          href: `/app/companies/${row.id}`,
+        })),
+      ),
+    );
+  }
+
+  if (canSeeRhythmWidget(principal, defById("gtm-open-opportunities"))) {
+    const [openCount, exceptions] = await Promise.all([
+      counted(
+        db
+          .select({ value: count() })
+          .from(opportunities)
+          .innerJoin(companies, eq(opportunities.companyId, companies.id))
+          .where(
+            and(
+              opportunityScope,
+              gtmCompanies,
+              notInArray(opportunities.stage, [...CLOSED_OPPORTUNITY_STAGES]),
+            ),
+          ),
+      ),
+      db
+        .select({
+          id: opportunities.id,
+          title: opportunities.name,
+          stage: opportunities.stage,
+          companyName: companies.name,
+        })
+        .from(opportunities)
+        .innerJoin(companies, eq(opportunities.companyId, companies.id))
+        .where(
+          and(
+            opportunityScope,
+            gtmCompanies,
+            notInArray(opportunities.stage, [...CLOSED_OPPORTUNITY_STAGES]),
+          ),
+        )
+        .orderBy(desc(opportunities.updatedAt))
+        .limit(RHYTHM_EXCEPTION_LIMIT),
+    ]);
+    widgets.push(
+      emptyWidget(
+        defById("gtm-open-opportunities"),
+        openCount,
+        exceptions.map((row) => ({
+          id: row.id,
+          title: row.title,
+          meta: `${row.companyName} · ${row.stage.replaceAll("_", " ")}`,
+          href: `/app/opportunities/${row.id}`,
+        })),
+      ),
+    );
+  }
+
+  if (canSeeRhythmWidget(principal, defById("gtm-discovery"))) {
+    const discoveryStatuses = ["draft", "in_review"] as const;
+    const [openCount, exceptions] = await Promise.all([
+      counted(
+        db
+          .select({ value: count() })
+          .from(discoveries)
+          .innerJoin(companies, eq(discoveries.companyId, companies.id))
+          .where(and(eq(discoveries.organizationId, org), gtmCompanies, inArray(discoveries.status, [...discoveryStatuses]))),
+      ),
+      db
+        .select({
+          id: discoveries.id,
+          title: discoveries.title,
+          status: discoveries.status,
+          companyName: companies.name,
+        })
+        .from(discoveries)
+        .innerJoin(companies, eq(discoveries.companyId, companies.id))
+        .where(and(eq(discoveries.organizationId, org), gtmCompanies, inArray(discoveries.status, [...discoveryStatuses])))
+        .orderBy(desc(discoveries.updatedAt))
+        .limit(RHYTHM_EXCEPTION_LIMIT),
+    ]);
+    widgets.push(
+      emptyWidget(
+        defById("gtm-discovery"),
+        openCount,
+        exceptions.map((row) => ({
+          id: row.id,
+          title: row.title,
+          meta: `${row.companyName} · ${row.status.replaceAll("_", " ")}`,
+          href: `/app/discovery/${row.id}`,
+        })),
+      ),
+    );
+  }
+
+  if (canSeeRhythmWidget(principal, defById("gtm-proposals"))) {
+    const proposalStatuses = ["draft", "internal_review", "sent", "viewed"] as const;
+    const [openCount, exceptions] = await Promise.all([
+      counted(
+        db
+          .select({ value: count() })
+          .from(proposals)
+          .innerJoin(companies, eq(proposals.companyId, companies.id))
+          .where(and(eq(proposals.organizationId, org), gtmCompanies, inArray(proposals.status, [...proposalStatuses]))),
+      ),
+      db
+        .select({
+          id: proposals.id,
+          title: proposals.title,
+          status: proposals.status,
+          companyName: companies.name,
+        })
+        .from(proposals)
+        .innerJoin(companies, eq(proposals.companyId, companies.id))
+        .where(and(eq(proposals.organizationId, org), gtmCompanies, inArray(proposals.status, [...proposalStatuses])))
+        .orderBy(desc(proposals.updatedAt))
+        .limit(RHYTHM_EXCEPTION_LIMIT),
+    ]);
+    widgets.push(
+      emptyWidget(
+        defById("gtm-proposals"),
+        openCount,
+        exceptions.map((row) => ({
+          id: row.id,
+          title: row.title,
+          meta: `${row.companyName} · ${row.status.replaceAll("_", " ")}`,
+          href: `/app/proposals/${row.id}`,
+        })),
+      ),
+    );
+  }
+
+  if (canSeeRhythmWidget(principal, defById("gtm-win-conversion"))) {
+    const closedScope = and(opportunityScope, gtmCompanies, inArray(opportunities.stage, [...CLOSED_OPPORTUNITY_STAGES]));
+    const [wonCount, closedCount, exceptions] = await Promise.all([
+      counted(
+        db
+          .select({ value: count() })
+          .from(opportunities)
+          .innerJoin(companies, eq(opportunities.companyId, companies.id))
+          .where(and(opportunityScope, gtmCompanies, eq(opportunities.stage, "won"))),
+      ),
+      counted(
+        db
+          .select({ value: count() })
+          .from(opportunities)
+          .innerJoin(companies, eq(opportunities.companyId, companies.id))
+          .where(closedScope),
+      ),
+      db
+        .select({
+          id: opportunities.id,
+          title: opportunities.name,
+          stage: opportunities.stage,
+          companyName: companies.name,
+        })
+        .from(opportunities)
+        .innerJoin(companies, eq(opportunities.companyId, companies.id))
+        .where(closedScope)
+        .orderBy(desc(opportunities.updatedAt))
+        .limit(RHYTHM_EXCEPTION_LIMIT),
+    ]);
+    const ratioLabel = closedCount === 0 ? "— (no closed GTM opportunities)" : `${Math.round((wonCount / closedCount) * 100)}% (${wonCount} of ${closedCount})`;
+    widgets.push(
+      emptyWidget(
+        defById("gtm-win-conversion"),
+        ratioLabel,
+        exceptions.map((row) => ({
+          id: row.id,
+          title: row.title,
+          meta: `${row.companyName} · ${row.stage.replaceAll("_", " ")}`,
+          href: `/app/opportunities/${row.id}`,
+        })),
+      ),
+    );
+  }
+
+  if (canSeeRhythmWidget(principal, defById("gtm-military-employers"))) {
+    const [assessmentCount, assessmentRows] = await Promise.all([
+      counted(
+        db
+          .select({ value: count() })
+          .from(opportunities)
+          .where(
+            and(
+              opportunityScope,
+              eq(opportunities.serviceCode, GTM_MILITARY_SERVICE_CODE),
+              notInArray(opportunities.stage, [...CLOSED_OPPORTUNITY_STAGES]),
+            ),
+          ),
+      ),
+      db
+        .select({
+          id: opportunities.id,
+          title: opportunities.name,
+          stage: opportunities.stage,
+          companyName: companies.name,
+        })
+        .from(opportunities)
+        .innerJoin(companies, eq(opportunities.companyId, companies.id))
+        .where(
+          and(
+            opportunityScope,
+            eq(opportunities.serviceCode, GTM_MILITARY_SERVICE_CODE),
+            notInArray(opportunities.stage, [...CLOSED_OPPORTUNITY_STAGES]),
+          ),
+        )
+        .orderBy(desc(opportunities.updatedAt))
+        .limit(RHYTHM_EXCEPTION_LIMIT),
+    ]);
+
+    let hostCount = 0;
+    let hostRows: Array<{ id: string; title: string; meta: string; href: string }> = [];
+    if (can(principal, "military.read") || can(principal, "skillbridge.read")) {
+      const [countValue, rows] = await Promise.all([
+        counted(
+          db
+            .select({ value: count() })
+            .from(skillbridgeOpportunities)
+            .where(
+              and(
+                eq(skillbridgeOpportunities.organizationId, org),
+                isNull(skillbridgeOpportunities.archivedAt),
+                notInArray(skillbridgeOpportunities.stage, [...TERMINAL_OPPORTUNITY_STAGES]),
+              ),
+            ),
+        ),
+        db
+          .select({
+            id: skillbridgeOpportunities.id,
+            stage: skillbridgeOpportunities.stage,
+            companyName: companies.name,
+          })
+          .from(skillbridgeOpportunities)
+          .innerJoin(companies, eq(skillbridgeOpportunities.companyId, companies.id))
+          .where(
+            and(
+              eq(skillbridgeOpportunities.organizationId, org),
+              isNull(skillbridgeOpportunities.archivedAt),
+              notInArray(skillbridgeOpportunities.stage, [...TERMINAL_OPPORTUNITY_STAGES]),
+            ),
+          )
+          .orderBy(desc(skillbridgeOpportunities.updatedAt))
+          .limit(RHYTHM_EXCEPTION_LIMIT),
+      ]);
+      hostCount = countValue;
+      hostRows = rows.map((row) => ({
+        id: row.id,
+        title: row.companyName,
+        meta: `host match · ${row.stage.replaceAll("_", " ")}`,
+        href: "/app/military/opportunities",
+      }));
+    }
+
+    const remaining = Math.max(0, RHYTHM_EXCEPTION_LIMIT - assessmentRows.length);
+    widgets.push(
+      emptyWidget(
+        defById("gtm-military-employers"),
+        hostCount > 0
+          ? `${assessmentCount} Military Talent assessments · ${hostCount} host matches`
+          : `${assessmentCount} Military Talent assessments`,
+        [
+          ...assessmentRows.map((row) => ({
+            id: row.id,
+            title: row.title,
+            meta: `${row.companyName} · ${row.stage.replaceAll("_", " ")}`,
+            href: `/app/opportunities/${row.id}`,
+          })),
+          ...hostRows.slice(0, remaining),
+        ],
+      ),
+    );
+  }
+
+  if (canSeeRhythmWidget(principal, defById("gtm-inquiries"))) {
+    const openInquiryStatuses = ["new", "reviewing", "qualified", "discovery_requested", "nurture"] as const;
+    const [openCount, exceptions] = await Promise.all([
+      counted(
+        db
+          .select({ value: count() })
+          .from(websiteInquiries)
+          .where(and(eq(websiteInquiries.organizationId, org), inArray(websiteInquiries.status, [...openInquiryStatuses]))),
+      ),
+      db
+        .select({
+          id: websiteInquiries.id,
+          title: websiteInquiries.companyName,
+          status: websiteInquiries.status,
+          serviceInterest: websiteInquiries.serviceInterest,
+        })
+        .from(websiteInquiries)
+        .where(and(eq(websiteInquiries.organizationId, org), inArray(websiteInquiries.status, [...openInquiryStatuses])))
+        .orderBy(desc(websiteInquiries.submittedAt))
+        .limit(RHYTHM_EXCEPTION_LIMIT),
+    ]);
+    widgets.push(
+      emptyWidget(
+        defById("gtm-inquiries"),
+        openCount,
+        exceptions.map((row) => ({
+          id: row.id,
+          title: row.title,
+          meta: `${row.serviceInterest.replaceAll("-", " ")} · ${row.status.replaceAll("_", " ")}`,
+          href: `/app/crm/inquiries/${row.id}`,
+        })),
+      ),
+    );
+  }
+
+  if (canSeeRhythmWidget(principal, defById("gtm-thought-leadership"))) {
+    const [openCount, exceptions] = await Promise.all([
+      counted(
+        db
+          .select({ value: count() })
+          .from(publicContentItems)
+          .where(
+            and(
+              eq(publicContentItems.organizationId, org),
+              eq(publicContentItems.contentType, "featured_industry_campaign"),
+              eq(publicContentItems.isActive, true),
+              isNull(publicContentItems.archivedAt),
+            ),
+          ),
+      ),
+      db
+        .select({
+          id: publicContentItems.id,
+          title: publicContentItems.title,
+          industryCode: publicContentItems.industryCode,
+        })
+        .from(publicContentItems)
+        .where(
+          and(
+            eq(publicContentItems.organizationId, org),
+            eq(publicContentItems.contentType, "featured_industry_campaign"),
+            eq(publicContentItems.isActive, true),
+            isNull(publicContentItems.archivedAt),
+          ),
+        )
+        .orderBy(desc(publicContentItems.updatedAt))
+        .limit(RHYTHM_EXCEPTION_LIMIT),
+    ]);
+    widgets.push(
+      emptyWidget(
+        defById("gtm-thought-leadership"),
+        openCount,
+        exceptions.map((row) => ({
+          id: row.id,
+          title: row.title,
+          meta: row.industryCode?.replaceAll("-", " ") || "industry campaign",
+          href: "/app/public-content?type=featured_industry_campaign",
+        })),
+      ),
+    );
+  }
+
+  if (canSeeRhythmWidget(principal, defById("gtm-overdue-followups"))) {
+    const [companyCount, activityCount, companyRows, activityRows] = await Promise.all([
+      counted(
+        db
+          .select({ value: count() })
+          .from(companies)
+          .where(and(taggedCompanies, isNotNull(companies.nextActionAt), lt(companies.nextActionAt, now))),
+      ),
+      counted(
+        db
+          .select({ value: count() })
+          .from(activities)
+          .innerJoin(companies, eq(activities.companyId, companies.id))
+          .where(
+            and(
+              eq(activities.organizationId, org),
+              taggedCompanies,
+              isNotNull(activities.followUpAt),
+              lt(activities.followUpAt, now),
+            ),
+          ),
+      ),
+      db
+        .select({
+          id: companies.id,
+          title: companies.name,
+          nextAction: companies.nextAction,
+          nextActionAt: companies.nextActionAt,
+        })
+        .from(companies)
+        .where(and(taggedCompanies, isNotNull(companies.nextActionAt), lt(companies.nextActionAt, now)))
+        .orderBy(companies.nextActionAt)
+        .limit(RHYTHM_EXCEPTION_LIMIT),
+      db
+        .select({
+          id: activities.id,
+          title: activities.subject,
+          companyName: companies.name,
+          followUpAt: activities.followUpAt,
+        })
+        .from(activities)
+        .innerJoin(companies, eq(activities.companyId, companies.id))
+        .where(
+          and(
+            eq(activities.organizationId, org),
+            taggedCompanies,
+            isNotNull(activities.followUpAt),
+            lt(activities.followUpAt, now),
+          ),
+        )
+        .orderBy(activities.followUpAt)
+        .limit(RHYTHM_EXCEPTION_LIMIT),
+    ]);
+    const remaining = Math.max(0, RHYTHM_EXCEPTION_LIMIT - companyRows.length);
+    widgets.push(
+      emptyWidget(
+        defById("gtm-overdue-followups"),
+        `${companyCount} company next-actions · ${activityCount} activity follow-ups`,
+        [
+          ...companyRows.map((row) => ({
+            id: row.id,
+            title: row.title,
+            meta: `${row.nextAction ?? "next action"} · ${row.nextActionAt?.toISOString().slice(0, 10) ?? "overdue"}`,
+            href: `/app/companies/${row.id}`,
+          })),
+          ...activityRows.slice(0, remaining).map((row) => ({
+            id: row.id,
+            title: row.title,
+            meta: `${row.companyName} · ${row.followUpAt?.toISOString().slice(0, 10) ?? "overdue"}`,
+            href: `/app/companies`,
+          })),
+        ],
+      ),
+    );
+  }
+
+  return widgets;
 }
 
 async function loadLeadershipWidgets(principal: Principal, now: Date): Promise<RhythmWidget[]> {
@@ -1427,11 +2007,14 @@ export function formatScoutExecutiveSummary(boards: RhythmBoard[]) {
   };
 }
 
-export async function scoutOperatingRhythmSummary(principal: Principal) {
+export async function scoutOperatingRhythmSummary(
+  principal: Principal,
+  options: { cadence?: CadenceId } = {},
+) {
   if (!can(principal, "scout.use")) {
     throw new Error("Missing permission: scout.use");
   }
-  const { boards } = await getOperatingRhythmBoards(principal);
+  const { boards } = await getOperatingRhythmBoards(principal, options);
   const summary = formatScoutExecutiveSummary(boards);
   return {
     message: summary.message,

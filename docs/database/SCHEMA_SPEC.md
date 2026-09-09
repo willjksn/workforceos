@@ -1,6 +1,6 @@
 # Schema Specification
 
-Status: Implemented through Phase H staff onboarding (`drizzle/0010`–`0015`)  
+Status: Implemented through Phase K GTM company columns (`drizzle/0010`–`0016`)  
 Implementation: `db/schema/`  
 Migrations: `drizzle/`
 
@@ -150,6 +150,12 @@ Hiring tables are in `db/schema/hiring/` and `drizzle/0010_*`. Do not edit `0000
 - `staff_onboarding.organization_id` uses `ON DELETE restrict`. Do not cascade-delete organizations.
 - These tables are not ATS hire `onboarding_instances` / `onboarding_tasks`.
 - Completing Academy training or recording Week 4 review must not grant roles or permissions.
+
+## Phase K 90-day GTM company columns
+
+- Migration `drizzle/0016_lyrical_giant_girl.sql` adds nullable `companies.gtm_tier` (`tier_1` / `tier_2`) and `companies.gtm_region` (`southeast` / `national`) with org-scoped indexes. Do not rewrite `0000`–`0015`.
+- These columns classify the existing Companies list. Do not add a parallel accounts table.
+- `industry` remains the human label. Focus industries are a documented GTM list, not new services.
 
 ## Public content items
 

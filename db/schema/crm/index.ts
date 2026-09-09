@@ -7,6 +7,8 @@ import { organizations, users } from "../core";
 import {
   clientStatusEnum,
   companyTypeEnum,
+  gtmRegionEnum,
+  gtmTierEnum,
   opportunityScoreBandEnum,
   opportunityStageEnum,
   relationshipStrengthEnum,
@@ -28,6 +30,8 @@ export const companies = pgTable("companies", {
   website: text("website"),
   industry: text("industry"),
   subIndustry: text("sub_industry"),
+  gtmTier: gtmTierEnum("gtm_tier"),
+  gtmRegion: gtmRegionEnum("gtm_region"),
   employeeCount: integer("employee_count"),
   annualRevenue: numeric("annual_revenue", { precision: 14, scale: 2 }),
   accountOwnerUserId: uuid("account_owner_user_id").references(() => users.id, {
@@ -43,6 +47,8 @@ export const companies = pgTable("companies", {
 }, (table) => [
   index("companies_organization_id_idx").on(table.organizationId),
   index("companies_account_owner_user_id_idx").on(table.accountOwnerUserId),
+  index("companies_gtm_tier_idx").on(table.organizationId, table.gtmTier),
+  index("companies_gtm_region_idx").on(table.organizationId, table.gtmRegion),
   index("companies_name_trgm_idx").using("gin", sql`${table.name} gin_trgm_ops`),
 ]);
 

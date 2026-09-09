@@ -7,6 +7,7 @@ import {
   addOpportunityAction,
   addSignalAction,
   createActivityAction,
+  updateCompanyGtmAction,
 } from "@/lib/actions/crm";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { OPPORTUNITY_STAGES } from "@/lib/crm/stages";
@@ -17,6 +18,7 @@ import { listCompanyTalentCandidates } from "@/lib/repositories/talent";
 import { companyDeliverySnapshot } from "@/lib/delivery/engine";
 import { companyFinanceSnapshot } from "@/lib/finance/engine";
 import { moneyString } from "@/lib/finance/money";
+import { GTM_REGION_LABELS, GTM_REGIONS, GTM_TIER_LABELS, GTM_TIERS } from "@/lib/gtm/focus";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../_components/action-form";
 import {
@@ -104,6 +106,12 @@ export default async function CompanyDetailPage({
           <div className="flex flex-wrap gap-2">
             <StatusBadge tone={company.clientStatus === "active" ? "success" : "navy"}>{company.clientStatus}</StatusBadge>
             <StatusBadge tone="neutral">relationship {company.relationshipStrength}</StatusBadge>
+            {company.gtmTier ? (
+              <StatusBadge tone="navy">GTM {GTM_TIER_LABELS[company.gtmTier]}</StatusBadge>
+            ) : null}
+            {company.gtmRegion ? (
+              <StatusBadge tone="neutral">{GTM_REGION_LABELS[company.gtmRegion]}</StatusBadge>
+            ) : null}
           </div>
         }
       />
@@ -133,6 +141,14 @@ export default async function CompanyDetailPage({
             <div>
               <dt className="text-muted-foreground">Industry</dt>
               <dd>{company.industry ?? "—"}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">GTM tier</dt>
+              <dd>{company.gtmTier ? GTM_TIER_LABELS[company.gtmTier] : "—"}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">GTM region</dt>
+              <dd>{company.gtmRegion ? GTM_REGION_LABELS[company.gtmRegion] : "—"}</dd>
             </div>
             <div>
               <dt className="text-muted-foreground">Employees</dt>
@@ -167,8 +183,44 @@ export default async function CompanyDetailPage({
           ) : null}
           {company.notes ? <p className="mt-3 text-sm text-muted-foreground">{company.notes}</p> : null}
           <p className="mt-4 text-xs text-muted-foreground">
-            Annual revenue is operating company size, not ownership or cap-table data.
+            Annual revenue is operating company size, not ownership or cap-table data. GTM tier and region mark the 90-day target-account list.
           </p>
+          {canWriteCompany ? (
+            <div className="mt-6 max-w-xl rounded-[8px] border border-card-border bg-card p-4">
+              <p className="text-sm font-medium text-navy">90-day GTM classification</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Tier 1: Energy / Utilities, Advanced Manufacturing, Infrastructure, Industrial / Technical Operations.
+                Tier 2: Data Centers, Aerospace / Defense, Engineering, Supply Chain / Logistics. Southeast is BD; National is recruiting.
+              </p>
+              <ActionForm action={updateCompanyGtmAction} className="mt-3 space-y-3">
+                <input type="hidden" name="companyId" value={company.id} />
+                <Field label="Industry" name="industry">
+                  <input className={inputClassName} id="industry" name="industry" defaultValue={company.industry ?? ""} />
+                </Field>
+                <Field label="GTM tier" name="gtmTier">
+                  <select className={inputClassName} id="gtmTier" name="gtmTier" defaultValue={company.gtmTier ?? ""}>
+                    <option value="">Unassigned</option>
+                    {GTM_TIERS.map((tier) => (
+                      <option key={tier} value={tier}>
+                        {GTM_TIER_LABELS[tier]}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="GTM region" name="gtmRegion">
+                  <select className={inputClassName} id="gtmRegion" name="gtmRegion" defaultValue={company.gtmRegion ?? ""}>
+                    <option value="">Unassigned</option>
+                    {GTM_REGIONS.map((region) => (
+                      <option key={region} value={region}>
+                        {GTM_REGION_LABELS[region]}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <PrimaryButton>Save GTM classification</PrimaryButton>
+              </ActionForm>
+            </div>
+          ) : null}
         </section>
       ) : null}
 

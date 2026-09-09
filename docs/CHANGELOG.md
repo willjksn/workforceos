@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Phase K — 90-day GTM / launch operations
+
+- Written plan: `docs/business/PIERONE_90_DAY_GTM_PLAN.md`. Five launch services only. Locked Tier 1/2 industries. Southeast BD vs national recruiting. Inquiries stay intake (DEC-WEB-004).
+- Target accounts stay on Companies. Added `gtm_tier` and `gtm_region` only. No parallel accounts table. Outbound cadence uses stored company next actions and activity follow-up dates — not a sequencer.
+- Command Center weekly GTM review at `/app?cadence=gtm`. Live aggregates (counts + 8-row exception lists). Hidden without `opportunities.read`. Recruiter Standard cannot see the commercial GTM pipeline.
+- Thought leadership links existing Public Content. Scout `SHOW_DASHBOARD` / “weekly GTM review” repeats counts the operator can already read. No SQL, no candidate PII to models, no send.
+- Academy article `ninety-day-gtm-review`. Knowledge seed `pierone-90-day-gtm-plan`. Operating manual points at the GTM cadence.
+
 ### Phase J — Management operating rhythms
 
 - Command Center `/app` now hosts weekly review boards (tabs, not extra nav items): Leadership, Operations, Talent, Military Talent, Finance. Each widget is a business question, a live PostgreSQL aggregate, a short exception list, and a link to the operating screen.

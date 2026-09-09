@@ -163,7 +163,7 @@ This is the commercial spine. Recruiter Standard does **not** own this spine (DE
 
 ### 10. Reporting
 
-- **WorkforceOS screen:** **Reports** `/app/reports` and `/app/reports/[category]`. Leadership roll-up: **Command Center** `/app`. Weekly operating reviews (not extra nav items): `/app?cadence=leadership` (pipeline, proposals, recruiting delivery, Military Talent pathway, project health, cash/AR, derived risks), `/app?cadence=operations`, `/app?cadence=talent`, `/app?cadence=military`, `/app?cadence=finance`. Alerts: `/app/alerts`.
+- **WorkforceOS screen:** **Reports** `/app/reports` and `/app/reports/[category]`. Leadership roll-up: **Command Center** `/app`. Weekly operating reviews (not extra nav items): `/app?cadence=leadership` (pipeline, proposals, recruiting delivery, Military Talent pathway, project health, cash/AR, derived risks), `/app?cadence=operations`, `/app?cadence=talent`, `/app?cadence=military`, `/app?cadence=finance`, `/app?cadence=gtm` (90-day GTM). Alerts: `/app/alerts`.
 - **Owner / access:** Bundles with `reports.read` (Senior Talent Partner, Recruiter Standard, Workforce Consultant, Military Talent Partner, Operations, Administrator / Executive). Cadence widgets still hide without the module permission (`opportunities.read`, `jobs.read`, `military.read`, `finance.read`, and so on). Recruiter Standard does not see the commercial opportunity pipeline (DEC-RBAC-001). PII CSV export is a separate permission.
 - **Approval:** Reports and cadence boards read stored rows. They do not invent metrics. Scout `SHOW_DASHBOARD` / weekly operating review repeats counts the operator can already read; humans still own decisions.
 - **Scout:** `SHOW_DASHBOARD` (Command Center executive summary or Military Talent daily brief). `SEARCH` / `SUMMARIZE` the module in context. Scout never generates SQL and still cannot send.
@@ -171,7 +171,11 @@ This is the commercial spine. Recruiter Standard does **not** own this spine (DE
 
 #### Leadership cadence
 
-PierOne weekly pipeline review runs inside WorkforceOS, not a slide deck. Managing Partner and other authorized bundles open **Command Center → Leadership**. Operations, Talent, Military Talent, and Finance reviews are sibling boards on the same page. Academy: Weekly operating review.
+PierOne weekly pipeline review runs inside WorkforceOS, not a slide deck. Managing Partner and other authorized bundles open **Command Center → Leadership**. Operations, Talent, Military Talent, Finance, and GTM reviews are sibling boards on the same page. Academy: Weekly operating review.
+
+#### 90-day GTM cadence
+
+The written plan is `docs/business/PIERONE_90_DAY_GTM_PLAN.md`. Weekly GTM review is **Command Center → GTM** at `/app?cadence=gtm`. Target-account tiers and Southeast vs national live on Companies (`gtm_tier`, `gtm_region`). Recruiter Standard does not see this commercial board (DEC-RBAC-001). Inquiries stay intake (DEC-WEB-004). Academy: 90-day GTM review.
 
 ### 11. Invoice
 
@@ -398,6 +402,7 @@ Repeatable delivery maps live in `docs/business/SERVICE_PLAYBOOKS.md` and `docs/
 
 ## Related documents
 
+- 90-day GTM plan: `docs/business/PIERONE_90_DAY_GTM_PLAN.md`
 - Catalog: `docs/business/SERVICE_CATALOG.md`
 - Service playbooks: `docs/business/SERVICE_PLAYBOOKS.md`
 - Workflows: `docs/workflows/SERVICE_WORKFLOWS.md`

@@ -71,7 +71,14 @@ export async function createCompanyFixture(input: {
   return { company, locations, contacts: createdContacts, signals, opportunity };
 }
 
-export async function listCompanies(organizationId: string, query?: string) {
+export async function listCompanies(
+  organizationId: string,
+  query?: string,
+  filters?: {
+    gtmTier?: typeof companies.$inferInsert.gtmTier;
+    gtmRegion?: typeof companies.$inferInsert.gtmRegion;
+  },
+) {
   const db = getDb();
   const search = sanitizeSearchQuery(query);
   return db
@@ -82,6 +89,8 @@ export async function listCompanies(organizationId: string, query?: string) {
         eq(companies.organizationId, organizationId),
         isNull(companies.archivedAt),
         search ? ilike(companies.name, `%${search}%`) : undefined,
+        filters?.gtmTier ? eq(companies.gtmTier, filters.gtmTier) : undefined,
+        filters?.gtmRegion ? eq(companies.gtmRegion, filters.gtmRegion) : undefined,
       ),
     )
     .orderBy(companies.name);
@@ -96,6 +105,8 @@ export async function createCompany(input: {
   relationshipStrength: typeof companies.$inferInsert.relationshipStrength;
   website?: string | null;
   industry?: string | null;
+  gtmTier?: typeof companies.$inferInsert.gtmTier;
+  gtmRegion?: typeof companies.$inferInsert.gtmRegion;
   notes?: string | null;
 }) {
   const db = getDb();
@@ -109,6 +120,8 @@ export async function createCompany(input: {
       relationshipStrength: input.relationshipStrength,
       website: input.website,
       industry: input.industry,
+      gtmTier: input.gtmTier,
+      gtmRegion: input.gtmRegion,
       notes: input.notes,
     })
     .returning();
@@ -157,6 +170,43 @@ export async function getCompanyGraph(companyId: string, organizationId?: string
     .where(and(eq(opportunities.companyId, companyId), isNull(opportunities.archivedAt)))
     .orderBy(opportunities.name);
   return { company, locations, contacts: linkedContacts, signals, opportunities: relatedOpportunities };
+}
+
+export async function updateCompanyGtmClassification(params: {
+  organizationId: string;
+  companyId: string;
+  actorUserId: string;
+  gtmTier?: typeof companies.$inferInsert.gtmTier | null;
+  gtmRegion?: typeof companies.$inferInsert.gtmRegion | null;
+  industry?: string | null;
+}) {
+  const db = getDb();
+  const [before] = await db
+    .select()
+    .from(companies)
+    .where(and(eq(companies.id, params.companyId), eq(companies.organizationId, params.organizationId)))
+    .limit(1);
+  if (!before) return null;
+  const [after] = await db
+    .update(companies)
+    .set({
+      gtmTier: params.gtmTier === undefined ? before.gtmTier : params.gtmTier,
+      gtmRegion: params.gtmRegion === undefined ? before.gtmRegion : params.gtmRegion,
+      industry: params.industry === undefined ? before.industry : params.industry,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(companies.id, params.companyId), eq(companies.organizationId, params.organizationId)))
+    .returning();
+  await recordAuditEvent({
+    organizationId: params.organizationId,
+    actor: { type: "human", userId: params.actorUserId },
+    action: "company.updated",
+    recordType: "company",
+    recordId: params.companyId,
+    before,
+    after,
+  });
+  return after;
 }
 
 export async function updateCompanyName(params: {

@@ -66,7 +66,7 @@ export const scoutCommandDtoSchema = z.object({
   ownerUserId: z.string().uuid().optional(),
   followUpAt: z.string().datetime().optional(),
   note: z.string().trim().max(2000).optional(),
-  dashboard: z.enum(["skillbridge", "queue", "daily_brief", "command_center"]).optional(),
+  dashboard: z.enum(["skillbridge", "queue", "daily_brief", "command_center", "gtm"]).optional(),
 });
 
 export type ScoutCommandDto = z.infer<typeof scoutCommandDtoSchema>;
@@ -229,6 +229,14 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
     entity = pageContext?.entityType ?? "skillbridge_profile";
     summary = "Open the current authorized Transition Talent Profile or record.";
   } else if (
+    /\b(90[-\s]?day )?(gtm|go[-\s]?to[-\s]?market)( review| plan| cadence| summary| brief)?\b|\bweekly gtm\b/.test(
+      text,
+    )
+  ) {
+    family = "SHOW_DASHBOARD";
+    entity = "gtm";
+    summary = "Summarize 90-day GTM counts the operator can already read.";
+  } else if (
     /\bweekly (operating )?review\b|\bexecutive summary\b|\boperating review\b|\bcommand center (summary|review|brief)\b|\bleadership (cadence|review|pipeline review)\b/.test(
       text,
     )
@@ -378,10 +386,12 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
     poolName: poolName || (family === "ADD_TO_POOL" ? "Scout pool" : undefined),
     dashboard:
       family === "SHOW_DASHBOARD"
-        ? entity === "command_center" ||
-          /\bweekly (operating )?review\b|\bexecutive summary\b|\boperating review\b/.test(text)
-          ? "command_center"
-          : "daily_brief"
+        ? entity === "gtm" || /\b(90[-\s]?day )?gtm\b|\bgo[-\s]?to[-\s]?market\b/.test(text)
+          ? "gtm"
+          : entity === "command_center" ||
+              /\bweekly (operating )?review\b|\bexecutive summary\b|\boperating review\b/.test(text)
+            ? "command_center"
+            : "daily_brief"
         : undefined,
     draftKind: family === "DRAFT"
       ? (/\bfollow-?up\b/.test(text)

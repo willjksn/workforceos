@@ -18,9 +18,11 @@ import {
   createOpportunity,
   getCompanyInOrganization,
   reviewSignal,
+  updateCompanyGtmClassification,
   updateOpportunityStage,
   upsertOpportunityScore,
 } from "@/lib/repositories/crm";
+import { GTM_REGIONS, GTM_TIERS } from "@/lib/gtm/focus";
 import { emptyToNull } from "@/lib/validation/forms";
 
 export type ActionState = { error?: string };
@@ -51,6 +53,8 @@ const activityTypeSchema = z.enum([
   "other",
 ]);
 const serviceCodeSchema = z.enum(LAUNCH_SERVICE_CODES);
+const gtmTierSchema = z.enum(GTM_TIERS);
+const gtmRegionSchema = z.enum(GTM_REGIONS);
 
 function fail(error: unknown): ActionState {
   if (error instanceof AuthorizationError || error instanceof z.ZodError) {
@@ -86,6 +90,8 @@ export async function createCompanyAction(
         relationshipStrength: relationshipSchema,
         website: z.string().trim().max(500).optional(),
         industry: z.string().trim().max(200).optional(),
+        gtmTier: gtmTierSchema.optional(),
+        gtmRegion: gtmRegionSchema.optional(),
         notes: z.string().trim().max(4000).optional(),
       })
       .parse({
@@ -95,6 +101,8 @@ export async function createCompanyAction(
         relationshipStrength: formData.get("relationshipStrength") || "unknown",
         website: emptyToNull(formData.get("website")) ?? undefined,
         industry: emptyToNull(formData.get("industry")) ?? undefined,
+        gtmTier: emptyToNull(formData.get("gtmTier")) ?? undefined,
+        gtmRegion: emptyToNull(formData.get("gtmRegion")) ?? undefined,
         notes: emptyToNull(formData.get("notes")) ?? undefined,
       });
     const company = await createCompany({
@@ -102,9 +110,47 @@ export async function createCompanyAction(
       actorUserId: principal.id,
       ...parsed,
       website: parsed.website ?? null,
+      gtmTier: parsed.gtmTier ?? null,
+      gtmRegion: parsed.gtmRegion ?? null,
       notes: parsed.notes ?? null,
     });
     redirect(`/app/companies/${company.id}`);
+  } catch (error) {
+    if (isNextControlFlow(error)) throw error;
+    return fail(error);
+  }
+}
+
+export async function updateCompanyGtmAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  try {
+    const principal = await requireAppPermission("companies.write");
+    const parsed = z
+      .object({
+        companyId: z.string().uuid(),
+        industry: z.string().trim().max(200).optional(),
+        gtmTier: gtmTierSchema.optional(),
+        gtmRegion: gtmRegionSchema.optional(),
+      })
+      .parse({
+        companyId: formData.get("companyId"),
+        industry: emptyToNull(formData.get("industry")) ?? undefined,
+        gtmTier: emptyToNull(formData.get("gtmTier")) ?? undefined,
+        gtmRegion: emptyToNull(formData.get("gtmRegion")) ?? undefined,
+      });
+    const company = await getCompanyInOrganization(parsed.companyId, principal.organizationId);
+    if (!company) return { error: "Company not found" };
+    await updateCompanyGtmClassification({
+      organizationId: principal.organizationId,
+      companyId: parsed.companyId,
+      actorUserId: principal.id,
+      industry: parsed.industry ?? null,
+      gtmTier: parsed.gtmTier ?? null,
+      gtmRegion: parsed.gtmRegion ?? null,
+    });
+    redirect(`/app/companies/${parsed.companyId}`);
   } catch (error) {
     if (isNextControlFlow(error)) throw error;
     return fail(error);

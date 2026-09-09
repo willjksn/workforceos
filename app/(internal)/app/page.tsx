@@ -67,13 +67,15 @@ export default async function CommandCenterPage({
         <PageHeader
           eyebrow="WorkforceOS / Weekly review"
           title="Workforce Command Center"
-          description="PierOne management cadence from live PostgreSQL aggregates. Cards hide when you lack the module permission. Recruiter Standard does not see the commercial opportunity pipeline."
+          description="PierOne management cadence from live PostgreSQL aggregates. Cards hide when you lack the module permission. Recruiter Standard does not see the commercial opportunity pipeline or the 90-day GTM board."
           metadata={`${principal.roleSlugs.join(", ") || "no roles"} · ${generatedAt.toLocaleString()}`}
           actions={
             <div className="flex flex-wrap items-center gap-2">
-              <AcademyHelp articleSlug="weekly-operating-review" />
+              <AcademyHelp articleSlug={cadence === "gtm" ? "ninety-day-gtm-review" : "weekly-operating-review"} />
               {canScout ? (
-                <span className="text-sm text-muted-foreground">Ask Scout: weekly operating review</span>
+                <span className="text-sm text-muted-foreground">
+                  {cadence === "gtm" ? "Ask Scout: weekly GTM review" : "Ask Scout: weekly operating review"}
+                </span>
               ) : null}
             </div>
           }
@@ -113,16 +115,21 @@ export default async function CommandCenterPage({
       <PageHeader
         eyebrow="WorkforceOS / Executive view"
         title="Workforce Command Center"
-        description="Live snapshot of your firm's operating records. Weekly reviews live on the Leadership, Operations, Talent, Military Talent, and Finance boards. Figures come from saved data, not projections."
+        description="Live snapshot of your firm's operating records. Weekly reviews live on the Leadership, Operations, Talent, Military Talent, Finance, and GTM boards. Figures come from saved data, not projections."
         metadata={`${principal.roleSlugs.join(", ") || "no roles"} · ${snapshot.generatedAt.toLocaleString()}`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <AcademyHelp articleSlug="module-command-center" />
+            {availableCadences.includes("gtm") ? (
+              <a className={buttonClassName("secondary")} href="/app?cadence=gtm">
+                Weekly GTM review
+              </a>
+            ) : null}
             {availableCadences.includes("leadership") ? (
               <a className={buttonClassName("secondary")} href="/app?cadence=leadership">
                 Weekly pipeline review
               </a>
-            ) : availableCadences[0] ? (
+            ) : !availableCadences.includes("gtm") && availableCadences[0] ? (
               <a className={buttonClassName("secondary")} href={`/app?cadence=${availableCadences[0]}`}>
                 Open weekly review
               </a>

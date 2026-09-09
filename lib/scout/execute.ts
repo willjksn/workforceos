@@ -264,6 +264,9 @@ async function executeAuthorizedCommand(input: {
   }
 
   if (input.dto.family === "SHOW_DASHBOARD") {
+    if (input.dto.dashboard === "gtm" || input.dto.entity === "gtm") {
+      return scoutOperatingRhythmSummary(input.principal, { cadence: "gtm" });
+    }
     if (input.dto.dashboard === "command_center" || input.dto.entity === "command_center") {
       return scoutOperatingRhythmSummary(input.principal);
     }

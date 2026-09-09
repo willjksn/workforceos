@@ -242,6 +242,14 @@ export async function seedPhase7Ai(
       source: "docs/business/PIERONE_OPERATING_MANUAL.md",
     },
     {
+      slug: "pierone-90-day-gtm-plan",
+      title: "PierOne 90-day GTM plan",
+      knowledgeType: "internal_process" as const,
+      content:
+        "PierOne 90-day GTM / launch operations plan. WorkforceOS is the system of execution (CRM + Command Center + playbooks), not a second CRM and not a public marketplace. Five launch services only: professional-search, military-talent-opportunity-assessment, ta-performance-assessment, fractional-talent-partner, workforce-pipeline-assessment. Focus industries are locked and are not new services. Tier 1: Energy / Utilities, Advanced Manufacturing, Infrastructure, Industrial / Technical Operations. Tier 2: Data Centers, Aerospace / Defense, Engineering, Supply Chain / Logistics. Target accounts live on Companies with gtm_tier and gtm_region (Southeast BD vs national recruiting). Weekly review: /app?cadence=gtm. Inquiries are intake, not auto-opportunities (DEC-WEB-004). Recruiter Standard has no opportunities.read and must not see the commercial GTM pipeline (DEC-RBAC-001). Title is not access (DEC-AUTH-002). Military employer conversations: PierOne is the intermediary; SkillBridge is a pathway type, not a PierOne-owned program; use Military Talent Partner. Thought leadership is Public Content, not a CMS (DEC-WEB-010). Outbound cadence is stored on company next actions and activity follow-up dates — not a sequencer product. Scout SHOW_DASHBOARD weekly GTM review repeats counts the operator can already read. No SQL. No candidate email, phone, compensation, or resume in model context. Scout cannot send. Canonical markdown: docs/business/PIERONE_90_DAY_GTM_PLAN.md.",
+      source: "docs/business/PIERONE_90_DAY_GTM_PLAN.md",
+    },
+    {
       slug: "pierone-operating-manual",
       title: "PierOne Partners operating manual",
       knowledgeType: "internal_process" as const,
