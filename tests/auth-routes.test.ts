@@ -15,6 +15,8 @@ describe("route protection", () => {
     expect(isPublicPath("/api/public/v1/military-talent")).toBe(true);
     expect(isPublicPath("/api/careers/applications")).toBe(true);
     expect(isPublicPath("/onboarding/access")).toBe(true);
+    expect(isPublicPath("/schedule/token")).toBe(true);
+    expect(isPublicPath("/careers/status/token")).toBe(true);
   });
 
   it("requires authentication for internal operating routes", () => {

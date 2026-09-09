@@ -31,7 +31,7 @@ export function MetricCard({
     <>
       <span className="absolute bottom-3 left-0 top-3 w-0.5 rounded-full bg-teal" aria-hidden />
       <p className="eyebrow">{label}</p>
-      <p className="mt-2 font-serif text-[34px] font-semibold leading-none text-navy">{value}</p>
+      <p className="mt-2 break-words font-serif text-[28px] font-semibold leading-none text-navy sm:text-[34px]">{value}</p>
       {hint ? <p className="mt-2 text-sm leading-5 text-muted-foreground">{hint}</p> : null}
     </>
   );
@@ -114,7 +114,7 @@ export function ProfileSnapshot({
   return (
     <Card>
       <p className="eyebrow">Profile snapshot</p>
-      <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-4">
+      <dl className="mt-4 grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
         {items.map((item) => (
           <div key={item.label}>
             <dt className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">{item.label}</dt>

@@ -17,7 +17,7 @@ import {
 } from "@/lib/hiring/service";
 import { AuthorizationError } from "@/lib/rbac/permissions";
 
-export type ActionState = { error?: string };
+export type ActionState = { error?: string; url?: string };
 
 function fail(error: unknown): ActionState {
   if (error instanceof AuthorizationError || error instanceof z.ZodError) {
@@ -88,10 +88,46 @@ export async function startOnboardingAction(_state: ActionState, formData: FormD
   try {
     const principal = await requireAppPermission("onboarding.manage");
     const applicationId = String(formData.get("applicationId") ?? "");
-    await startOnboarding({ principal, applicationId });
-    redirect("/app/onboarding");
+    const started = await startOnboarding({ principal, applicationId });
+    redirect(`/app/onboarding?issued=${encodeURIComponent(started.accessPath)}`);
   } catch (error) {
     if (error && typeof error === "object" && "digest" in error) throw error;
+    return fail(error);
+  }
+}
+
+export async function issueSelfScheduleLinkAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    const principal = await requireAppPermission("interviews.schedule");
+    const applicationId = String(formData.get("applicationId") ?? "");
+    const { issuePublicAccessToken } = await import("@/lib/public-access/tokens");
+    const issued = await issuePublicAccessToken({
+      organizationId: principal.organizationId,
+      purpose: "interview_self_schedule",
+      applicationId,
+      createdByUserId: principal.id,
+      ttlHours: 14 * 24,
+    });
+    return { url: issued.path };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function issueApplicationStatusLinkAction(_state: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    const principal = await requireAppPermission("applications.read");
+    const applicationId = String(formData.get("applicationId") ?? "");
+    const { issuePublicAccessToken } = await import("@/lib/public-access/tokens");
+    const issued = await issuePublicAccessToken({
+      organizationId: principal.organizationId,
+      purpose: "application_status",
+      applicationId,
+      createdByUserId: principal.id,
+      ttlHours: 30 * 24,
+    });
+    return { url: issued.path };
+  } catch (error) {
     return fail(error);
   }
 }

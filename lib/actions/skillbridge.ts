@@ -3,7 +3,7 @@
 import { z } from "zod";
 
 import { skillbridgeOpportunities } from "@/db/schema";
-import { requireAppPermission } from "@/lib/auth/guard";
+import { requireAnyAppPermission, requireAppPermission } from "@/lib/auth/guard";
 import { AuthorizationError } from "@/lib/rbac/permissions";
 import {
   addSkillBridgeFollowUp,
@@ -129,6 +129,46 @@ export async function addSkillBridgeNoteAction(
       profileId: parsed.profileId,
       body: parsed.body,
       kind: parsed.kind as never,
+    });
+    return {};
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+export async function updateSkillBridgeAlertRuleAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  try {
+    const principal = await requireAnyAppPermission(["skillbridge.manage", "military.review"]);
+    const parsed = z
+      .object({
+        code: z.enum([
+          "candidate_no_contact",
+          "employer_feedback_overdue",
+          "window_approaching",
+          "no_opportunity",
+          "resume_missing",
+          "conversion_approaching",
+          "window_starting_soon",
+          "window_ending_soon",
+        ]),
+        enabled: z.string().optional(),
+        thresholdDays: z.coerce.number().int().min(0).max(365),
+      })
+      .parse({
+        code: formData.get("code"),
+        enabled: formData.get("enabled") || undefined,
+        thresholdDays: formData.get("thresholdDays"),
+      });
+    const { updateSkillBridgeAlertRule } = await import("@/lib/skillbridge/rules");
+    await updateSkillBridgeAlertRule({
+      organizationId: principal.organizationId,
+      actorUserId: principal.id,
+      code: parsed.code,
+      enabled: parsed.enabled === "on" || parsed.enabled === "true",
+      thresholdDays: parsed.thresholdDays,
     });
     return {};
   } catch (error) {

@@ -410,11 +410,11 @@ async function main() {
 
   console.log("TEST 30-31 — Onboarding instance and tasks");
   const onboarding = await startOnboarding({ principal: partner, applicationId: first.application.id });
-  assert(onboarding.id, "Onboarding instance created");
+  assert(onboarding.instance.id, "Onboarding instance created");
   const [openTask] = await db
     .select()
     .from(onboardingTasks)
-    .where(eq(onboardingTasks.instanceId, onboarding.id))
+    .where(eq(onboardingTasks.instanceId, onboarding.instance.id))
     .limit(1);
   assert(openTask, "Onboarding tasks generated from template");
   const completed = await completeOnboardingTask({ principal: partner, taskId: openTask.id });

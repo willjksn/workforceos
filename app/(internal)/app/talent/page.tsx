@@ -16,6 +16,7 @@ import {
   PageShell,
   PrimaryButton,
   SearchForm,
+  ListPager,
   formatLabel,
   inputClassName,
 } from "../_components/ui";
@@ -34,14 +35,13 @@ function availabilityTone(value: string) {
 export default async function TalentPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; page?: string }>;
 }) {
   const principal = await requireAppPermission("candidates.read");
   const canReadPii = can(principal, "candidate_pii.read");
-  const { q } = await searchParams;
-  const rows = (await searchActiveCandidates(principal.organizationId, q)).map((candidate) =>
-    presentCandidate(candidate, canReadPii),
-  );
+  const { q, page } = await searchParams;
+  const result = await searchActiveCandidates(principal.organizationId, q, undefined, { page });
+  const rows = result.items.map((candidate) => presentCandidate(candidate, canReadPii));
 
   return (
     <PageShell>
@@ -85,6 +85,7 @@ export default async function TalentPage({
           ))}
         </DataTable>
       )}
+      <ListPager pathname="/app/talent" page={result.page} pageSize={result.pageSize} total={result.total} params={{ q }} />
       {can(principal, "candidates.write") ? (
         <CreatePanel title="Add candidate">
           <ActionForm action={createCandidateAction} className="max-w-xl space-y-3">

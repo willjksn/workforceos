@@ -6,6 +6,7 @@ export {
   PhasePlaceholder,
   SearchForm,
   FilterBar,
+  ListPager,
   DataTable,
   CreatePanel,
   RecordList,

@@ -51,6 +51,13 @@ export default async function SkillBridgeDashboardPage({
         description="SkillBridge is one pathway inside Military Talent operations, not a PierOne-owned program. Profiles are Transition Talent overlays on Talent Network candidates. PierOne is the intermediary; host companies and employers own SkillBridge-eligible opportunities."
       />
       <MilitarySubnav active="/app/military/skillbridge" />
+      {can(principal, "skillbridge.manage") || can(principal, "military.review") ? (
+        <p className="mt-3 text-sm">
+          <Link className="text-navy underline" href="/app/military/skillbridge/alerts">
+            Edit alert-rule windows
+          </Link>
+        </p>
+      ) : null}
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Active transitioning talent" value={metrics.activeCandidates} />
@@ -131,7 +138,7 @@ export default async function SkillBridgeDashboardPage({
               </div>
               <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
                 <Field label="Installation / location" value={card.installation?.name ?? card.profile.currentDutyLocation} />
-                <Field label="End of service" value={card.profile.endOfServiceDate?.toLocaleDateString()} />
+                <Field label="EOS / ETS / EAOS" value={card.profile.endOfServiceDate?.toLocaleDateString() ?? card.profile.etsDate?.toLocaleDateString() ?? card.profile.eaosDate?.toLocaleDateString()} />
                 <Field label="SkillBridge window" value={card.profile.skillbridgeWindowStart && card.profile.skillbridgeWindowEnd ? `${card.profile.skillbridgeWindowStart.toLocaleDateString()}–${card.profile.skillbridgeWindowEnd.toLocaleDateString()}` : null} />
                 <Field label="Target roles" value={card.targetRoles.map((row) => row.roleTitle).join(", ")} />
                 <Field label="Preferred location" value={card.profile.preferredLocationPrimary} />

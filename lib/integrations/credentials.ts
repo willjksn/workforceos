@@ -85,6 +85,14 @@ export function isDrugScreenConfigured() {
   return false;
 }
 
+export function isBlsConfigured() {
+  return Boolean(integrationCredential("BLS_API_KEY"));
+}
+
+export function isCensusConfigured() {
+  return Boolean(integrationCredential("CENSUS_API_KEY"));
+}
+
 export function isSentryConfigured() {
   return Boolean(integrationCredential("SENTRY_DSN"));
 }

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import { skillbridgeAlertRules } from "../../db/schema";
@@ -10,6 +10,8 @@ export const DEFAULT_SKILLBRIDGE_ALERT_RULES = [
   { code: "no_opportunity" as const, thresholdDays: 90 },
   { code: "resume_missing" as const, thresholdDays: 0 },
   { code: "conversion_approaching" as const, thresholdDays: 30 },
+  { code: "window_starting_soon" as const, thresholdDays: 14 },
+  { code: "window_ending_soon" as const, thresholdDays: 14 },
 ];
 
 export async function ensureSkillBridgeAlertRules(organizationId: string) {
@@ -46,7 +48,33 @@ export async function getSkillBridgeAlertRules(organizationId: string) {
     conversionApproachingDays: byCode.conversion_approaching?.enabled
       ? byCode.conversion_approaching.thresholdDays
       : 30,
+    windowStartingSoonDays: byCode.window_starting_soon?.enabled ? byCode.window_starting_soon.thresholdDays : 14,
+    windowEndingSoonDays: byCode.window_ending_soon?.enabled ? byCode.window_ending_soon.thresholdDays : 14,
+    rows,
   };
+}
+
+export async function updateSkillBridgeAlertRule(input: {
+  organizationId: string;
+  actorUserId: string;
+  code: (typeof DEFAULT_SKILLBRIDGE_ALERT_RULES)[number]["code"];
+  enabled: boolean;
+  thresholdDays: number;
+}) {
+  await ensureSkillBridgeAlertRules(input.organizationId);
+  const db = getDb();
+  const [row] = await db
+    .update(skillbridgeAlertRules)
+    .set({
+      enabled: input.enabled,
+      thresholdDays: input.thresholdDays,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(eq(skillbridgeAlertRules.organizationId, input.organizationId), eq(skillbridgeAlertRules.code, input.code)),
+    )
+    .returning();
+  return row;
 }
 
 export function daysFromNow(days: number, from = new Date()) {

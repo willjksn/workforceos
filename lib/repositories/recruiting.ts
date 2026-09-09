@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, inArray, isNull, sql } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, isNull, sql } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
@@ -26,6 +26,7 @@ import {
   buildInternalSearchProjectName,
 } from "../recruiting/internal-search";
 import { normalizePipelineStage, type PipelineStage } from "../recruiting/pipeline";
+import { listPageResult, parseListPage, type ListPage, type ListPageQuery } from "../pagination";
 import { sanitizeSearchQuery } from "../validation/forms";
 
 const PROFESSIONAL_SEARCH_CODE = "professional-search";
@@ -34,9 +35,32 @@ function numeric(value: number) {
   return value.toFixed(2);
 }
 
-export async function listJobs(organizationId: string, query?: string) {
+export async function listJobs(
+  organizationId: string,
+  query?: string,
+  paging?: ListPageQuery & { companyId?: string },
+): Promise<
+  ListPage<{
+    job: typeof jobs.$inferSelect;
+    companyName: string | null;
+    ownerName: string | null;
+    hiringManagerName: string | null;
+    matchedInternalCount: number;
+    activePipelineCount: number;
+    daysOpen: number;
+  }>
+> {
   const db = getDb();
   const search = sanitizeSearchQuery(query);
+  const { page, pageSize, offset } = parseListPage(paging);
+  const filters = and(
+    eq(jobs.organizationId, organizationId),
+    isNull(jobs.archivedAt),
+    search ? ilike(jobs.title, `%${search}%`) : undefined,
+    paging?.companyId ? eq(jobs.companyId, paging.companyId) : undefined,
+  );
+  const [totalRow] = await db.select({ value: count() }).from(jobs).where(filters);
+  const total = Number(totalRow?.value ?? 0);
   const rows = await db
     .select({
       job: jobs,
@@ -48,17 +72,13 @@ export async function listJobs(organizationId: string, query?: string) {
     .leftJoin(companies, eq(jobs.companyId, companies.id))
     .leftJoin(users, eq(jobs.searchOwnerUserId, users.id))
     .leftJoin(contacts, eq(jobs.hiringManagerContactId, contacts.id))
-    .where(
-      and(
-        eq(jobs.organizationId, organizationId),
-        isNull(jobs.archivedAt),
-        search ? ilike(jobs.title, `%${search}%`) : undefined,
-      ),
-    )
-    .orderBy(jobs.title);
+    .where(filters)
+    .orderBy(jobs.title)
+    .limit(pageSize)
+    .offset(offset);
 
   const jobIds = rows.map((row) => row.job.id);
-  if (jobIds.length === 0) return [];
+  if (jobIds.length === 0) return listPageResult([], total, page, pageSize);
 
   const matchRows = await db
     .select({
@@ -68,20 +88,25 @@ export async function listJobs(organizationId: string, query?: string) {
     .from(candidateJobMatches)
     .where(inArray(candidateJobMatches.jobId, jobIds));
 
-  return rows.map((row) => {
-    const matches = matchRows.filter((match) => match.jobId === row.job.id);
-    const activePipeline = matches.filter((match) =>
-      !["rejected", "declined", "withdrawn", "placed"].includes(normalizePipelineStage(match.pipelineStatus)),
-    );
-    const opened = row.job.createdAt.getTime();
-    const daysOpen = Math.max(0, Math.floor((Date.now() - opened) / (1000 * 60 * 60 * 24)));
-    return {
-      ...row,
-      matchedInternalCount: matches.length,
-      activePipelineCount: activePipeline.length,
-      daysOpen,
-    };
-  });
+  return listPageResult(
+    rows.map((row) => {
+      const matches = matchRows.filter((match) => match.jobId === row.job.id);
+      const activePipeline = matches.filter((match) =>
+        !["rejected", "declined", "withdrawn", "placed"].includes(normalizePipelineStage(match.pipelineStatus)),
+      );
+      const opened = row.job.createdAt.getTime();
+      const daysOpen = Math.max(0, Math.floor((Date.now() - opened) / (1000 * 60 * 60 * 24)));
+      return {
+        ...row,
+        matchedInternalCount: matches.length,
+        activePipelineCount: activePipeline.length,
+        daysOpen,
+      };
+    }),
+    total,
+    page,
+    pageSize,
+  );
 }
 
 export async function createJobWithInternalSearch(input: {

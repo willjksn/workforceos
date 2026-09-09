@@ -20,6 +20,7 @@ import {
   transactionalEmailEvents,
 } from "../../db/schema";
 import { recordAuditEvent } from "../audit/record-audit-event";
+import { listPageResult, parseListPage, type ListPage, type ListPageQuery } from "../pagination";
 import { sanitizeSearchQuery } from "../validation/forms";
 
 export async function getCandidateWithRelationships(candidateId: string, organizationId?: string) {
@@ -231,27 +232,32 @@ export async function searchActiveCandidates(
   organizationId: string,
   query?: string,
   availability?: typeof candidates.$inferSelect.availability,
-) {
+  paging?: ListPageQuery,
+): Promise<ListPage<typeof candidates.$inferSelect>> {
   const db = getDb();
   const search = sanitizeSearchQuery(query);
-  return db
+  const { page, pageSize, offset } = parseListPage(paging);
+  const filters = and(
+    eq(candidates.organizationId, organizationId),
+    isNull(candidates.archivedAt),
+    isNull(candidates.privacyDeletedAt),
+    availability ? eq(candidates.availability, availability) : undefined,
+    search
+      ? or(
+          ilike(candidates.fullName, `%${search}%`),
+          ilike(candidates.currentTitle, `%${search}%`),
+        )
+      : undefined,
+  );
+  const [totalRow] = await db.select({ value: count() }).from(candidates).where(filters);
+  const items = await db
     .select()
     .from(candidates)
-    .where(
-      and(
-        eq(candidates.organizationId, organizationId),
-        isNull(candidates.archivedAt),
-        isNull(candidates.privacyDeletedAt),
-        availability ? eq(candidates.availability, availability) : undefined,
-        search
-          ? or(
-              ilike(candidates.fullName, `%${search}%`),
-              ilike(candidates.currentTitle, `%${search}%`),
-            )
-          : undefined,
-      ),
-    )
-    .orderBy(candidates.fullName);
+    .where(filters)
+    .orderBy(candidates.fullName)
+    .limit(pageSize)
+    .offset(offset);
+  return listPageResult(items, Number(totalRow?.value ?? 0), page, pageSize);
 }
 
 export async function createCandidate(input: {

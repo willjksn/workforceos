@@ -5,6 +5,7 @@ const ITEMS = [
   { href: "/app/military/candidates", label: "Transitioning Talent" },
   { href: "/app/military/opportunities", label: "Employer Opportunities" },
   { href: "/app/military/skillbridge", label: "Pathway operations" },
+  { href: "/app/military/skillbridge/alerts", label: "Alert rules" },
   { href: "/app/military/translator", label: "Skills Translator" },
   { href: "/app/military/occupations", label: "Occupation Library" },
   { href: "/app/military/installation-mapping", label: "Installation Mapping" },

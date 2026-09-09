@@ -8,6 +8,8 @@ export const PUBLIC_PATH_PREFIXES = [
   "/api/public",
   "/api/careers",
   "/onboarding/access",
+  "/schedule",
+  "/careers/status",
 ] as const;
 
 export const PROTECTED_ROUTE_SAMPLES = [

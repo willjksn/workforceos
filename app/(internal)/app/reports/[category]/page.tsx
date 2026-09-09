@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation";
 
-import { saveReportAction } from "@/lib/actions/reports";
+import { saveReportAction, scheduleReportExportAction } from "@/lib/actions/reports";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { can } from "@/lib/rbac/permissions";
 import { isReportCategory, parseReportFilters } from "@/lib/reporting/filters";
 import { runReport } from "@/lib/reporting/reports";
 import { listSavedReports } from "@/lib/reporting/saved";
+import { listReportExportJobs, listReportExportSchedules } from "@/lib/reporting/schedules";
 import { MetricCard } from "@/components/ui/display";
 import { ActionForm } from "../../_components/action-form";
 import {
@@ -34,6 +35,9 @@ export default async function ReportCategoryPage({
   const report = await runReport(principal.organizationId, category, filters);
   const saved = await listSavedReports(principal.organizationId, principal.id, category);
   const canExport = can(principal, "reports.export") || can(principal, "reports.export_pii");
+  const canSchedule = can(principal, "reports.export");
+  const schedules = canSchedule ? await listReportExportSchedules(principal) : [];
+  const jobs = canSchedule ? await listReportExportJobs(principal) : [];
   const exportHref = `/api/reports/export?category=${category}&from=${query.from ?? ""}&to=${query.to ?? ""}&companyId=${query.companyId ?? ""}&serviceCode=${query.serviceCode ?? ""}&ownerUserId=${query.ownerUserId ?? ""}`;
   const piiExportHref = `${exportHref}&pii=1`;
 
@@ -96,6 +100,35 @@ export default async function ReportCategoryPage({
         </label>
         <PrimaryButton>Save report</PrimaryButton>
       </ActionForm>
+      {canSchedule && category !== "talent" ? (
+        <ActionForm action={scheduleReportExportAction} className="mt-4 flex flex-wrap items-end gap-3">
+          <input type="hidden" name="category" value={category} />
+          <input type="hidden" name="from" value={query.from ?? ""} />
+          <input type="hidden" name="to" value={query.to ?? ""} />
+          <input type="hidden" name="companyId" value={query.companyId ?? ""} />
+          <input type="hidden" name="serviceCode" value={query.serviceCode ?? ""} />
+          <input type="hidden" name="ownerUserId" value={query.ownerUserId ?? ""} />
+          <label className="text-sm">
+            Schedule
+            <select className={inputClassName} name="cadence" defaultValue="weekly">
+              <option value="weekly">Weekly</option>
+              <option value="daily">Daily</option>
+            </select>
+          </label>
+          <PrimaryButton>Schedule CSV job</PrimaryButton>
+        </ActionForm>
+      ) : null}
+      {canSchedule && schedules.length > 0 ? (
+        <p className="mt-3 text-sm text-muted-foreground">
+          Scheduled jobs: {schedules.filter((row) => row.category === category).length}. Recent runs:{" "}
+          {jobs
+            .filter((row) => row.category === category)
+            .slice(0, 3)
+            .map((row) => `${row.status}${row.rowCount != null ? ` (${row.rowCount} rows)` : ""}`)
+            .join(" · ") || "none yet"}
+          . Stored jobs only — not a BI platform. Talent PII stays on-demand.
+        </p>
+      ) : null}
       {saved.length > 0 ? (
         <FilterBar>
           <p className="text-sm text-muted-foreground">

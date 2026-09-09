@@ -5,8 +5,13 @@ import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../_components/action-form";
 import { PageHeader, PageShell, PrimaryButton, formatLabel } from "../_components/ui";
 
-export default async function OnboardingPage() {
+export default async function OnboardingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ issued?: string }>;
+}) {
   const principal = await requireAppPermission("onboarding.read");
+  const { issued } = await searchParams;
   const metrics = await getHiringMetrics(principal.organizationId);
   const queue = await listOnboardingQueue(principal);
   const canComplete = can(principal, "onboarding.complete");
@@ -16,8 +21,9 @@ export default async function OnboardingPage() {
       <PageHeader
         eyebrow="Hiring"
         title="Onboarding"
-        description="Template-driven new-hire tasks completed internally. This is not payroll, benefits, or a full HRIS. Candidate self-serve /onboarding/access is a follow-on."
+        description="ATS hire onboarding. Distinct from PierOne staff Academy onboarding at /app/academy/onboarding. New hires can complete their own tasks at /onboarding/access with a signed token."
       />
+      {issued ? <p className="mt-3 text-sm text-teal">Hire access link issued: {issued}</p> : null}
       <p className="mt-4 text-sm">New hires starting: {metrics.newHiresStarting}</p>
       <p className="text-sm">Overdue onboarding tasks: {metrics.onboardingAtRisk}</p>
       <div className="mt-8 space-y-6">

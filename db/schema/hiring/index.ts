@@ -14,6 +14,7 @@ import {
   questionTypeEnum,
   requisitionStatusEnum,
   scorecardRecommendationEnum,
+  publicAccessTokenPurposeEnum,
   transactionalEmailStatusEnum,
 } from "../enums";
 import { jobs } from "../recruiting";
@@ -504,4 +505,26 @@ export const candidateDedupeFlags = pgTable("candidate_dedupe_flags", {
   ...timestamps(),
 }, (table) => [
   index("candidate_dedupe_flags_organization_id_idx").on(table.organizationId),
+]);
+
+/** Tokenized public ATS links. Not a client SaaS login and not PierOne staff Academy onboarding. */
+export const publicAccessTokens = pgTable("public_access_tokens", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "restrict" }),
+  purpose: publicAccessTokenPurposeEnum("purpose").notNull(),
+  tokenHash: text("token_hash").notNull(),
+  applicationId: uuid("application_id").references(() => applications.id, { onDelete: "restrict" }),
+  onboardingInstanceId: uuid("onboarding_instance_id").references(() => onboardingInstances.id, { onDelete: "restrict" }),
+  expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true, mode: "date" }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true, mode: "date" }),
+  createdByUserId: uuid("created_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  ...timestamps(),
+}, (table) => [
+  unique("public_access_tokens_token_hash_uq").on(table.tokenHash),
+  index("public_access_tokens_organization_id_idx").on(table.organizationId),
+  index("public_access_tokens_application_id_idx").on(table.applicationId),
+  index("public_access_tokens_onboarding_instance_id_idx").on(table.onboardingInstanceId),
+  index("public_access_tokens_created_by_user_id_idx").on(table.createdByUserId),
+  index("public_access_tokens_purpose_expires_idx").on(table.purpose, table.expiresAt),
 ]);

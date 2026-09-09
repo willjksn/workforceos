@@ -144,6 +144,59 @@ export function formatLabel(value?: string | null) {
   return value.replaceAll("_", " ");
 }
 
+export function ListPager({
+  pathname,
+  page,
+  pageSize,
+  total,
+  params = {},
+}: {
+  pathname: string;
+  page: number;
+  pageSize: number;
+  total: number;
+  params?: Record<string, string | undefined>;
+}) {
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  if (total <= pageSize) {
+    return (
+      <p className="mt-3 text-sm text-muted-foreground">
+        Showing {total} {total === 1 ? "row" : "rows"}.
+      </p>
+    );
+  }
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value) search.set(key, value);
+  }
+  const hrefFor = (next: number) => {
+    const nextParams = new URLSearchParams(search);
+    if (next <= 1) nextParams.delete("page");
+    else nextParams.set("page", String(next));
+    const query = nextParams.toString();
+    return query ? `${pathname}?${query}` : pathname;
+  };
+  return (
+    <nav className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm" aria-label="Pagination">
+      <p className="text-muted-foreground">
+        Page {page} of {pageCount} · {total} rows
+      </p>
+      <span className="flex flex-wrap gap-2">
+        {page > 1 ? (
+          <Link className="border border-border px-3 py-1 text-navy" href={hrefFor(page - 1)}>
+            Previous
+          </Link>
+        ) : null}
+        {page < pageCount ? (
+          <Link className="border border-border px-3 py-1 text-navy" href={hrefFor(page + 1)}>
+            Next
+          </Link>
+        ) : null}
+      </span>
+    </nav>
+  );
+}
+
 export function FilterBar({ children }: { children: React.ReactNode }) {
   return <div className="mt-6 flex flex-wrap items-center justify-between gap-3">{children}</div>;
 }

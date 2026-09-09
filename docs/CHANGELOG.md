@@ -2,10 +2,25 @@
 
 ## Unreleased
 
+### Phase L — Post-launch scale — 2026-09-09
+
+- Closed Phase A1: operator-confirmed 2026-09-09 that the four launch-smoke PDFs were deleted from production R2. Archived `files` rows remain. Bucket was not wiped.
+- Jobs, Talent, applications, and pipeline lists use server-side page size 25 (hard max 100) with a UI pager.
+- Command Center `recruitingAnalytics` is SQL counts plus 8-row exception lists. It no longer hydrates full job/match/submission graphs for counts.
+- SkillBridge alert rules are operator-editable at `/app/military/skillbridge/alerts` (`skillbridge.manage` / `military.review`). Starting/ending-soon 14-day windows are stored rules.
+- ETS (Army/USMC) and EAOS (Navy) dates sit on the same Transition Talent Profile as EOS / separation / retirement. Candidates are not duplicated.
+- Scheduled report CSV jobs (`reports.export`) run on an Inngest cron and store job rows. Talent PII stays on-demand. Not a BI platform.
+- Scout search pages 25 results with a hard max of 100. Send gates unchanged. No SQL. No PII to models.
+- Embeddings stay development-hash `vector(1536)` (DEC-SEM-001). `AI_MODEL_EMBEDDING` is not configured; dimension change is deferred.
+- BLS/Census adapters are live only when API keys are present; otherwise labeled fixtures.
+- Candidate self-scheduling uses a tokenized `/schedule/[token]` link and the existing CalendarProvider. Unauthorized without a token. Rate-limited.
+- Hire onboarding tokens are issued for `/onboarding/access`. Distinct from PierOne staff Academy onboarding. Thin applicant status is `/careers/status/[token]` against the existing application row.
+- Client portal and full LMS remain deferred (DEC-SEC-001 / Phase E). Recruiter still has no `opportunities.read`.
+
 ### Production ops — 2026-09-09
 
 - Applied Drizzle `0014_rainy_doomsday`, `0015_dizzy_wrecker`, and `0016_lyrical_giant_girl` to Neon `production-launch`. `0013_nervous_maggott` was already present. `npm run db:check` OK; no development fixtures. Checkpoint branch `prod-migrate-checkpoint-20260909` expires 2026-09-16.
-- Four archived launch-smoke PDF keys were re-identified on production. R2 delete remains blocked: Vercel `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` are Sensitive and decrypt to empty in this environment (HTTP 200, not missing, not 403). No objects deleted.
+- Four archived launch-smoke PDF keys were re-identified on production. Operator confirmed 2026-09-09 that the objects were deleted in Cloudflare R2. Archived `files` rows remain. Bucket was not wiped.
 
 ### Phase K — 90-day GTM / launch operations
 

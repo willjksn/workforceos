@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, isNull, lte, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, isNull, lte, sql } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
@@ -42,6 +42,7 @@ import { getDrugScreenProvider } from "../drug-screens";
 import { getEmailProvider } from "../email";
 import { createInAppNotification } from "../notifications/service";
 import { presentCandidate } from "../privacy/present-candidate";
+import { listPageResult, parseListPage, type ListPageQuery } from "../pagination";
 import { can, requirePermission, type Principal } from "../rbac/permissions";
 import { createJobWithInternalSearch } from "../repositories/recruiting";
 import { createSkillBridgeOpportunity, createSkillBridgeProfile } from "../skillbridge/service";
@@ -765,9 +766,12 @@ export async function listApplications(input: {
   jobId?: string;
   stage?: string;
   source?: string;
+  page?: ListPageQuery["page"];
+  pageSize?: ListPageQuery["pageSize"];
 }) {
   requirePermission(input.principal, "applications.read");
   const db = getDb();
+  const { page, pageSize, offset } = parseListPage(input);
   const conditions = [eq(applications.organizationId, input.principal.organizationId), isNull(applications.archivedAt)];
   if (input.jobId) conditions.push(eq(applications.jobId, input.jobId));
   if (input.stage) conditions.push(eq(applications.currentStage, input.stage));
@@ -776,6 +780,7 @@ export async function listApplications(input: {
   }
   if (input.view === "needs_review") conditions.push(eq(applications.currentStage, "applied"));
   if (input.view === "mine") conditions.push(eq(applications.recruiterUserId, input.principal.id));
+  const [totalRow] = await db.select({ value: count() }).from(applications).where(and(...conditions));
   const rows = await db
     .select({ application: applications, candidate: candidates, job: jobs })
     .from(applications)
@@ -783,12 +788,18 @@ export async function listApplications(input: {
     .innerJoin(jobs, eq(jobs.id, applications.jobId))
     .where(and(...conditions))
     .orderBy(desc(applications.appliedAt))
-    .limit(100);
+    .limit(pageSize)
+    .offset(offset);
   const canPii = can(input.principal, "candidate_pii.read");
-  return rows.map((row) => ({
-    ...row,
-    candidate: presentCandidate(row.candidate, canPii),
-  }));
+  return listPageResult(
+    rows.map((row) => ({
+      ...row,
+      candidate: presentCandidate(row.candidate, canPii),
+    })),
+    Number(totalRow?.value ?? 0),
+    page,
+    pageSize,
+  );
 }
 
 export async function getApplicationDetail(principal: Principal, applicationId: string) {
@@ -1506,8 +1517,20 @@ export async function startOnboarding(input: { principal: Principal; application
   }
   await changeStage(input.principal, application.id, "onboarding", "onboarding_started", "human");
   const [candidate] = await db.select().from(candidates).where(eq(candidates.id, application.candidateId)).limit(1);
+  const { issuePublicAccessToken } = await import("../public-access/tokens");
+  const access = await issuePublicAccessToken({
+    organizationId: input.principal.organizationId,
+    purpose: "hire_onboarding",
+    applicationId: application.id,
+    onboardingInstanceId: instance.id,
+    createdByUserId: input.principal.id,
+    ttlHours: 30 * 24,
+  });
   if (candidate?.email) {
-    const mail = onboardingWelcomeEmail({ firstName: candidate.fullName.split(" ")[0] ?? "there" });
+    const mail = onboardingWelcomeEmail({
+      firstName: candidate.fullName.split(" ")[0] ?? "there",
+      accessUrl: access.url,
+    });
     const sent = await getEmailProvider().sendTransactional({
       organizationId: input.principal.organizationId,
       to: candidate.email,
@@ -1537,7 +1560,7 @@ export async function startOnboarding(input: { principal: Principal; application
     recordType: "onboarding_instance",
     recordId: instance.id,
   });
-  return instance;
+  return { instance, accessPath: access.path };
 }
 
 export async function createEmployeeFromApplication(input: { principal: Principal; applicationId: string }) {

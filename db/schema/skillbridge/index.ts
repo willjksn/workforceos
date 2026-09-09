@@ -55,6 +55,10 @@ export const skillbridgeProfiles = pgTable("skillbridge_profiles", {
   currentDutyLocation: text("current_duty_location"),
   yearsOfService: integer("years_of_service"),
   endOfServiceDate: timestamp("end_of_service_date", { withTimezone: true, mode: "date" }),
+  /** Army / USMC Expiration of Term of Service. Same person as EOS; not a second candidate. */
+  etsDate: timestamp("ets_date", { withTimezone: true, mode: "date" }),
+  /** Navy End of Active Obligated Service. Same person as EOS; not a second candidate. */
+  eaosDate: timestamp("eaos_date", { withTimezone: true, mode: "date" }),
   separationDate: timestamp("separation_date", { withTimezone: true, mode: "date" }),
   retirementDate: timestamp("retirement_date", { withTimezone: true, mode: "date" }),
   skillbridgeEligibilityDate: timestamp("skillbridge_eligibility_date", { withTimezone: true, mode: "date" }),

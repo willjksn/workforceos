@@ -120,6 +120,13 @@
       "when": 1788989025008,
       "tag": "0016_lyrical_giant_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1788992000000,
+      "tag": "0017_quiet_scale",
+      "breakpoints": true
     }
   ]
 }

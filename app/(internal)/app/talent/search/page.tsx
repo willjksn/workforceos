@@ -12,6 +12,7 @@ import {
   PageHeader,
   PageShell,
   SearchForm,
+  ListPager,
   StatusBadge,
   formatLabel,
   inputClassName,
@@ -30,11 +31,11 @@ function availabilityTone(value: string) {
 export default async function TalentSearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; availability?: string }>;
+  searchParams: Promise<{ q?: string; availability?: string; page?: string }>;
 }) {
   const principal = await requireAppPermission("candidates.read");
   const canReadPii = can(principal, "candidate_pii.read");
-  const { q, availability } = await searchParams;
+  const { q, availability, page } = await searchParams;
   if (q) {
     try {
       await assertRateLimit({ key: `search:${principal.id}`, ...RATE_LIMITS.search });
@@ -57,9 +58,8 @@ export default async function TalentSearchPage({
   const availabilityFilter = AVAILABILITY.includes(availability as (typeof AVAILABILITY)[number])
     ? (availability as (typeof AVAILABILITY)[number])
     : undefined;
-  const rows = (await searchActiveCandidates(principal.organizationId, q, availabilityFilter)).map((candidate) =>
-    presentCandidate(candidate, canReadPii),
-  );
+  const result = await searchActiveCandidates(principal.organizationId, q, availabilityFilter, { page });
+  const rows = result.items.map((candidate) => presentCandidate(candidate, canReadPii));
 
   return (
     <PageShell>
@@ -104,6 +104,13 @@ export default async function TalentSearchPage({
           ))}
         </DataTable>
       )}
+      <ListPager
+        pathname="/app/talent/search"
+        page={result.page}
+        pageSize={result.pageSize}
+        total={result.total}
+        params={{ q, availability }}
+      />
     </PageShell>
   );
 }

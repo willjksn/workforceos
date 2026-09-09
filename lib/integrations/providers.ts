@@ -18,6 +18,8 @@ import { canOpenExternalSourcing } from "../recruiting/external-sourcing";
 import {
   isApolloConfigured,
   isApolloLiveWired,
+  isBlsConfigured,
+  isCensusConfigured,
   isCheckrLiveApiWired,
   isDocuSignConfigured,
   isDocuSignLiveWired,
@@ -726,8 +728,8 @@ export function buildProviderAdapters(): IntegrationAdapter[] {
   return [
     new ApolloAdapter(),
     new OnetAdapter(),
-    new BaseAdapter("bls", () => false),
-    new BaseAdapter("census", () => false),
+    new BaseAdapter("bls", isBlsConfigured, isBlsConfigured),
+    new BaseAdapter("census", isCensusConfigured, isCensusConfigured),
     new LinkedInAdapter(),
     new SeekOutAdapter(),
     new BaseAdapter("hireez", () => false),

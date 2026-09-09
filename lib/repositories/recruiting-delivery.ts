@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, count, desc, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
@@ -337,31 +337,259 @@ export async function listGuarantees(organizationId: string) {
     .orderBy(placementGuarantees.endsOn);
 }
 
+const ANALYTICS_EXCEPTION_LIMIT = 8;
+const SUBMITTED_PIPELINES = ["submitted", "interview", "interviewing", "finalist", "offer", "offered", "placed"] as const;
+const INTERVIEWED_PIPELINES = ["interview", "interviewing", "finalist", "offer", "offered", "placed"] as const;
+
+async function counted(query: Promise<Array<{ value: number }>>) {
+  const [row] = await query;
+  return Number(row?.value ?? 0);
+}
+
 export async function recruitingAnalytics(organizationId: string) {
   const db = getDb();
-  const jobRows = await db.select().from(jobs).where(and(eq(jobs.organizationId, organizationId), isNull(jobs.archivedAt)));
-  const matchRows = await db
-    .select({ match: candidateJobMatches, job: jobs, candidate: candidates })
-    .from(candidateJobMatches)
-    .innerJoin(jobs, eq(candidateJobMatches.jobId, jobs.id))
-    .innerJoin(candidates, eq(candidateJobMatches.candidateId, candidates.id))
-    .where(eq(jobs.organizationId, organizationId));
-  const submissionRows = await listSubmissions(organizationId);
-  const interviewRows = await listInterviews(organizationId);
-  const offerRows = await listOffers(organizationId);
-  const placementRows = await listPlacements(organizationId);
-  const guaranteeRows = await listGuarantees(organizationId);
+  const orgJobs = and(eq(jobs.organizationId, organizationId), isNull(jobs.archivedAt));
+  const now = new Date();
+  const inactiveBefore = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const followUpBefore = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
+  const feedbackBefore = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+  const offerSoon = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
 
-  const byStatus = (status: string) => jobRows.filter((job) => job.status === status).length;
-  const submitted = matchRows.filter((row) => ["submitted", "interview", "interviewing", "finalist", "offer", "offered", "placed"].includes(row.match.pipelineStatus));
-  const interviewed = matchRows.filter((row) => ["interview", "interviewing", "finalist", "offer", "offered", "placed"].includes(row.match.pipelineStatus));
-  const offered = offerRows.filter((row) => ["extended", "accepted"].includes(row.offer.status) || row.offer.status === "declined");
-  const accepted = offerRows.filter((row) => row.offer.status === "accepted");
-  const internalUsed = matchRows.filter((row) => row.match.source === "internal_talent_network" && row.match.pipelineStatus !== "identified").length;
-  const rediscovered = matchRows.filter((row) => row.match.pipelineStatus === "rediscovered").length;
+  const [
+    jobStatusRows,
+    ownerRows,
+    matchTotal,
+    submittedCount,
+    interviewedCount,
+    matchInternalUsed,
+    rediscoveredCount,
+    offeredCount,
+    acceptedCount,
+    placementCount,
+    guaranteeRows,
+    incompleteJobs,
+    inactiveJobs,
+    stalledMatches,
+    stalledSubs,
+    overdueInterviews,
+    expiringOffers,
+    riskGuarantees,
+  ] = await Promise.all([
+    db.select({ status: jobs.status, value: count() }).from(jobs).where(orgJobs).groupBy(jobs.status),
+    db
+      .select({ owner: jobs.searchOwnerUserId, value: count() })
+      .from(jobs)
+      .where(orgJobs)
+      .groupBy(jobs.searchOwnerUserId),
+    counted(
+      db
+        .select({ value: count() })
+        .from(candidateJobMatches)
+        .innerJoin(jobs, eq(candidateJobMatches.jobId, jobs.id))
+        .where(eq(jobs.organizationId, organizationId)),
+    ),
+    counted(
+      db
+        .select({ value: count() })
+        .from(candidateJobMatches)
+        .innerJoin(jobs, eq(candidateJobMatches.jobId, jobs.id))
+        .where(and(eq(jobs.organizationId, organizationId), inArray(candidateJobMatches.pipelineStatus, SUBMITTED_PIPELINES))),
+    ),
+    counted(
+      db
+        .select({ value: count() })
+        .from(candidateJobMatches)
+        .innerJoin(jobs, eq(candidateJobMatches.jobId, jobs.id))
+        .where(and(eq(jobs.organizationId, organizationId), inArray(candidateJobMatches.pipelineStatus, INTERVIEWED_PIPELINES))),
+    ),
+    counted(
+      db
+        .select({ value: count() })
+        .from(candidateJobMatches)
+        .innerJoin(jobs, eq(candidateJobMatches.jobId, jobs.id))
+        .where(
+          and(
+            eq(jobs.organizationId, organizationId),
+            eq(candidateJobMatches.source, "internal_talent_network"),
+            sql`${candidateJobMatches.pipelineStatus} <> 'identified'`,
+          ),
+        ),
+    ),
+    counted(
+      db
+        .select({ value: count() })
+        .from(candidateJobMatches)
+        .innerJoin(jobs, eq(candidateJobMatches.jobId, jobs.id))
+        .where(and(eq(jobs.organizationId, organizationId), eq(candidateJobMatches.pipelineStatus, "rediscovered"))),
+    ),
+    counted(
+      db
+        .select({ value: count() })
+        .from(offers)
+        .innerJoin(jobs, eq(offers.jobId, jobs.id))
+        .where(and(eq(jobs.organizationId, organizationId), inArray(offers.status, ["extended", "accepted", "declined"]))),
+    ),
+    counted(
+      db
+        .select({ value: count() })
+        .from(offers)
+        .innerJoin(jobs, eq(offers.jobId, jobs.id))
+        .where(and(eq(jobs.organizationId, organizationId), eq(offers.status, "accepted"))),
+    ),
+    counted(
+      db
+        .select({ value: count() })
+        .from(placements)
+        .innerJoin(jobs, eq(placements.jobId, jobs.id))
+        .where(eq(jobs.organizationId, organizationId)),
+    ),
+    db
+      .select({ status: placementGuarantees.status, value: count() })
+      .from(placementGuarantees)
+      .innerJoin(placements, eq(placementGuarantees.placementId, placements.id))
+      .innerJoin(jobs, eq(placements.jobId, jobs.id))
+      .where(eq(jobs.organizationId, organizationId))
+      .groupBy(placementGuarantees.status),
+    db
+      .select({
+        id: jobs.id,
+        title: jobs.title,
+        status: jobs.status,
+        lastActivityAt: jobs.lastActivityAt,
+        createdAt: jobs.createdAt,
+        companyId: jobs.companyId,
+        locationLabel: jobs.locationLabel,
+        compensationMin: jobs.compensationMin,
+        compensationMax: jobs.compensationMax,
+      })
+      .from(jobs)
+      .where(
+        and(
+          orgJobs,
+          or(isNull(jobs.companyId), isNull(jobs.locationLabel), and(isNull(jobs.compensationMin), isNull(jobs.compensationMax))),
+        ),
+      )
+      .limit(ANALYTICS_EXCEPTION_LIMIT),
+    db
+      .select({
+        id: jobs.id,
+        title: jobs.title,
+        status: jobs.status,
+        lastActivityAt: jobs.lastActivityAt,
+        createdAt: jobs.createdAt,
+        companyId: jobs.companyId,
+        locationLabel: jobs.locationLabel,
+        compensationMin: jobs.compensationMin,
+        compensationMax: jobs.compensationMax,
+      })
+      .from(jobs)
+      .where(
+        and(
+          orgJobs,
+          inArray(jobs.status, ["open", "search_active"]),
+          lte(sql`coalesce(${jobs.lastActivityAt}, ${jobs.createdAt})`, inactiveBefore),
+        ),
+      )
+      .limit(ANALYTICS_EXCEPTION_LIMIT),
+    db
+      .select({
+        id: candidateJobMatches.id,
+        jobId: jobs.id,
+        candidateName: candidates.fullName,
+        pipelineStatus: candidateJobMatches.pipelineStatus,
+        updatedAt: candidateJobMatches.updatedAt,
+      })
+      .from(candidateJobMatches)
+      .innerJoin(jobs, eq(candidateJobMatches.jobId, jobs.id))
+      .innerJoin(candidates, eq(candidateJobMatches.candidateId, candidates.id))
+      .where(
+        and(
+          eq(jobs.organizationId, organizationId),
+          inArray(candidateJobMatches.pipelineStatus, ["contacted", "interested", "screening"]),
+          lte(candidateJobMatches.updatedAt, followUpBefore),
+        ),
+      )
+      .limit(ANALYTICS_EXCEPTION_LIMIT),
+    db
+      .select({
+        id: submissions.id,
+        jobId: jobs.id,
+        status: submissions.status,
+        submittedAt: submissions.submittedAt,
+      })
+      .from(submissions)
+      .innerJoin(jobs, eq(submissions.jobId, jobs.id))
+      .where(
+        and(
+          eq(jobs.organizationId, organizationId),
+          eq(submissions.status, "submitted"),
+          lte(submissions.submittedAt, feedbackBefore),
+        ),
+      )
+      .limit(ANALYTICS_EXCEPTION_LIMIT),
+    db
+      .select({
+        id: interviews.id,
+        jobId: jobs.id,
+        status: interviews.status,
+        completedAt: interviews.completedAt,
+        clientFeedback: interviews.clientFeedback,
+        clientFeedbackDueAt: interviews.clientFeedbackDueAt,
+      })
+      .from(interviews)
+      .innerJoin(jobs, eq(interviews.jobId, jobs.id))
+      .where(
+        and(
+          eq(jobs.organizationId, organizationId),
+          eq(interviews.status, "completed"),
+          isNull(interviews.clientFeedback),
+          lte(interviews.clientFeedbackDueAt, now),
+        ),
+      )
+      .limit(ANALYTICS_EXCEPTION_LIMIT),
+    db
+      .select({
+        id: offers.id,
+        jobId: jobs.id,
+        status: offers.status,
+        expirationDate: offers.expirationDate,
+      })
+      .from(offers)
+      .innerJoin(jobs, eq(offers.jobId, jobs.id))
+      .where(
+        and(
+          eq(jobs.organizationId, organizationId),
+          eq(offers.status, "extended"),
+          lte(offers.expirationDate, offerSoon.toISOString().slice(0, 10)),
+        ),
+      )
+      .limit(ANALYTICS_EXCEPTION_LIMIT),
+    db
+      .select({
+        id: placementGuarantees.id,
+        status: placementGuarantees.status,
+        endsOn: placementGuarantees.endsOn,
+      })
+      .from(placementGuarantees)
+      .innerJoin(placements, eq(placementGuarantees.placementId, placements.id))
+      .innerJoin(jobs, eq(placements.jobId, jobs.id))
+      .where(
+        and(
+          eq(jobs.organizationId, organizationId),
+          inArray(placementGuarantees.status, ["expiring_soon", "replacement_required"]),
+        ),
+      )
+      .limit(ANALYTICS_EXCEPTION_LIMIT),
+  ]);
+
+  const byStatus = (status: string) => Number(jobStatusRows.find((row) => row.status === status)?.value ?? 0);
+  const guaranteeCount = (status: string) => Number(guaranteeRows.find((row) => row.status === status)?.value ?? 0);
+  const alertJobs = [...incompleteJobs, ...inactiveJobs].filter(
+    (job, index, rows) => rows.findIndex((row) => row.id === job.id) === index,
+  );
 
   return {
-    activeSearches: jobRows.filter((job) => ["open", "search_active"].includes(job.status)).length,
+    activeSearches: byStatus("open") + byStatus("search_active"),
     jobsByStage: {
       draft: byStatus("draft"),
       open: byStatus("open") + byStatus("search_active"),
@@ -370,25 +598,24 @@ export async function recruitingAnalytics(organizationId: string) {
       cancelled: byStatus("cancelled"),
       closed: byStatus("closed"),
     },
-    submissionToInterview: submitted.length ? interviewed.length / submitted.length : null,
-    interviewToOffer: interviewed.length ? offered.length / interviewed.length : null,
-    offerAcceptance: offered.length ? accepted.length / offered.length : null,
-    placements: placementRows.length,
-    internalTalentUtilization: matchRows.length ? internalUsed / matchRows.length : null,
-    rediscoveredUtilization: matchRows.length ? rediscovered / matchRows.length : null,
-    recruiterWorkload: jobRows.reduce<Record<string, number>>((acc, job) => {
-      const owner = job.searchOwnerUserId ?? "unassigned";
-      acc[owner] = (acc[owner] ?? 0) + 1;
+    submissionToInterview: submittedCount ? interviewedCount / submittedCount : null,
+    interviewToOffer: interviewedCount ? offeredCount / interviewedCount : null,
+    offerAcceptance: offeredCount ? acceptedCount / offeredCount : null,
+    placements: placementCount,
+    internalTalentUtilization: matchTotal ? matchInternalUsed / matchTotal : null,
+    rediscoveredUtilization: matchTotal ? rediscoveredCount / matchTotal : null,
+    recruiterWorkload: ownerRows.reduce<Record<string, number>>((acc, row) => {
+      acc[row.owner ?? "unassigned"] = Number(row.value);
       return acc;
     }, {}),
     guarantees: {
-      active: guaranteeRows.filter((row) => row.guarantee.status === "active").length,
-      expiringSoon: guaranteeRows.filter((row) => row.guarantee.status === "expiring_soon").length,
-      completed: guaranteeRows.filter((row) => row.guarantee.status === "completed").length,
-      replacementRequired: guaranteeRows.filter((row) => row.guarantee.status === "replacement_required").length,
+      active: guaranteeCount("active"),
+      expiringSoon: guaranteeCount("expiring_soon"),
+      completed: guaranteeCount("completed"),
+      replacementRequired: guaranteeCount("replacement_required"),
     },
     alerts: stalledRecruitingAlerts({
-      jobs: jobRows.map((job) => ({
+      jobs: alertJobs.map((job) => ({
         id: job.id,
         title: job.title,
         status: job.status,
@@ -396,37 +623,16 @@ export async function recruitingAnalytics(organizationId: string) {
         createdAt: job.createdAt,
         intakeComplete: Boolean(job.companyId && job.locationLabel && (job.compensationMin || job.compensationMax)),
       })),
-      matches: matchRows.map((row) => ({
-        id: row.match.id,
-        jobId: row.job.id,
-        candidateName: row.candidate.fullName,
-        pipelineStatus: row.match.pipelineStatus,
-        updatedAt: row.match.updatedAt,
+      matches: stalledMatches,
+      submissions: stalledSubs,
+      interviews: overdueInterviews,
+      offers: expiringOffers.map((row) => ({
+        ...row,
+        expirationDate: row.expirationDate ? new Date(row.expirationDate) : null,
       })),
-      submissions: submissionRows.map((row) => ({
-        id: row.submission.id,
-        jobId: row.job.id,
-        status: row.submission.status,
-        submittedAt: row.submission.submittedAt,
-      })),
-      interviews: interviewRows.map((row) => ({
-        id: row.interview.id,
-        jobId: row.job.id,
-        status: row.interview.status,
-        completedAt: row.interview.completedAt,
-        clientFeedback: row.interview.clientFeedback,
-        clientFeedbackDueAt: row.interview.clientFeedbackDueAt,
-      })),
-      offers: offerRows.map((row) => ({
-        id: row.offer.id,
-        jobId: row.job.id,
-        status: row.offer.status,
-        expirationDate: row.offer.expirationDate ? new Date(row.offer.expirationDate) : null,
-      })),
-      guarantees: guaranteeRows.map((row) => ({
-        id: row.guarantee.id,
-        status: row.guarantee.status,
-        endsOn: new Date(row.guarantee.endsOn),
+      guarantees: riskGuarantees.map((row) => ({
+        ...row,
+        endsOn: new Date(row.endsOn),
       })),
     }),
   };

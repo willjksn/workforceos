@@ -8,6 +8,8 @@ import {
   requestBackgroundCheckAction,
   requestDrugScreenAction,
   startOnboardingAction,
+  issueSelfScheduleLinkAction,
+  issueApplicationStatusLinkAction,
 } from "@/lib/actions/hiring";
 import { applyResumeToCandidateAction } from "@/lib/actions/talent";
 import { requireAppPermission } from "@/lib/auth/guard";
@@ -26,6 +28,7 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
   const canAdvance = can(principal, "applications.advance");
   const canReject = can(principal, "applications.reject");
   const canOnboard = can(principal, "onboarding.manage");
+  const canSchedule = can(principal, "interviews.schedule");
   const canBackground = can(principal, "background_checks.request");
   const canDrug = can(principal, "drug_screens.request");
   const canReadPii = can(principal, "candidate_pii.read");
@@ -145,10 +148,28 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
               <PrimaryButton>Request drug screen</PrimaryButton>
             </ActionForm>
           ) : null}
+          {canSchedule ? (
+            <ActionForm action={issueSelfScheduleLinkAction}>
+              <input type="hidden" name="applicationId" value={detail.application.id} />
+              <p className="mb-2 text-xs text-muted-foreground">
+                Tokenized public slot pick. Uses the existing CalendarProvider. Live calendar events only when OAuth tokens exist.
+              </p>
+              <PrimaryButton>Issue self-schedule link</PrimaryButton>
+            </ActionForm>
+          ) : null}
+          <ActionForm action={issueApplicationStatusLinkAction}>
+            <input type="hidden" name="applicationId" value={detail.application.id} />
+            <p className="mb-2 text-xs text-muted-foreground">
+              Read-only application status for the applicant. Same application row. Not a second candidate database.
+            </p>
+            <PrimaryButton>Issue status link</PrimaryButton>
+          </ActionForm>
           {canOnboard ? (
             <ActionForm action={startOnboardingAction}>
               <input type="hidden" name="applicationId" value={detail.application.id} />
-              <p className="mb-2 text-xs text-muted-foreground">Internal checklist. The /onboarding/access portal is a follow-on.</p>
+              <p className="mb-2 text-xs text-muted-foreground">
+                Issues a signed hire-onboarding token for /onboarding/access. Distinct from PierOne staff Academy onboarding.
+              </p>
               <PrimaryButton>Start onboarding</PrimaryButton>
             </ActionForm>
           ) : null}

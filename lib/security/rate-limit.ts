@@ -27,6 +27,9 @@ export const RATE_LIMITS = {
   publicApplication: { limit: 5, windowSeconds: 60 },
   publicInquiry: { limit: 5, windowSeconds: 60 },
   publicMilitaryTalent: { limit: 5, windowSeconds: 60 },
+  publicSelfSchedule: { limit: 10, windowSeconds: 60 },
+  publicOnboardingAccess: { limit: 10, windowSeconds: 60 },
+  publicApplicationStatus: { limit: 20, windowSeconds: 60 },
   hmacReplay: { limit: 1, windowSeconds: 10 * 60 },
 } as const;
 

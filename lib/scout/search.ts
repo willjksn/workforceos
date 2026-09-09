@@ -15,7 +15,19 @@ import { searchHiringForScout, listMissingScorecards, getHiringMetrics } from ".
 import { listSkillBridgeCards } from "../skillbridge/service";
 import { findSkillBridgeMatches } from "../skillbridge/matching";
 
-const SCOUT_RESULT_LIMIT = 25;
+export const SCOUT_PAGE_SIZE = 25;
+export const SCOUT_MAX_RESULTS = 100;
+
+function scoutPage(dto: ScoutCommandDto) {
+  const requested = dto.filters?.offset ?? 0;
+  const offset = Math.min(Math.max(0, SCOUT_MAX_RESULTS - SCOUT_PAGE_SIZE), Math.max(0, requested));
+  return { offset, limit: SCOUT_PAGE_SIZE };
+}
+
+function pageSlice<T>(rows: T[], offset = 0) {
+  const start = Math.min(Math.max(0, SCOUT_MAX_RESULTS - SCOUT_PAGE_SIZE), Math.max(0, offset));
+  return rows.slice(start, start + SCOUT_PAGE_SIZE);
+}
 
 export type ScoutResultCard = {
   type:
@@ -71,7 +83,7 @@ export async function executeScoutSearch(input: {
         })),
       };
     }
-    return searchJobs(input.organizationId, filters.title ?? filters.skill, filters.city ?? filters.region, filters.skillbridgeEligible === true);
+    return searchJobs(input.organizationId, filters.title ?? filters.skill, filters.city ?? filters.region, filters.skillbridgeEligible === true, scoutPage(input.dto));
   }
 
   if (input.dto.entity === "public_content") {
@@ -90,7 +102,8 @@ export async function executeScoutSearch(input: {
     } else {
       rows = rows.filter((row) => row.rendering || row.status === "live");
     }
-    const cards = rows.slice(0, SCOUT_RESULT_LIMIT).map((row) => ({
+    const { offset, limit } = scoutPage(input.dto);
+    const cards = rows.slice(offset, offset + limit).map((row) => ({
       type: "record" as const,
       id: row.id,
       title: row.title,
@@ -111,7 +124,8 @@ export async function executeScoutSearch(input: {
     if (filters.industry) {
       rows = rows.filter((row) => row.serviceInterest.includes("military") || row.serviceInterest === filters.industry);
     }
-    const cards = rows.slice(0, SCOUT_RESULT_LIMIT).map((row) => ({
+    const { offset, limit } = scoutPage(input.dto);
+    const cards = rows.slice(offset, offset + limit).map((row) => ({
       type: "inquiry" as const,
       id: row.id,
       title: `${row.companyName} — ${row.firstName} ${row.lastName}`,
@@ -156,29 +170,29 @@ export async function executeScoutSearch(input: {
 
   if (input.dto.entity === "companies" || input.dto.entity === "company") {
     if (!input.permissions.has("companies.read")) return { summary: "No company access.", cards: [] };
-    return searchCompanies(input.organizationId, filters.title ?? filters.candidateName ?? filters.industry);
+    return searchCompanies(input.organizationId, filters.title ?? filters.candidateName ?? filters.industry, filters.offset);
   }
 
   if (input.dto.entity === "contacts" || input.dto.entity === "contact") {
     if (!input.permissions.has("contacts.read")) return { summary: "No contact access.", cards: [] };
-    return searchContacts(input.organizationId, filters.title ?? filters.candidateName, input.canReadPii);
+    return searchContacts(input.organizationId, filters.title ?? filters.candidateName, input.canReadPii, filters.offset);
   }
 
   if (input.dto.entity === "opportunities" || input.dto.entity === "opportunity") {
     if (!input.permissions.has("opportunities.read")) return { summary: "No opportunity access.", cards: [] };
-    return searchOpportunities(input.organizationId, filters.title ?? filters.industry);
+    return searchOpportunities(input.organizationId, filters.title ?? filters.industry, filters.offset);
   }
 
   if (input.dto.entity === "projects" || input.dto.entity === "project") {
     if (!input.permissions.has("projects.read")) return { summary: "No project access.", cards: [] };
-    return searchProjects(input.organizationId, filters.title);
+    return searchProjects(input.organizationId, filters.title, filters.offset);
   }
 
   if (input.dto.entity === "finance" || input.dto.entity === "invoices") {
     if (!input.permissions.has("finance.read") && !input.permissions.has("invoices.read")) {
       return { summary: "No finance access.", cards: [] };
     }
-    return searchFinance(input.organizationId, filters.title);
+    return searchFinance(input.organizationId, filters.title, filters.offset);
   }
 
   if (input.dto.entity === "academy") {
@@ -199,7 +213,7 @@ export async function executeScoutSearch(input: {
     if (!input.permissions.has("knowledge.read") && !input.permissions.has("training_programs.read") && !input.permissions.has("scout.use")) {
       return { summary: "No knowledge or training access.", cards: [] };
     }
-    return searchKnowledgeAndTraining(input.organizationId, input.permissions, filters.title ?? filters.skill);
+    return searchKnowledgeAndTraining(input.organizationId, input.permissions, filters.title ?? filters.skill, filters.offset);
   }
 
   if (input.dto.entity === "skillbridge" || filters.windowWithinDays || filters.hasActiveOpportunity === false || filters.employerFeedbackOverdue || filters.needsFollowUp) {
@@ -257,7 +271,7 @@ async function searchCandidates(input: {
     );
   }
 
-  const cards: ScoutResultCard[] = rows.slice(0, SCOUT_RESULT_LIMIT).map((row) => {
+  const cards: ScoutResultCard[] = pageSlice(rows, input.dto.filters?.offset).map((row) => {
     const presented = presentCandidate(row, input.canReadPii);
     return {
       type: "candidate",
@@ -282,8 +296,16 @@ async function searchCandidates(input: {
   return { summary: `Found ${cards.length} authorized candidate records.`, cards };
 }
 
-async function searchJobs(organizationId: string, query?: string, location?: string, skillbridgeEligible?: boolean) {
+async function searchJobs(
+  organizationId: string,
+  query?: string,
+  location?: string,
+  skillbridgeEligible?: boolean,
+  page?: { offset: number; limit: number },
+) {
   const db = getDb();
+  const offset = page?.offset ?? 0;
+  const limit = page?.limit ?? SCOUT_PAGE_SIZE;
   const rows = await db
     .select({ job: jobs, company: companies })
     .from(jobs)
@@ -297,7 +319,8 @@ async function searchJobs(organizationId: string, query?: string, location?: str
         location ? or(ilike(jobs.locationLabel, `%${location}%`), ilike(jobs.title, `%${location}%`)) : undefined,
       ),
     )
-    .limit(SCOUT_RESULT_LIMIT);
+    .limit(limit)
+    .offset(offset);
   return {
     summary: skillbridgeEligible
       ? `Found ${rows.length} SkillBridge-eligible employer opportunities.`
@@ -313,10 +336,10 @@ async function searchJobs(organizationId: string, query?: string, location?: str
   };
 }
 
-async function searchCompanies(organizationId: string, query?: string) {
+async function searchCompanies(organizationId: string, query?: string, offset = 0) {
   const { listCompanies } = await import("../repositories/crm");
   const rows = await listCompanies(organizationId, query);
-  const cards: ScoutResultCard[] = rows.slice(0, SCOUT_RESULT_LIMIT).map((row) => ({
+  const cards: ScoutResultCard[] = pageSlice(rows, offset).map((row) => ({
     type: "company" as const,
     id: row.id,
     title: row.name,
@@ -327,10 +350,10 @@ async function searchCompanies(organizationId: string, query?: string) {
   return { summary: `Found ${cards.length} authorized company records.`, cards };
 }
 
-async function searchContacts(organizationId: string, query?: string, canReadPii?: boolean) {
+async function searchContacts(organizationId: string, query?: string, canReadPii?: boolean, offset = 0) {
   const { listContacts } = await import("../repositories/crm");
   const rows = await listContacts(organizationId, { query });
-  const cards: ScoutResultCard[] = rows.slice(0, SCOUT_RESULT_LIMIT).map((row) => ({
+  const cards: ScoutResultCard[] = pageSlice(rows, offset).map((row) => ({
     type: "contact" as const,
     id: row.contact.id,
     title: row.contact.fullName,
@@ -348,7 +371,7 @@ async function searchContacts(organizationId: string, query?: string, canReadPii
   return { summary: `Found ${cards.length} authorized contact records.`, cards };
 }
 
-async function searchOpportunities(organizationId: string, query?: string) {
+async function searchOpportunities(organizationId: string, query?: string, offset = 0) {
   const { listOpportunities } = await import("../repositories/crm");
   let rows = await listOpportunities(organizationId);
   if (query) {
@@ -359,7 +382,7 @@ async function searchOpportunities(organizationId: string, query?: string) {
         (row.companyName ?? "").toLowerCase().includes(needle),
     );
   }
-  const cards: ScoutResultCard[] = rows.slice(0, SCOUT_RESULT_LIMIT).map((row) => ({
+  const cards: ScoutResultCard[] = pageSlice(rows, offset).map((row) => ({
     type: "opportunity" as const,
     id: row.opportunity.id,
     title: row.opportunity.name,
@@ -370,7 +393,7 @@ async function searchOpportunities(organizationId: string, query?: string) {
   return { summary: `Found ${cards.length} authorized opportunities.`, cards };
 }
 
-async function searchProjects(organizationId: string, query?: string) {
+async function searchProjects(organizationId: string, query?: string, offset = 0) {
   const { listDeliveryProjects } = await import("../delivery/engine");
   let rows = await listDeliveryProjects(organizationId);
   if (query) {
@@ -381,7 +404,7 @@ async function searchProjects(organizationId: string, query?: string) {
         (row.companyName ?? "").toLowerCase().includes(needle),
     );
   }
-  const cards: ScoutResultCard[] = rows.slice(0, SCOUT_RESULT_LIMIT).map((row) => ({
+  const cards: ScoutResultCard[] = pageSlice(rows, offset).map((row) => ({
     type: "project" as const,
     id: row.project.id,
     title: row.project.name,
@@ -392,7 +415,7 @@ async function searchProjects(organizationId: string, query?: string) {
   return { summary: `Found ${cards.length} authorized delivery projects.`, cards };
 }
 
-async function searchFinance(organizationId: string, query?: string) {
+async function searchFinance(organizationId: string, query?: string, offset = 0) {
   const { listInvoices } = await import("../finance/engine");
   let rows = await listInvoices(organizationId);
   if (query) {
@@ -403,7 +426,7 @@ async function searchFinance(organizationId: string, query?: string) {
         (row.companyName ?? "").toLowerCase().includes(needle),
     );
   }
-  const cards: ScoutResultCard[] = rows.slice(0, SCOUT_RESULT_LIMIT).map((row) => ({
+  const cards: ScoutResultCard[] = pageSlice(rows, offset).map((row) => ({
     type: "finance" as const,
     id: row.invoice.id,
     title: row.invoice.invoiceNumber,
@@ -418,6 +441,7 @@ async function searchKnowledgeAndTraining(
   organizationId: string,
   permissions: ReadonlySet<string>,
   query?: string,
+  offset = 0,
 ) {
   const cards: ScoutResultCard[] = [];
   if (permissions.has("knowledge.read") || permissions.has("scout.use")) {
@@ -427,7 +451,7 @@ async function searchKnowledgeAndTraining(
   if (permissions.has("knowledge.read")) {
     const { listKnowledge } = await import("../ai/engine");
     const rows = await listKnowledge(organizationId);
-    for (const row of rows.slice(0, SCOUT_RESULT_LIMIT)) {
+    for (const row of pageSlice(rows, offset)) {
       if (query && !`${row.title} ${row.knowledgeType}`.toLowerCase().includes(query.toLowerCase())) continue;
       cards.push({
         type: "knowledge",
@@ -442,7 +466,7 @@ async function searchKnowledgeAndTraining(
   if (permissions.has("training_programs.read")) {
     const { listTrainingPrograms } = await import("../repositories/workforce");
     const rows = await listTrainingPrograms(organizationId);
-    for (const row of rows.slice(0, SCOUT_RESULT_LIMIT)) {
+    for (const row of pageSlice(rows, offset)) {
       if (query && !row.name.toLowerCase().includes(query.toLowerCase())) continue;
       cards.push({
         type: "knowledge",
@@ -532,7 +556,7 @@ async function searchSkillBridge(input: {
     return true;
   });
 
-  const limited = filtered.slice(0, SCOUT_RESULT_LIMIT);
+  const limited = pageSlice(filtered, filters.offset);
   return {
     summary: `Found ${limited.length} transitioning service members.`,
     cards: limited.map((card) => ({

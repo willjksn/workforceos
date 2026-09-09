@@ -54,7 +54,10 @@ export async function createSkillBridgeProfile(input: {
   currentDutyLocation?: string | null;
   yearsOfService?: number | null;
   endOfServiceDate?: Date | null;
+  etsDate?: Date | null;
+  eaosDate?: Date | null;
   separationDate?: Date | null;
+  retirementDate?: Date | null;
   skillbridgeWindowStart?: Date | null;
   skillbridgeWindowEnd?: Date | null;
   preferredLocationPrimary?: string | null;
@@ -109,7 +112,10 @@ export async function createSkillBridgeProfile(input: {
       currentDutyLocation: input.currentDutyLocation ?? null,
       yearsOfService: input.yearsOfService ?? null,
       endOfServiceDate: input.endOfServiceDate ?? null,
+      etsDate: input.etsDate ?? null,
+      eaosDate: input.eaosDate ?? null,
       separationDate: input.separationDate ?? input.endOfServiceDate ?? null,
+      retirementDate: input.retirementDate ?? null,
       skillbridgeWindowStart: input.skillbridgeWindowStart ?? null,
       skillbridgeWindowEnd: input.skillbridgeWindowEnd ?? null,
       preferredLocationPrimary: input.preferredLocationPrimary ?? null,
@@ -174,6 +180,10 @@ export async function updateSkillBridgeProfile(input: {
     skillbridgeWindowStart: Date | null;
     skillbridgeWindowEnd: Date | null;
     endOfServiceDate: Date | null;
+    etsDate: Date | null;
+    eaosDate: Date | null;
+    separationDate: Date | null;
+    retirementDate: Date | null;
     candidateStatus: (typeof skillbridgeProfiles.$inferSelect)["candidateStatus"];
     resumeStatus: "missing" | "outdated" | "current" | "needs_review";
     lastContactedAt: Date | null;
@@ -816,10 +826,15 @@ export async function getMySkillBridgeQueue(input: {
     canReadPii: input.canReadPii,
   });
   const now = new Date();
-  const startSoon = cards.filter((card) => card.windowDays != null && card.windowDays >= 0 && card.windowDays <= 14);
+  const rules = await getSkillBridgeAlertRules(input.organizationId);
+  const startWindow = rules.windowStartingSoonDays;
+  const endWindow = rules.windowEndingSoonDays;
+  const startSoon = cards.filter(
+    (card) => card.windowDays != null && card.windowDays >= 0 && card.windowDays <= startWindow,
+  );
   const endSoon = cards.filter((card) => {
     const remaining = daysUntil(card.profile.skillbridgeWindowEnd, now);
-    return remaining != null && remaining >= 0 && remaining <= 14;
+    return remaining != null && remaining >= 0 && remaining <= endWindow;
   });
   return {
     needsActionToday: cards.filter((card) => card.overdueFollowUp || (card.profile.nextActionDueAt && card.profile.nextActionDueAt <= now)),

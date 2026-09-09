@@ -69,14 +69,17 @@ export function offerNoticeEmail(input: { firstName: string; jobTitle: string })
   };
 }
 
-export function onboardingWelcomeEmail(input: { firstName: string; startDate?: string | null }) {
+export function onboardingWelcomeEmail(input: { firstName: string; startDate?: string | null; accessUrl?: string | null }) {
+  const access = input.accessUrl
+    ? `<p>Complete your new-hire tasks here (no WorkforceOS login): <a href="${escapeHtml(input.accessUrl)}">${escapeHtml(input.accessUrl)}</a></p>`
+    : "";
   return {
     subject: "Onboarding welcome — PierOne Partners",
     html: brandedEmail({
       heading: "Welcome",
-      bodyHtml: `<p>Hello ${escapeHtml(input.firstName)},</p><p>Your onboarding tasks are ready${input.startDate ? ` for a start date of ${escapeHtml(input.startDate)}` : ""}.</p>`,
+      bodyHtml: `<p>Hello ${escapeHtml(input.firstName)},</p><p>Your onboarding tasks are ready${input.startDate ? ` for a start date of ${escapeHtml(input.startDate)}` : ""}.</p>${access}<p>This is hire onboarding, not PierOne staff Academy training.</p>`,
     }),
-    text: `Welcome. Your onboarding tasks are ready.`,
+    text: `Welcome. Your onboarding tasks are ready.${input.accessUrl ? ` Complete them at ${input.accessUrl}` : ""}`,
   };
 }
 

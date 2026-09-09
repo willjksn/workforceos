@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { boolean, index, jsonb, pgTable, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, integer, jsonb, pgTable, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 import { timestamps } from "../_common";
 import { agents, organizations, users } from "../core";
@@ -10,6 +10,8 @@ import {
   engagementDirectionEnum,
   engagementTypeEnum,
   inAppNotificationKindEnum,
+  reportExportCadenceEnum,
+  reportExportJobStatusEnum,
 } from "../enums";
 import { jobs } from "../recruiting";
 import { candidates } from "../talent";
@@ -129,6 +131,48 @@ export const inAppNotifications = pgTable("in_app_notifications", {
   index("in_app_notifications_user_id_idx").on(table.userId),
   index("in_app_notifications_user_read_idx").on(table.userId, table.readAt),
   uniqueIndex("in_app_notifications_user_kind_record_uq").on(table.userId, table.kind, table.recordId),
+]);
+
+/** Operator-scheduled report CSV jobs. Not a BI platform (DEC-RPT-001). */
+export const reportExportSchedules = pgTable("report_export_schedules", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  createdByUserId: uuid("created_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  category: text("category").notNull(),
+  cadence: reportExportCadenceEnum("cadence").notNull().default("weekly"),
+  includePii: boolean("include_pii").notNull().default(false),
+  enabled: boolean("enabled").notNull().default(true),
+  lastRunAt: timestamp("last_run_at", { withTimezone: true, mode: "date" }),
+  nextRunAt: timestamp("next_run_at", { withTimezone: true, mode: "date" }),
+  filters: jsonb("filters").$type<Record<string, string | null>>(),
+  ...timestamps(),
+}, (table) => [
+  index("report_export_schedules_organization_id_idx").on(table.organizationId),
+  index("report_export_schedules_created_by_user_id_idx").on(table.createdByUserId),
+  index("report_export_schedules_next_run_idx").on(table.enabled, table.nextRunAt),
+]);
+
+export const reportExportJobs = pgTable("report_export_jobs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  scheduleId: uuid("schedule_id").references(() => reportExportSchedules.id, { onDelete: "restrict" }),
+  requestedByUserId: uuid("requested_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  category: text("category").notNull(),
+  status: reportExportJobStatusEnum("status").notNull().default("queued"),
+  includePii: boolean("include_pii").notNull().default(false),
+  rowCount: integer("row_count"),
+  error: text("error"),
+  startedAt: timestamp("started_at", { withTimezone: true, mode: "date" }),
+  completedAt: timestamp("completed_at", { withTimezone: true, mode: "date" }),
+  ...timestamps(),
+}, (table) => [
+  index("report_export_jobs_organization_id_idx").on(table.organizationId),
+  index("report_export_jobs_schedule_id_idx").on(table.scheduleId),
+  index("report_export_jobs_requested_by_user_id_idx").on(table.requestedByUserId),
 ]);
 
 export const activitiesRelations = relations(activities, ({ one }) => ({

@@ -58,7 +58,7 @@ export default async function CompanyDetailPage({
     ? await listActivities({ organizationId: principal.organizationId, companyId: company.id })
     : [];
   const jobs = tab === "jobs" && can(principal, "jobs.read")
-    ? (await listJobs(principal.organizationId)).filter((row) => row.job.companyId === company.id)
+    ? (await listJobs(principal.organizationId, undefined, { companyId: company.id, pageSize: 50 })).items
     : [];
   const companyTalent =
     tab === "talent" && can(principal, "candidates.read")

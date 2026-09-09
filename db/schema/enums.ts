@@ -929,6 +929,24 @@ export const skillbridgeAlertRuleCodeEnum = pgEnum("skillbridge_alert_rule_code"
   "no_opportunity",
   "resume_missing",
   "conversion_approaching",
+  "window_starting_soon",
+  "window_ending_soon",
+]);
+
+/** Tokenized public ATS links. Not PierOne staff Academy onboarding. Not a client SaaS login. */
+export const publicAccessTokenPurposeEnum = pgEnum("public_access_token_purpose", [
+  "interview_self_schedule",
+  "hire_onboarding",
+  "application_status",
+]);
+
+export const reportExportCadenceEnum = pgEnum("report_export_cadence", ["daily", "weekly"]);
+
+export const reportExportJobStatusEnum = pgEnum("report_export_job_status", [
+  "queued",
+  "running",
+  "completed",
+  "failed",
 ]);
 
 export const inAppNotificationKindEnum = pgEnum("in_app_notification_kind", [

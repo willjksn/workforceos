@@ -2,16 +2,17 @@ import Link from "next/link";
 
 import { requireAppPermission } from "@/lib/auth/guard";
 import { getHiringMetrics, listApplications } from "@/lib/hiring/service";
-import { PageHeader, PageShell, formatLabel } from "../../_components/ui";
+import { ListPager, PageHeader, PageShell, formatLabel } from "../../_components/ui";
 
 export default async function ApplicationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string }>;
+  searchParams: Promise<{ view?: string; page?: string }>;
 }) {
   const principal = await requireAppPermission("applications.read");
-  const { view } = await searchParams;
-  const rows = await listApplications({ principal, view });
+  const { view, page } = await searchParams;
+  const result = await listApplications({ principal, view, page });
+  const rows = result.items;
   const metrics = await getHiringMetrics(principal.organizationId);
 
   return (
@@ -62,6 +63,13 @@ export default async function ApplicationsPage({
           ))}
         </tbody>
       </table>
+      <ListPager
+        pathname="/app/recruiting/applications"
+        page={result.page}
+        pageSize={result.pageSize}
+        total={result.total}
+        params={{ view }}
+      />
     </PageShell>
   );
 }

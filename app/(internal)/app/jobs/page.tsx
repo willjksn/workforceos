@@ -17,6 +17,7 @@ import {
   PageShell,
   PrimaryButton,
   SearchForm,
+  ListPager,
   formatLabel,
   inputClassName,
 } from "../_components/ui";
@@ -26,11 +27,12 @@ import { JobsSubnav } from "./_components/jobs-subnav";
 export default async function JobsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; page?: string }>;
 }) {
   const principal = await requireAppPermission("jobs.read");
-  const { q } = await searchParams;
-  const rows = await listJobs(principal.organizationId, q);
+  const { q, page } = await searchParams;
+  const result = await listJobs(principal.organizationId, q, { page });
+  const rows = result.items;
   const canWrite = can(principal, "jobs.write");
   const companies = canWrite ? await listCompaniesForSelect(principal.organizationId) : [];
   const contacts = canWrite ? await listContacts(principal.organizationId) : [];
@@ -89,6 +91,7 @@ export default async function JobsPage({
           ))}
         </DataTable>
       )}
+      <ListPager pathname="/app/jobs" page={result.page} pageSize={result.pageSize} total={result.total} params={{ q }} />
       {canWrite ? (
         <CreatePanel
           title="Create job"

@@ -128,7 +128,11 @@ export default async function SkillBridgeDetailPage({
             <Item label="Branch / MOS" value={[detail.card.occupation?.branch, detail.card.occupation?.code ?? detail.card.profile.mosRateAfscDisplay].filter(Boolean).join(" · ")} />
             <Item label="Rank" value={detail.card.profile.rankTitle ?? detail.card.profile.payGrade} />
             <Item label="Installation" value={detail.card.installation?.name ?? detail.card.profile.currentDutyLocation} />
-            <Item label="End of service" value={formatDate(detail.card.profile.endOfServiceDate)} />
+            <Item label="EOS / End of service" value={formatDate(detail.card.profile.endOfServiceDate)} />
+            <Item label="ETS (Army / USMC)" value={formatDate(detail.card.profile.etsDate)} />
+            <Item label="EAOS (Navy)" value={formatDate(detail.card.profile.eaosDate)} />
+            <Item label="Separation" value={formatDate(detail.card.profile.separationDate)} />
+            <Item label="Retirement" value={formatDate(detail.card.profile.retirementDate)} />
             <Item label="SkillBridge window start" value={formatDate(detail.card.profile.skillbridgeWindowStart)} />
             <Item label="SkillBridge window end" value={formatDate(detail.card.profile.skillbridgeWindowEnd)} />
             <Item label="Preferred location" value={detail.card.profile.preferredLocationPrimary} />

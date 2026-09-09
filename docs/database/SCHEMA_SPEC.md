@@ -157,6 +157,13 @@ Hiring tables are in `db/schema/hiring/` and `drizzle/0010_*`. Do not edit `0000
 - These columns classify the existing Companies list. Do not add a parallel accounts table.
 - `industry` remains the human label. Focus industries are a documented GTM list, not new services.
 
+## Phase L scale tables
+
+- Migration `drizzle/0017_quiet_scale.sql` adds `skillbridge_profiles.ets_date` / `eaos_date`, `public_access_tokens`, `report_export_schedules`, and `report_export_jobs`. Organization FKs use `ON DELETE restrict`.
+- `public_access_tokens.token_hash` is unique. Raw tokens are not stored. Purposes: `interview_self_schedule`, `hire_onboarding`, `application_status`.
+- Scheduled report jobs never persist talent PII. On-demand `reports.export_pii` is unchanged.
+- Embedding column remains `vector(1536)` (DEC-SEM-001) until a production embedding model and dimension are chosen together.
+
 ## Public content items
 
 `public_content_items` is a lightweight publishing table, not a CMS. Content types and placements are Postgres enums so new types can be added later without a JSON document store. `linked_job_id` references `jobs`. Closed or unpublished jobs are omitted from `GET /api/public/v1/content` at query time. Do not duplicate website job or SkillBridge opportunity records.

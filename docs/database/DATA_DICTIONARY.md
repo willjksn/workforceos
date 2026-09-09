@@ -140,14 +140,14 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | `military_civilian_mappings` | Military-to-civilian translations, including reverse search, provenance, and review status. |
 | `bridge_training_recommendations` | Skill-gap and credential recommendations. Do not promise employment. |
 | `occupation_data_imports` | Repeatable importer run log. Approved mappings are not silently deleted. |
-| `skillbridge_profiles` | Transition Talent Profile overlay on a Talent Network candidate (unique `candidate_id`). Physical table name retained. Window, EOS, occupation, location, resume status, owner. Not a PierOne SkillBridge program roster and not a second person table. |
+| `skillbridge_profiles` | Transition Talent Profile overlay on a Talent Network candidate (unique `candidate_id`). Physical table name retained. Window, EOS, ETS (Army/USMC), EAOS (Navy), separation, retirement, occupation, location, resume status, owner. Not a PierOne SkillBridge program roster and not a second person table. |
 | `skillbridge_preferred_locations` | Junction of preferred locations for filtering. |
 | `skillbridge_target_roles` | Junction of civilian target roles. |
 | `skillbridge_opportunities` | Employer / host-company opportunities: many-to-many candidate–employer pipeline rows with stage. SkillBridge-eligible is an opportunity type, not PierOne program ownership. |
 | `skillbridge_opportunity_stage_history` | Prior stages retained; current stage lives on the opportunity. |
 | `skillbridge_notes` | Operating notes on a profile/opportunity. Timeline also reuses `activities`. |
 | `skillbridge_documents` | Metadata links to `files` (resume/certs). No binaries in PostgreSQL. Resume status is missing/outdated/current/needs_review. |
-| `skillbridge_alert_rules` | Configurable follow-up, window, no-opportunity, employer-feedback, resume, and conversion thresholds. |
+| `skillbridge_alert_rules` | Configurable follow-up, window, starting/ending-soon, no-opportunity, employer-feedback, resume, and conversion thresholds. Operator-editable. |
 
 ## Scout
 
@@ -225,7 +225,9 @@ Workforce roles are planning-level. They do not duplicate recruiting `jobs`. For
 | `background_checks` / `drug_screens` | Provider-neutral pre-employment rows. Restricted. |
 | `offers` | Existing recruiting offers plus `application_id` and `version`. |
 | `employees` | Employment bridge to `candidate_id`. Not payroll. |
-| `onboarding_templates` / `onboarding_instances` / `onboarding_tasks` | New-hire checklists. |
+| `onboarding_templates` / `onboarding_instances` / `onboarding_tasks` | New-hire checklists. Distinct from PierOne staff Academy onboarding. |
+| `public_access_tokens` | Hashed tokens for interview self-schedule, hire onboarding (`/onboarding/access`), and read-only application status. Not a client SaaS login. |
+| `report_export_schedules` / `report_export_jobs` | Operator-scheduled non-PII CSV jobs. Not a BI platform. |
 | `transactional_email_events` | Resend/mock send log. |
 | `website_inquiries` | Public employer intake from pieronepartners.com. Not an automatic opportunity. |
 | `public_intake_settings` | Role-based owner assignment for website inquiries, military talent, and application notifications. No hardcoded person IDs. |

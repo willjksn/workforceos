@@ -2,6 +2,7 @@ import { requireAppPermission } from "@/lib/auth/guard";
 import { listJobs } from "@/lib/repositories/recruiting";
 import {
   EmptyState,
+  ListPager,
   PageHeader,
   PageShell,
   RecordList,
@@ -10,10 +11,15 @@ import {
   formatLabel,
 } from "../_components/ui";
 
-export default async function PipelineIndexPage() {
+export default async function PipelineIndexPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const principal = await requireAppPermission("jobs.read");
-  const rows = await listJobs(principal.organizationId);
-  const active = rows.filter((row) => ["open", "search_active"].includes(row.job.status));
+  const { page } = await searchParams;
+  const result = await listJobs(principal.organizationId, undefined, { page });
+  const active = result.items.filter((row) => ["open", "search_active"].includes(row.job.status));
 
   return (
     <PageShell>
@@ -43,6 +49,7 @@ export default async function PipelineIndexPage() {
           ))}
         </RecordList>
       )}
+      <ListPager pathname="/app/pipeline" page={result.page} pageSize={result.pageSize} total={result.total} />
     </PageShell>
   );
 }

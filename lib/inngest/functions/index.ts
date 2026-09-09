@@ -14,6 +14,7 @@ import {
 import { aiAutomationJob } from "./ai";
 import { skillbridgeFollowUpScanJob, skillbridgeMatchJob } from "./skillbridge";
 import { interviewReminderJob, offerExpirationJob, onboardingReminderJob } from "./hiring";
+import { scheduledReportExportJob } from "./reports";
 
 export const internalTalentSearchJob = inngest.createFunction(
   {
@@ -54,4 +55,5 @@ export const inngestFunctions = [
   interviewReminderJob,
   onboardingReminderJob,
   offerExpirationJob,
+  scheduledReportExportJob,
 ];

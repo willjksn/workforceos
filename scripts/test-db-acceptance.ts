@@ -153,13 +153,14 @@ async function main() {
     privacyClass: "restricted_pii",
   });
   await archiveCandidate(disposableId);
-  const active = await searchActiveCandidates(INTERNAL_ORG_ID);
+  const archivedSearch = await searchActiveCandidates(INTERNAL_ORG_ID, "Archive Test Candidate");
   assert(
-    active.every((row) => row.id !== disposableId),
+    archivedSearch.items.every((row) => row.id !== disposableId),
     "Archived candidates must be excluded from normal search",
   );
+  const active = await searchActiveCandidates(INTERNAL_ORG_ID, undefined, undefined, { pageSize: 100 });
   assert(
-    active.some((row) => row.id === CANDIDATE_ID),
+    active.items.some((row) => row.id === CANDIDATE_ID),
     "Active fixture candidate should remain searchable",
   );
 

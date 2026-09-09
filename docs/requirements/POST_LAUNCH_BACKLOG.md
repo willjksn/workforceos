@@ -8,27 +8,27 @@ Do not build these items during Post-Phase-9 stabilization. New work enters the 
 | Live Checkr HTTP API | Adapter is a stub; CHECKR_API_KEY does not call Checkr; not sandbox-ready | Provider-hosted background invitations | P2 | Checkr sandbox + webhook secret + counsel | L | open |
 | Drug-screen vendor adapter | ManualDrugScreenProvider only; no vendor selected | Provider-hosted collection workflow | P3 | Vendor selection + BAA/PHI review | L | open |
 | Live calendar OAuth scheduling | getCalendarProvider() always returns mock; liveScheduling is false | Real Microsoft/Google interview events | P2 | Graph/Google OAuth + Integration Hub tokens | L | open |
-| Candidate self-scheduling | Recruiters schedule internally only | Candidate picks a slot | P3 | Live calendar adapter | L | open |
-| New-hire `/onboarding/access` portal | Public path reserved; tokens not issued; internal `/app/onboarding` is the Phase 10 path | Candidate task completion without `/app` | P3 | Signed tokens + email | L | open |
+| Candidate self-scheduling | Recruiters schedule internally only | Candidate picks a slot | P3 | Live calendar adapter | L | COMPLETE (tokenized `/schedule/[token]`; live only when calendar OAuth tokens exist) |
+| New-hire `/onboarding/access` portal | Public path reserved; tokens not issued; internal `/app/onboarding` is the Phase 10 path | Candidate task completion without `/app` | P3 | Signed tokens + email | L | COMPLETE (tokens issued on start onboarding; distinct from staff Academy) |
 | Parked AI/research runtime (`1a356d3`) | Migration 0010 created research tables; unfinished provider/research code is on `follow-on/parked-working-tree` | Do not merge for Phase 10. Human review before any later AI module | P3 | Phase 11 / research decision | L | parked |
 | Official Sentry SDK | Thin DSN poster only; no source maps or performance | Faster incident response | P2 | Sentry project + `SENTRY_DSN` | S | open |
 | Clean Neon production branch | Default Neon `production` branch still has development fixtures | Real internal data isolation | P0 ops | Neon console; Vercel env cutover | S | open |
 | Vercel production env cutover | Checklist largely unchecked | Hosted production | P0 ops | Clerk live keys, Neon, domain | M | open |
 | Custom domain `app.pieronepartners.com` | Production origin not cut over | Operator bookmark / Clerk domains | P2 | DNS + Clerk production | S | COMPLETE (live: https://app.pieronepartners.com) |
-| Talent/jobs list pagination | Unbounded org lists | Survives real volume | P2 | Query audit | M | open |
-| Command Center SQL recruiting rewrite | `recruitingAnalytics` still hydrates full graphs | Keep CC fast as data grows | P2 | Reporting contract | M | open |
+| Talent/jobs list pagination | Unbounded org lists | Survives real volume | P2 | Query audit | M | COMPLETE (page 25 / max 100) |
+| Command Center SQL recruiting rewrite | `recruitingAnalytics` still hydrates full graphs | Keep CC fast as data grows | P2 | Reporting contract | M | COMPLETE |
 | Scout approved-send path | `scout.external_actions` unused; send hard-denied | Later human-approved email | P3 | Email/calendar | L | open |
-| SkillBridge ETS/EAOS aliases | Only EOS / separation / retirement stored | Navy/USMC language | P3 | Data dictionary | S | open |
-| Starting/ending-soon alert rules | 14-day windows are constants, not `skillbridge_alert_rules` | Configurable ops | P3 | Alert rules UI | S | open |
+| SkillBridge ETS/EAOS aliases | Only EOS / separation / retirement stored | Navy/USMC language | P3 | Data dictionary | S | COMPLETE |
+| Starting/ending-soon alert rules | 14-day windows are constants, not `skillbridge_alert_rules` | Configurable ops | P3 | Alert rules UI | S | COMPLETE |
 | Email / calendar | Workspace adapters are references only; calendar scheduling is mock | Follow-ups leave the app; live interview OAuth | P2 | Microsoft/Google OAuth | L | open |
-| Candidate portal | No self-service SkillBridge/candidate surface | Later product | P3 | Authn model | L | open |
-| Client portal | V1 is internal-first | Later product | P3 | DEC-SEC-001 | L | open |
+| Candidate portal | No self-service SkillBridge/candidate surface | Later product | P3 | Authn model | L | thin status only (`/careers/status/[token]`); full portal later |
+| Client portal | V1 is internal-first | Later product | P3 | DEC-SEC-001 | L | DEFERRED (DEC-SEC-001 reconsideration required) |
 | Recruiting integrations live | SeekOut/LinkedIn/Apollo are mocks or partial | External sourcing after internal search | P2 | Integration Hub + internal-search gate | L | open |
 | Live QuickBooks OAuth | Mapping exists; posting not enabled | AR sync | P2 | QB app + idempotency | L | open |
 | Live DocuSign envelopes | Manual execution remains when unconfigured | E-sign | P2 | DocuSign + webhook secret | M | open |
-| Workforce live BLS/Census | Unconfigured adapters return labeled fixtures | Intelligence provenance | P3 | API keys | M | open |
-| Reporting scheduled exports | CSV is on-demand | Operator cadence | P3 | `reports.export` | S | open |
-| Mobile UX | Desktop operating UI | Field use | P3 | Design | L | open |
-| Scout result pagination beyond 25 | Hard cap for safety | Larger search sets | P3 | Scout DTOs | S | open |
+| Workforce live BLS/Census | Unconfigured adapters return labeled fixtures | Intelligence provenance | P3 | API keys | M | COMPLETE (live when keys present; fixtures when not) |
+| Reporting scheduled exports | CSV is on-demand | Operator cadence | P3 | `reports.export` | S | COMPLETE (Inngest cron + stored jobs; no PII schedule) |
+| Mobile UX | Desktop operating UI | Field use | P3 | Design | L | BUILT (responsive wrap/overflow only; not a native app) |
+| Scout result pagination beyond 25 | Hard cap for safety | Larger search sets | P3 | Scout DTOs | S | COMPLETE (25/page, max 100) |
 | Invite-only local user pre-provision | Unknown Clerk users auto-create as active with no roles | Defense in depth if Clerk public sign-up is mis-set | P2 | Clerk webhooks | M | COMPLETE 2026-09-08: production Clerk `sign_up_mode=restricted`; `syncLocalUser` rejects uninvited Clerk users |
-| Semantic search dimension | `vector(1536)` is temporary (DEC-SEM-001) | Real embeddings | P3 | Embedding model choice | M | open |
+| Semantic search dimension | `vector(1536)` is temporary (DEC-SEM-001) | Real embeddings | P3 | Embedding model choice | M | IN REVIEW / deferred until `AI_MODEL_EMBEDDING` is configured |

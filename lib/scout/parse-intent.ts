@@ -32,6 +32,7 @@ export const scoutSearchFiltersSchema = z.object({
   installation: z.string().trim().max(200).optional(),
   candidateName: z.string().trim().max(200).optional(),
   ownerScope: z.enum(["me", "all"]).optional(),
+  offset: z.number().int().min(0).max(100).optional(),
 });
 
 export const scoutCommandDtoSchema = z.object({
@@ -180,6 +181,13 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
   ) {
     filters.needsFollowUp = true;
     filters.ownerScope = "me";
+  }
+  const pageMatch = text.match(/\bpage\s+(\d+)\b/);
+  if (pageMatch) {
+    const page = Math.max(1, Number(pageMatch[1]));
+    filters.offset = Math.min(75, (page - 1) * 25);
+  } else if (/\bnext page\b|\bmore results\b/.test(text)) {
+    filters.offset = 25;
   }
 
   let family: ScoutCommandFamily = "SEARCH";
