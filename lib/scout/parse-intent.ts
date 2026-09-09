@@ -224,10 +224,10 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
   } else if (/\bsummarize\b/.test(text)) {
     family = "SUMMARIZE";
     summary = "Summarize the current authorized record.";
-  } else if (/\bopen the skillbridge record\b|\bshow the record\b/.test(text)) {
+  } else if (/\bopen the skillbridge record\b|\bshow the record\b|\bopen this record\b/.test(text)) {
     family = "SHOW_RECORD";
-    entity = "skillbridge_profile";
-    summary = "Open the current Transition Talent Profile.";
+    entity = pageContext?.entityType ?? "skillbridge_profile";
+    summary = "Open the current authorized record.";
   } else if (/\bdaily brief\b|\btoday'?s priorities\b|\bwho needs my attention\b/.test(text)) {
     family = "SHOW_DASHBOARD";
     summary = "Show today's operating priorities.";
@@ -313,6 +313,27 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
   } else if (/\bopen jobs\b|\bjobs that match\b/.test(text)) {
     entity = "jobs";
     summary = "Search jobs.";
+  } else if (/\bcompan(y|ies)\b/.test(text)) {
+    entity = "companies";
+    summary = "Search authorized companies.";
+  } else if (/\bcontacts?\b/.test(text)) {
+    entity = "contacts";
+    summary = "Search authorized contacts.";
+  } else if (
+    /\b(crm )?opportunit/.test(text) &&
+    !/\bemployer opportunit|website|open to opportunit|matching opportunit/.test(text)
+  ) {
+    entity = "opportunities";
+    summary = "Search authorized commercial opportunities.";
+  } else if (/\b(delivery )?projects?\b/.test(text) && !/\bsearch project/.test(text)) {
+    entity = "projects";
+    summary = "Search authorized delivery projects.";
+  } else if (/\b(invoices?|accounts receivable|\bar aging\b|finance)\b/.test(text)) {
+    entity = "finance";
+    summary = "Search authorized finance records.";
+  } else if (/\b(knowledge|training programs?|lessons learned)\b/.test(text)) {
+    entity = "knowledge";
+    summary = "Search authorized knowledge and training records.";
   }
 
   const poolName = raw.match(/called[:\s]+([^\n]+)/i)?.[1]?.trim();

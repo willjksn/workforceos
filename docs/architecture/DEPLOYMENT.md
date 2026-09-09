@@ -29,7 +29,9 @@ Enable as features are connected:
 - `INNGEST_EVENT_KEY`
 - `INNGEST_SIGNING_KEY`
 - `STORAGE_PROVIDER=s3` plus `S3_BUCKET`, `S3_REGION`, `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`. The S3-compatible adapter is implemented. Candidate resumes stay private (no public bucket URL).
-- `AI_PROVIDER`, `AI_API_KEY`
+- `AI_PROVIDER`, `AI_API_KEY` (or `OPENAI_API_KEY` as an OpenAI-compatible alias). Do not put AI keys in `NEXT_PUBLIC_*`.
+- Capability-class models (DEC-AI-011): `AI_MODEL_FAST`, `AI_MODEL_STANDARD`, `AI_MODEL_REASONING`, `AI_MODEL_EMBEDDING`. Aliases: `OPENAI_MODEL_FAST`, `OPENAI_MODEL_BALANCED` / `AI_MODEL`, `OPENAI_MODEL_PRIMARY`, `OPENAI_EMBEDDING_MODEL`. `AI_FALLBACK_MODEL` remains. `AI_BASE_URL` is optional (default `https://api.openai.com/v1`).
+- Development / Preview / Production should use separate AI keys where Vercel already has env per environment. When the key is unset, System Health labels the runtime **HEURISTIC**, not live.
 - `SENTRY_DSN` when Sentry is wired
 - `APP_VERSION`
 
@@ -44,7 +46,7 @@ Optional Integration Hub credentials (unconfigured providers stay labeled mocks)
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`
 - `INTEGRATION_WEBHOOK_SECRET`
 
-Do not put secrets in client bundles. Only `NEXT_PUBLIC_*` values are public. `CLERK_SECRET_KEY`, `DATABASE_URL`, Inngest signing keys, `AI_API_KEY`, and `S3_SECRET_ACCESS_KEY` are server-only.
+Do not put secrets in client bundles. Only `NEXT_PUBLIC_*` values are public. `CLERK_SECRET_KEY`, `DATABASE_URL`, Inngest signing keys, `AI_API_KEY`, `OPENAI_API_KEY`, and `S3_SECRET_ACCESS_KEY` are server-only.
 
 `STORAGE_PROVIDER=local` is development-only. Production and Vercel builds fall back to an unconfigured storage adapter until S3-compatible credentials are set. Read-only deploys can go live without storage; uploads will fail until R2/S3 is configured.
 
@@ -58,6 +60,8 @@ Do not put secrets in client bundles. Only `NEXT_PUBLIC_*` values are public. `C
 | `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` | `https://<preview>.vercel.app` | `https://app.pieronepartners.com` |
 | Inngest | Optional / Inngest Dev Server | Optional until jobs are needed | Inngest Cloud when jobs are needed |
 | Storage | `local` | R2/S3 test bucket recommended | R2/S3 production bucket |
+| AI keys | Development key or unset (heuristic) | Preview key or unset (heuristic) | Production key; System Health must say LIVE vs HEURISTIC |
+| `AI_MODEL_FAST` / `STANDARD` / `REASONING` / `EMBEDDING` | Capability-class names for this environment | Same, preview-specific if needed | Production capability-class models |
 
 Do not put production Clerk live keys in `.env.local`.
 

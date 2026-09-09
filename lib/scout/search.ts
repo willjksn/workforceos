@@ -18,7 +18,19 @@ import { findSkillBridgeMatches } from "../skillbridge/matching";
 const SCOUT_RESULT_LIMIT = 25;
 
 export type ScoutResultCard = {
-  type: "candidate" | "job" | "opportunity" | "skillbridge" | "record" | "application" | "inquiry";
+  type:
+    | "candidate"
+    | "job"
+    | "opportunity"
+    | "skillbridge"
+    | "record"
+    | "application"
+    | "inquiry"
+    | "company"
+    | "contact"
+    | "project"
+    | "finance"
+    | "knowledge";
   id: string;
   title: string;
   href: string;
@@ -142,6 +154,40 @@ export async function executeScoutSearch(input: {
     };
   }
 
+  if (input.dto.entity === "companies" || input.dto.entity === "company") {
+    if (!input.permissions.has("companies.read")) return { summary: "No company access.", cards: [] };
+    return searchCompanies(input.organizationId, filters.title ?? filters.candidateName ?? filters.industry);
+  }
+
+  if (input.dto.entity === "contacts" || input.dto.entity === "contact") {
+    if (!input.permissions.has("contacts.read")) return { summary: "No contact access.", cards: [] };
+    return searchContacts(input.organizationId, filters.title ?? filters.candidateName, input.canReadPii);
+  }
+
+  if (input.dto.entity === "opportunities" || input.dto.entity === "opportunity") {
+    if (!input.permissions.has("opportunities.read")) return { summary: "No opportunity access.", cards: [] };
+    return searchOpportunities(input.organizationId, filters.title ?? filters.industry);
+  }
+
+  if (input.dto.entity === "projects" || input.dto.entity === "project") {
+    if (!input.permissions.has("projects.read")) return { summary: "No project access.", cards: [] };
+    return searchProjects(input.organizationId, filters.title);
+  }
+
+  if (input.dto.entity === "finance" || input.dto.entity === "invoices") {
+    if (!input.permissions.has("finance.read") && !input.permissions.has("invoices.read")) {
+      return { summary: "No finance access.", cards: [] };
+    }
+    return searchFinance(input.organizationId, filters.title);
+  }
+
+  if (input.dto.entity === "knowledge" || input.dto.entity === "training") {
+    if (!input.permissions.has("knowledge.read") && !input.permissions.has("training_programs.read")) {
+      return { summary: "No knowledge or training access.", cards: [] };
+    }
+    return searchKnowledgeAndTraining(input.organizationId, input.permissions, filters.title ?? filters.skill);
+  }
+
   if (input.dto.entity === "skillbridge" || filters.windowWithinDays || filters.hasActiveOpportunity === false || filters.employerFeedbackOverdue || filters.needsFollowUp) {
     if (!input.permissions.has("skillbridge.read") && !input.permissions.has("military.read")) {
       return { summary: "No Military Talent access.", cards: [] };
@@ -251,6 +297,146 @@ async function searchJobs(organizationId: string, query?: string, location?: str
       fields: { company: company?.name ?? null, location: job.locationLabel, status: job.status },
     })),
   };
+}
+
+async function searchCompanies(organizationId: string, query?: string) {
+  const { listCompanies } = await import("../repositories/crm");
+  const rows = await listCompanies(organizationId, query);
+  const cards: ScoutResultCard[] = rows.slice(0, SCOUT_RESULT_LIMIT).map((row) => ({
+    type: "company" as const,
+    id: row.id,
+    title: row.name,
+    href: `/app/companies/${row.id}`,
+    meta: [row.industry, row.clientStatus, row.relationshipStrength].filter(Boolean).join(" · "),
+    fields: { industry: row.industry, status: row.clientStatus },
+  }));
+  return { summary: `Found ${cards.length} authorized company records.`, cards };
+}
+
+async function searchContacts(organizationId: string, query?: string, canReadPii?: boolean) {
+  const { listContacts } = await import("../repositories/crm");
+  const rows = await listContacts(organizationId, { query });
+  const cards: ScoutResultCard[] = rows.slice(0, SCOUT_RESULT_LIMIT).map((row) => ({
+    type: "contact" as const,
+    id: row.contact.id,
+    title: row.contact.fullName,
+    href: `/app/contacts/${row.contact.id}`,
+    meta: [row.contact.title, row.companies[0]?.name].filter(Boolean).join(" · "),
+    fields: stripScoutPii(
+      {
+        title: row.contact.title,
+        company: row.companies[0]?.name ?? null,
+        email: canReadPii ? row.contact.email : null,
+      },
+      Boolean(canReadPii),
+    ),
+  }));
+  return { summary: `Found ${cards.length} authorized contact records.`, cards };
+}
+
+async function searchOpportunities(organizationId: string, query?: string) {
+  const { listOpportunities } = await import("../repositories/crm");
+  let rows = await listOpportunities(organizationId);
+  if (query) {
+    const needle = query.toLowerCase();
+    rows = rows.filter(
+      (row) =>
+        row.opportunity.name.toLowerCase().includes(needle) ||
+        (row.companyName ?? "").toLowerCase().includes(needle),
+    );
+  }
+  const cards: ScoutResultCard[] = rows.slice(0, SCOUT_RESULT_LIMIT).map((row) => ({
+    type: "opportunity" as const,
+    id: row.opportunity.id,
+    title: row.opportunity.name,
+    href: `/app/opportunities/${row.opportunity.id}`,
+    meta: `${row.companyName} · ${row.opportunity.stage}`,
+    fields: { company: row.companyName, stage: row.opportunity.stage },
+  }));
+  return { summary: `Found ${cards.length} authorized opportunities.`, cards };
+}
+
+async function searchProjects(organizationId: string, query?: string) {
+  const { listDeliveryProjects } = await import("../delivery/engine");
+  let rows = await listDeliveryProjects(organizationId);
+  if (query) {
+    const needle = query.toLowerCase();
+    rows = rows.filter(
+      (row) =>
+        row.project.name.toLowerCase().includes(needle) ||
+        (row.companyName ?? "").toLowerCase().includes(needle),
+    );
+  }
+  const cards: ScoutResultCard[] = rows.slice(0, SCOUT_RESULT_LIMIT).map((row) => ({
+    type: "project" as const,
+    id: row.project.id,
+    title: row.project.name,
+    href: `/app/projects/${row.project.id}`,
+    meta: [row.companyName, row.serviceName, row.project.status].filter(Boolean).join(" · "),
+    fields: { company: row.companyName, status: row.project.status, health: row.project.health },
+  }));
+  return { summary: `Found ${cards.length} authorized delivery projects.`, cards };
+}
+
+async function searchFinance(organizationId: string, query?: string) {
+  const { listInvoices } = await import("../finance/engine");
+  let rows = await listInvoices(organizationId);
+  if (query) {
+    const needle = query.toLowerCase();
+    rows = rows.filter(
+      (row) =>
+        row.invoice.invoiceNumber.toLowerCase().includes(needle) ||
+        (row.companyName ?? "").toLowerCase().includes(needle),
+    );
+  }
+  const cards: ScoutResultCard[] = rows.slice(0, SCOUT_RESULT_LIMIT).map((row) => ({
+    type: "finance" as const,
+    id: row.invoice.id,
+    title: row.invoice.invoiceNumber,
+    href: "/app/finance/invoices",
+    meta: [row.companyName, row.invoice.status, row.aging.agingBucket].filter(Boolean).join(" · "),
+    fields: { status: row.invoice.status, company: row.companyName },
+  }));
+  return { summary: `Found ${cards.length} authorized invoices.`, cards };
+}
+
+async function searchKnowledgeAndTraining(
+  organizationId: string,
+  permissions: ReadonlySet<string>,
+  query?: string,
+) {
+  const cards: ScoutResultCard[] = [];
+  if (permissions.has("knowledge.read")) {
+    const { listKnowledge } = await import("../ai/engine");
+    const rows = await listKnowledge(organizationId);
+    for (const row of rows.slice(0, SCOUT_RESULT_LIMIT)) {
+      if (query && !`${row.title} ${row.knowledgeType}`.toLowerCase().includes(query.toLowerCase())) continue;
+      cards.push({
+        type: "knowledge",
+        id: row.id,
+        title: row.title,
+        href: "/app/ai-operations/knowledge",
+        meta: `${row.knowledgeType} · ${row.status}`,
+        fields: { type: row.knowledgeType, status: row.status },
+      });
+    }
+  }
+  if (permissions.has("training_programs.read")) {
+    const { listTrainingPrograms } = await import("../repositories/workforce");
+    const rows = await listTrainingPrograms(organizationId);
+    for (const row of rows.slice(0, SCOUT_RESULT_LIMIT)) {
+      if (query && !row.name.toLowerCase().includes(query.toLowerCase())) continue;
+      cards.push({
+        type: "knowledge",
+        id: row.id,
+        title: row.name,
+        href: "/app/workforce",
+        meta: "Training program",
+        fields: { type: "training_program" },
+      });
+    }
+  }
+  return { summary: `${cards.length} authorized knowledge or training records.`, cards };
 }
 
 async function searchSkillBridge(input: {

@@ -20,6 +20,7 @@ import {
   workforceGaps,
 } from "../../db/schema";
 import { CLOSED_OPPORTUNITY_STAGES } from "../crm/stages";
+import { listCostLimitAlerts } from "../ai/cost";
 import { listFailedIntegrationEvents } from "../integrations/retry";
 
 export type OperationalAlert = {
@@ -299,6 +300,18 @@ export async function evaluateOperationalAlerts(organizationId: string): Promise
       href: "/app/ai-operations/review",
       recordId: reviewBacklog[0].id,
       severity: "warning",
+    });
+  }
+
+  const costLimits = await listCostLimitAlerts(organizationId);
+  for (const row of costLimits) {
+    alerts.push({
+      code: "ai_cost_limit",
+      domain: "ai",
+      title: `${row.period === "daily" ? "Daily" : "Monthly"} AI cost limit reached: ${row.slug}`,
+      href: "/app/ai-operations/costs",
+      recordId: row.agentId,
+      severity: "critical",
     });
   }
 

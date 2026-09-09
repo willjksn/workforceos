@@ -319,6 +319,45 @@ async function executeAuthorizedCommand(input: {
         links: detail ? [{ href: `/app/military/skillbridge/${detail.card.profile.id}`, label: detail.card.candidate.fullName }] : [],
       };
     }
+    if (input.pageContext.entityType === "company" && input.pageContext.entityId) {
+      const { getCompanyInOrganization } = await import("../repositories/crm");
+      const company = await getCompanyInOrganization(input.pageContext.entityId, input.principal.organizationId);
+      return {
+        message: company
+          ? `${company.name}: ${company.clientStatus.replaceAll("_", " ")}. Industry ${company.industry ?? "not on file"}.`
+          : "No company in context.",
+        cards: [],
+        confirmation: null,
+        draft: null,
+        links: company ? [{ href: `/app/companies/${company.id}`, label: company.name }] : [],
+      };
+    }
+    if (input.pageContext.entityType === "opportunity" && input.pageContext.entityId) {
+      const { getOpportunityGraph } = await import("../repositories/crm");
+      const graph = await getOpportunityGraph(input.pageContext.entityId, input.principal.organizationId);
+      return {
+        message: graph
+          ? `${graph.opportunity.name}: stage ${graph.opportunity.stage.replaceAll("_", " ")}.`
+          : "No opportunity in context.",
+        cards: [],
+        confirmation: null,
+        draft: null,
+        links: graph ? [{ href: `/app/opportunities/${graph.opportunity.id}`, label: graph.opportunity.name }] : [],
+      };
+    }
+    if (input.pageContext.entityType === "project" && input.pageContext.entityId) {
+      const { getProjectBundle } = await import("../delivery/engine");
+      const bundle = await getProjectBundle(input.pageContext.entityId, input.principal.organizationId);
+      return {
+        message: bundle
+          ? `${bundle.project.name}: ${bundle.project.status.replaceAll("_", " ")}. Health ${bundle.project.health}.`
+          : "No project in context.",
+        cards: [],
+        confirmation: null,
+        draft: null,
+        links: bundle ? [{ href: `/app/projects/${bundle.project.id}`, label: bundle.project.name }] : [],
+      };
+    }
     const metrics = await getSkillBridgeMetrics(input.principal.organizationId);
     return {
       message: `Transitioning talent in active Military Talent operations: ${metrics.activeCandidates}. SkillBridge windows in 90 days: ${metrics.windows90}. Without an employer match: ${metrics.withoutOpportunity}.`,
@@ -725,6 +764,10 @@ async function persistMessages(sessionId: string, userText: string, scoutText: s
   await db.insert(scoutMessages).values({ sessionId, role: "scout", content: scoutText });
 }
 
-export function assertScoutCannotSend() {
+export function isScoutExternalSendEnabled() {
   return false;
+}
+
+export function assertScoutCannotSend() {
+  return isScoutExternalSendEnabled();
 }

@@ -50,6 +50,7 @@ import {
 } from "../../db/schema";
 import { recordAuditEvent } from "../audit/record-audit-event";
 import { approveRequest, assertAgentCannotSelfApprove, requestApproval } from "../approvals/service";
+import { isLiveAiConfigured, resolveAiProviderName } from "../ai/capabilities";
 import { getServerEnv } from "../env";
 import { roleSlugsHavePermission, type Permission } from "../rbac/permissions";
 import { WorkforceError, assertAssessmentMutable, assertHumanApprovalActor } from "./errors";
@@ -1105,8 +1106,9 @@ export async function draftAiWorkforceRecommendation(input: {
     input.kind === "architect"
       ? `Draft pipeline design from stored gaps (${gaps.length} records). Human approval required before client use.`
       : `Draft gap commentary from stored workforce data (${gaps.length} gaps). Do not treat as labor-market fact.`;
-  const model = env.AI_PROVIDER ? env.AI_PROVIDER : "internal_heuristic";
-  const modelVersion = env.AI_PROVIDER ? "configured" : "unconfigured-heuristic";
+  const live = isLiveAiConfigured(env);
+  const model = live ? resolveAiProviderName(env) : "internal_heuristic";
+  const modelVersion = live ? "configured" : "unconfigured-heuristic";
   const [recommendation] = await db
     .insert(workforceRecommendations)
     .values({

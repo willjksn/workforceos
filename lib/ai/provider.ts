@@ -1,4 +1,17 @@
 import { getServerEnv } from "../env";
+import { logServerEvent } from "../observability/monitor";
+import {
+  HEURISTIC_MODEL,
+  capabilityClassForTask,
+  isHeuristicModelName,
+  isLiveAiConfigured,
+  resolveAiApiKey,
+  resolveAiBaseUrl,
+  resolveAiProviderName,
+  resolveCapabilityModel,
+  resolveFallbackModel,
+  type AiCapabilityClass,
+} from "./capabilities";
 import { AgentError } from "./errors";
 
 export type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
@@ -8,6 +21,7 @@ export type CompletionRequest = {
   messages: ChatMessage[];
   provider?: string;
   model?: string;
+  capabilityClass?: AiCapabilityClass;
   temperature?: number;
   timeoutMs?: number;
   maxTokens?: number;
@@ -20,10 +34,12 @@ export type CompletionResult = {
   provider: string;
   model: string;
   modelVersion: string;
+  capabilityClass: AiCapabilityClass;
   inputTokens?: number;
   outputTokens?: number;
   estimatedCostUsd: number;
   usedFallback: boolean;
+  latencyMs: number;
 };
 
 function heuristicReply(messages: ChatMessage[]) {
@@ -40,6 +56,25 @@ function heuristicReply(messages: ChatMessage[]) {
   });
 }
 
+function heuristicResult(input: {
+  capabilityClass: AiCapabilityClass;
+  usedFallback: boolean;
+  modelVersion: string;
+  latencyMs: number;
+  messages: ChatMessage[];
+}): CompletionResult {
+  return {
+    text: heuristicReply(input.messages),
+    provider: "internal_heuristic",
+    model: HEURISTIC_MODEL,
+    modelVersion: input.modelVersion,
+    capabilityClass: input.capabilityClass,
+    estimatedCostUsd: 0,
+    usedFallback: input.usedFallback,
+    latencyMs: input.latencyMs,
+  };
+}
+
 async function callOpenAiCompatible(input: {
   baseUrl: string;
   apiKey: string;
@@ -48,7 +83,9 @@ async function callOpenAiCompatible(input: {
   temperature?: number;
   maxTokens?: number;
   timeoutMs: number;
+  capabilityClass: AiCapabilityClass;
 }): Promise<CompletionResult> {
+  const started = Date.now();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), input.timeoutMs);
   try {
@@ -83,10 +120,12 @@ async function callOpenAiCompatible(input: {
       provider: "openai_compatible",
       model: json.model ?? input.model,
       modelVersion: json.model ?? input.model,
+      capabilityClass: input.capabilityClass,
       inputTokens,
       outputTokens,
       estimatedCostUsd: estimateCost(inputTokens, outputTokens),
       usedFallback: false,
+      latencyMs: Date.now() - started,
     };
   } finally {
     clearTimeout(timer);
@@ -100,62 +139,126 @@ function estimateCost(inputTokens?: number, outputTokens?: number) {
   return Number((inCost + outCost).toFixed(6));
 }
 
+function resolveRequestedModel(request: CompletionRequest, capabilityClass: AiCapabilityClass) {
+  if (request.model && !isHeuristicModelName(request.model) && !request.capabilityClass) {
+    return request.model;
+  }
+  return resolveCapabilityModel(capabilityClass);
+}
+
 export async function completePrompt(request: CompletionRequest): Promise<CompletionResult> {
   const env = getServerEnv();
-  const provider = request.provider ?? env.AI_PROVIDER ?? "internal_heuristic";
-  const model = request.model ?? env.AI_MODEL ?? "heuristic-v1";
+  const started = Date.now();
+  const capabilityClass = request.capabilityClass ?? capabilityClassForTask(request.taskType);
+  const apiKey = resolveAiApiKey(env);
+  const envProvider = resolveAiProviderName(env);
+  const requestedProvider = request.provider ?? envProvider;
+  const model = resolveRequestedModel(request, capabilityClass);
   const timeoutMs = request.timeoutMs ?? 30000;
+  const live = isLiveAiConfigured(env) && requestedProvider !== "internal_heuristic" && !isHeuristicModelName(model);
 
-  if (!env.AI_API_KEY || provider === "internal_heuristic") {
-    const text = heuristicReply(request.messages);
-    return {
-      text,
-      provider: "internal_heuristic",
-      model: "heuristic-v1",
-      modelVersion: "unconfigured",
-      estimatedCostUsd: 0,
+  if (!apiKey || !live) {
+    const result = heuristicResult({
+      capabilityClass,
       usedFallback: false,
-    };
+      modelVersion: apiKey && requestedProvider !== "internal_heuristic" ? "key-present-model-unset" : "unconfigured",
+      latencyMs: Date.now() - started,
+      messages: request.messages,
+    });
+    logServerEvent("ai.completion", {
+      taskType: request.taskType,
+      capabilityClass,
+      provider: result.provider,
+      model: result.model,
+      usedFallback: false,
+      latencyMs: result.latencyMs,
+      live: false,
+    });
+    return result;
   }
 
-  const baseUrl = env.AI_BASE_URL ?? "https://api.openai.com/v1";
+  const baseUrl = resolveAiBaseUrl(env);
   try {
-    return await callOpenAiCompatible({
+    const result = await callOpenAiCompatible({
       baseUrl,
-      apiKey: env.AI_API_KEY,
+      apiKey,
       model,
       messages: request.messages,
       temperature: request.temperature,
       maxTokens: request.maxTokens,
       timeoutMs,
+      capabilityClass,
     });
-  } catch {
-    const fallbackModel = request.fallbackModel ?? env.AI_FALLBACK_MODEL;
-    if (fallbackModel && fallbackModel !== model) {
+    logServerEvent("ai.completion", {
+      taskType: request.taskType,
+      capabilityClass,
+      provider: result.provider,
+      model: result.model,
+      inputTokens: result.inputTokens,
+      outputTokens: result.outputTokens,
+      estimatedCostUsd: result.estimatedCostUsd,
+      usedFallback: false,
+      latencyMs: result.latencyMs,
+      live: true,
+    });
+    return result;
+  } catch (error) {
+    const fallbackModel = request.fallbackModel ?? resolveFallbackModel(env);
+    logServerEvent("ai.completion_failed", {
+      taskType: request.taskType,
+      capabilityClass,
+      provider: requestedProvider,
+      model,
+      timeoutMs,
+      retry: Boolean(fallbackModel && fallbackModel !== model),
+    });
+    if (fallbackModel && fallbackModel !== model && !isHeuristicModelName(fallbackModel)) {
       try {
         const result = await callOpenAiCompatible({
           baseUrl,
-          apiKey: env.AI_API_KEY,
+          apiKey,
           model: fallbackModel,
           messages: request.messages,
           temperature: request.temperature,
           maxTokens: request.maxTokens,
           timeoutMs,
+          capabilityClass,
         });
-        return { ...result, usedFallback: true };
+        const fallbackResult = { ...result, usedFallback: true };
+        logServerEvent("ai.completion", {
+          taskType: request.taskType,
+          capabilityClass,
+          provider: fallbackResult.provider,
+          model: fallbackResult.model,
+          inputTokens: fallbackResult.inputTokens,
+          outputTokens: fallbackResult.outputTokens,
+          estimatedCostUsd: fallbackResult.estimatedCostUsd,
+          usedFallback: true,
+          latencyMs: fallbackResult.latencyMs,
+          live: true,
+        });
+        return fallbackResult;
       } catch {
         /* fall through to heuristic */
       }
     }
-    const text = heuristicReply(request.messages);
-    return {
-      text,
-      provider: "internal_heuristic",
-      model: "heuristic-v1",
-      modelVersion: "fallback-after-error",
-      estimatedCostUsd: 0,
+    const result = heuristicResult({
+      capabilityClass,
       usedFallback: true,
-    };
+      modelVersion: "fallback-after-error",
+      latencyMs: Date.now() - started,
+      messages: request.messages,
+    });
+    logServerEvent("ai.completion", {
+      taskType: request.taskType,
+      capabilityClass,
+      provider: result.provider,
+      model: result.model,
+      usedFallback: true,
+      latencyMs: result.latencyMs,
+      live: false,
+    });
+    return result;
   }
 }
 

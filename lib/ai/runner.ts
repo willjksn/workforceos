@@ -11,6 +11,7 @@ import {
 } from "../../db/schema";
 import { requestApproval } from "../approvals/service";
 import { recordAuditEvent } from "../audit/record-audit-event";
+import { logServerEvent } from "../observability/monitor";
 import { createDeliveryProject, createProposalFromPlan, triggerBillingEvent } from "../delivery/engine";
 import { createDraftAgentMapping } from "../repositories/military";
 import { runInternalTalentSearch } from "../repositories/recruiting";
@@ -22,6 +23,7 @@ import { buildAgentContext } from "./context";
 import { assertCostLimits, recordUsage } from "./cost";
 import { AgentError } from "./errors";
 import { agentAllowsTask, agentDefinition, isForbiddenTask } from "./registry";
+import { capabilityClassForTask } from "./capabilities";
 import { completePrompt, parseModelJson } from "./provider";
 import { loadApprovedPrompt } from "./prompts";
 import { executeHeuristicTask } from "./tasks";
@@ -135,10 +137,14 @@ export async function runAgentTask(input: {
 
   try {
     const heuristic = executeHeuristicTask(context);
+    const capabilityClass = capabilityClassForTask(input.taskKey);
+    const configuredModel =
+      modelConfig?.model && modelConfig.model !== "heuristic-v1" ? modelConfig.model : undefined;
     const completion = await completePrompt({
       taskType: input.taskKey,
-      provider: modelConfig?.provider,
-      model: modelConfig?.model,
+      capabilityClass,
+      provider: modelConfig?.provider === "internal_heuristic" ? undefined : modelConfig?.provider,
+      model: configuredModel,
       temperature: modelConfig?.temperature ? Number(modelConfig.temperature) : undefined,
       timeoutMs: modelConfig?.timeoutMs,
       maxTokens: modelConfig?.maxTokens ?? undefined,
@@ -252,6 +258,7 @@ export async function runAgentTask(input: {
         estimatedCostUsd: String(completion.estimatedCostUsd),
         inputTokens: completion.inputTokens,
         outputTokens: completion.outputTokens,
+        retryCount: completion.usedFallback ? 1 : 0,
         sources: context.sources,
         humanReviewRequired: heuristic.humanReviewRequired,
         approvalState,
@@ -263,12 +270,16 @@ export async function runAgentTask(input: {
       organizationId: input.actor.organizationId,
       agentId: agent.id,
       agentRunId: run.id,
+      invokedByUserId: input.actor.userId ?? null,
       provider: completion.provider,
       model: completion.model,
       taskType: input.taskKey,
       inputTokens: completion.inputTokens,
       outputTokens: completion.outputTokens,
       estimatedCostUsd: completion.estimatedCostUsd,
+      modelTier: completion.capabilityClass,
+      latencyMs: completion.latencyMs,
+      usedFallback: completion.usedFallback,
     });
     await recordRunSuccess({ organizationId: input.actor.organizationId, agentId: agent.id });
     if (heuristic.humanReviewRequired) {
@@ -303,6 +314,12 @@ export async function runAgentTask(input: {
       organizationId: input.actor.organizationId,
       agentId: agent.id,
       error: message,
+    });
+    logServerEvent("ai.run_failed", {
+      taskType: input.taskKey,
+      agentSlug: input.agentSlug,
+      errorCode: error instanceof AgentError ? error.code : "provider",
+      costLimit: error instanceof AgentError && error.code === "cost_limit",
     });
     throw error;
   }

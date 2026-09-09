@@ -27,7 +27,7 @@ export default async function CostsPage() {
             <RecordRow
               key={event.id}
               title={`${event.provider} / ${event.model} / ${event.taskType}`}
-              meta={`$${Number(event.estimatedCostUsd).toFixed(6)} · tokens ${event.inputTokens ?? "—"}/${event.outputTokens ?? "—"}`}
+              meta={`${event.modelTier ?? "STANDARD"} · $${Number(event.estimatedCostUsd).toFixed(6)} · tokens ${event.inputTokens ?? "—"}/${event.outputTokens ?? "—"}`}
             />
           ))}
         </RecordList>

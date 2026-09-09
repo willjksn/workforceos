@@ -10,7 +10,7 @@ export default async function SystemHealthPage() {
       <PageHeader
         eyebrow="Admin"
         title="System status"
-        description="Whether WorkforceOS can sign people in, reach PostgreSQL, and talk to connected tools. Secrets are never shown."
+        description="Whether WorkforceOS can sign people in, reach PostgreSQL, and talk to connected tools. AI is labeled LIVE or HEURISTIC. Secrets are never shown."
       />
       <div className="mt-8 grid gap-3 sm:grid-cols-2">
         {health.checks.map((check) => (

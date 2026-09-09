@@ -513,6 +513,16 @@ Database mirror: `decision_log` table, seeded from this file.
 - Affected modules: scout, talent, security, approvals
 - Reconsideration: none for V1.
 
+## DEC-AI-011 — Capability-class models, not scattered model brands
+
+- Date: 2026-09-08
+- Owner: Product Build
+- Status: accepted
+- Decision: Features select a capability class — FAST, STANDARD, REASONING, or EMBEDDING — instead of hard-coded provider model strings. Environment names are `AI_MODEL_FAST`, `AI_MODEL_STANDARD`, `AI_MODEL_REASONING`, and `AI_MODEL_EMBEDDING`, with aliases `OPENAI_MODEL_FAST`, `OPENAI_MODEL_BALANCED` / `AI_MODEL`, `OPENAI_MODEL_PRIMARY`, and `OPENAI_EMBEDDING_MODEL`. `AI_API_KEY` remains canonical; `OPENAI_API_KEY` is an OpenAI-compatible alias. `AI_BASE_URL` and `AI_FALLBACK_MODEL` stay. Supported runtime providers remain `internal_heuristic` and OpenAI-compatible chat completions. When no key is set, or `AI_PROVIDER=internal_heuristic`, output is an honest heuristic draft. System Health must label LIVE vs HEURISTIC. Embedding retrieval stays on the DEC-SEM-001 `vector(1536)` development-hash path until a production embedding model is selected.
+- Reason: Production AI must be intentional. Scattered `gpt-*` strings and a binary “configured” health check hid heuristic operation.
+- Affected modules: ai, scout, deployment, admin system health
+- Reconsideration: with DEC-SEM-001 when a live embedding model and dimension are chosen together.
+
 ## DEC-MIL-003 — SkillBridge people are Talent Network candidates
 
 - Date: 2026-09-05

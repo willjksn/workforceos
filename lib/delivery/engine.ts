@@ -33,6 +33,7 @@ import {
   solutionPlans,
 } from "../../db/schema";
 import { recordAuditEvent } from "../audit/record-audit-event";
+import { isLiveAiConfigured, resolveAiProviderName } from "../ai/capabilities";
 import { getServerEnv } from "../env";
 import { roleSlugsHavePermission } from "../rbac/permissions";
 import {
@@ -271,7 +272,7 @@ export function draftFromWorkflow(input: {
     estimatedPrice: input.version.minPrice,
     recommendedPrice: input.version.minPrice,
     expansionOpportunities: (input.version.expansionServices ?? []).join(", "),
-    generatedByModel: env.AI_PROVIDER && env.AI_API_KEY ? env.AI_PROVIDER : "workflow-template",
+    generatedByModel: isLiveAiConfigured(env) ? resolveAiProviderName(env) : "workflow-template",
     generatedByModelVersion: input.version.version,
     generatedConfidence: "0.7000",
     sourceReferences: {

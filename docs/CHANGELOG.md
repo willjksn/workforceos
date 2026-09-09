@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Phase B — AI as intentional production operation
+
+- Features pick FAST / STANDARD / REASONING / EMBEDDING capability classes (`AI_MODEL_*`) instead of scattered model brand strings. `OPENAI_*` aliases remain. Missing keys stay honest `internal_heuristic`.
+- System Health now labels AI **LIVE** vs **HEURISTIC**, plus embeddings path, Scout (closed commands, send denied), and last successful live AI call timestamp only. No secrets.
+- Scout search covers companies, contacts, opportunities, candidates, jobs, Military Talent, employer opportunities, projects, finance, public content, and knowledge/training. External send stays hard-denied.
+
 ### Phase A production hygiene
 
 - Remaining work is now tracked in `docs/operations/MASTER_COMPLETION_LEDGER.md`.

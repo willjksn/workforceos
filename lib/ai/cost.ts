@@ -2,6 +2,7 @@ import { and, count, desc, eq, gte, sql } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import { agents, aiUsageEvents } from "../../db/schema";
+import { logServerEvent } from "../observability/monitor";
 import { AgentError } from "./errors";
 
 function startOfUtcDay(date = new Date()) {
@@ -16,6 +17,7 @@ export async function recordUsage(input: {
   organizationId: string;
   agentId?: string | null;
   agentRunId?: string | null;
+  invokedByUserId?: string | null;
   provider: string;
   model: string;
   taskType: string;
@@ -23,6 +25,8 @@ export async function recordUsage(input: {
   outputTokens?: number;
   estimatedCostUsd: number;
   modelTier?: string | null;
+  latencyMs?: number | null;
+  usedFallback?: boolean;
   webSearchCalls?: number | null;
   tavilyRequests?: number | null;
 }) {
@@ -44,6 +48,18 @@ export async function recordUsage(input: {
       tavilyRequests: input.tavilyRequests ?? 0,
     })
     .returning();
+  logServerEvent("ai.usage", {
+    taskType: input.taskType,
+    provider: input.provider,
+    model: input.model,
+    modelTier: input.modelTier,
+    latencyMs: input.latencyMs,
+    usedFallback: input.usedFallback ?? false,
+    hasUser: Boolean(input.invokedByUserId),
+    inputTokens: input.inputTokens,
+    outputTokens: input.outputTokens,
+    estimatedCostUsd: input.estimatedCostUsd,
+  });
   return row;
 }
 
@@ -87,6 +103,35 @@ export async function assertCostLimits(input: {
       throw new AgentError("Monthly AI cost limit reached for this agent", "cost_limit");
     }
   }
+}
+
+export async function listCostLimitAlerts(organizationId: string) {
+  const db = getDb();
+  const rows = await db.select().from(agents).where(eq(agents.organizationId, organizationId));
+  const alerts: Array<{
+    agentId: string;
+    slug: string;
+    period: "daily" | "monthly";
+    usedUsd: number;
+    limitUsd: number;
+  }> = [];
+  for (const agent of rows) {
+    const dailyLimit = agent.dailyCostLimitUsd ? Number(agent.dailyCostLimitUsd) : null;
+    const monthlyLimit = agent.monthlyCostLimitUsd ? Number(agent.monthlyCostLimitUsd) : null;
+    if (dailyLimit != null) {
+      const used = await usageSince(organizationId, agent.id, startOfUtcDay());
+      if (used >= dailyLimit) {
+        alerts.push({ agentId: agent.id, slug: agent.slug, period: "daily", usedUsd: used, limitUsd: dailyLimit });
+      }
+    }
+    if (monthlyLimit != null) {
+      const used = await usageSince(organizationId, agent.id, startOfUtcMonth());
+      if (used >= monthlyLimit) {
+        alerts.push({ agentId: agent.id, slug: agent.slug, period: "monthly", usedUsd: used, limitUsd: monthlyLimit });
+      }
+    }
+  }
+  return alerts;
 }
 
 export async function usageSummary(organizationId: string, options?: { includeEvents?: boolean }) {

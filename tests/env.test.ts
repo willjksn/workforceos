@@ -47,6 +47,21 @@ describe("fail-closed production", () => {
   });
 });
 
+describe("AI capability-class env", () => {
+  it("accepts AI_MODEL_FAST / STANDARD / REASONING / EMBEDDING", () => {
+    vi.stubEnv("AI_MODEL_FAST", "fast-one");
+    vi.stubEnv("AI_MODEL_STANDARD", "standard-one");
+    vi.stubEnv("AI_MODEL_REASONING", "reasoning-one");
+    vi.stubEnv("AI_MODEL_EMBEDDING", "embedding-one");
+    resetServerEnvCache();
+    const env = getServerEnv();
+    expect(env.AI_MODEL_FAST).toBe("fast-one");
+    expect(env.AI_MODEL_STANDARD).toBe("standard-one");
+    expect(env.AI_MODEL_REASONING).toBe("reasoning-one");
+    expect(env.AI_MODEL_EMBEDDING).toBe("embedding-one");
+  });
+});
+
 describe("storage provider env", () => {
   it("accepts STORAGE_PROVIDER=s3 when PowerShell appended an escaped CRLF", () => {
     vi.stubEnv("STORAGE_PROVIDER", "s3\\r\\n");

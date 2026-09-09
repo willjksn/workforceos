@@ -1,7 +1,8 @@
-import { and, eq, gte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, ne, sql } from "drizzle-orm";
 
 import { createDb, getDb } from "../../db";
 import { agentRuns, integrationEvents } from "../../db/schema";
+import { describeAiRuntime } from "../ai/capabilities";
 import { SEED_VERSION } from "../../db/seed/constants";
 import { getServerEnv, isClerkConfigured, isInngestConfigured } from "../env";
 import { getIntegrationHubStatus } from "../integrations/hub";
@@ -59,7 +60,25 @@ export async function getSystemHealth() {
   });
   const jobsOk = isInngestConfigured();
   const searchOk = extensions.ok && extensions.value.vector && extensions.value.trigram;
-  const aiConfigured = Boolean(env.AI_API_KEY);
+  const aiRuntime = describeAiRuntime(env);
+  let lastLiveAiCompletedAt: Date | null = null;
+  try {
+    const db = getDb();
+    const [lastLive] = await db
+      .select({ completedAt: agentRuns.completedAt })
+      .from(agentRuns)
+      .where(
+        and(
+          eq(agentRuns.status, "completed"),
+          ne(agentRuns.provider, "internal_heuristic"),
+        ),
+      )
+      .orderBy(desc(agentRuns.completedAt))
+      .limit(1);
+    lastLiveAiCompletedAt = lastLive?.completedAt ?? null;
+  } catch {
+    lastLiveAiCompletedAt = null;
+  }
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
   let queueFailures = 0;
   try {
@@ -136,11 +155,37 @@ export async function getSystemHealth() {
       detail: `${integrations.filter((item) => item.configured).length} of ${integrations.length} providers configured. Others stay disconnected until credentials are set.`,
     },
     {
-      title: "AI provider",
+      title: "AI runtime",
       ok: true,
-      detail: aiConfigured
-        ? `${env.AI_PROVIDER ?? "openai-compatible"} is configured.`
-        : "AI is using internal drafts until an API key is set.",
+      detail: aiRuntime.mode === "live"
+        ? `LIVE — provider ${aiRuntime.providerName} is configured. Completions use capability-class models (FAST / STANDARD / REASONING), not hard-coded model brands.`
+        : "HEURISTIC — no live API key is configured (or AI_PROVIDER=internal_heuristic). Agents draft from stored PostgreSQL records. This is not a silent live-model fallback.",
+    },
+    {
+      title: "AI provider configured",
+      ok: aiRuntime.providerConfigured,
+      detail: aiRuntime.providerConfigured
+        ? `Yes — ${aiRuntime.providerName}. API key is set. The key is not displayed.`
+        : "No — AI_API_KEY / OPENAI_API_KEY is unset. Runtime is internal_heuristic.",
+    },
+    {
+      title: "Embeddings",
+      ok: true,
+      detail: aiRuntime.embeddingPath,
+    },
+    {
+      title: "Scout",
+      ok: true,
+      detail: aiRuntime.scoutLiveCompletions
+        ? "Scout is configured. Closed command registry only; the model never generates SQL. External send remains hard-denied. Live completions are available for agent tasks that use Scout's capability class."
+        : "Scout is configured. Closed command registry only; the model never generates SQL. External send remains hard-denied. Completions are heuristic until a live AI key is set.",
+    },
+    {
+      title: "Last successful live AI call",
+      ok: true,
+      detail: lastLiveAiCompletedAt
+        ? lastLiveAiCompletedAt.toISOString()
+        : "None recorded. Either this environment is heuristic, or no live completion has succeeded yet.",
     },
     {
       title: "Queue failures (24h)",
