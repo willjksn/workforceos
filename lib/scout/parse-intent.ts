@@ -287,10 +287,15 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
     entity = "jobs";
     filters.skillbridgeEligible = true;
     summary = "Search SkillBridge-eligible employer opportunities.";
+  } else if (/\b(employee onboarding|staff onboarding|new employee|pierone onboarding)\b/.test(text)) {
+    entity = "academy";
+    filters.title = raw.slice(0, 200);
+    summary = "Search WorkforceOS Academy articles.";
   } else if (
-    /\bapplication|\bwho applied\b|\binterviews tomorrow\b|\bscorecards?\b|\bbackground check\b|\bdrug screen\b|\boffers? expire\b|\bnew hires?\b|\bonboarding\b|\bcareers site\b/.test(
+    /\bapplication|\bwho applied\b|\binterviews tomorrow\b|\bscorecards?\b|\bbackground check\b|\bdrug screen\b|\boffers? expire\b|\bnew hires?\b|\bcareers site\b/.test(
       text,
-    )
+    ) ||
+    (/\bonboarding\b/.test(text) && !/\b(employee|staff|pierone)\b/.test(text))
   ) {
     entity = "applications";
     summary = "Search hiring and application records.";
@@ -336,7 +341,7 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
     entity = "finance";
     summary = "Search authorized finance records.";
   } else if (
-    /\b(academy|help & training|help and training|how do i|how to |user manual|open (the )?academy)\b/.test(text)
+    /\b(academy|help & training|help and training|how do i|how to |user manual|open (the )?academy|employee onboarding|staff onboarding|new employee)\b/.test(text)
   ) {
     entity = "academy";
     filters.title = raw.slice(0, 200);

@@ -11,6 +11,16 @@ export const permissionOverrideEffectEnum = pgEnum("permission_override_effect",
   "deny",
 ]);
 
+/** PierOne staff onboarding cadence — tracked state, not a calendar. Distinct from ATS hire onboarding. */
+export const staffOnboardingCadenceEnum = pgEnum("staff_onboarding_cadence", [
+  "day_1",
+  "week_1",
+  "week_2",
+  "week_3",
+  "week_4",
+  "complete",
+]);
+
 export const actorTypeEnum = pgEnum("actor_type", ["human", "agent", "system"]);
 
 export const approvalStatusEnum = pgEnum("approval_status", [

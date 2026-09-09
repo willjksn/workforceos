@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Phase H — PierOne employee onboarding
+
+- Staff path from Admin invite → access bundles → Day 1 checklist → required Academy → Week 4 human review. Routes: `/app/academy/onboarding` and `/app/admin/users/[id]/onboarding`. Distinct from ATS hire `/app/onboarding`.
+- People profile adds manager (`users.manager_id`, no self-manager), required training by effective access, systems/equipment checklist, and timestamped Security & Candidate Privacy acknowledgement.
+- Completing Academy or Week 4 review does not grant permissions. Recruiter Standard still has no `opportunities.read`. Military Talent Partner language is unchanged.
+- Academy article `employee-onboarding`. Scout SEARCH can link it. External send stays hard-denied. No new secrets.
+
 ### Phase E — WorkforceOS Academy / Help & Training
 
 - In-app Academy at `/app/academy` (nav: Help & Training; tooltip/Scout: Academy). Articles cite the operating manual, ten service playbooks, DEC-SEC / `candidate_pii`, DEC-AI human-review rules, and Title ≠ Access — they do not rewrite those sources.

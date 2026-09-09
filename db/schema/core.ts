@@ -1,5 +1,17 @@
-import { relations } from "drizzle-orm";
-import { index, integer, numeric, pgTable, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { relations, sql } from "drizzle-orm";
+import {
+  type AnyPgColumn,
+  check,
+  index,
+  integer,
+  numeric,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 import { timestamps } from "./_common";
 import { permissionOverrideEffectEnum, userStatusEnum } from "./enums";
@@ -22,13 +34,16 @@ export const users = pgTable("users", {
   email: text("email").notNull(),
   fullName: text("full_name").notNull(),
   organizationalTitle: text("organizational_title"),
+  managerId: uuid("manager_id").references((): AnyPgColumn => users.id, { onDelete: "set null" }),
   status: userStatusEnum("status").notNull().default("invited"),
   lastLoginAt: timestamp("last_login_at", { withTimezone: true, mode: "date" }),
   ...timestamps(),
 }, (table) => [
   index("users_organization_id_idx").on(table.organizationId),
+  index("users_manager_id_idx").on(table.managerId),
   uniqueIndex("users_clerk_user_id_uq").on(table.clerkUserId),
   uniqueIndex("users_organization_email_uq").on(table.organizationId, table.email),
+  check("users_manager_not_self", sql`${table.managerId} is null or ${table.managerId} <> ${table.id}`),
 ]);
 
 export const roles = pgTable("roles", {
@@ -131,6 +146,12 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     fields: [users.organizationId],
     references: [organizations.id],
   }),
+  manager: one(users, {
+    fields: [users.managerId],
+    references: [users.id],
+    relationName: "user_manager",
+  }),
+  directReports: many(users, { relationName: "user_manager" }),
   userRoles: many(userRoles),
   permissionOverrides: many(userPermissionOverrides),
 }));

@@ -45,7 +45,7 @@ Live access bundle names (not job titles):
 
 Do not call the military access bundle **Military Talent Specialist**. The live slug is `military-talent-partner`. `military-talent-specialist` is a one-release alias only (DEC-MIL-005, DEC-AUTH-002).
 
-People and bundles: `/app/admin/users`, `/app/admin/users/[id]`, `/app/admin/roles`. Access review: `/app/admin/access-review`.
+People and bundles: `/app/admin/users`, `/app/admin/users/[id]`, `/app/admin/roles`. Access review: `/app/admin/access-review`. New PierOne employees follow **staff onboarding** at `/app/academy/onboarding` (admin view: `/app/admin/users/[id]/onboarding`). That cadence is Day 1–Week 4 and is **not** the ATS hire queue at `/app/onboarding`. Academy article: Employee onboarding. Completing training does not grant permissions.
 
 ## Five offers
 
@@ -401,4 +401,4 @@ Repeatable delivery maps live in `docs/business/SERVICE_PLAYBOOKS.md` and `docs/
 - Architecture: `docs/architecture/WORKFORCEOS_MASTER_SPEC.md`
 - Remaining work: `docs/operations/MASTER_COMPLETION_LEDGER.md`
 - Deploy / recover / PITR: `docs/operations/WORKFORCEOS_OPERATING_PLAYBOOK.md`
-- In-app Academy (Help & Training): `/app/academy`. This manual remains the company operating model. Academy articles cite this file and the playbooks; they do not replace them. Training states follow effective access, not title. Completion does not grant permissions. Employee Day 1–Week 4 onboarding is Phase H (not this file).
+- In-app Academy (Help & Training): `/app/academy`. This manual remains the company operating model. Academy articles cite this file and the playbooks; they do not replace them. Training states follow effective access, not title. Completion does not grant permissions. PierOne staff Day 1–Week 4 onboarding lives at `/app/academy/onboarding` and the Employee onboarding Academy article.

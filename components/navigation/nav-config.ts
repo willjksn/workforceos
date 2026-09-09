@@ -59,6 +59,13 @@ const NAV: NavGroup[] = [
         title: "Academy",
         anyPermission: ["knowledge.read", "scout.use"],
       },
+      {
+        href: "/app/academy/onboarding",
+        label: "Staff onboarding",
+        icon: "sprout",
+        title: "PierOne employee onboarding",
+        anyPermission: ["knowledge.read", "scout.use"],
+      },
     ],
   },
   {
@@ -162,8 +169,11 @@ export function navGroupsForPrincipal(principal: Principal): NavGroup[] {
 
 export function isNavActive(href: string, pathname: string) {
   if (href === "/app") return pathname === "/app";
+  if (href === "/app/academy/onboarding") {
+    return pathname === "/app/academy/onboarding";
+  }
   if (href === "/app/academy") {
-    return pathname === "/app/academy" || pathname.startsWith("/app/academy/");
+    return pathname === "/app/academy" || (pathname.startsWith("/app/academy/") && pathname !== "/app/academy/onboarding");
   }
   if (href === "/app/talent") {
     return pathname === "/app/talent" || /^\/app\/talent\/[0-9a-f-]{36}/i.test(pathname);

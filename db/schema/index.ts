@@ -19,3 +19,4 @@ export * from "./research";
 export * from "./hiring";
 export * from "./public-site";
 export * from "./academy";
+export * from "./staff";

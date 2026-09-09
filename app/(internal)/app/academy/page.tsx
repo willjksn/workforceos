@@ -104,7 +104,11 @@ export default async function AcademyIndexPage() {
           </table>
         </div>
         <p className="mt-3 text-sm text-muted-foreground">
-          {required.length} module{required.length === 1 ? "" : "s"} required for your current access.
+          {required.length} module{required.length === 1 ? "" : "s"} required for your current access.{" "}
+          <Link className="text-navy underline decoration-border underline-offset-4 hover:decoration-teal" href="/app/academy/onboarding">
+            Open staff onboarding
+          </Link>
+          {" — not the ATS hire queue."}
         </p>
       </section>
 

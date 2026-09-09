@@ -9,10 +9,15 @@ import {
   setUserOrganizationalTitleAction,
   setUserPermissionOverrideAction,
 } from "@/lib/actions/admin";
+import { setUserManagerAction } from "@/lib/actions/staff-onboarding";
+import { getAcademyArticle } from "@/lib/academy/catalog";
+import { academyArticleHref } from "@/lib/academy/types";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { assignableRoleSlugs } from "@/lib/rbac/assign-role";
 import { PERMISSIONS, can, type RoleSlug } from "@/lib/rbac/permissions";
 import { getOrganizationUser, listOrganizationRoles, listOrganizationUsers } from "@/lib/repositories/platform";
+import { STAFF_ONBOARDING_CADENCE_LABELS, STAFF_POLICY_LABELS } from "@/lib/staff-onboarding";
+import { getStaffOnboardingSnapshot } from "@/lib/staff-onboarding/service";
 import { ActionForm } from "../../../_components/action-form";
 import {
   CreatePanel,
@@ -38,9 +43,11 @@ export default async function AdminUserDetailPage({
   const [detail, roles, people] = await Promise.all([
     getOrganizationUser(principal.organizationId, id),
     canAssign ? listOrganizationRoles(principal.organizationId) : Promise.resolve([]),
-    canAssign ? listOrganizationUsers(principal.organizationId) : Promise.resolve([]),
+    listOrganizationUsers(principal.organizationId),
   ]);
   if (!detail) notFound();
+  const onboarding = await getStaffOnboardingSnapshot({ actor: principal, userId: id });
+  const managerChoices = people.filter((person) => person.id !== detail.user.id);
 
   const allowedSlugs = assignableRoleSlugs(principal);
   const assignableRoles = roles.filter((role) => allowedSlugs.includes(role.slug as RoleSlug));
@@ -53,11 +60,16 @@ export default async function AdminUserDetailPage({
       <PageHeader
         eyebrow="Admin · People"
         title={detail.user.fullName}
-        description="Title is display-only. Access bundles are permission templates. Effective permissions are computed server-side from all assigned bundles, then grant/deny overrides. Deny wins."
+        description="Title is display-only. Access bundles are permission templates. Effective permissions are computed server-side from all assigned bundles, then grant/deny overrides. Deny wins. Staff onboarding is separate from Talent → Onboarding (ATS)."
         actions={
-          <Link className="text-sm text-navy underline decoration-border underline-offset-4 hover:decoration-teal" href="/app/admin/users">
-            Back to People
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link className="text-sm text-navy underline decoration-border underline-offset-4 hover:decoration-teal" href={`/app/admin/users/${detail.user.id}/onboarding`}>
+              Staff onboarding
+            </Link>
+            <Link className="text-sm text-navy underline decoration-border underline-offset-4 hover:decoration-teal" href="/app/admin/users">
+              Back to People
+            </Link>
+          </div>
         }
         metadata={
           <p>
@@ -80,6 +92,10 @@ export default async function AdminUserDetailPage({
           <div>
             <p className="text-sm font-medium text-navy">Email</p>
             <p className="mt-1 text-sm text-muted-foreground">{detail.user.email}</p>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-navy">Manager</p>
+            <p className="mt-1 text-sm text-muted-foreground">{onboarding.manager?.fullName ?? "—"}</p>
           </div>
           <div>
             <p className="text-sm font-medium text-navy">Sign-in</p>
@@ -109,6 +125,20 @@ export default async function AdminUserDetailPage({
             />
           </Field>
           <PrimaryButton>Save title</PrimaryButton>
+        </ActionForm>
+        <ActionForm action={setUserManagerAction} className="max-w-xl space-y-3">
+          <input type="hidden" name="userId" value={detail.user.id} />
+          <Field label="Manager" name="managerId">
+            <select className={inputClassName} id="managerId" name="managerId" defaultValue={detail.user.managerId ?? ""}>
+              <option value="">No manager</option>
+              {managerChoices.map((person) => (
+                <option key={person.id} value={person.id}>
+                  {person.fullName}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <PrimaryButton>Save manager</PrimaryButton>
         </ActionForm>
       </section>
 
@@ -251,10 +281,54 @@ export default async function AdminUserDetailPage({
       ) : null}
 
       <section className="mt-10">
-        <SectionHeader title="Training requirements" description="Not built in this phase." />
-        <p className="text-sm text-muted-foreground">
-          See Phase E (in-app Academy). Training completion will not change access bundles or overrides.
+        <SectionHeader
+          title="Required training"
+          description="Required from effective access, not title. Completion does not grant permissions."
+        />
+        <p className="mb-3 text-sm text-muted-foreground">
+          Staff cadence: {STAFF_ONBOARDING_CADENCE_LABELS[onboarding.record.cadence]} ·{" "}
+          <Link className="text-navy underline decoration-border underline-offset-4 hover:decoration-teal" href={`/app/admin/users/${detail.user.id}/onboarding`}>
+            Open staff onboarding
+          </Link>
         </p>
+        <ul className="space-y-1 text-sm">
+          {onboarding.requiredTraining.map((slug) => {
+            const article = getAcademyArticle(slug);
+            const done = onboarding.completedSlugs.includes(slug);
+            return (
+              <li key={slug}>
+                <Link className="text-navy underline decoration-border underline-offset-4 hover:decoration-teal" href={academyArticleHref(slug)}>
+                  {article?.title ?? slug}
+                </Link>
+                <span className="text-muted-foreground">{done ? " · Completed" : " · Required"}</span>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section className="mt-10">
+        <SectionHeader title="Systems / equipment" description="Stored checklist. Not a procurement system." />
+        <ul className="space-y-1 text-sm text-muted-foreground">
+          {onboarding.equipment.map((item) => (
+            <li key={item.itemKey}>
+              {item.itemKey.replaceAll("_", " ")}
+              {item.completedAt ? " · ready" : " · pending"}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="mt-10">
+        <SectionHeader title="Policy acknowledgements" description="Timestamped. Not a legal CMS." />
+        <ul className="space-y-1 text-sm text-muted-foreground">
+          {onboarding.policies.map((policy) => (
+            <li key={policy.policyKey}>
+              {STAFF_POLICY_LABELS[policy.policyKey]}
+              {policy.acknowledgedAt ? ` · ${policy.acknowledgedAt.toLocaleString()}` : " · not acknowledged"}
+            </li>
+          ))}
+        </ul>
       </section>
     </PageShell>
   );

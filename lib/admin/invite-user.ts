@@ -7,6 +7,7 @@ import { sendWorkforceOsInvitation } from "../auth/clerk-invite";
 import { assertRoleAssignmentAllowed } from "../rbac/assign-role";
 import { AuthorizationError, requirePermission, type Principal, type RoleSlug } from "../rbac/permissions";
 import { assignUserRole, countManagingPartners } from "../repositories/platform";
+import { ensureStaffOnboarding } from "../staff-onboarding";
 
 export function normalizeInviteEmail(email: string) {
   return email.trim().toLowerCase();
@@ -121,6 +122,10 @@ export async function inviteOrganizationUser(input: {
       userId: existing.id,
       roleSlug: input.roleSlug,
     });
+    await ensureStaffOnboarding({
+      organizationId: input.actor.organizationId,
+      userId: existing.id,
+    });
   } else {
     assertRoleAssignmentAllowed({
       actor: input.actor,
@@ -148,6 +153,10 @@ export async function inviteOrganizationUser(input: {
       actor: input.actor,
       userId: created.id,
       roleSlug: input.roleSlug,
+    });
+    await ensureStaffOnboarding({
+      organizationId: input.actor.organizationId,
+      userId: created.id,
     });
   }
 

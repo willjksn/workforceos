@@ -1,6 +1,6 @@
 # Schema Specification
 
-Status: Implemented through Phase E Academy (`drizzle/0010`–`0014_rainy_doomsday`)  
+Status: Implemented through Phase H staff onboarding (`drizzle/0010`–`0015`)  
 Implementation: `db/schema/`  
 Migrations: `drizzle/`
 
@@ -41,6 +41,7 @@ Migrations: `drizzle/`
 | `db/schema/skillbridge/` | profiles, preferred locations, target roles, opportunities, stage history, notes, documents, alert rules |
 | `db/schema/public-site/` | website_inquiries, public_intake_settings, public_content_items |
 | `db/schema/academy/` | user_training_progress |
+| `db/schema/staff/` | staff_onboarding, staff_onboarding_equipment, staff_policy_acknowledgements |
 
 ## Key uniqueness rules
 
@@ -142,6 +143,13 @@ Hiring tables are in `db/schema/hiring/` and `drizzle/0010_*`. Do not edit `0000
 - Migration `drizzle/0014_rainy_doomsday.sql` adds `user_training_progress` (UUID PK, `user_id` FK to `users` with cascade on user delete, unique `(user_id, module_slug)`, timestamptz). It does not reference `organizations` and does not cascade-delete organizations.
 - Required vs Not Required is not a stored column. It is computed from effective permissions in `lib/academy/training.ts`.
 - Completion must not grant roles or permissions.
+
+## Phase H PierOne staff onboarding
+
+- Migration `drizzle/0015_dizzy_wrecker.sql` adds `users.manager_id` (nullable self-FK, `ON DELETE SET NULL`, indexed, check `users_manager_not_self`) and tables `staff_onboarding`, `staff_onboarding_equipment`, and `staff_policy_acknowledgements`.
+- `staff_onboarding.organization_id` uses `ON DELETE restrict`. Do not cascade-delete organizations.
+- These tables are not ATS hire `onboarding_instances` / `onboarding_tasks`.
+- Completing Academy training or recording Week 4 review must not grant roles or permissions.
 
 ## Public content items
 

@@ -27,7 +27,7 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | Table | Purpose |
 | --- | --- |
 | `organizations` | Internal WorkforceOS tenant. Seed one firm organization. Do not store ownership percentages. |
-| `users` | Local application users mapped from Clerk. Authoritative status and identity for authorization. `last_login_at` is updated on Clerk sync. `organizational_title` is display-only and is never used for authorization (DEC-AUTH-002). |
+| `users` | Local application users mapped from Clerk. Authoritative status and identity for authorization. `last_login_at` is updated on Clerk sync. `organizational_title` is display-only and is never used for authorization (DEC-AUTH-002). `manager_id` is a nullable self-FK to `users.id` (indexed; `ON DELETE SET NULL`; check constraint forbids self-manager). |
 | `roles` | Access bundles (permission templates), not job titles. Slugs include `managing-partner`, `military-talent-partner`, `recruiter`. |
 | `user_roles` | Many-to-many user/access-bundle assignments. A person may hold zero or more bundles. |
 | `user_permission_overrides` | Optional per-user grant or deny after the bundle union. Unique on `(user_id, permission_id)`. Deny wins over grant. |
@@ -66,7 +66,10 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | `decision_log` | Architectural decisions. |
 | `system_settings` | Seed/version metadata. |
 | `semantic_documents` | Embeddings for later semantic search. |
-| `user_training_progress` | Lightweight Academy completion (`user_id`, `module_slug`, `status`, timestamps). Unique on `(user_id, module_slug)`. Required vs Not Required is computed from effective permissions in code, not stored here. Completion does not grant permissions. Not an LMS and not Phase H employee onboarding. |
+| `user_training_progress` | Lightweight Academy completion (`user_id`, `module_slug`, `status`, timestamps). Unique on `(user_id, module_slug)`. Required vs Not Required is computed from effective permissions in code, not stored here. Completion does not grant permissions. Not an LMS. PierOne staff cadence lives in `staff_onboarding`, not this table. |
+| `staff_onboarding` | PierOne employee Day 1–Week 4 cadence. Unique on `user_id`. Created at Admin invite with cadence `day_1`. Distinct from ATS hire `onboarding_instances`. Week 4 review timestamps do not grant permissions. Organizations are not cascade-deleted. |
+| `staff_onboarding_equipment` | Lightweight systems checklist (laptop, Clerk login, email, WorkforceOS access). Unique on `(onboarding_id, item_key)`. Not a procurement system. |
+| `staff_policy_acknowledgements` | Timestamped staff policy acknowledgements (at least `security_candidate_privacy`). Unique on `(user_id, policy_key)`. Not a legal CMS. |
 
 ## CRM
 
