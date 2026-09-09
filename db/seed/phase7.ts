@@ -151,6 +151,14 @@ export async function seedPhase7Ai(
         "Agents operate on PostgreSQL. Material outputs go to the Review Queue. Autonomy level 4 never sends unsupervised external commitments.",
       source: "DEC-AI-002",
     },
+    {
+      slug: "pierone-operating-manual",
+      title: "PierOne Partners operating manual",
+      knowledgeType: "internal_process" as const,
+      content:
+        "PierOne Partners is a Workforce & Talent Solutions firm. How we operate: SOLVE → BUILD → OPERATE. Five launch offers only: Professional Search (public site may say Professional & Technical Search — same offer, not a rename), Military Talent Opportunity Assessment, Talent Acquisition Performance Assessment, Fractional Talent Partner, Workforce Pipeline Assessment. Do not invent a sixth service. Client flow: Website Inquiry → CRM → Qualification → Discovery → Solution → Proposal → Contract → Project → Delivery → Reporting → Invoice → Expansion. Recruiting flow: Job → Candidate → Application → Screening → Matching → Client Submission → Interview → Offer → Hire → Onboarding. Military flow (DEC-MIL-005): Transitioning Service Member → Military Talent Network → Transition Talent Profile → Skills Translation → Employer Opportunity → Match → Employer Engagement → Interview → SkillBridge / Direct Hire / Other → Placement → Conversion. Title is not permission (DEC-AUTH-002). Recruiter Standard does not own commercial opportunities (DEC-RBAC-001). Operator military bundle is Military Talent Partner, not Specialist. PierOne is the intermediary, not the SkillBridge host. Talent Network before external sourcing. Material AI needs human approval. Scout uses a closed command registry, never generates SQL, and cannot send externally yet. Canonical markdown: docs/business/PIERONE_OPERATING_MANUAL.md. In-app Academy is not available yet.",
+      source: "PIERONE_OPERATING_MANUAL.md",
+    },
   ];
   for (const row of knowledgeSeed) {
     await db

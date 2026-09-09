@@ -16,6 +16,7 @@ Read these canonical documents instead of inventing architecture:
 
 - `docs/architecture/WORKFORCEOS_MASTER_SPEC.md`
 - `docs/business/SERVICE_CATALOG.md`
+- `docs/business/PIERONE_OPERATING_MANUAL.md` (PierOne company operating model; not the deploy playbook)
 - `docs/database/DATA_DICTIONARY.md`
 - `docs/database/SCHEMA_SPEC.md`
 - `docs/decisions/DECISION_LOG.md`

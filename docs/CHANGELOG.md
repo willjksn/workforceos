@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Phase F — PierOne company operating manual
+
+- Added `docs/business/PIERONE_OPERATING_MANUAL.md`: who PierOne is, SOLVE → BUILD → OPERATE, the five catalog offers (Professional Search public alias noted), Title ≠ Access, and the client / recruiting / military flows mapped to live WorkforceOS screens.
+- Seeded approved knowledge record `pierone-operating-manual` so Scout can cite the manual later. Did not start Academy (Phase E) or the ten Phase G service playbooks.
+- Pointers from `AGENTS.md`, `WORKFORCEOS_MASTER_SPEC.md`, and the completion ledger. The engineering deploy playbook is unchanged.
+
 ### Phase D — Military Talent model lock
 
 - Synchronized the DEC-MIL-005 intermediary model across spec, catalog, workflows, data dictionary, emails, Scout, knowledge seed, reports, public site CTAs, and leftover “My SkillBridge Queue” / Specialist prose.
