@@ -7,7 +7,17 @@ import { SEED_VERSION } from "../../db/seed/constants";
 import { getServerEnv, isClerkConfigured, isInngestConfigured } from "../env";
 import { getIntegrationHubStatus } from "../integrations/hub";
 import { calendarProviderStatus } from "../calendar";
-import { isCheckrConfigured, isCheckrLiveApiWired, isGoogleConfigured, isMicrosoftConfigured, isResendConfigured } from "../integrations/credentials";
+import {
+  isApolloConfigured,
+  isCheckrConfigured,
+  isCheckrLiveApiWired,
+  isDocuSignConfigured,
+  isGoogleConfigured,
+  isMicrosoftConfigured,
+  isQuickBooksConfigured,
+  isResendConfigured,
+  isSeekOutConfigured,
+} from "../integrations/credentials";
 import { drugScreenProviderStatus } from "../drug-screens";
 import { getPublicContentPayload } from "../public-content/service";
 import { getStorageStatus } from "../storage";
@@ -172,6 +182,34 @@ export async function getSystemHealth() {
       title: "Embeddings",
       ok: true,
       detail: aiRuntime.embeddingPath,
+    },
+    {
+      title: "Sentry",
+      ok: true,
+      detail: env.SENTRY_DSN
+        ? "SENTRY_DSN is set. The official Sentry SDK remains deferred (Phase I). The DSN is not displayed."
+        : "NOT CONFIGURED — SENTRY_DSN is unset. Thin DSN poster only until Phase I.",
+    },
+    {
+      title: "Labor market (BLS / Census)",
+      ok: true,
+      detail: env.BLS_API_KEY || env.CENSUS_API_KEY
+        ? `Keys present: ${[env.BLS_API_KEY ? "BLS" : null, env.CENSUS_API_KEY ? "Census" : null].filter(Boolean).join(", ")}. Unconfigured providers stay labeled fixtures. Values are not displayed.`
+        : "NOT CONFIGURED — BLS_API_KEY and CENSUS_API_KEY are unset. Labor-market adapters stay labeled fixtures.",
+    },
+    {
+      title: "Talent sourcing (SeekOut / Apollo)",
+      ok: true,
+      detail: isSeekOutConfigured() || isApolloConfigured()
+        ? `Keys present: ${[isSeekOutConfigured() ? "SeekOut" : null, isApolloConfigured() ? "Apollo" : null].filter(Boolean).join(", ")}. External sourcing stays after internal Talent Network search. Values are not displayed.`
+        : "NOT CONFIGURED — SEEKOUT_API_KEY and APOLLO_API_KEY are unset. Internal Talent Network search remains first.",
+    },
+    {
+      title: "DocuSign / QuickBooks",
+      ok: true,
+      detail: isDocuSignConfigured() || isQuickBooksConfigured()
+        ? `Keys present: ${[isDocuSignConfigured() ? "DocuSign" : null, isQuickBooksConfigured() ? "QuickBooks" : null].filter(Boolean).join(", ")}. Live envelopes / AR post stay Phase I. Values are not displayed.`
+        : "NOT CONFIGURED — DocuSign and QuickBooks client credentials are unset. Manual execution / posting remain.",
     },
     {
       title: "Scout",
