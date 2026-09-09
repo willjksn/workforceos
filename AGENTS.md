@@ -26,6 +26,7 @@ Read these canonical documents instead of inventing architecture:
 - `docs/architecture/DATABASE_DEPLOYMENT.md`
 - `docs/architecture/VERCEL_DEPLOYMENT_CHECKLIST.md`
 - `docs/operations/WORKFORCEOS_OPERATING_PLAYBOOK.md`
+- `docs/operations/MASTER_COMPLETION_LEDGER.md` (remaining-work system of record)
 - `docs/operations/ADMIN_RUNBOOK.md`
 - `docs/operations/INCIDENT_RESPONSE.md`
 - `docs/operations/MIGRATION_RUNBOOK.md`

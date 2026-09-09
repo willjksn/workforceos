@@ -4,7 +4,7 @@ Do not build these items during Post-Phase-9 stabilization. New work enters the 
 
 | Title | Problem | Business value | Priority | Dependencies | Complexity | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| Implement R2/S3 storage adapter | Production uploads throw “not implemented”; health must not look ready | Resume and contract files in production | P1 | Cloudflare R2 or S3 credentials | M | adapter implemented 2026-09-06; production credentials still required |
+| Implement R2/S3 storage adapter | Production uploads throw “not implemented”; health must not look ready | Resume and contract files in production | P1 | Cloudflare R2 or S3 credentials | M | COMPLETE (production-enabled; `STORAGE_PROVIDER=s3` on Vercel production) |
 | Live Checkr HTTP API | Adapter is a stub; CHECKR_API_KEY does not call Checkr; not sandbox-ready | Provider-hosted background invitations | P2 | Checkr sandbox + webhook secret + counsel | L | open |
 | Drug-screen vendor adapter | ManualDrugScreenProvider only; no vendor selected | Provider-hosted collection workflow | P3 | Vendor selection + BAA/PHI review | L | open |
 | Live calendar OAuth scheduling | getCalendarProvider() always returns mock; liveScheduling is false | Real Microsoft/Google interview events | P2 | Graph/Google OAuth + Integration Hub tokens | L | open |
@@ -14,7 +14,7 @@ Do not build these items during Post-Phase-9 stabilization. New work enters the 
 | Official Sentry SDK | Thin DSN poster only; no source maps or performance | Faster incident response | P2 | Sentry project + `SENTRY_DSN` | S | open |
 | Clean Neon production branch | Default Neon `production` branch still has development fixtures | Real internal data isolation | P0 ops | Neon console; Vercel env cutover | S | open |
 | Vercel production env cutover | Checklist largely unchecked | Hosted production | P0 ops | Clerk live keys, Neon, domain | M | open |
-| Custom domain `app.pieronepartners.com` | Production origin not cut over | Operator bookmark / Clerk domains | P2 | DNS + Clerk production | S | open |
+| Custom domain `app.pieronepartners.com` | Production origin not cut over | Operator bookmark / Clerk domains | P2 | DNS + Clerk production | S | COMPLETE (live: https://app.pieronepartners.com) |
 | Talent/jobs list pagination | Unbounded org lists | Survives real volume | P2 | Query audit | M | open |
 | Command Center SQL recruiting rewrite | `recruitingAnalytics` still hydrates full graphs | Keep CC fast as data grows | P2 | Reporting contract | M | open |
 | Scout approved-send path | `scout.external_actions` unused; send hard-denied | Later human-approved email | P3 | Email/calendar | L | open |
@@ -30,5 +30,5 @@ Do not build these items during Post-Phase-9 stabilization. New work enters the 
 | Reporting scheduled exports | CSV is on-demand | Operator cadence | P3 | `reports.export` | S | open |
 | Mobile UX | Desktop operating UI | Field use | P3 | Design | L | open |
 | Scout result pagination beyond 25 | Hard cap for safety | Larger search sets | P3 | Scout DTOs | S | open |
-| Invite-only local user pre-provision | Unknown Clerk users auto-create as active with no roles | Defense in depth if Clerk public sign-up is mis-set | P2 | Clerk webhooks | M | open |
+| Invite-only local user pre-provision | Unknown Clerk users auto-create as active with no roles | Defense in depth if Clerk public sign-up is mis-set | P2 | Clerk webhooks | M | COMPLETE 2026-09-08: production Clerk `sign_up_mode=restricted`; `syncLocalUser` rejects uninvited Clerk users |
 | Semantic search dimension | `vector(1536)` is temporary (DEC-SEM-001) | Real embeddings | P3 | Embedding model choice | M | open |

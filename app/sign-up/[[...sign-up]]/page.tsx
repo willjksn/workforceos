@@ -15,7 +15,10 @@ export default function SignUpPage() {
   }
 
   return (
-    <main className="flex min-h-full items-center justify-center py-16">
+    <main className="mx-auto flex min-h-full max-w-xl flex-col items-center justify-center px-6 py-16">
+      <p className="mb-6 text-center text-sm text-zinc-600">
+        WorkforceOS is invite-only. Use the invitation email from Admin → People.
+      </p>
       <SignUp fallbackRedirectUrl="/app" forceRedirectUrl="/app" />
     </main>
   );

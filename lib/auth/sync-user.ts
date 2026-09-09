@@ -1,12 +1,15 @@
 import { eq } from "drizzle-orm";
 
 import { getDb } from "../../db";
-import { organizations, userRoles, users } from "../../db/schema";
+import { organizations, users } from "../../db/schema";
 import { isClerkConfigured } from "../env";
-import { type Principal } from "../rbac/permissions";
+import { AuthorizationError, type Principal } from "../rbac/permissions";
 import { assertLocalAccountNotDisabled } from "./account-status";
 import { loadPrincipalByUserId } from "../rbac/authorize";
 import { INTERNAL_ORG_SLUG } from "../../db/seed/constants";
+
+export const UNINVITED_CLERK_USER_MESSAGE =
+  "This WorkforceOS account has not been invited. Ask an administrator to invite you from Admin → People.";
 
 export class AuthSyncError extends Error {
   constructor(message: string) {
@@ -74,20 +77,7 @@ export async function syncLocalUser(identity: ClerkIdentity) {
     return updated;
   }
 
-  const [created] = await db
-    .insert(users)
-    .values({
-      organizationId: organization.id,
-      clerkUserId: identity.clerkUserId,
-      email: identity.email.toLowerCase(),
-      fullName: identity.fullName,
-      status: "active",
-      lastLoginAt: new Date(),
-    })
-    .returning();
-
-  void userRoles;
-  return created;
+  throw new AuthorizationError(UNINVITED_CLERK_USER_MESSAGE);
 }
 
 export async function getCurrentPrincipalFromIdentity(

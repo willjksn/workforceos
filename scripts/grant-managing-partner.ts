@@ -32,11 +32,24 @@ async function main() {
     throw new Error("WorkforceOS organization is missing. Run `npm run db:seed:prod` first.");
   }
 
-  const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  let [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
   if (!user) {
-    throw new Error(
-      `No local user exists for ${email}. Sign in once with Clerk so WorkforceOS can sync the user, then rerun this command.`,
-    );
+    const local = email.split("@")[0]?.replace(/[._+-]+/g, " ").trim() || email;
+    const [created] = await db
+      .insert(users)
+      .values({
+        organizationId: organization.id,
+        clerkUserId: null,
+        email,
+        fullName: local,
+        status: "invited",
+      })
+      .returning();
+    if (!created) {
+      throw new Error(`Unable to record ${email} as an invited local user.`);
+    }
+    user = created;
+    console.log(`Recorded ${email} as invited. They still need a Clerk invitation from Admin → People before they can sign in.`);
   }
   if (user.status === "disabled") {
     throw new Error("That WorkforceOS account is disabled. Re-enable it before granting Managing Partner.");

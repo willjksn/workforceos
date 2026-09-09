@@ -1,6 +1,6 @@
 # WorkforceOS Operating Playbook
 
-Internal operating procedures for deploying, recovering, and running WorkforceOS. This is not a second product spec. Canonical architecture remains `docs/architecture/WORKFORCEOS_MASTER_SPEC.md`.
+Internal operating procedures for deploying, recovering, and running WorkforceOS. This is not a second product spec. Canonical architecture remains `docs/architecture/WORKFORCEOS_MASTER_SPEC.md`. Remaining work is tracked in `docs/operations/MASTER_COMPLETION_LEDGER.md`.
 
 ## Environments
 

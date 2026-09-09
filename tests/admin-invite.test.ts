@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { inviteDisplayName, inviteResultMessage, normalizeInviteEmail } from "../lib/admin/invite-user";
+import { UNINVITED_CLERK_USER_MESSAGE } from "../lib/auth/sync-user";
 import {
   ClerkInviteError,
   clerkInviteFailureMessage,
@@ -73,6 +74,10 @@ describe("Clerk invitation send", () => {
     vi.stubEnv("NODE_ENV", "production");
     resetServerEnvCache();
     await expect(sendWorkforceOsInvitation("alex@firm.com")).rejects.toThrow(/APP_URL/);
+  });
+
+  it("rejects unknown Clerk users instead of auto-creating them", () => {
+    expect(UNINVITED_CLERK_USER_MESSAGE).toMatch(/has not been invited/);
   });
 
   it("keeps Clerk errors generic", () => {

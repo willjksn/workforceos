@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Phase A production hygiene
+
+- Remaining work is now tracked in `docs/operations/MASTER_COMPLETION_LEDGER.md`.
+- Unknown Clerk users are no longer auto-created as active. Production Clerk sign-up is restricted (invite-only). `db:bootstrap-admin` records a missing email as invited instead of requiring a first public sign-in.
+
 ### Military Talent intermediary model
 
 - Locked: PierOne is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is a pathway/opportunity type, not a PierOne-owned SkillBridge program.

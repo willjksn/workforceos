@@ -1,7 +1,8 @@
 # Requirements Registry
 
 Status: Locked requirements through Phase 10 hiring and the public website  
-Database mirror: `requirements` table.
+Database mirror: `requirements` table.  
+Remaining work: `docs/operations/MASTER_COMPLETION_LEDGER.md`.
 
 ## Locked requirements
 
