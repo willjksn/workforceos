@@ -66,6 +66,8 @@ describe("PierOne public website", () => {
       "Fractional Talent Partner",
       "Workforce Pipeline Assessment",
     ]);
+    expect(SERVICES.map((row) => row.code)).not.toContain("skillbridge");
+    expect(SERVICES.map((row) => row.code)).not.toContain("dual-career");
   });
 
   it("accepts an empty public content payload so pages can omit sections", () => {

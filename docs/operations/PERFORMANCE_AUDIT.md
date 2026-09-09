@@ -27,7 +27,7 @@ Driver: `drizzle-orm/neon-http`. Each Drizzle statement is a separate HTTPS roun
 | `/app` Command Center | SQL aggregates + limited lists | Finance economics no longer runs here |
 | `/app/talent`, `/app/jobs`, opportunities | Unbounded org lists | Acceptable at V1 volume; paginate before large production datasets |
 | Scout search | 25 cards | SQL still may scan matching candidates up to 100 |
-| SkillBridge queue | Full overlay for owner (or global for `skillbridge.manage`) | V1 SkillBridge population is small |
+| Military Talent queue | Full overlay for owner (or global for `skillbridge.manage`) | V1 Transition Talent Profile population is small |
 | Reports | Display slice 100 | Still may hydrate source tables first |
 
 ## Indexes

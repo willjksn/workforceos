@@ -119,7 +119,7 @@ export default async function HomePage() {
               disciplined matching, not a guarantee of approval or hire.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <CtaLink href="/military-talent">Explore Military Talent</CtaLink>
+              <CtaLink href="/military-talent">Explore Military Talent Opportunities</CtaLink>
               <CtaLink href="/military-talent/join" variant="secondary">
                 Join the Military Talent Network
               </CtaLink>
@@ -227,7 +227,7 @@ export default async function HomePage() {
             <FeaturedJobStrip jobs={content.featuredJobs} heading="Featured roles" />
             <FeaturedJobStrip
               jobs={content.featuredSkillBridge}
-              heading="Featured SkillBridge Opportunities"
+              heading="Featured SkillBridge-Eligible Opportunities"
               intro="Employer or host-company SkillBridge-eligible opportunities facilitated by PierOne."
             />
             <IndustryCampaign campaigns={content.campaigns} />

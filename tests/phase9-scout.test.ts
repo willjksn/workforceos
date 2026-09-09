@@ -153,5 +153,20 @@ describe("Phase 9 Scout", () => {
     const conversion = parseScoutIntent("Show military placements likely to convert.");
     expect(conversion.ok).toBe(true);
     if (conversion.ok) expect(conversion.dto.filters?.conversionPending).toBe(true);
+    const queue = parseScoutIntent("Show my Military Talent queue");
+    expect(queue.ok).toBe(true);
+    if (queue.ok) {
+      expect(queue.dto.family).toBe("SHOW_DASHBOARD");
+      expect(queue.summary).toContain("Military Talent");
+    }
+    const legacyQueue = parseScoutIntent("Show my SkillBridge queue");
+    expect(legacyQueue.ok).toBe(true);
+    if (legacyQueue.ok) expect(legacyQueue.dto.family).toBe("SHOW_DASHBOARD");
+    const knowledge = parseScoutIntent("Show knowledge playbooks");
+    expect(knowledge.ok).toBe(true);
+    if (knowledge.ok) {
+      expect(knowledge.dto.entity).toBe("knowledge");
+      expect(knowledge.summary).not.toMatch(/Academy/i);
+    }
   });
 });

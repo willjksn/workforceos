@@ -363,7 +363,7 @@ async function militaryReport(organizationId: string, filters: ReportFilters) {
       { label: "Civilian role coverage", value: Number(mappings[0]?.value ?? 0) },
       { label: "Installations", value: Number(installations[0]?.value ?? 0) },
       { label: "Installation targeting links", value: Number(targeting[0]?.value ?? 0) },
-      { label: "Military candidates", value: Number(militaryCandidates[0]?.value ?? 0) },
+      { label: "Military Talent Network people", value: Number(militaryCandidates[0]?.value ?? 0) },
       { label: "Military hires", value: Number(hireRows[0]?.value ?? 0) },
       { label: "SkillBridge-eligible notes", value: Number(skillbridge[0]?.value ?? 0), hint: "Occupation-installation rows with a SkillBridge-eligible note" },
       { label: "Transition Talent Profiles", value: Number(skillbridgeProfilesCount[0]?.value ?? 0) },

@@ -198,12 +198,12 @@ export function inquiryAcknowledgementEmail(input: { firstName: string }) {
 export function militaryTalentAcknowledgementEmail(input: { firstName: string }) {
   const heading = "Thanks for joining the PierOne Military Talent Network";
   const bodyHtml = `<p>Hello ${escapeHtml(input.firstName)},</p>
-<p>Thanks for joining the PierOne Military Talent Network. We received your transition profile. Our team may use your military experience, career goals, location preferences, and transition timing to identify potential employer and SkillBridge-eligible opportunities.</p>
-<p>Joining the network does not guarantee a SkillBridge approval, an interview, placement, or employment. PierOne is the intermediary between transitioning service members and employer/host-company opportunities.</p>`;
+<p>Thanks for joining the PierOne Military Talent Network. We received your Transition Talent Profile. Our team may use your military experience, career goals, location preferences, and transition timing to identify potential employer and SkillBridge-eligible opportunities.</p>
+<p>Joining the network does not enroll you in a PierOne SkillBridge program and does not guarantee a SkillBridge approval, an interview, placement, or employment. PierOne is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is one possible pathway when a host employer, timing, and approval requirements align.</p>`;
   return {
     subject: "Thanks for joining the PierOne Military Talent Network",
     html: brandedEmail({ heading, bodyHtml }),
-    text: `Hello ${input.firstName}, thanks for joining the PierOne Military Talent Network. We received your transition profile. Our team may use your military experience, career goals, location preferences, and transition timing to identify potential employer and SkillBridge-eligible opportunities. This does not guarantee placement, interview, SkillBridge approval, or employment.`,
+    text: `Hello ${input.firstName}, thanks for joining the PierOne Military Talent Network. We received your Transition Talent Profile. Our team may use your military experience, career goals, location preferences, and transition timing to identify potential employer and SkillBridge-eligible opportunities. This does not enroll you in a PierOne SkillBridge program and does not guarantee placement, interview, SkillBridge approval, or employment.`,
   };
 }
 

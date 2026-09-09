@@ -88,6 +88,7 @@ export function draftSkillBridgeMessage(input: {
   };
 }
 
+/** Operator-facing employer brief is `body` (reviewable prose). Structured fields are for tests and stored-record reuse, not raw JSON display. */
 export function draftEmployerBrief(input: {
   candidateName: string;
   occupationTitle?: string | null;

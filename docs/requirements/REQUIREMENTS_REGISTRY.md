@@ -348,7 +348,7 @@ Remaining work: `docs/operations/MASTER_COMPLETION_LEDGER.md`.
 - Module: military
 - Priority: locked
 - Status: approved
-- Acceptance: Public and internal language treats PierOne as the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is a pathway/opportunity type. Copy must not imply a PierOne-owned SkillBridge program, automatic host status, guaranteed placement, or that every military-talent profile is an application to PierOne.
+- Acceptance: Public and internal language treats PierOne as the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is a pathway/opportunity type, not a sixth launch service. Copy must not imply a PierOne-owned SkillBridge program, automatic host status, guaranteed placement, or that every military-talent profile is an application to PierOne. Operator-facing access copy uses Military Talent Partner, not Military Talent Specialist. Canonical flow is Transitioning Service Member → Military Talent Network → Transition Talent Profile → Skills Translation → Employer Opportunity Search / Development → Employer Match → Employer Engagement → Interview → SkillBridge / Direct Hire / Other Transition Pathway → Placement → Conversion.
 
 ### WFOS-HIRE-001
 

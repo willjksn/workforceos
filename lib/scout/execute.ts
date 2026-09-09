@@ -288,7 +288,7 @@ async function executeAuthorizedCommand(input: {
       cards,
       confirmation: null,
       draft: null,
-      links: [{ href: "/app/military/skillbridge", label: "Military Talent priorities" }],
+      links: [{ href: "/app/military/skillbridge", label: "Pathway operations" }],
     };
   }
 

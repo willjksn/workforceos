@@ -275,7 +275,7 @@ export const LAUNCH_SERVICE_CATALOG: LaunchServiceCatalog[] = [
       qualificationTriggers: "Civilian workforce need that may be served by military talent.",
       dataCollection: "Roles, locations, SkillBridge interest, shortages, nearby military ecosystems.",
       aiResponsibilities: "Draft the opportunity plan from approved mappings and discovery. Do not invent occupations or coordinates.",
-      humanResponsibilities: "Military specialist review. Originating agent cannot approve.",
+      humanResponsibilities: "Military Talent Partner review. Originating agent cannot approve.",
       approvalGates: "Human military review before client-facing plan, proposal, and deliverables.",
       deliverables: "Military Talent Opportunity Plan and supporting crosswalk.",
       legalPackage: {

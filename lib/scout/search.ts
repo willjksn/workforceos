@@ -436,7 +436,7 @@ async function searchKnowledgeAndTraining(
       });
     }
   }
-  return { summary: `${cards.length} authorized knowledge or training records.`, cards };
+  return { summary: `${cards.length} approved knowledge playbooks or workforce training programs.`, cards };
 }
 
 async function searchSkillBridge(input: {

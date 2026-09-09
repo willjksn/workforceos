@@ -51,7 +51,7 @@ export default async function SkillBridgePage() {
         <Container>
           <FeaturedJobStrip
             jobs={content.featuredSkillBridge}
-            heading="Featured SkillBridge Opportunities"
+            heading="Featured SkillBridge-Eligible Opportunities"
             intro="These are employer or host-company SkillBridge-eligible opportunities facilitated by PierOne, not PierOne-owned SkillBridge slots."
           />
           <Heading>What this is — and is not</Heading>

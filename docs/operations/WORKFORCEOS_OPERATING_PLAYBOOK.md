@@ -91,17 +91,20 @@ Scout is the persistent in-app assistant (tooltip: Open Scout). It is a right-si
 - Grant `scout.use` to operators who may open it. Search/draft/internal/external actions are separate permissions.
 - Material writes show a confirmation card. Confirming is a human action and is audited.
 - Drafts never send. Copy or a later human-approved send path is required. `scout.external_actions` is required before any external send is even proposed.
-- Do not treat Scout chat as the system of record. Correct data on the candidate, job, company, or SkillBridge record.
+- Do not treat Scout chat as the system of record. Correct data on the candidate, job, company, or Transition Talent Profile record.
 
-## Military Talent / SkillBridge
+## Military Talent pathway operations
 
-PierOne is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is one pathway at `/app/military/skillbridge`, not a PierOne-owned program.
+PierOne is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is one pathway at `/app/military/skillbridge`, not a PierOne-owned program. Operator access bundle: Military Talent Partner.
+
+Canonical flow: Transitioning Service Member → Military Talent Network → Transition Talent Profile → Skills Translation → Employer Opportunity Search / Development → Employer Match → Employer Engagement → Interview → SkillBridge / Direct Hire / Other Transition Pathway → Placement → Conversion.
 
 - Create a Transition Talent Profile against an existing candidate (`skillbridge_profiles`). Do not create a second person. A public job posting is not required first.
 - Employer opportunities (`skillbridge_opportunities`) must name a host company/employer. PierOne facilitates the match.
-- My SkillBridge Queue is the owner's overdue follow-ups, windows, missing resumes, and employer feedback. Managers with `skillbridge.manage` can switch to the global queue.
+- The Military Talent queue is the owner's overdue follow-ups, windows, missing resumes, and employer feedback — not a PierOne SkillBridge program dashboard. Managers with `skillbridge.manage` can switch to the global queue.
 - Alert thresholds are `skillbridge_alert_rules` (not hardcoded). Inngest `workforceos/skillbridge-follow-up-scan` and `workforceos/skillbridge-match` populate in-app notifications.
-- Humans connect or submit to employers. Scout/agent drafts of briefs and emails stay drafts.
+- Humans connect or submit to employers. Scout/agent drafts of briefs and emails stay drafts. Employer briefs are reviewable prose, not raw JSON.
+- In-app Academy is not available yet. Use approved knowledge playbooks and this playbook.
 
 ## Careers and hiring (Phase 10)
 

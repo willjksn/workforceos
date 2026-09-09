@@ -224,13 +224,17 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
   } else if (/\bsummarize\b/.test(text)) {
     family = "SUMMARIZE";
     summary = "Summarize the current authorized record.";
-  } else if (/\bopen the skillbridge record\b|\bshow the record\b|\bopen this record\b/.test(text)) {
+  } else if (/\bopen the (skillbridge|transition talent) record\b|\bshow the (transition )?profile\b|\bshow the record\b|\bopen this record\b/.test(text)) {
     family = "SHOW_RECORD";
     entity = pageContext?.entityType ?? "skillbridge_profile";
-    summary = "Open the current authorized record.";
-  } else if (/\bdaily brief\b|\btoday'?s priorities\b|\bwho needs my attention\b/.test(text)) {
+    summary = "Open the current authorized Transition Talent Profile or record.";
+  } else if (
+    /\bdaily brief\b|\btoday'?s priorities\b|\bwho needs my attention\b|\b(my )?(military talent|pathway) queue\b|\bmy skillbridge queue\b/.test(
+      text,
+    )
+  ) {
     family = "SHOW_DASHBOARD";
-    summary = "Show today's operating priorities.";
+    summary = "Show today's Military Talent priorities from stored records.";
   } else if (
     /\bwebsite (lead|inquiry|inquiries)|new website|\bemployer inquir|\bwork with pierone\b/.test(text)
   ) {
@@ -333,7 +337,7 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
     summary = "Search authorized finance records.";
   } else if (/\b(knowledge|training programs?|lessons learned)\b/.test(text)) {
     entity = "knowledge";
-    summary = "Search authorized knowledge and training records.";
+    summary = "Search approved knowledge playbooks and workforce training programs.";
   }
 
   const poolName = raw.match(/called[:\s]+([^\n]+)/i)?.[1]?.trim();

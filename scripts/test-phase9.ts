@@ -290,7 +290,7 @@ async function main() {
   assert(live.activeCandidates <= activeStored, "Metrics cannot exceed stored profiles");
   assert(live.activeCandidates >= 1, "Fixture SkillBridge candidates must produce live counts");
 
-  console.log("TEST 24 — My SkillBridge Queue prioritizes overdue actions");
+  console.log("TEST 24 — Military Talent queue prioritizes overdue actions");
   const queue = await getMySkillBridgeQueue({
     organizationId: INTERNAL_ORG_ID,
     ownerUserId: USER_IDS.recruiter,

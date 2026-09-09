@@ -1,6 +1,6 @@
 # Service Workflows
 
-Status: Phase 9 SkillBridge overlay on Phase 4/5 service engines  
+Status: Phase 9 Military Talent pathway overlay on Phase 4/5 service engines  
 Agents must read approved workflow records from the database. They must not improvise material workflow rules.
 
 ## Workflow versioning
@@ -46,7 +46,7 @@ Delivery project phases: Discovery, Job Inventory, Military Crosswalk, Installat
 
 Test fixture workflow for Phase 1 uses this service.
 
-SkillBridge operations (Phase 9) are an overlay on Talent Network candidates, not a sixth launch service and not a duplicate candidate database. Profiles, employer opportunities, configurable alert rules, and human connect/submit stay inside this military practice area. Matching reuses Professional Search job-match architecture.
+Military Talent pathway operations (Phase 9) are an overlay on Talent Network candidates, not a sixth launch service and not a duplicate candidate database. Canonical flow: Transitioning Service Member → Military Talent Network → Transition Talent Profile → Skills Translation → Employer Opportunity Search / Development → Employer Match → Employer Engagement → Interview → SkillBridge / Direct Hire / Other Transition Pathway → Placement → Conversion. Transition Talent Profiles (`skillbridge_profiles`), employer/host-company opportunities (`skillbridge_opportunities`), configurable alert rules, and human connect/submit stay inside this military practice area. SkillBridge is one pathway/opportunity type. Matching reuses Professional Search job-match architecture. Operator access bundle: Military Talent Partner.
 
 ### TA Performance Assessment
 

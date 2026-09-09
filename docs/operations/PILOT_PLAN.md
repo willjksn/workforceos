@@ -7,7 +7,7 @@ Controlled internal use after Phases 1–9. Do not start every workflow at once.
 | Role | Purpose |
 | --- | --- |
 | Founder / Managing Partner | Approvals, finance visibility, first company/candidate, Scout confirmation |
-| Operations user | CRM, Talent, SkillBridge queue, follow-ups |
+| Operations user | CRM, Talent, Military Talent queue, follow-ups |
 | Strategy / Technology user | System health, integrations, access review |
 
 Invite in Clerk (public sign-up off). After first sign-in, grant Managing Partner with `npm run db:bootstrap-admin -- --email you@company.com`. Assign other roles on `/app/admin/users`. Clerk metadata is not authorization.
@@ -27,14 +27,14 @@ Invite in Clerk (public sign-up off). After first sign-in, grant Managing Partne
 5. Upload a resume only after storage is actually writable (local in development; production needs STORAGE_PROVIDER=s3 and a working R2/S3 adapter — see post-launch backlog).
 6. Confirm the record appears on Command Center / Talent and an audit event exists.
 
-## Week 2 — SkillBridge (small set)
+## Week 2 — Military Talent pathway (small set)
 
 Use a handful of real transitioning service members. For each:
 
 - Talent Network candidate exists first
 - Military occupation / MOS-rating-AFSC
 - End of service (EOS) date
-- SkillBridge window start/end
+- SkillBridge window start/end when the pathway applies
 - Preferred location
 - Target employer (optional)
 - Resume status
@@ -42,10 +42,10 @@ Use a handful of real transitioning service members. For each:
 - At least one employer opportunity when ready
 - Scout search: “Who needs my attention today?”
 - Scout draft follow-up (confirm it does **not** send)
-- Confirm My SkillBridge Queue owner-scoping
+- Confirm Military Talent queue owner-scoping
 - Confirm the top-bar bell shows in-app notifications after the follow-up scan (daily cron `0 13 * * *` UTC, or a manual Inngest event)
 
-Do not create a second SkillBridge person database. One candidate, one `skillbridge_profiles` row.
+Do not create a second SkillBridge person database. One candidate, one Transition Talent Profile (`skillbridge_profiles`) row. SkillBridge is a pathway, not a PierOne-owned program.
 
 ## Week 3 — Scout + recruiting match
 

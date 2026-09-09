@@ -5,16 +5,17 @@ import { PageHeader, PageShell } from "../_components/ui";
 import { MilitarySubnav } from "./_components/military-subnav";
 
 const STEPS = [
-  ["Identify", "Find transitioning service members and employer workforce needs."],
-  ["Profile", "Build the Transition Talent Profile on the existing Candidate record."],
-  ["Translate", "Map military occupation, rank, leadership, and training to civilian value."],
-  ["Match", "Compare the profile to employer/host-company opportunities — a public job posting is not required to join the network."],
-  ["Engage employer", "Introduce qualified talent. PierOne is the intermediary, not automatically the SkillBridge host."],
+  ["Transitioning Service Member", "Find transitioning service members. These are Talent Network people, not a separate SkillBridge roster."],
+  ["Military Talent Network", "Join or record the person on the Military Talent Network. A current opening is not required."],
+  ["Transition Talent Profile", "Build the Transition Talent Profile overlay on the existing Candidate record."],
+  ["Skills Translation", "Map military occupation, rank, leadership, and training to civilian value using stored, reviewed mappings."],
+  ["Employer Opportunity Search / Development", "Search and develop host-company/employer opportunities. The employer is explicit."],
+  ["Employer Match", "Compare the Transition Talent Profile to employer/host-company opportunities."],
+  ["Employer Engagement", "Introduce qualified talent. PierOne is the intermediary, not automatically the SkillBridge host."],
   ["Interview", "Support interviews between the service member and the employer."],
-  ["Approval", "Track SkillBridge or direct-hire decisions where they apply. Approval is never assumed."],
-  ["Place", "Record placement start with an explicit host company/employer."],
-  ["Manage", "Follow the transition window, documents, and employer feedback."],
-  ["Convert", "Support conversion to full-time employment and keep the person in the Talent Network."],
+  ["SkillBridge / Direct Hire / Other Pathway", "Track SkillBridge-eligible, direct-hire, or other transition pathway decisions. Approval is never assumed."],
+  ["Placement", "Record placement start with an explicit host company/employer."],
+  ["Conversion", "Support conversion to full-time employment and keep the person in the Talent Network."],
 ] as const;
 
 export default async function MilitaryOverviewPage() {
@@ -36,7 +37,7 @@ export default async function MilitaryOverviewPage() {
         <OverviewCard href="/app/military/analytics" title="Analytics" body="Stored counts for windows, unmatched talent, placements, and conversion." />
       </div>
       <section className="mt-10">
-        <h2 className="section-title">Operating workflow</h2>
+        <h2 className="section-title">Canonical flow</h2>
         <ol className="mt-4 grid gap-3 md:grid-cols-2">
           {STEPS.map(([title, body], index) => (
             <li key={title} className="rounded-[8px] border border-card-border bg-card p-4">

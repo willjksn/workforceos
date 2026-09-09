@@ -124,8 +124,16 @@ export async function seedPhase7Ai(
       title: "Military mapping methodology",
       knowledgeType: "military_methodology" as const,
       content:
-        "Military-to-civilian mappings store source, version, confidence, origin, and review status. Agent drafts start pending. The originating agent cannot approve them.",
+        "Military-to-civilian mappings store source, version, confidence, origin, and review status. Do not invent mapping rules. Agent drafts start pending. The originating agent cannot approve them.",
       source: "DEC-MIL-001",
+    },
+    {
+      slug: "military-talent-intermediary",
+      title: "Military Talent intermediary model",
+      knowledgeType: "military_methodology" as const,
+      content:
+        "PierOne is the workforce/talent intermediary connecting transitioning service members with employers and host companies. PierOne is generally not the SkillBridge host. SkillBridge is a pathway and opportunity type, not a PierOne-owned program and not a sixth launch service. Canonical flow: Transitioning Service Member → Military Talent Network → Transition Talent Profile → Skills Translation → Employer Opportunity Search / Development → Employer Match → Employer Engagement → Interview → SkillBridge / Direct Hire / Other Transition Pathway → Placement → Conversion. Transition Talent Profile is a military-transition overlay on an existing Talent Network candidate (physical table skillbridge_profiles). Do not duplicate a candidate per employer. A service member may join the Military Talent Network without a current opening. Employer Opportunity names the host/employer (physical table skillbridge_opportunities). Operator access bundle: Military Talent Partner. Do not use Military Talent Specialist in operator-facing copy. Do not invent military-mapping rules. In-app Academy is not available yet; use approved knowledge playbooks.",
+      source: "DEC-MIL-005",
     },
     {
       slug: "workforce-intelligence-method",

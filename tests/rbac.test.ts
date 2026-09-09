@@ -4,10 +4,12 @@ import {
   AuthorizationError,
   ROLE_PERMISSIONS,
   can,
+  canonicalizeRoleSlug,
   isPlatformAdmin,
   requirePermission,
   type Principal,
 } from "../lib/rbac/permissions";
+import { ACCESS_BUNDLE_LABELS } from "../lib/rbac/role-guide";
 import {
   assertAccessBundlesAllowed,
   assertAccountAccessChange,
@@ -58,7 +60,7 @@ describe("RBAC", () => {
     const recruiter = principalFor("recruiter");
     const talentPartner = principalFor("talent-partner");
     const consultant = principalFor("workforce-consultant");
-    const specialist = principalFor("military-talent-partner");
+    const partner = principalFor("military-talent-partner");
     const ops = principalFor("operations-administrator");
     const tech = principalFor("strategy-technology-administrator");
     expect(can(recruiter, "agents.read")).toBe(false);
@@ -66,10 +68,16 @@ describe("RBAC", () => {
     expect(can(talentPartner, "agents.read")).toBe(false);
     expect(can(talentPartner, "agents.manage")).toBe(false);
     expect(can(consultant, "agents.read")).toBe(false);
-    expect(can(specialist, "agents.read")).toBe(false);
+    expect(can(partner, "agents.read")).toBe(false);
     expect(can(ops, "agents.read")).toBe(true);
     expect(can(ops, "agents.manage")).toBe(false);
     expect(can(tech, "agents.manage")).toBe(true);
+  });
+
+  it("keeps Military Talent Specialist only as a one-release slug alias", () => {
+    expect(canonicalizeRoleSlug("military-talent-specialist")).toBe("military-talent-partner");
+    expect(ACCESS_BUNDLE_LABELS["military-talent-partner"]).toBe("Military Talent Partner");
+    expect(Object.values(ACCESS_BUNDLE_LABELS).some((label) => /Talent Specialist/i.test(label))).toBe(false);
   });
 
   it("rejects disabled users even if they still have roles", () => {

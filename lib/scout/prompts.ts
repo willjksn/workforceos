@@ -20,6 +20,7 @@ export function suggestedScoutPrompts(module: string, entityType: string | null)
   if (module === "skillbridge") {
     return [
       "Who needs follow-up?",
+      "Show my Military Talent queue",
       "Show military talent with a SkillBridge window in the next 90 days",
       "Show transitioning service members who need an employer match",
       "Show SkillBridge-eligible employer opportunities",

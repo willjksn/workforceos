@@ -6,13 +6,13 @@ import { Container, PageHero, Section } from "@/components/ui";
 export const metadata: Metadata = {
   title: "Join the Military Talent Network",
   description:
-    "Build your military transition profile and connect with civilian opportunities aligned to your experience, goals, timing, and location. Placement is not guaranteed.",
+    "Build your Transition Talent Profile and connect with civilian opportunities aligned to your experience, goals, timing, and location. Placement is not guaranteed.",
 };
 
 export default function MilitaryTalentJoinPage() {
   return (
     <main>
-      <PageHero eyebrow="Military Talent Network" title="Build your transition talent profile" size="narrow">
+      <PageHero eyebrow="Military Talent Network" title="Build Your Transition Profile" size="narrow">
         <p className="mt-4 text-[17px] leading-8 text-white/80">
           Join the PierOne Military Talent Network. PierOne helps translate your military experience, identify potential
           employer matches, and connect you with civilian and SkillBridge-eligible opportunities. You do not need a

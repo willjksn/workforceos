@@ -10,7 +10,7 @@ WorkforceOS is an internal operating system for a Workforce & Talent Solutions f
 
 It will eventually manage company CRM, Talent CRM, recruiting/search, military talent translation, workforce development, legal document operations, finance/AR workflow, integrations, background AI agents, audit history, approvals, and institutional knowledge.
 
-Phase 1 built the technical foundation. Phase 4 activates service engines, proposals, contracts, and project delivery. Phase 5 expands Workforce Pipeline Assessment into workforce development and intelligence. Phase 6 activates operational finance and Integration Hub business adapters. Phase 7 activates AI operations, prompt versioning, the Review Queue, named automation, and approved knowledge retrieval. Phase 8 finishes executive reporting, the Command Center, operational alerts, data quality, and production hardening. Phase 9 adds Scout (the persistent in-app assistant) and SkillBridge operations as a first-class Military Talent workflow. Phase 10 extends WorkforceOS into PierOne careers, applicant tracking, pre-employment, offers, and new-hire onboarding. It is not a public job marketplace and not a payroll/benefits HRIS. Do not start Phase 11 unless explicitly asked.
+Phase 1 built the technical foundation. Phase 4 activates service engines, proposals, contracts, and project delivery. Phase 5 expands Workforce Pipeline Assessment into workforce development and intelligence. Phase 6 activates operational finance and Integration Hub business adapters. Phase 7 activates AI operations, prompt versioning, the Review Queue, named automation, and approved knowledge retrieval. Phase 8 finishes executive reporting, the Command Center, operational alerts, data quality, and production hardening. Phase 9 adds Scout (the persistent in-app assistant) and Military Talent pathway operations. SkillBridge is one pathway/opportunity type inside that practice, not a PierOne-owned program. Phase 10 extends WorkforceOS into PierOne careers, applicant tracking, pre-employment, offers, and new-hire onboarding. It is not a public job marketplace and not a payroll/benefits HRIS. Do not start Phase 11 unless explicitly asked.
 
 ## Product boundaries
 
@@ -69,7 +69,7 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 - CRM: companies, contacts, opportunities, signals
 - Talent Network: candidates, pools, rediscovery
 - Recruiting: jobs, internal-first search projects, job-specific matches, pipeline, submissions, interviews, offers, placements, guarantees
-- Military Talent: occupation library, skills translator, reverse search, installations, bridge training, human mapping review, SkillBridge operations
+- Military Talent: occupation library, skills translator, reverse search, installations, bridge training, human mapping review, Transition Talent Profiles, employer/host-company opportunities, SkillBridge-eligible pathway operations
 - Scout: persistent page-aware assistant with a closed command registry; chat is not the system of record
 - Workforce Development: planning-level workforce roles, baselines, versioned forecasts, supply, gaps, pipelines, career paths, scenarios, and the expanded Workforce Pipeline Assessment deliverable
 - Services: five launch service engines, versioned workflows, discovery, solution plans, proposals
@@ -146,7 +146,7 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 - Official name is Scout. Tooltip: Open Scout. Do not brand it Copilot, Navigator, or a generic Assistant.
 - Scout is a right-side drawer on authenticated screens. It does not navigate away unless an action requires an entity link.
 - Natural language parses to a closed command registry: SEARCH, SUMMARIZE, DRAFT, CREATE, UPDATE, ASSIGN, ADD_TO_POOL, ADD_TO_JOB, CREATE_TASK, CREATE_FOLLOW_UP, SHOW_RECORD, SHOW_DASHBOARD, FIND_MATCHES. Unknown commands are rejected. The model never generates SQL.
-- Execution path: prompt → intent parser → Zod DTO → authorize → existing query/service layer → PostgreSQL → structured result cards. Page context is the route (candidate/job/company/SkillBridge ids), not conversational memory.
+- Execution path: prompt → intent parser → Zod DTO → authorize → existing query/service layer → PostgreSQL → structured result cards. Page context is the route (candidate/job/company/Transition Talent Profile ids), not conversational memory. Physical SkillBridge table names may appear in ids.
 - RBAC and Restricted PII stripping happen before any record is passed to a model. Without `candidate_pii.read`, email, phone, compensation, resume text, and other restricted fields are omitted.
 - Read actions may run immediately. Material internal writes require confirmation. External actions require `scout.external_actions` plus human approval. Destructive actions always confirm. Drafts follow Draft → Human Review → Send/Copy and never auto-send.
 - Permissions: `scout.use`, `scout.search`, `scout.draft`, `scout.internal_actions`, `scout.external_actions`. Scout cannot self-approve, send contracts, execute offers, reject candidates solely via AI, or bypass RBAC.
@@ -154,13 +154,14 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 
 ## Military Talent operations (Phase 9)
 
-- PierOne is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is a transition pathway and opportunity type within Military Talent operations, not a PierOne-owned generic SkillBridge program. PierOne is generally not the SkillBridge host.
+- PierOne is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is a transition pathway and opportunity type within Military Talent operations, not a PierOne-owned generic SkillBridge program. PierOne is generally not the SkillBridge host. Operator-facing access bundle: Military Talent Partner (`military-talent-partner`; one-release alias `military-talent-specialist`).
+- Canonical flow: Transitioning Service Member → Military Talent Network → Transition Talent Profile → Skills Translation → Employer Opportunity Search / Development → Employer Match → Employer Engagement → Interview → SkillBridge / Direct Hire / Other Transition Pathway → Placement → Conversion.
 - Transitioning people are existing Talent Network `candidates`. `skillbridge_profiles` are a 1:1 Transition Talent Profile overlay. UI language may say Transition Talent Profile while the physical table name stays `skillbridge_profiles`. Do not duplicate a candidate per employer or job. A public job posting is not required before someone can join the Military Talent Network.
 - Preferred locations and target roles are junction tables. Employer connections are `skillbridge_opportunities` (UI: Employer / host-company opportunities) with stage history. Filtered fields are relational columns, not JSONB.
 - Resume status is `missing | outdated | current | needs_review` — not a quality score. Files use the existing storage abstraction; binaries stay out of PostgreSQL.
 - Matching is Transition Talent Profile ↔ employer opportunity using skills, military occupation, translated civilian role, location, timing, SkillBridge window, certifications, clearance when required, industry, and preferences. It reuses the existing job-match architecture. Humans connect or submit. Employer briefs and message drafts require human review.
 - Follow-up, window, no-opportunity, employer-feedback, resume-missing, and conversion rules live in configurable `skillbridge_alert_rules`. Inngest runs scans. In-app notifications are the delivery channel.
-- Metrics and My SkillBridge Queue counts come from stored rows only. Permissions: `skillbridge.read`, `skillbridge.write`, `skillbridge.manage`, `skillbridge.export`. Restricted PII rules still apply.
+- Metrics and Military Talent queue counts come from stored rows only. The queue is pathway follow-ups for assigned talent, not a PierOne SkillBridge program dashboard. Permissions: `skillbridge.read`, `skillbridge.write`, `skillbridge.manage`, `skillbridge.export`. Restricted PII rules still apply. In-app Academy is not available yet.
 - Development fixtures include labeled transitioning talent. Production seed (`db:seed:prod`) loads alert-rule defaults only, not those people.
 
 ## Careers, ATS, and onboarding (Phase 10)

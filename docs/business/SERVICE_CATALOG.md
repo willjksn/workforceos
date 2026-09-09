@@ -25,6 +25,13 @@ Locked rules:
 
 - Support Army MOS, Navy Rating, Air Force AFSC, Marine MOS, Coast Guard Rating, and applicable Space Force classifications (WFOS-MIL-001).
 - Map occupations to civilian roles, skills, gaps, bridge training, explanations, and likely installations (WFOS-MIL-002 through WFOS-MIL-005).
+- Do not invent mapping rules (DEC-MIL-001). SkillBridge is a pathway/opportunity type inside this practice, not a sixth launch service and not a PierOne-owned program.
+
+Military Talent operating path (DEC-MIL-005), used across assessments, pathway operations, public intake, and Scout:
+
+Transitioning Service Member → Military Talent Network → Transition Talent Profile → Skills Translation → Employer Opportunity Search / Development → Employer Match → Employer Engagement → Interview → SkillBridge / Direct Hire / Other Transition Pathway → Placement → Conversion.
+
+A transitioning service member may join the Military Talent Network without a current opening. Transition Talent Profile is a military-transition overlay on the existing Talent Network candidate. Employer Opportunity names the host/employer. Operator access bundle: Military Talent Partner.
 
 ## 3. TA Performance Assessment
 
@@ -66,3 +73,6 @@ Each service has a versioned pricing model (percentage fee, fixed project, or mo
 - Payroll
 - Public job marketplace
 - Ownership/cap-table administration
+- Dual careers as a sixth launch service
+- A PierOne-owned SkillBridge program or SkillBridge-as-a-service
+- In-app Academy / LMS (Phase E; not yet built)

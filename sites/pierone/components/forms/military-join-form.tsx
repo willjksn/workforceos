@@ -26,10 +26,10 @@ export function MilitaryJoinForm() {
       <div className="rounded-[6px] border border-border bg-white p-6">
         <h2 className="font-serif text-2xl text-navy">Submission received</h2>
         <p className="mt-3 text-sm leading-6 text-muted">
-          Thanks for joining the PierOne Military Talent Network. We received your transition profile. Our team may use
-          your military experience, career goals, location preferences, and transition timing to identify potential
-          employer and SkillBridge-eligible opportunities. Joining does not guarantee a SkillBridge approval, interview,
-          placement, or employment.
+          Thanks for joining the PierOne Military Talent Network. We received your Transition Talent Profile. Our team
+          may use your military experience, career goals, location preferences, and transition timing to identify
+          potential employer and SkillBridge-eligible opportunities. Joining does not enroll you in a PierOne SkillBridge
+          program and does not guarantee a SkillBridge approval, interview, placement, or employment.
         </p>
       </div>
     );

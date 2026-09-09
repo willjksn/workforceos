@@ -8,7 +8,7 @@ This is a lightweight publishing layer, not a CMS.
 | Belongs in WorkforceOS | Remains in public website code |
 | --- | --- |
 | Featured jobs | Homepage core positioning |
-| Featured SkillBridge Opportunities | About, services, industries structure |
+| Featured SkillBridge-eligible opportunities | About, services, industries structure |
 | Homepage hiring banner | Permanent brand copy |
 | Urgent hiring notice | Legal pages |
 | Temporary announcements | Visual system (navy, teal, slate, Cormorant, Inter) |

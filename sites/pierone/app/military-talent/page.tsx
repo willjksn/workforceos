@@ -46,9 +46,9 @@ export default function MilitaryTalentPage() {
           <div className="grid gap-12 lg:grid-cols-2">
             <article>
               <Eyebrow>For transitioning service members</Eyebrow>
-              <Heading>Build your transition talent profile.</Heading>
+              <Heading>Build Your Transition Profile.</Heading>
               <p className="mt-4 text-[16px] leading-7 text-muted">
-                Build your military transition profile and connect with civilian opportunities aligned to your
+                Build your Transition Talent Profile and connect with civilian opportunities aligned to your
                 experience, goals, timing, and location. You do not need a specific job opening to join the network.
               </p>
               <ul className="mt-6 space-y-3 text-sm leading-6 text-muted">

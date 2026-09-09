@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Phase D — Military Talent model lock
+
+- Synchronized the DEC-MIL-005 intermediary model across spec, catalog, workflows, data dictionary, emails, Scout, knowledge seed, reports, public site CTAs, and leftover “My SkillBridge Queue” / Specialist prose.
+- Operator-facing access copy is Military Talent Partner. `military-talent-specialist` remains a one-release slug alias only.
+- SkillBridge stays a pathway/opportunity type, not a sixth launch service and not a PierOne-owned program. Canonical flow is locked in operating docs. In-app Academy is not claimed.
+
 ### Phase M — Production API keys
 
 - Added `docs/operations/PRODUCTION_API_KEYS.md`: every `lib/env.ts` production variable by name (purpose, required vs optional, System Health signal, where to set). No secret values.

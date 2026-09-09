@@ -136,10 +136,10 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | `military_civilian_mappings` | Military-to-civilian translations, including reverse search, provenance, and review status. |
 | `bridge_training_recommendations` | Skill-gap and credential recommendations. Do not promise employment. |
 | `occupation_data_imports` | Repeatable importer run log. Approved mappings are not silently deleted. |
-| `skillbridge_profiles` | One SkillBridge overlay per Talent Network candidate (unique `candidate_id`). Window, EOS, occupation, location, resume status, owner. Not a second person table. |
+| `skillbridge_profiles` | Transition Talent Profile overlay on a Talent Network candidate (unique `candidate_id`). Physical table name retained. Window, EOS, occupation, location, resume status, owner. Not a PierOne SkillBridge program roster and not a second person table. |
 | `skillbridge_preferred_locations` | Junction of preferred locations for filtering. |
 | `skillbridge_target_roles` | Junction of civilian target roles. |
-| `skillbridge_opportunities` | Many-to-many candidate–employer SkillBridge pipeline rows with stage. |
+| `skillbridge_opportunities` | Employer / host-company opportunities: many-to-many candidate–employer pipeline rows with stage. SkillBridge-eligible is an opportunity type, not PierOne program ownership. |
 | `skillbridge_opportunity_stage_history` | Prior stages retained; current stage lives on the opportunity. |
 | `skillbridge_notes` | Operating notes on a profile/opportunity. Timeline also reuses `activities`. |
 | `skillbridge_documents` | Metadata links to `files` (resume/certs). No binaries in PostgreSQL. Resume status is missing/outdated/current/needs_review. |
