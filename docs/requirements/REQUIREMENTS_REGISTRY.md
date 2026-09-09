@@ -1,6 +1,6 @@
 # Requirements Registry
 
-Status: Phase 9 locked set  
+Status: Locked requirements through Phase 10 hiring and the public website  
 Database mirror: `requirements` table.
 
 ## Locked requirements

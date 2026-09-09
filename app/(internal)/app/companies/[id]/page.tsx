@@ -13,6 +13,7 @@ import { OPPORTUNITY_STAGES } from "@/lib/crm/stages";
 import { getCompanyGraph, listActivities } from "@/lib/repositories/crm";
 import { getCompanyWorkforceSnapshot } from "@/lib/repositories/workforce";
 import { listJobs } from "@/lib/repositories/recruiting";
+import { listCompanyTalentCandidates } from "@/lib/repositories/talent";
 import { companyDeliverySnapshot } from "@/lib/delivery/engine";
 import { companyFinanceSnapshot } from "@/lib/finance/engine";
 import { moneyString } from "@/lib/finance/money";
@@ -57,6 +58,10 @@ export default async function CompanyDetailPage({
   const jobs = tab === "jobs" && can(principal, "jobs.read")
     ? (await listJobs(principal.organizationId)).filter((row) => row.job.companyId === company.id)
     : [];
+  const companyTalent =
+    tab === "talent" && can(principal, "candidates.read")
+      ? await listCompanyTalentCandidates(principal.organizationId, company.id)
+      : [];
   const delivery =
     ["solutions", "proposals", "legal", "projects"].includes(tab)
       ? await companyDeliverySnapshot(company.id, principal.organizationId)
@@ -358,7 +363,7 @@ export default async function CompanyDetailPage({
       {tab === "jobs" ? (
         <section className="mt-6">
           {!can(principal, "jobs.read") ? (
-            <p className="text-sm text-muted-foreground">Not yet implemented in this phase.</p>
+            <p className="text-sm text-muted-foreground">Jobs for this company are hidden without jobs access.</p>
           ) : jobs.length === 0 ? (
             <EmptyState>No jobs linked to this company.</EmptyState>
           ) : (
@@ -487,7 +492,24 @@ export default async function CompanyDetailPage({
       ) : null}
 
       {tab === "talent" ? (
-        <p className="mt-6 text-sm text-muted-foreground">Not yet implemented in this phase.</p>
+        <section className="mt-6">
+          {!can(principal, "candidates.read") ? (
+            <p className="text-sm text-muted-foreground">Talent linked to this company is hidden without candidate access.</p>
+          ) : companyTalent.length === 0 ? (
+            <EmptyState>No Talent Network candidates are linked through this company&apos;s jobs yet.</EmptyState>
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {companyTalent.map((row) => (
+                <li key={row.id}>
+                  <Link className="font-medium text-navy underline" href={`/app/talent/${row.id}`}>
+                    {row.fullName}
+                  </Link>
+                  <span className="text-muted-foreground">{` · ${row.links.join(" · ")}`}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       ) : null}
 
       {tab === "workforce" ? (

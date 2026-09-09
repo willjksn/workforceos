@@ -1,6 +1,6 @@
 # Decision Log
 
-Status: Phase 1 architectural decisions  
+Status: Binding architecture and product decisions (through DEC-MIL-005)  
 Database mirror: `decision_log` table, seeded from this file.
 
 ## DEC-DB-001 — PostgreSQL over Firebase

@@ -1,6 +1,6 @@
 # Schema Specification
 
-Status: Phase 9 Scout + SkillBridge operations  
+Status: Implemented through Phase 10 hiring and public content (`drizzle/0010`–`0012`)  
 Implementation: `db/schema/`  
 Migrations: `drizzle/`
 
@@ -128,7 +128,7 @@ Do not apply raw production SQL outside migrations unless an emergency runbook s
 
 ## Phase 10 hiring tables
 
-Add through a new Drizzle migration. Do not edit 0000–0009. Index `applications.candidate_id`, `applications.job_id`, `applications.status`, `applications.current_stage`, `applications.applied_at`, posting slug, interview/offer `application_id`, and `employees.candidate_id`. Unique person identity stays on `candidates`.
+Hiring tables are in `db/schema/hiring/` and `drizzle/0010_*`. Do not edit `0000`–`0009`. Index `applications.candidate_id`, `applications.job_id`, `applications.status`, `applications.current_stage`, `applications.applied_at`, posting slug, interview/offer `application_id`, and `employees.candidate_id`. Unique person identity stays on `candidates`.
 
 ## Public content items
 

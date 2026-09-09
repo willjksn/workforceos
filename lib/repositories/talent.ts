@@ -1,7 +1,10 @@
-import { and, count, eq, ilike, isNull, lt, or } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, isNull, lt, or } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
+  activities,
+  applications,
+  candidateEngagements,
   candidateExperiences,
   candidateJobMatches,
   candidateMilitaryExperiences,
@@ -14,6 +17,7 @@ import {
   militaryOccupations,
   skills,
   talentPools,
+  transactionalEmailEvents,
 } from "../../db/schema";
 import { recordAuditEvent } from "../audit/record-audit-event";
 import { sanitizeSearchQuery } from "../validation/forms";
@@ -85,6 +89,127 @@ export async function getCandidateWithRelationships(candidateId: string, organiz
   }
 
   return { candidate, experiences, skills: skillRows, pools, matches, military, resumeFile };
+}
+
+export async function listCandidateEngagementHistory(candidateId: string, organizationId: string) {
+  const db = getDb();
+  const [engagementRows, activityRows, applicationRows] = await Promise.all([
+    db
+      .select()
+      .from(candidateEngagements)
+      .where(eq(candidateEngagements.candidateId, candidateId))
+      .orderBy(desc(candidateEngagements.occurredAt)),
+    db
+      .select()
+      .from(activities)
+      .where(and(eq(activities.candidateId, candidateId), eq(activities.organizationId, organizationId)))
+      .orderBy(desc(activities.occurredAt)),
+    db
+      .select({ application: applications, job: jobs })
+      .from(applications)
+      .innerJoin(jobs, eq(applications.jobId, jobs.id))
+      .where(
+        and(
+          eq(applications.candidateId, candidateId),
+          eq(applications.organizationId, organizationId),
+          isNull(applications.archivedAt),
+        ),
+      )
+      .orderBy(desc(applications.appliedAt)),
+  ]);
+  const applicationIds = applicationRows.map((row) => row.application.id);
+  const emailRows = await db
+    .select({
+      id: transactionalEmailEvents.id,
+      template: transactionalEmailEvents.template,
+      status: transactionalEmailEvents.status,
+      sentAt: transactionalEmailEvents.sentAt,
+      createdAt: transactionalEmailEvents.createdAt,
+      entityType: transactionalEmailEvents.entityType,
+    })
+    .from(transactionalEmailEvents)
+    .where(
+      and(
+        eq(transactionalEmailEvents.organizationId, organizationId),
+        applicationIds.length
+          ? or(
+              and(
+                eq(transactionalEmailEvents.entityType, "candidate"),
+                eq(transactionalEmailEvents.entityId, candidateId),
+              ),
+              inArray(transactionalEmailEvents.entityId, applicationIds),
+            )
+          : and(
+              eq(transactionalEmailEvents.entityType, "candidate"),
+              eq(transactionalEmailEvents.entityId, candidateId),
+            ),
+      ),
+    )
+    .orderBy(desc(transactionalEmailEvents.createdAt))
+    .limit(50);
+  return {
+    engagements: engagementRows,
+    activities: activityRows,
+    applications: applicationRows,
+    emails: emailRows,
+  };
+}
+
+export async function listCompanyTalentCandidates(organizationId: string, companyId: string) {
+  const db = getDb();
+  const companyJobs = await db
+    .select({ id: jobs.id, title: jobs.title })
+    .from(jobs)
+    .where(and(eq(jobs.organizationId, organizationId), eq(jobs.companyId, companyId), isNull(jobs.archivedAt)));
+  if (companyJobs.length === 0) return [];
+  const jobIds = companyJobs.map((job) => job.id);
+  const [applied, matched] = await Promise.all([
+    db
+      .select({
+        candidateId: candidates.id,
+        fullName: candidates.fullName,
+        jobTitle: jobs.title,
+        kind: applications.status,
+      })
+      .from(applications)
+      .innerJoin(candidates, eq(applications.candidateId, candidates.id))
+      .innerJoin(jobs, eq(applications.jobId, jobs.id))
+      .where(
+        and(
+          eq(applications.organizationId, organizationId),
+          inArray(applications.jobId, jobIds),
+          isNull(applications.archivedAt),
+          isNull(candidates.archivedAt),
+          isNull(candidates.privacyDeletedAt),
+        ),
+      )
+      .orderBy(desc(applications.appliedAt)),
+    db
+      .select({
+        candidateId: candidates.id,
+        fullName: candidates.fullName,
+        jobTitle: jobs.title,
+        kind: candidateJobMatches.pipelineStatus,
+      })
+      .from(candidateJobMatches)
+      .innerJoin(candidates, eq(candidateJobMatches.candidateId, candidates.id))
+      .innerJoin(jobs, eq(candidateJobMatches.jobId, jobs.id))
+      .where(
+        and(
+          inArray(candidateJobMatches.jobId, jobIds),
+          isNull(candidates.archivedAt),
+          isNull(candidates.privacyDeletedAt),
+        ),
+      ),
+  ]);
+  const byCandidate = new Map<string, { id: string; fullName: string; links: string[] }>();
+  for (const row of [...applied, ...matched]) {
+    const current = byCandidate.get(row.candidateId) ?? { id: row.candidateId, fullName: row.fullName, links: [] };
+    const label = `${row.jobTitle} · ${row.kind}`;
+    if (!current.links.includes(label)) current.links.push(label);
+    byCandidate.set(row.candidateId, current);
+  }
+  return [...byCandidate.values()];
 }
 
 export async function archiveCandidate(candidateId: string, organizationId?: string) {

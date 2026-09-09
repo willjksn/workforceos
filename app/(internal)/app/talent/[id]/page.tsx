@@ -10,7 +10,7 @@ import { requestPrivacyDeletionAction } from "@/lib/actions/privacy";
 import { ProfileSnapshot, StatusBadge, TabNav } from "@/components/ui/display";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { presentCandidate } from "@/lib/privacy/present-candidate";
-import { getCandidateWithRelationships, listTalentPools } from "@/lib/repositories/talent";
+import { getCandidateWithRelationships, listCandidateEngagementHistory, listTalentPools } from "@/lib/repositories/talent";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../_components/action-form";
 import { ResumeViewer } from "../../_components/resume-viewer";
@@ -40,6 +40,9 @@ export default async function CandidateDetailPage({
   const tab = TABS.includes(tabParam as (typeof TABS)[number]) ? tabParam! : "overview";
   const record = await getCandidateWithRelationships(id, principal.organizationId);
   if (!record) notFound();
+  const history = tab === "engagement"
+    ? await listCandidateEngagementHistory(id, principal.organizationId)
+    : null;
   const canReadPii = can(principal, "candidate_pii.read");
   const candidate = presentCandidate(record.candidate, canReadPii);
   const canWrite = can(principal, "candidates.write");
@@ -223,8 +226,73 @@ export default async function CandidateDetailPage({
         </section>
       ) : null}
 
-      {tab === "engagement" ? (
-        <p className="mt-6 text-sm text-muted-foreground">Not yet implemented in this phase.</p>
+      {tab === "engagement" && history ? (
+        <section className="mt-6 space-y-8">
+          <p className="text-sm text-muted-foreground">
+            Website submissions, logged activities, applications, resume status, and transactional emails from stored records. Recipients stay hidden.
+          </p>
+          <div>
+            <h2 className="section-title">Resume</h2>
+            <p className="mt-2 text-sm">
+              {record.resumeFile
+                ? `${record.resumeFile.filename} · uploaded ${formatDate(record.resumeFile.createdAt)}`
+                : record.candidate.currentResumeFileId
+                  ? "Resume is on file."
+                  : "No resume on file."}
+            </p>
+          </div>
+          <div>
+            <h2 className="section-title">Applications</h2>
+            {history.applications.length === 0 ? (
+              <p className="mt-2 text-sm text-muted-foreground">No applications recorded.</p>
+            ) : (
+              <ul className="mt-2 space-y-1 text-sm">
+                {history.applications.map(({ application, job }) => (
+                  <li key={application.id}>
+                    <Link className="text-navy underline" href={`/app/recruiting/applications/${application.id}`}>
+                      {job.title}
+                    </Link>
+                    {` · ${formatLabel(application.status)} · ${formatDate(application.appliedAt)}`}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div>
+            <h2 className="section-title">Communications</h2>
+            {history.engagements.length === 0 && history.activities.length === 0 && history.emails.length === 0 ? (
+              <p className="mt-2 text-sm text-muted-foreground">No engagements, activities, or emails recorded yet.</p>
+            ) : (
+              <ul className="mt-2 space-y-2 text-sm">
+                {history.engagements.map((row) => (
+                  <li key={row.id}>
+                    <span className="font-medium text-navy">{row.subject ?? formatLabel(row.engagementType)}</span>
+                    <span className="text-muted-foreground">
+                      {` · ${formatLabel(row.channel ?? row.engagementType)} · ${formatLabel(row.direction)} · ${formatDate(row.occurredAt)}`}
+                    </span>
+                    {row.summary ? <p className="text-muted-foreground">{row.summary}</p> : null}
+                  </li>
+                ))}
+                {history.activities.map((row) => (
+                  <li key={row.id}>
+                    <span className="font-medium text-navy">{row.subject}</span>
+                    <span className="text-muted-foreground">
+                      {` · ${formatLabel(row.activityType)} · ${formatDate(row.occurredAt)}`}
+                    </span>
+                  </li>
+                ))}
+                {history.emails.map((row) => (
+                  <li key={row.id}>
+                    <span className="font-medium text-navy">{formatLabel(row.template)}</span>
+                    <span className="text-muted-foreground">
+                      {` · ${formatLabel(row.status)} · ${formatDate(row.sentAt ?? row.createdAt)}`}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
       ) : null}
 
       {tab === "matches" ? (

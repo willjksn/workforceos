@@ -263,7 +263,7 @@ export function PhasePlaceholder({
   return (
     <PageShell>
       <PageHeader title={title} description={description} />
-      <EmptyState title="Not yet implemented in this phase.">
+      <EmptyState title="This module is reserved.">
         This module is reserved. Existing records remain in PostgreSQL until the operating workflow is built.
       </EmptyState>
     </PageShell>
