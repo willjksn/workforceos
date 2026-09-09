@@ -6,7 +6,7 @@ Canonical: this file is the architecture source of truth for implementation.
 
 ## Purpose
 
-WorkforceOS is an internal operating system for a Workforce & Talent Solutions firm. It is not a generic ATS and not a public SaaS platform in V1. How PierOne Partners the company operates (SOLVE → BUILD → OPERATE, mapped to screens) is `docs/business/PIERONE_OPERATING_MANUAL.md` — not the deploy/recover playbook.
+WorkforceOS is an internal operating system for a Workforce & Talent Solutions firm. It is not a generic ATS and not a public SaaS platform in V1. How PierOne Partners the company operates (SOLVE → BUILD → OPERATE, mapped to screens) is `docs/business/PIERONE_OPERATING_MANUAL.md` — not the deploy/recover playbook. Repeatable service delivery maps are `docs/business/SERVICE_PLAYBOOKS.md`.
 
 It will eventually manage company CRM, Talent CRM, recruiting/search, military talent translation, workforce development, legal document operations, finance/AR workflow, integrations, background AI agents, audit history, approvals, and institutional knowledge.
 
@@ -179,6 +179,7 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 ## Related documents
 
 - [PIERONE_OPERATING_MANUAL.md](../business/PIERONE_OPERATING_MANUAL.md) — how PierOne Partners the company operates (SOLVE → BUILD → OPERATE); not deploy/recover
+- [SERVICE_PLAYBOOKS.md](../business/SERVICE_PLAYBOOKS.md) — ten delivery playbooks mapped to live screens
 - [SERVICE_CATALOG.md](../business/SERVICE_CATALOG.md)
 - [SERVICE_WORKFLOWS.md](../workflows/SERVICE_WORKFLOWS.md)
 - [DATA_DICTIONARY.md](../database/DATA_DICTIONARY.md)

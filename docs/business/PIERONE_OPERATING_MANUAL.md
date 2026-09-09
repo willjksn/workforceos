@@ -379,24 +379,23 @@ Operator access bundle: **Military Talent Partner**. Senior Talent Partner and R
 
 ## Service playbooks (Phase G)
 
-Phase G will write ten service playbooks mapped to screen / data / owner / approval / Scout. Each must cite an approved workflow record — do not hardcode material process rules in agents. **Not started in this pass.** Intended titles:
+Repeatable delivery maps live in `docs/business/SERVICE_PLAYBOOKS.md` and `docs/business/playbooks/`. This manual stays the company operating model (SOLVE → BUILD → OPERATE). Playbooks cite this file, the catalog, `docs/workflows/SERVICE_WORKFLOWS.md`, and approved `service_workflows` records — they do not replace those records.
 
-1. Professional Search — commercial engagement
-2. Professional Search — search execution
-3. Military Talent Opportunity Assessment — commercial engagement
-4. Military Talent Opportunity Assessment — assessment and pathway operations
-5. Talent Acquisition Performance Assessment — commercial engagement
-6. Talent Acquisition Performance Assessment — assessment delivery
-7. Fractional Talent Partner — commercial engagement
-8. Fractional Talent Partner — operating cadence
-9. Workforce Pipeline Assessment — commercial engagement
-10. Workforce Pipeline Assessment — intelligence delivery
-
-Until those exist, use this manual plus `docs/workflows/SERVICE_WORKFLOWS.md` and the `services` / `service_workflows` tables.
+1. Professional Search
+2. Military Talent Opportunity Assessment
+3. Talent Acquisition Performance Assessment
+4. Fractional Talent Partner
+5. Workforce Pipeline Assessment
+6. Military Transition / SkillBridge-eligible operations (pathway ops, not a sixth client offer)
+7. Recruiting & Hiring
+8. Client Discovery
+9. Proposal / Contract Handoff
+10. Project Delivery / Closeout
 
 ## Related documents
 
 - Catalog: `docs/business/SERVICE_CATALOG.md`
+- Service playbooks: `docs/business/SERVICE_PLAYBOOKS.md`
 - Workflows: `docs/workflows/SERVICE_WORKFLOWS.md`
 - Decisions: `docs/decisions/DECISION_LOG.md` (DEC-MIL-005, DEC-RBAC-001, DEC-AUTH-002)
 - Architecture: `docs/architecture/WORKFORCEOS_MASTER_SPEC.md`

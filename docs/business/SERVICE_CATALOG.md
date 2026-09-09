@@ -76,3 +76,5 @@ Each service has a versioned pricing model (percentage fee, fixed project, or mo
 - Dual careers as a sixth launch service
 - A PierOne-owned SkillBridge program or SkillBridge-as-a-service
 - In-app Academy / LMS (Phase E; not yet built)
+
+Repeatable delivery steps mapped to live WorkforceOS screens: `docs/business/SERVICE_PLAYBOOKS.md`.
