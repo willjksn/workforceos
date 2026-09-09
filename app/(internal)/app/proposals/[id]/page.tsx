@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { approveProposalAction, sendProposalAction } from "@/lib/actions/delivery";
+import { approveProposalAction, sendProposalAction, submitProposalForReviewAction } from "@/lib/actions/delivery";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { getProposalBundle } from "@/lib/delivery/engine";
 import { can } from "@/lib/rbac/permissions";
@@ -72,13 +72,19 @@ export default async function ProposalDetailPage({
         </a>
       ) : null}
       <div className="mt-6 flex flex-wrap gap-3">
-        {can(principal, "proposals.approve") && bundle.proposal.status === "draft" ? (
+        {can(principal, "proposals.write") && bundle.proposal.status === "draft" ? (
+          <ActionForm action={submitProposalForReviewAction}>
+            <input type="hidden" name="proposalId" value={bundle.proposal.id} />
+            <PrimaryButton>Submit for internal review</PrimaryButton>
+          </ActionForm>
+        ) : null}
+        {can(principal, "proposals.approve") && bundle.proposal.status === "internal_review" ? (
           <ActionForm action={approveProposalAction}>
             <input type="hidden" name="proposalId" value={bundle.proposal.id} />
             <PrimaryButton>Approve proposal</PrimaryButton>
           </ActionForm>
         ) : null}
-        {can(principal, "proposals.write") ? (
+        {can(principal, "proposals.write") && bundle.proposal.status === "approved" ? (
           <ActionForm action={sendProposalAction}>
             <input type="hidden" name="proposalId" value={bundle.proposal.id} />
             <button className="rounded-full border px-4 py-2 text-sm" type="submit">
@@ -87,6 +93,11 @@ export default async function ProposalDetailPage({
           </ActionForm>
         ) : null}
       </div>
+      {bundle.proposal.status === "draft" || bundle.proposal.status === "internal_review" ? (
+        <p className="mt-3 text-sm text-muted-foreground">
+          Send is available after internal review and human approval.
+        </p>
+      ) : null}
     </PageShell>
   );
 }

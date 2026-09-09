@@ -18,6 +18,7 @@ import {
   executeContractManual,
   markDeliverableDelivered,
   sendProposal,
+  submitProposalForReview,
 } from "@/lib/delivery/engine";
 import { AuthorizationError } from "@/lib/rbac/permissions";
 import { emptyToNull } from "@/lib/validation/forms";
@@ -142,6 +143,20 @@ export async function createProposalAction(_prev: ActionState, formData: FormDat
       solutionPlanId: parsed.solutionPlanId,
     });
     redirect(`/app/proposals/${created.proposal.id}`);
+  } catch (error) {
+    if (isNextControlFlow(error)) throw error;
+    return fail(error);
+  }
+}
+
+export async function submitProposalForReviewAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    const principal = await requireAppPermission("proposals.write");
+    const parsed = z.object({ proposalId: z.string().uuid() }).parse({
+      proposalId: formData.get("proposalId"),
+    });
+    await submitProposalForReview({ actor: actorFrom(principal), proposalId: parsed.proposalId });
+    redirect(`/app/proposals/${parsed.proposalId}`);
   } catch (error) {
     if (isNextControlFlow(error)) throw error;
     return fail(error);

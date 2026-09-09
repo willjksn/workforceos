@@ -27,6 +27,7 @@ import {
   loadApprovedWorkflow,
   markDeliverableDelivered,
   sendProposal,
+  submitProposalForReview,
   triggerBillingEvent,
 } from "../lib/delivery/engine";
 import { companies, opportunities } from "../db/schema";
@@ -93,9 +94,11 @@ async function main() {
   assert(workflow.steps.length > 0, "Approved workflow missing");
   assert(workflow.version.reviewStatus === "approved", "Active version is not approved");
 
-  console.log("TEST 2 — Generate proposal from solution plan and human-approve");
+  console.log("TEST 2 — Generate proposal from solution plan, internal review, then human-approve");
   const proposalBundle = await createProposalFromPlan({ actor, solutionPlanId: search.plan.id });
-  const approvedProposal = await approveProposal({ actor, proposalId: proposalBundle.proposal.id });
+  const reviewed = await submitProposalForReview({ actor, proposalId: proposalBundle.proposal.id });
+  assert(reviewed.status === "internal_review", "Proposal was not submitted for internal review");
+  const approvedProposal = await approveProposal({ actor, proposalId: reviewed.id });
   assert(approvedProposal.status === "approved", "Proposal was not approved");
 
   console.log("TEST 3 — Create contract package for Professional Search");

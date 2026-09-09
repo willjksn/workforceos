@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { requireAppPermission } from "@/lib/auth/guard";
 import { listDiscoveries, loadApprovedWorkflow } from "@/lib/delivery/engine";
-import { listCompaniesForSelect, listOpportunities } from "@/lib/repositories/crm";
+import { getOpportunityGraph, listCompaniesForSelect, listOpportunities } from "@/lib/repositories/crm";
 import { listLaunchServices } from "@/lib/repositories/services";
 import { can } from "@/lib/rbac/permissions";
 import { StatusBadge } from "@/components/ui/display";
@@ -16,8 +16,13 @@ import {
   formatLabel,
 } from "../_components/ui";
 
-export default async function DiscoveryPage() {
+export default async function DiscoveryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ opportunityId?: string }>;
+}) {
   const principal = await requireAppPermission("discovery.read");
+  const params = await searchParams;
   const rows = await listDiscoveries(principal.organizationId);
   const canWrite = can(principal, "discovery.write");
   const services = canWrite ? await listLaunchServices() : [];
@@ -28,6 +33,10 @@ export default async function DiscoveryPage() {
     const workflow = await loadApprovedWorkflow(service.code);
     questionsByService[service.code] = workflow.definition?.requiredDiscoveryInputs ?? [];
   }
+  const focused =
+    canWrite && params.opportunityId
+      ? await getOpportunityGraph(params.opportunityId, principal.organizationId)
+      : null;
 
   return (
     <PageShell wide>
@@ -61,7 +70,14 @@ export default async function DiscoveryPage() {
         </DataTable>
       )}
       {canWrite ? (
-        <CreatePanel title="Start discovery" description="Answers are stored against the approved service version. AI may draft summaries; humans approve.">
+        <CreatePanel
+          title="Start discovery"
+          description={
+            focused
+              ? `Prefilled from ${focused.company.name} · ${focused.opportunity.name}. Answers are stored against the approved service version.`
+              : "Answers are stored against the approved service version. AI may draft summaries; humans approve."
+          }
+        >
           <DiscoveryCreateForm
             services={services.map(({ service }) => ({ code: service.code, name: service.name }))}
             companies={companies.map((company) => ({ id: company.id, name: company.name }))}
@@ -71,6 +87,10 @@ export default async function DiscoveryPage() {
               serviceCode: opportunity.serviceCode,
             }))}
             questionsByService={questionsByService}
+            defaultCompanyId={focused?.company.id}
+            defaultOpportunityId={focused?.opportunity.id}
+            defaultServiceCode={focused?.opportunity.serviceCode ?? undefined}
+            defaultTitle={focused ? `${focused.opportunity.name} discovery` : undefined}
           />
         </CreatePanel>
       ) : null}

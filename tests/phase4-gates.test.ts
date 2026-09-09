@@ -8,6 +8,8 @@ import {
   assertApprovedVersionImmutable,
   assertCanDeliverClientFacing,
   assertCanSendProposal,
+  assertCanSubmitProposalForReview,
+  assertCanApproveProposal,
   assertCloseoutAllowed,
   assertProjectCreationAllowed,
   DeliveryError,
@@ -35,7 +37,15 @@ describe("Phase 4 gates", () => {
 
   it("blocks sending an unapproved proposal", () => {
     expect(() => assertCanSendProposal("draft")).toThrow(/approved/);
+    expect(() => assertCanSendProposal("internal_review")).toThrow(/approved/);
     expect(() => assertCanSendProposal("approved")).not.toThrow();
+  });
+
+  it("requires internal review before proposal approval", () => {
+    expect(() => assertCanSubmitProposalForReview("internal_review")).toThrow(/draft/);
+    expect(() => assertCanSubmitProposalForReview("draft")).not.toThrow();
+    expect(() => assertCanApproveProposal("draft")).toThrow(/internal review/);
+    expect(() => assertCanApproveProposal("internal_review")).not.toThrow();
   });
 
   it("blocks client-facing delivery without approval", () => {

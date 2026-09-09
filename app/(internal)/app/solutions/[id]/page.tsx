@@ -66,7 +66,7 @@ export default async function SolutionPlanPage({
         {can(principal, "proposals.write") && plan.status === "approved" ? (
           <ActionForm action={createProposalAction}>
             <input type="hidden" name="solutionPlanId" value={plan.id} />
-            <PrimaryButton>Generate proposal</PrimaryButton>
+            <PrimaryButton>Build proposal</PrimaryButton>
           </ActionForm>
         ) : null}
         {can(principal, "contracts.write") && plan.companyId ? (

@@ -13,13 +13,25 @@ export function DiscoveryCreateForm({
   companies,
   opportunities,
   questionsByService,
+  defaultCompanyId,
+  defaultOpportunityId,
+  defaultServiceCode,
+  defaultTitle,
 }: {
   services: Array<{ code: string; name: string }>;
   companies: Array<{ id: string; name: string }>;
   opportunities: Array<{ id: string; label: string; serviceCode?: string | null }>;
   questionsByService: Record<string, Question[]>;
+  defaultCompanyId?: string;
+  defaultOpportunityId?: string;
+  defaultServiceCode?: string;
+  defaultTitle?: string;
 }) {
-  const [serviceCode, setServiceCode] = useState(services[0]?.code ?? "");
+  const [serviceCode, setServiceCode] = useState(
+    defaultServiceCode && services.some((service) => service.code === defaultServiceCode)
+      ? defaultServiceCode
+      : (services[0]?.code ?? ""),
+  );
   const questions = useMemo(
     () => questionsByService[serviceCode] ?? [],
     [questionsByService, serviceCode],
@@ -28,7 +40,7 @@ export function DiscoveryCreateForm({
   return (
     <ActionForm action={createDiscoveryAction} className="grid gap-3 md:grid-cols-2">
       <Field label="Company" name="companyId">
-        <select className={inputClassName} id="companyId" name="companyId" required>
+        <select className={inputClassName} id="companyId" name="companyId" required defaultValue={defaultCompanyId}>
           {companies.map((company) => (
             <option key={company.id} value={company.id}>
               {company.name}
@@ -37,7 +49,7 @@ export function DiscoveryCreateForm({
         </select>
       </Field>
       <Field label="Opportunity" name="opportunityId">
-        <select className={inputClassName} id="opportunityId" name="opportunityId" required>
+        <select className={inputClassName} id="opportunityId" name="opportunityId" required defaultValue={defaultOpportunityId}>
           {opportunities.map((opportunity) => (
             <option key={opportunity.id} value={opportunity.id}>
               {opportunity.label}
@@ -62,7 +74,7 @@ export function DiscoveryCreateForm({
         </select>
       </Field>
       <Field label="Title" name="title">
-        <input className={inputClassName} id="title" name="title" required />
+        <input className={inputClassName} id="title" name="title" required defaultValue={defaultTitle} />
       </Field>
       {questions.map((question) => (
         <Field key={`${serviceCode}-${question.key}`} label={question.label} name={`answer.${question.key}`}>

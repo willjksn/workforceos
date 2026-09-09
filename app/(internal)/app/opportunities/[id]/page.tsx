@@ -6,13 +6,15 @@ import {
   scoreOpportunityAction,
   updateOpportunityStageAction,
 } from "@/lib/actions/crm";
+import { createProposalAction } from "@/lib/actions/delivery";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { SCORE_WEIGHTS } from "@/lib/crm/scoring";
 import { OPPORTUNITY_STAGES } from "@/lib/crm/stages";
+import { listOpportunityCommercialPath } from "@/lib/delivery/engine";
 import { getOpportunityGraph } from "@/lib/repositories/crm";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../_components/action-form";
-import { EmptyState, Field, PageHeader, PageShell, PrimaryButton, formatDate, formatLabel, inputClassName } from "../../_components/ui";
+import { ButtonLink, EmptyState, Field, PageHeader, PageShell, PrimaryButton, formatDate, formatLabel, inputClassName } from "../../_components/ui";
 
 export default async function OpportunityDetailPage({
   params,
@@ -25,6 +27,13 @@ export default async function OpportunityDetailPage({
   if (!graph) notFound();
   const { opportunity, company, score } = graph;
   const canWrite = can(principal, "opportunities.write");
+  const commercial = await listOpportunityCommercialPath(principal.organizationId, opportunity.id);
+  const approvedPlan = commercial.plans.find((plan) => plan.status === "approved");
+  const inFlightProposal = commercial.proposals.find((proposal) =>
+    ["draft", "internal_review", "approved", "sent", "viewed"].includes(proposal.status),
+  );
+  const canStartDiscovery = can(principal, "discovery.write");
+  const canBuildProposal = can(principal, "proposals.write") && Boolean(approvedPlan) && !inFlightProposal;
 
   return (
     <PageShell>
@@ -79,6 +88,61 @@ export default async function OpportunityDetailPage({
       {opportunity.problemStatement ? (
         <p className="mt-4 text-sm text-muted-foreground">{opportunity.problemStatement}</p>
       ) : null}
+
+      <section className="mt-10">
+        <h2 className="section-title">Commercial path</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Discovery → solution plan → build proposal → internal review → human approve → send. Scout may draft; it cannot approve or send.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          {canStartDiscovery ? (
+            <ButtonLink href={`/app/discovery?opportunityId=${opportunity.id}`} variant="primary">
+              Start discovery
+            </ButtonLink>
+          ) : null}
+          {canBuildProposal && approvedPlan ? (
+            <ActionForm action={createProposalAction}>
+              <input type="hidden" name="solutionPlanId" value={approvedPlan.id} />
+              <PrimaryButton>Build proposal</PrimaryButton>
+            </ActionForm>
+          ) : null}
+          {inFlightProposal ? (
+            <ButtonLink href={`/app/proposals/${inFlightProposal.id}`} variant="secondary">
+              Open proposal
+            </ButtonLink>
+          ) : null}
+        </div>
+        {commercial.discoveries.length === 0 && commercial.plans.length === 0 && commercial.proposals.length === 0 ? (
+          <EmptyState>No discovery, plan, or proposal is linked yet.</EmptyState>
+        ) : (
+          <ul className="mt-4 space-y-2 text-sm">
+            {commercial.discoveries.map((row) => (
+              <li key={row.id}>
+                <Link className="underline" href={`/app/discovery/${row.id}`}>
+                  Discovery: {row.title}
+                </Link>
+                <span className="text-muted-foreground"> · {formatLabel(row.status)}</span>
+              </li>
+            ))}
+            {commercial.plans.map((row) => (
+              <li key={row.id}>
+                <Link className="underline" href={`/app/solutions/${row.id}`}>
+                  Solution plan: {row.title}
+                </Link>
+                <span className="text-muted-foreground"> · {formatLabel(row.status)}</span>
+              </li>
+            ))}
+            {commercial.proposals.map((row) => (
+              <li key={row.id}>
+                <Link className="underline" href={`/app/proposals/${row.id}`}>
+                  Proposal: {row.title}
+                </Link>
+                <span className="text-muted-foreground"> · {formatLabel(row.status)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {canWrite ? (
         <section className="mt-10">

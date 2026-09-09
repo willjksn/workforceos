@@ -43,6 +43,26 @@ export function assertProjectCreationAllowed(input: {
   );
 }
 
+export function canSubmitProposalForReview(status: string) {
+  return status === "draft";
+}
+
+export function assertCanSubmitProposalForReview(status: string) {
+  if (!canSubmitProposalForReview(status)) {
+    throw new DeliveryError("Only a draft proposal can be submitted for internal review");
+  }
+}
+
+export function canApproveProposal(status: string) {
+  return status === "internal_review";
+}
+
+export function assertCanApproveProposal(status: string) {
+  if (!canApproveProposal(status)) {
+    throw new DeliveryError("Proposal must be in internal review before it can be approved");
+  }
+}
+
 export function canSendProposal(status: string) {
   return status === "approved";
 }

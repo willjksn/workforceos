@@ -38,7 +38,9 @@ import { roleSlugsHavePermission } from "../rbac/permissions";
 import {
   assertApprovedVersionImmutable,
   assertCanDeliverClientFacing,
+  assertCanApproveProposal,
   assertCanSendProposal,
+  assertCanSubmitProposalForReview,
   assertCloseoutAllowed,
   assertProjectCreationAllowed,
   assertProposalVersionMutable,
@@ -603,6 +605,24 @@ function escapeHtml(value?: string | null) {
     .replaceAll('"', "&quot;");
 }
 
+export async function submitProposalForReview(input: { actor: Actor; proposalId: string }) {
+  const db = getDb();
+  const [before] = await db
+    .select()
+    .from(proposals)
+    .where(and(eq(proposals.id, input.proposalId), eq(proposals.organizationId, input.actor.organizationId)))
+    .limit(1);
+  if (!before) throw new DeliveryError("Proposal not found");
+  assertCanSubmitProposalForReview(before.status);
+  const [after] = await db
+    .update(proposals)
+    .set({ status: "internal_review", updatedAt: new Date() })
+    .where(eq(proposals.id, input.proposalId))
+    .returning();
+  await audit(input.actor, "proposal.internal_review", "proposal", after.id, after, before);
+  return after;
+}
+
 export async function approveProposal(input: { actor: Actor; proposalId: string }) {
   const db = getDb();
   const [before] = await db
@@ -611,6 +631,7 @@ export async function approveProposal(input: { actor: Actor; proposalId: string 
     .where(and(eq(proposals.id, input.proposalId), eq(proposals.organizationId, input.actor.organizationId)))
     .limit(1);
   if (!before) throw new DeliveryError("Proposal not found");
+  assertCanApproveProposal(before.status);
   const [after] = await db
     .update(proposals)
     .set({
@@ -1207,6 +1228,59 @@ export async function closeProject(input: {
   }
   await audit(input.actor, "project.closeout", "project", after.id, after, project, input.overrideReason ?? undefined);
   return after;
+}
+
+export async function listOpportunityCommercialPath(organizationId: string, opportunityId: string) {
+  const db = getDb();
+  const [discoveryRows, planRows, proposalRows] = await Promise.all([
+    db
+      .select({
+        id: discoveries.id,
+        title: discoveries.title,
+        status: discoveries.status,
+      })
+      .from(discoveries)
+      .where(
+        and(
+          eq(discoveries.organizationId, organizationId),
+          eq(discoveries.opportunityId, opportunityId),
+          isNull(discoveries.archivedAt),
+        ),
+      )
+      .orderBy(desc(discoveries.updatedAt)),
+    db
+      .select({
+        id: solutionPlans.id,
+        title: solutionPlans.title,
+        status: solutionPlans.status,
+      })
+      .from(solutionPlans)
+      .where(
+        and(
+          eq(solutionPlans.organizationId, organizationId),
+          eq(solutionPlans.opportunityId, opportunityId),
+          isNull(solutionPlans.archivedAt),
+        ),
+      )
+      .orderBy(desc(solutionPlans.updatedAt)),
+    db
+      .select({
+        id: proposals.id,
+        title: proposals.title,
+        status: proposals.status,
+        solutionPlanId: proposals.solutionPlanId,
+      })
+      .from(proposals)
+      .where(
+        and(
+          eq(proposals.organizationId, organizationId),
+          eq(proposals.opportunityId, opportunityId),
+          isNull(proposals.archivedAt),
+        ),
+      )
+      .orderBy(desc(proposals.updatedAt)),
+  ]);
+  return { discoveries: discoveryRows, plans: planRows, proposals: proposalRows };
 }
 
 export async function listDiscoveries(organizationId: string) {
