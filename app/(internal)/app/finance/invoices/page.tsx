@@ -5,6 +5,7 @@ import { listInvoices } from "@/lib/finance/engine";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../_components/action-form";
 import { DataTable, EmptyState, Field, PageHeader, PageShell, PrimaryButton, formatDate, formatLabel, inputClassName } from "../../_components/ui";
+import { FinanceSpine } from "@/components/ia/finance-spine";
 import { FinanceSubnav } from "../_components/finance-subnav";
 
 export default async function InvoicesPage() {
@@ -19,8 +20,9 @@ export default async function InvoicesPage() {
       <PageHeader
         eyebrow="Finance"
         title="Invoices"
-        description="Operating invoice records. QuickBooks remains the accounting source of truth. Provider IDs are stored as external_records."
+        description="Invoice expectations after contract terms. QuickBooks remains the accounting ledger."
       />
+      <FinanceSpine activeHref="/app/finance/invoices" />
       <FinanceSubnav active="/app/finance/invoices" />
       {can(principal, "invoices.write") && events.length > 0 ? (
         <ActionForm action={createInvoiceAction} className="mt-6 max-w-md space-y-3">

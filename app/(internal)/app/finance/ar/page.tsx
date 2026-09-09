@@ -1,6 +1,7 @@
 import { requireAppPermission } from "@/lib/auth/guard";
 import { accountsReceivableView } from "@/lib/finance/engine";
 import { DataTable, EmptyState, PageHeader, PageShell, formatDate, formatLabel } from "../../_components/ui";
+import { FinanceSpine } from "@/components/ia/finance-spine";
 import { FinanceSubnav } from "../_components/finance-subnav";
 
 export default async function AccountsReceivablePage() {
@@ -12,8 +13,9 @@ export default async function AccountsReceivablePage() {
       <PageHeader
         eyebrow="Finance"
         title="Accounts receivable"
-        description="Operating AR view. Aging buckets: current, 1–30, 31–60, 61–90, 90+."
+        description="Outstanding invoices after billing. Aging buckets: current, 1–30, 31–60, 61–90, 90+."
       />
+      <FinanceSpine activeHref="/app/finance/ar" />
       <FinanceSubnav active="/app/finance/ar" />
       {rows.length === 0 ? (
         <EmptyState title="No outstanding invoices." />

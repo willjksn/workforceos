@@ -53,6 +53,7 @@ import { legalPackageForService, primaryContractType } from "./legal-packages";
 import { assertPricingApproved, describePricingModel, pricingOutsideRange } from "./pricing";
 import { expansionCodesFromVersion } from "./expansion";
 import { createDeliveryBillingFoundation } from "../finance/engine";
+import { LEGAL_DRAFT_SOW } from "../legal/labels";
 
 export { DeliveryError };
 
@@ -761,7 +762,7 @@ export async function createContractPackage(input: {
         templateId: template?.id ?? null,
         title: `${workflow.service.name} · ${template?.name ?? templateType}`,
         status: "draft",
-        sow: template?.body ?? "Placeholder legal language. Not attorney-approved unless flagged.",
+        sow: template?.body ?? LEGAL_DRAFT_SOW,
       })
       .returning();
     created.push(contract);
@@ -1281,7 +1282,7 @@ export async function closeProject(input: {
 
 export async function listOpportunityCommercialPath(organizationId: string, opportunityId: string) {
   const db = getDb();
-  const [discoveryRows, planRows, proposalRows] = await Promise.all([
+  const [discoveryRows, planRows, proposalRows, contractRows, projectRows] = await Promise.all([
     db
       .select({
         id: discoveries.id,
@@ -1328,8 +1329,39 @@ export async function listOpportunityCommercialPath(organizationId: string, oppo
         ),
       )
       .orderBy(desc(proposals.updatedAt)),
+    db
+      .select({
+        id: contracts.id,
+        title: contracts.title,
+        status: contracts.status,
+        solutionPlanId: contracts.solutionPlanId,
+      })
+      .from(contracts)
+      .where(
+        and(
+          eq(contracts.organizationId, organizationId),
+          eq(contracts.opportunityId, opportunityId),
+          isNull(contracts.archivedAt),
+        ),
+      )
+      .orderBy(desc(contracts.updatedAt)),
+    db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        status: projects.status,
+      })
+      .from(projects)
+      .where(and(eq(projects.organizationId, organizationId), eq(projects.opportunityId, opportunityId)))
+      .orderBy(desc(projects.updatedAt)),
   ]);
-  return { discoveries: discoveryRows, plans: planRows, proposals: proposalRows };
+  return {
+    discoveries: discoveryRows,
+    plans: planRows,
+    proposals: proposalRows,
+    contracts: contractRows,
+    projects: projectRows,
+  };
 }
 
 export async function listDiscoveries(organizationId: string) {
@@ -1419,10 +1451,13 @@ export async function getProposalBundle(id: string, organizationId: string) {
       proposal: proposals,
       companyName: companies.name,
       plan: solutionPlans,
+      serviceCode: services.code,
     })
     .from(proposals)
     .innerJoin(companies, eq(proposals.companyId, companies.id))
     .innerJoin(solutionPlans, eq(proposals.solutionPlanId, solutionPlans.id))
+    .innerJoin(serviceVersions, eq(proposals.serviceVersionId, serviceVersions.id))
+    .innerJoin(services, eq(serviceVersions.serviceId, services.id))
     .where(and(eq(proposals.id, id), eq(proposals.organizationId, organizationId)))
     .limit(1);
   if (!row) return null;

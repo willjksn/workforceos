@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { AcademyHelp } from "@/components/academy/academy-help";
+import { ConceptNote } from "@/components/ia/concept-note";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { getHiringMetrics, listApplications } from "@/lib/hiring/service";
 import { ListPager, PageHeader, PageShell, formatLabel } from "../../_components/ui";
@@ -20,8 +22,10 @@ export default async function ApplicationsPage({
       <PageHeader
         eyebrow="Recruiting"
         title="Applications"
-        description="One candidate record. Each application is a relationship to a job."
+        description="One candidate record. Each application is that person applying to one job."
+        actions={<AcademyHelp articleSlug="module-talent" />}
       />
+      <ConceptNote concept="candidateVsApplication" />
       <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <p className="border border-border bg-white p-4 text-sm">New this week: {metrics.newApplications}</p>
         <p className="border border-border bg-white p-4 text-sm">Awaiting review: {metrics.awaitingReview}</p>

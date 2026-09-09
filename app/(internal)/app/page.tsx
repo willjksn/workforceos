@@ -238,7 +238,7 @@ export default async function CommandCenterPage({
 
       {can(principal, "agents.read") || can(principal, "agents.manage") ? (
         <section className="mt-8">
-          <SectionHeader title="AI" />
+          <SectionHeader title={can(principal, "agents.manage") ? "AI & Automation" : "Review Queue"} />
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {can(principal, "agents.read") ? (
               <MetricCard href="/app/ai-operations/review" label="Pending reviews" value={snapshot.ai.pendingReviews} />
@@ -246,7 +246,7 @@ export default async function CommandCenterPage({
             {can(principal, "agents.manage") ? (
               <>
                 <MetricCard href="/app/ai-operations/failures" label="Failed runs" value={snapshot.ai.failedRuns} />
-                <MetricCard href="/app/ai-operations/costs" label="Usage / cost" value={money(snapshot.ai.usageCost)} />
+                <MetricCard href="/app/ai-operations/costs" label="AI spend" value={money(snapshot.ai.usageCost)} />
               </>
             ) : null}
           </div>

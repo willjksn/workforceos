@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation";
 
-import { executeContractAction } from "@/lib/actions/delivery";
+import { createDeliveryProjectAction, executeContractAction } from "@/lib/actions/delivery";
+import { ConceptNote } from "@/components/ia/concept-note";
+import { FinanceSpine } from "@/components/ia/finance-spine";
+import { ButtonLink } from "@/components/ui/button";
 import { requireAppPermission } from "@/lib/auth/guard";
-import { getContract } from "@/lib/delivery/engine";
+import { getContract, listOpportunityCommercialPath } from "@/lib/delivery/engine";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../_components/action-form";
 import { Card, Field, PageHeader, PageShell, PrimaryButton, formatDate, formatLabel, inputClassName } from "../../_components/ui";
@@ -18,6 +21,15 @@ export default async function ContractDetailPage({
   const bundle = await getContract(id, principal.organizationId);
   if (!bundle) notFound();
   const { contract } = bundle;
+  const commercial = contract.opportunityId
+    ? await listOpportunityCommercialPath(principal.organizationId, contract.opportunityId)
+    : { projects: [] as Array<{ id: string }> };
+  const existingProject = commercial.projects[0];
+  const showCreateProject =
+    can(principal, "projects.write") &&
+    contract.status === "executed" &&
+    !existingProject &&
+    Boolean(contract.solutionPlanId);
 
   return (
     <PageShell>
@@ -31,6 +43,8 @@ export default async function ContractDetailPage({
           </StatusBadge>
         }
       />
+      <ConceptNote concept="templateVsAgreementVsContract" />
+      <FinanceSpine activeHref="/app/contracts" />
       <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
         <div>
           <dt className="text-muted-foreground">Signature</dt>
@@ -64,6 +78,20 @@ export default async function ContractDetailPage({
           </Field>
           <PrimaryButton>Mark executed (manual)</PrimaryButton>
         </ActionForm>
+      ) : null}
+      {showCreateProject && contract.solutionPlanId ? (
+        <ActionForm action={createDeliveryProjectAction} className="mt-6">
+          <input type="hidden" name="solutionPlanId" value={contract.solutionPlanId} />
+          <input type="hidden" name="contractId" value={contract.id} />
+          <PrimaryButton>Create delivery project</PrimaryButton>
+        </ActionForm>
+      ) : null}
+      {contract.status === "executed" && existingProject ? (
+        <div className="mt-6">
+          <ButtonLink href={`/app/projects/${existingProject.id}`} variant="primary">
+            Open delivery project
+          </ButtonLink>
+        </div>
       ) : null}
     </PageShell>
   );

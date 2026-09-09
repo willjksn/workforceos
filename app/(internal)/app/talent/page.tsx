@@ -22,6 +22,7 @@ import {
 } from "../_components/ui";
 import { StatusBadge } from "@/components/ui/display";
 import { AcademyHelp } from "@/components/academy/academy-help";
+import { ConceptNote } from "@/components/ia/concept-note";
 import { ButtonLink } from "@/components/ui/button";
 
 function availabilityTone(value: string) {
@@ -48,7 +49,7 @@ export default async function TalentPage({
       <PageHeader
         eyebrow="Talent Network / Candidates"
         title="Talent Network"
-        description="Permanent candidate records. One person is never duplicated per job. Email is Restricted PII."
+        description="Permanent candidate records. One person is never duplicated per job. An application is that person applying to one job."
         actions={
           <>
             <AcademyHelp articleSlug="module-talent" />
@@ -56,6 +57,7 @@ export default async function TalentPage({
           </>
         }
       />
+      <ConceptNote concept="candidateVsApplication" />
       <FilterBar>
         <SearchForm action="/app/talent" q={q} placeholder="Search name or title" className="" />
       </FilterBar>

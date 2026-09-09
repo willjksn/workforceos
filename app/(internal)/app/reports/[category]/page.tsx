@@ -126,7 +126,7 @@ export default async function ReportCategoryPage({
             .slice(0, 3)
             .map((row) => `${row.status}${row.rowCount != null ? ` (${row.rowCount} rows)` : ""}`)
             .join(" · ") || "none yet"}
-          . Stored jobs only — not a BI platform. Talent PII stays on-demand.
+          . Scheduled exports stay on this report. Talent contact details stay on-demand. This is not a BI platform.
         </p>
       ) : null}
       {saved.length > 0 ? (
@@ -161,7 +161,7 @@ export default async function ReportCategoryPage({
       <div className="mt-10">
         <SectionHeader title="Rows" />
         {report.rows.length === 0 ? (
-          <EmptyState title="No stored records answer this yet.">
+          <EmptyState title="Nothing answers this question yet.">
             Change the filters or add the operating records this question reads. Reports never invent metrics.
           </EmptyState>
         ) : (

@@ -1,8 +1,12 @@
 import { notFound } from "next/navigation";
 
-import { approveProposalAction, sendProposalAction, submitProposalForReviewAction } from "@/lib/actions/delivery";
+import { approveProposalAction, createContractPackageAction, sendProposalAction, submitProposalForReviewAction } from "@/lib/actions/delivery";
+import { AcademyHelp } from "@/components/academy/academy-help";
+import { ConceptNote } from "@/components/ia/concept-note";
+import { FinanceSpine } from "@/components/ia/finance-spine";
+import { ButtonLink } from "@/components/ui/button";
 import { requireAppPermission } from "@/lib/auth/guard";
-import { getProposalBundle } from "@/lib/delivery/engine";
+import { getProposalBundle, listOpportunityCommercialPath } from "@/lib/delivery/engine";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../_components/action-form";
 import { Card, PageHeader, PageShell, PrimaryButton, formatLabel } from "../../_components/ui";
@@ -18,6 +22,13 @@ export default async function ProposalDetailPage({
   const bundle = await getProposalBundle(id, principal.organizationId);
   if (!bundle) notFound();
   const current = bundle.versions[0];
+  const commercial = await listOpportunityCommercialPath(principal.organizationId, bundle.proposal.opportunityId);
+  const existingContract = commercial.contracts[0];
+  const showCreateContract =
+    can(principal, "contracts.write") &&
+    bundle.proposal.status === "accepted" &&
+    !existingContract &&
+    bundle.proposal.companyId;
 
   return (
     <PageShell>
@@ -26,11 +37,14 @@ export default async function ProposalDetailPage({
         title={bundle.proposal.title}
         description={`${bundle.companyName} · version ${bundle.proposal.currentVersionNumber}`}
         metadata={
-          <StatusBadge tone={bundle.proposal.status === "approved" ? "success" : "navy"}>
+          <StatusBadge tone={bundle.proposal.status === "approved" || bundle.proposal.status === "accepted" ? "success" : "navy"}>
             {formatLabel(bundle.proposal.status)}
           </StatusBadge>
         }
+        actions={<AcademyHelp articleSlug="module-proposals" />}
       />
+      <ConceptNote concept="solutionVsProposalVsSow" />
+      {current?.pricing || current?.pricingAmount ? <FinanceSpine activeHref="/app/proposals" /> : null}
       {current ? (
         <article className="mt-6 space-y-5 rounded-[8px] border border-card-border bg-card p-6 shadow-[var(--shadow-sm)]">
           <p className="eyebrow">PierOne Partners</p>
@@ -87,10 +101,23 @@ export default async function ProposalDetailPage({
         {can(principal, "proposals.write") && bundle.proposal.status === "approved" ? (
           <ActionForm action={sendProposalAction}>
             <input type="hidden" name="proposalId" value={bundle.proposal.id} />
-            <button className="rounded-full border px-4 py-2 text-sm" type="submit">
-              Send proposal
-            </button>
+            <PrimaryButton>Send to client</PrimaryButton>
           </ActionForm>
+        ) : null}
+        {showCreateContract ? (
+          <ActionForm action={createContractPackageAction}>
+            <input type="hidden" name="serviceCode" value={bundle.serviceCode} />
+            <input type="hidden" name="companyId" value={bundle.proposal.companyId} />
+            <input type="hidden" name="opportunityId" value={bundle.proposal.opportunityId} />
+            <input type="hidden" name="proposalId" value={bundle.proposal.id} />
+            <input type="hidden" name="solutionPlanId" value={bundle.proposal.solutionPlanId} />
+            <PrimaryButton>Create contract / SOW</PrimaryButton>
+          </ActionForm>
+        ) : null}
+        {bundle.proposal.status === "accepted" && existingContract ? (
+          <ButtonLink href={`/app/contracts/${existingContract.id}`} variant="primary">
+            Open contract / SOW
+          </ButtonLink>
         ) : null}
       </div>
       {bundle.proposal.status === "draft" || bundle.proposal.status === "internal_review" ? (

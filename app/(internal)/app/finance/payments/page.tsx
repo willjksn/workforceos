@@ -4,6 +4,7 @@ import { listInvoices, listPayments } from "@/lib/finance/engine";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../_components/action-form";
 import { DataTable, EmptyState, Field, PageHeader, PageShell, PrimaryButton, formatDate, formatLabel, inputClassName } from "../../_components/ui";
+import { FinanceSpine } from "@/components/ia/finance-spine";
 import { FinanceSubnav } from "../_components/finance-subnav";
 
 export default async function PaymentsPage() {
@@ -18,8 +19,9 @@ export default async function PaymentsPage() {
       <PageHeader
         eyebrow="Finance"
         title="Payments"
-        description="Payment status and references only. Do not store bank account or card numbers here."
+        description="Recorded payments against invoices. Do not store bank account or card numbers here."
       />
+      <FinanceSpine activeHref="/app/finance/payments" />
       <FinanceSubnav active="/app/finance/payments" />
       {can(principal, "payments.write") && openInvoices.length > 0 ? (
         <ActionForm action={recordPaymentAction} className="mt-6 grid max-w-xl gap-3">

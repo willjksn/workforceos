@@ -10,9 +10,9 @@ export default async function CostsPage() {
   return (
     <PageShell wide>
       <PageHeader
-        eyebrow="AI Operations"
-        title="Costs & Usage"
-        description="Token counts when the provider reports them, plus estimated cost by provider, model, and task. Daily and monthly agent limits block runaway loops."
+        eyebrow="Admin · AI & Automation"
+        title="AI costs"
+        description="Provider spend and token usage. This is admin work behind agents.manage — not a recruiter tool."
       />
       <AiSubnav active="/app/ai-operations/costs" />
       <section className="mt-8 grid gap-4 sm:grid-cols-2">

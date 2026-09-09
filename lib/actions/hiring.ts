@@ -39,7 +39,7 @@ export async function createRequisitionAction(_state: ActionState, formData: For
       employmentType: String(formData.get("employmentType") ?? "") || null,
     });
     await submitRequisitionForApproval({ principal, requisitionId: row.id });
-    redirect(`/app/recruiting/requisitions?created=${row.id}`);
+    redirect(`/app/jobs?view=headcount&created=${row.id}`);
   } catch (error) {
     if (error && typeof error === "object" && "digest" in error) throw error;
     return fail(error);

@@ -137,7 +137,7 @@ const NAV: NavGroup[] = [
   {
     label: "Admin",
     items: [
-      { href: "/app/ai-operations", label: "AI administration", icon: "sparkles", permission: "agents.manage" },
+      { href: "/app/ai-operations", label: "AI & Automation", icon: "sparkles", permission: "agents.manage" },
       { href: "/app/ai-operations/review", label: "Review Queue", icon: "bell", permission: "agents.read" },
       { href: "/app/ai-operations/knowledge", label: "Knowledge Sources", icon: "folder", permission: "knowledge.read" },
       { href: "/app/integrations", label: "Connected tools", icon: "network", anyPermission: ["integrations.read", "admin.users", "admin.roles"] },
@@ -187,7 +187,12 @@ export function isNavActive(href: string, pathname: string) {
     );
   }
   if (href === "/app/military") return pathname === "/app/military";
-  if (href === "/app/ai-operations") return pathname === "/app/ai-operations";
+  if (href === "/app/ai-operations") {
+    if (pathname.startsWith("/app/ai-operations/review") || pathname.startsWith("/app/ai-operations/knowledge")) {
+      return false;
+    }
+    return pathname === "/app/ai-operations" || pathname.startsWith("/app/ai-operations/");
+  }
   if (href === "/app/integrations") {
     return pathname === "/app/integrations" || pathname.startsWith("/app/integrations/");
   }

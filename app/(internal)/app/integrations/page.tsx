@@ -14,9 +14,9 @@ export default async function IntegrationsOverviewPage() {
   return (
     <PageShell>
       <PageHeader
-        eyebrow="Integrations"
-        title="Integration Hub"
-        description="External products connect through the Integration Hub. They are not systems of record. Unconfigured providers show adapters and labeled mocks — never a fake production connection. Secrets are never displayed."
+        eyebrow="Connected tools"
+        title="Connected tools"
+        description="Status of external products that feed WorkforceOS. Credential changes live on Admin → Integration Hub. These tools are not the system of record."
       />
       <div className="mt-8 space-y-8">
         {groups.map((group) => (

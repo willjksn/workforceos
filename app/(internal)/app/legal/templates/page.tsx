@@ -1,5 +1,8 @@
+import { AcademyHelp } from "@/components/academy/academy-help";
+import { ConceptNote } from "@/components/ia/concept-note";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { listLegalTemplates } from "@/lib/delivery/engine";
+import { LEGAL_TEMPLATE_LIST_DESCRIPTION, legalTemplateUseLabel } from "@/lib/legal/labels";
 import { DataTable, EmptyState, PageHeader, PageShell, formatLabel } from "../../_components/ui";
 import { StatusBadge } from "@/components/ui/display";
 
@@ -12,25 +15,24 @@ export default async function LegalTemplatesPage() {
       <PageHeader
         eyebrow="Legal & Contracts"
         title="Templates"
-        description="Structural templates. The Attorney-approved label appears only when counsel has recorded approval on the template."
+        description={LEGAL_TEMPLATE_LIST_DESCRIPTION}
+        actions={<AcademyHelp articleSlug="contracts" />}
       />
+      <ConceptNote concept="templateVsAgreementVsContract" />
       {rows.length === 0 ? (
-        <EmptyState title="No templates seeded.">Seed the launch catalog to load placeholder templates.</EmptyState>
+        <EmptyState title="No templates yet.">Ask an administrator to load the launch catalog if this environment is empty.</EmptyState>
       ) : (
-        <DataTable columns={["Template", "Type", "Version", "Status", "Legal review"]}>
+        <DataTable columns={["Template", "Type", "Version", "Use status"]}>
           {rows.map((row) => (
             <tr key={row.id}>
               <td className="font-medium text-navy">{row.name}</td>
               <td>{formatLabel(row.templateType)}</td>
               <td>{row.version}</td>
               <td>
-                <StatusBadge>{formatLabel(row.status)}</StatusBadge>
-              </td>
-              <td>
                 {row.attorneyApproved ? (
-                  <StatusBadge tone="success">Attorney-approved</StatusBadge>
+                  <StatusBadge tone="success">{legalTemplateUseLabel(true)}</StatusBadge>
                 ) : (
-                  <span className="text-muted-foreground">Placeholder — not attorney-reviewed</span>
+                  <StatusBadge tone="warning">{legalTemplateUseLabel(false)}</StatusBadge>
                 )}
               </td>
             </tr>

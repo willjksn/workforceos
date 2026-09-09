@@ -57,6 +57,11 @@ describe("admin navigation", () => {
     expect(links).toContain("/app/academy");
     expect(links).toContain("/app/ai-operations");
     expect(links).toContain("/app/ai-operations/knowledge");
+    expect(
+      navGroupsForPrincipal(principalFor("managing-partner"))
+        .find((group) => group.label === "Admin")
+        ?.items.some((item) => item.label === "AI & Automation"),
+    ).toBe(true);
     expect(links).not.toContain("/app/ai-operations/costs");
     expect(links).not.toContain("/app/admin/agents");
     expect(links).not.toContain("/app/admin/requirements");
@@ -84,7 +89,7 @@ describe("admin navigation", () => {
     const links = hrefs(principalFor("talent-partner"));
     expect(links).not.toContain("/app/ai-operations/costs");
     expect(links).not.toContain("/app/ai-operations/runs");
-    expect(admin?.items.some((item) => item.label === "AI administration")).toBe(false);
+    expect(admin?.items.some((item) => item.label === "AI & Automation")).toBe(false);
     expect(admin?.items.some((item) => item.href === "/app/ai-operations/knowledge")).toBe(true);
   });
 

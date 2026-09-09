@@ -26,9 +26,9 @@ export default async function AiOperationsPage() {
   return (
     <PageShell wide>
       <PageHeader
-        eyebrow="AI Operations"
-        title="AI administration"
-        description="Agents draft and recommend on top of PostgreSQL, approved workflows, permissions, audit, and the Review Queue. They are not a second database and cannot approve their own material output. Chat lives in Scout — the labeled Scout control in the top bar, to the left of your profile."
+        eyebrow="Admin · AI & Automation"
+        title="AI & Automation"
+        description="Operator destination for spend, prompts, runs, and automations. Recruiters use Scout and the Review Queue — they do not need cost or provider admin. Agents draft; they cannot approve their own material output."
         actions={<OpenScoutButton />}
       />
       <AiSubnav active="/app/ai-operations" />

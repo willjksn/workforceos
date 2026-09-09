@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { listProposals } from "@/lib/delivery/engine";
 import { AcademyHelp } from "@/components/academy/academy-help";
+import { ConceptNote } from "@/components/ia/concept-note";
 import { DataTable, EmptyState, PageHeader, PageShell, formatLabel } from "../_components/ui";
 import { StatusBadge } from "@/components/ui/display";
 
@@ -20,12 +21,13 @@ export default async function ProposalsPage({
       <PageHeader
         eyebrow="Proposals"
         title={status ? `${formatLabel(status)} proposals` : "Proposals"}
-        description="Proposals are generated from approved solution plans. Human approval is required before sending."
+        description="Build a proposal from an approved solution plan, then draft → internal approval → send to the client. Do not start a second proposal factory from here."
         actions={<AcademyHelp articleSlug="module-proposals" />}
       />
+      <ConceptNote concept="solutionVsProposalVsSow" />
       {rows.length === 0 ? (
         <EmptyState title="No proposals in this view.">
-          Generate a proposal from an approved solution plan.
+          Open the opportunity and use Build proposal after discovery and the solution plan are approved.
         </EmptyState>
       ) : (
         <DataTable columns={["Proposal", "Client", "Service", "Status"]}>

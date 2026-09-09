@@ -13,6 +13,7 @@ import {
 import { listCompanies } from "@/lib/repositories/crm";
 import { can } from "@/lib/rbac/permissions";
 import { AcademyHelp } from "@/components/academy/academy-help";
+import { ConceptNote } from "@/components/ia/concept-note";
 import { ButtonLink } from "@/components/ui/button";
 import { ActionForm } from "../_components/action-form";
 import {
@@ -47,14 +48,19 @@ export default async function CompaniesPage({
       <PageHeader
         eyebrow="CRM / Account intelligence"
         title="Companies"
-        description="Prospect and client companies. GTM tier and region mark the 90-day target-account list — this is not a second CRM."
+        description="Prospect and client companies. Add a company here — Command Center and Scout do not create company records."
         actions={
           <>
             <AcademyHelp articleSlug="module-companies" />
-            {canWrite ? <ButtonLink href="#add-company" variant="primary">Add company</ButtonLink> : null}
+            {canWrite ? (
+              <ButtonLink href="#add-company" variant="primary">
+                Add company
+              </ButtonLink>
+            ) : null}
           </>
         }
       />
+      <ConceptNote concept="addCompany" />
       <FilterBar>
         <SearchForm action="/app/companies" q={q} placeholder="Search company name" className="" />
         {gtmTier || gtmRegion ? (
@@ -67,7 +73,17 @@ export default async function CompaniesPage({
       </FilterBar>
       {rows.length === 0 ? (
         <EmptyState title="No companies match.">
-          Search another name, or add a company if you have write access.
+          {canWrite ? (
+            <>
+              Search another name, or{" "}
+              <a className="font-medium text-teal hover:underline" href="#add-company">
+                add a company
+              </a>
+              .
+            </>
+          ) : (
+            "Search another name. Adding a company needs companies.write."
+          )}
         </EmptyState>
       ) : (
         <DataTable columns={["Name", "Type", "Status", "Industry", "GTM tier", "GTM region"]}>
@@ -156,7 +172,7 @@ export default async function CompaniesPage({
             <Field label="Notes" name="notes">
               <textarea className={inputClassName} id="notes" name="notes" rows={3} />
             </Field>
-            <PrimaryButton>Create company</PrimaryButton>
+            <PrimaryButton>Add company</PrimaryButton>
           </ActionForm>
         </CreatePanel>
       ) : null}

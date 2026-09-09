@@ -44,7 +44,7 @@ export default async function DiscoveryPage({
       <PageHeader
         eyebrow="Solutions"
         title="Discovery"
-        description="Discovery is tied to a company, opportunity, and recommended service. Question sets come from the approved workflow."
+        description="Start from an opportunity. Question sets come from the approved service workflow. A solution plan comes after discovery is approved."
         actions={<AcademyHelp articleSlug="module-discovery" />}
       />
       {rows.length === 0 ? (

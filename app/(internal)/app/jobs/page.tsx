@@ -6,6 +6,10 @@ import { listCompaniesForSelect, listContacts } from "@/lib/repositories/crm";
 import { listCanonicalSkills, listJobs } from "@/lib/repositories/recruiting";
 import { can } from "@/lib/rbac/permissions";
 import { AcademyHelp } from "@/components/academy/academy-help";
+import { ConceptNote } from "@/components/ia/concept-note";
+import { HeadcountPanel } from "./_components/headcount-panel";
+import { InternalSearchesPanel } from "./_components/internal-searches-panel";
+import { jobsViewHref } from "./_components/jobs-subnav";
 import { ActionForm } from "../_components/action-form";
 import {
   CreatePanel,
@@ -27,10 +31,11 @@ import { JobsSubnav } from "./_components/jobs-subnav";
 export default async function JobsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; view?: string }>;
 }) {
   const principal = await requireAppPermission("jobs.read");
-  const { q, page } = await searchParams;
+  const { q, page, view } = await searchParams;
+  const jobsView = view === "headcount" || view === "searches" ? view : undefined;
   const result = await listJobs(principal.organizationId, q, { page });
   const rows = result.items;
   const canWrite = can(principal, "jobs.write");
@@ -46,7 +51,12 @@ export default async function JobsPage({
         description="One operating surface for search assignments. Request headcount, open the job, then run the Internal Talent Network search before any external sourcing hook."
         actions={<AcademyHelp articleSlug="module-jobs" />}
       />
-      <JobsSubnav active="/app/jobs" />
+      <ConceptNote concept="jobVsRequisitionVsPosting" />
+      <JobsSubnav active={jobsViewHref(jobsView)} />
+      {jobsView === "headcount" ? <HeadcountPanel principal={principal} /> : null}
+      {jobsView === "searches" ? <InternalSearchesPanel organizationId={principal.organizationId} /> : null}
+      {jobsView ? null : (
+        <>
       <FilterBar>
         <SearchForm action="/app/jobs" q={q} placeholder="Search job title" className="" />
       </FilterBar>
@@ -200,6 +210,8 @@ export default async function JobsPage({
           </ActionForm>
         </CreatePanel>
       ) : null}
+        </>
+      )}
     </PageShell>
   );
 }

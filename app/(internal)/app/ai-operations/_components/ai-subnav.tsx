@@ -3,7 +3,7 @@ import { getCurrentPrincipal } from "@/lib/auth/session";
 import { can, type Permission } from "@/lib/rbac/permissions";
 
 const ITEMS: Array<{ href: string; label: string; permission: Permission }> = [
-  { href: "/app/ai-operations", label: "AI administration", permission: "agents.manage" },
+  { href: "/app/ai-operations", label: "AI & Automation", permission: "agents.manage" },
   { href: "/app/ai-operations/review", label: "Review Queue", permission: "agents.read" },
   { href: "/app/ai-operations/runs", label: "Runs", permission: "agents.manage" },
   { href: "/app/ai-operations/outputs", label: "Outputs", permission: "agents.manage" },

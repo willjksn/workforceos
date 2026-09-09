@@ -13,15 +13,15 @@ export const REPORT_CATEGORIES = [
 export const REPORT_QUESTIONS: Record<(typeof REPORT_CATEGORIES)[number], { title: string; summary: string }> = {
   business: {
     title: "What have we contracted, invoiced, and collected?",
-    summary: "Stored invoice and contract amounts. QuickBooks remains the ledger.",
+    summary: "Contract, invoice, and collected amounts. QuickBooks remains the ledger.",
   },
   sales: {
     title: "Which opportunities are open, won, or lost?",
-    summary: "Commercial pipeline from stored opportunity stages.",
+    summary: "Commercial pipeline by opportunity stage.",
   },
   recruiting: {
     title: "How are searches moving from intake to placement?",
-    summary: "Funnel and cycle time from stored recruiting records.",
+    summary: "Funnel and cycle time from recruiting records.",
   },
   talent: {
     title: "Who is in the Talent Network and available?",
@@ -37,11 +37,11 @@ export const REPORT_QUESTIONS: Record<(typeof REPORT_CATEGORIES)[number], { titl
   },
   projects: {
     title: "Which delivery projects are at risk?",
-    summary: "Delivery health from stored project, risk, and closeout records.",
+    summary: "Delivery health from project, risk, and closeout records.",
   },
   finance: {
     title: "What is outstanding and recurring?",
-    summary: "AR and recurring amounts from stored invoices. Not a general ledger.",
+    summary: "AR and recurring amounts from invoices. Not a general ledger.",
   },
   ai: {
     title: "What AI work is pending review or failing?",

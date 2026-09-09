@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Leftover IA — 2026-09-09
+
+- Commercial path is one primary CTA per stage: Company → Opportunity → Discovery → Solution / Service Plan → Build Proposal → Draft → Internal Approval → Send Client → Accepted → Contract / SOW → Project → Delivery. Build proposal stays hidden until the solution plan is approved and no proposal is in flight.
+- AI costs sit under Admin → AI & Automation (`agents.manage`). Review Queue stays reachable with `agents.read`. Recruiters still do not see cost/provider/prompt admin.
+- Reports titles and empty states are operating questions. Removed leftover “Stored records only” / “Stored jobs only” wording.
+- Legal templates use DRAFT — NOT APPROVED FOR USE vs ATTORNEY APPROVED. Remaining “Structural templates…” copy is gone.
+- Add company is the single create path on Companies. Command Center and Scout do not add company records.
+- Old `/app/recruiting/requisitions` and `/app/search-projects` list URLs redirect onto Jobs views. Jobs remains the recruiting entry.
+- Academy `operating-concepts` explains candidate vs application, job vs requisition vs posting, employer opportunity vs job, program vs project vs engagement, solution vs proposal vs SOW, and template vs agreement vs contract.
+- Finance hub shows Proposal Pricing → Contract Value → Project Value → Invoice → AR → Payment → Revenue Reporting. Not a general ledger (DEC-FIN-002).
+
 ### Phase L — Post-launch scale — 2026-09-09
 
 - Closed Phase A1: operator-confirmed 2026-09-09 that the four launch-smoke PDFs were deleted from production R2. Archived `files` rows remain. Bucket was not wiped.

@@ -1,6 +1,7 @@
 import { requireAppPermission } from "@/lib/auth/guard";
 import { listRevenueEvents } from "@/lib/finance/engine";
 import { DataTable, EmptyState, PageHeader, PageShell, formatDate, formatLabel } from "../../_components/ui";
+import { FinanceSpine } from "@/components/ia/finance-spine";
 import { FinanceSubnav } from "../_components/finance-subnav";
 
 export default async function RevenueEventsPage() {
@@ -12,8 +13,9 @@ export default async function RevenueEventsPage() {
       <PageHeader
         eyebrow="Finance"
         title="Revenue events"
-        description="Operational triggers such as candidate start, milestones, monthly fractional billing, and deposits. Audit history is in the audit log."
+        description="Revenue reporting from contract and placement triggers. This is not a general ledger."
       />
+      <FinanceSpine activeHref="/app/finance/revenue" />
       <FinanceSubnav active="/app/finance/revenue" />
       {rows.length === 0 ? (
         <EmptyState title="No revenue events." />

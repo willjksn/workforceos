@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { requireAnyAppPermission } from "@/lib/auth/guard";
 import { listEmployerOpportunityCards } from "@/lib/skillbridge/service";
+import { AcademyHelp } from "@/components/academy/academy-help";
+import { ConceptNote } from "@/components/ia/concept-note";
 import { StatusBadge } from "@/components/ui/display";
 import { EmptyState, PageHeader, PageShell, formatLabel } from "../../_components/ui";
 import { MilitarySubnav } from "../_components/military-subnav";
@@ -15,8 +17,10 @@ export default async function EmployerOpportunitiesPage() {
       <PageHeader
         eyebrow="Military talent"
         title="Employer opportunities"
-        description="Host-company and employer matching records for transitioning talent. PierOne facilitates the match; the employer/host company owns the opportunity. A public job posting is not required to begin matching."
+        description="Host-company and employer matching records for transitioning talent. PierOne facilitates the match; the employer/host company owns the opportunity. This is not a recruiting job."
+        actions={<AcademyHelp articleSlug="module-military" />}
       />
+      <ConceptNote concept="employerOpportunityVsJob" />
       <MilitarySubnav active="/app/military/opportunities" />
       <div className="mt-6 space-y-3">
         {rows.length === 0 ? (

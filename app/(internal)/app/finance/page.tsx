@@ -1,4 +1,6 @@
 import { AcademyHelp } from "@/components/academy/academy-help";
+import { ConceptNote } from "@/components/ia/concept-note";
+import { FinanceSpine } from "@/components/ia/finance-spine";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { financeOverview } from "@/lib/finance/engine";
 import { moneyString } from "@/lib/finance/money";
@@ -15,9 +17,11 @@ export default async function FinanceOverviewPage() {
       <PageHeader
         eyebrow="Finance"
         title="Operating finance"
-        description="WorkforceOS owns billing schedules, invoice expectations, AR, and revenue events. QuickBooks remains the accounting ledger. Amounts come from stored contracts — they are never invented here."
+        description="Proposal pricing → contract value → project value → invoice → AR → payment → revenue reporting. QuickBooks remains the accounting ledger. Amounts are never invented here."
         actions={<AcademyHelp articleSlug="module-finance" />}
       />
+      <ConceptNote concept="financeSpine" />
+      <FinanceSpine activeHref="/app/finance" />
       <FinanceSubnav active="/app/finance" />
       <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Contracted revenue" value={moneyString(overview.contractedRevenue)} href="/app/contracts" />

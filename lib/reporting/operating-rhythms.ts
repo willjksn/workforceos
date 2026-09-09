@@ -169,7 +169,7 @@ export const RHYTHM_WIDGET_DEFS: RhythmWidgetDef[] = [
   {
     id: "derived-risks",
     cadence: "leadership",
-    question: "Which stored records are stale, overdue, past due, or failing?",
+    question: "Which opportunities, deliverables, invoices, or integrations need attention?",
     href: "/app/alerts",
     windowHint: `Stale opportunities and aging jobs use a ${STALE_RECORD_DAYS}-day stored-date window. Alerts stay on /app/alerts (DEC-OPS-002).`,
     anyPermission: ["opportunities.read", "projects.read", "finance.read", "integrations.read", "alerts.read", "reports.read"],

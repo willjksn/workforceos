@@ -30,7 +30,7 @@ const LABELS: Record<string, string> = {
   projects: "Projects",
   legal: "Legal & Contracts",
   finance: "Finance",
-  "ai-operations": "AI Operations",
+  "ai-operations": "AI & Automation",
   admin: "Admin",
   users: "People",
   roles: "Access bundles",

@@ -54,7 +54,7 @@ export default async function OpportunitiesPage({
       <PageHeader
         eyebrow="CRM / Pipeline"
         title="Opportunities"
-        description="Commercial pipeline for the five launch services. Scores are stored, not invented at render time."
+        description="Commercial pipeline for the five launch services. Path: Company → Opportunity → Discovery → Solution → Proposal → Contract → Project."
         actions={<AcademyHelp articleSlug="module-opportunities" />}
       />
       <FilterBar>

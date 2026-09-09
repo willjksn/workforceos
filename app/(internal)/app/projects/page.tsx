@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import { AcademyHelp } from "@/components/academy/academy-help";
+import { ConceptNote } from "@/components/ia/concept-note";
+import { FinanceSpine } from "@/components/ia/finance-spine";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { listDeliveryProjects } from "@/lib/delivery/engine";
 import { DataTable, EmptyState, PageHeader, PageShell, formatLabel } from "../_components/ui";
@@ -20,12 +22,14 @@ export default async function ProjectsPage({
       <PageHeader
         eyebrow="Projects"
         title={filter ? `${formatLabel(filter)} projects` : "Delivery projects"}
-        description="Delivery projects are created from an approved solution plan, service workflow, and executed contract. Search projects stay under Recruiting."
+        description="Consulting delivery after an executed contract. Internal searches stay on Jobs. SkillBridge is a pathway type, not a PierOne-owned program."
         actions={<AcademyHelp articleSlug="module-projects" />}
       />
+      <ConceptNote concept="programVsProjectVsEngagement" />
+      <FinanceSpine activeHref="/app/projects" />
       {rows.length === 0 ? (
         <EmptyState title="No delivery projects in this view.">
-          Create a project from an approved plan after contract execution.
+          Create a project from an executed contract.
         </EmptyState>
       ) : (
         <DataTable columns={["Project", "Client", "Service", "Status", "Health", "Value"]}>

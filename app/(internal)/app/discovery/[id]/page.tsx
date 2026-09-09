@@ -4,8 +4,10 @@ import {
   approveDiscoveryAction,
   createSolutionPlanAction,
 } from "@/lib/actions/delivery";
+import { AcademyHelp } from "@/components/academy/academy-help";
+import { ButtonLink } from "@/components/ui/button";
 import { requireAppPermission } from "@/lib/auth/guard";
-import { getDiscovery, loadApprovedWorkflow } from "@/lib/delivery/engine";
+import { getDiscovery, listOpportunityCommercialPath, loadApprovedWorkflow } from "@/lib/delivery/engine";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../_components/action-form";
 import {
@@ -30,6 +32,10 @@ export default async function DiscoveryDetailPage({
   if (!row) notFound();
   const workflow = await loadApprovedWorkflow(row.serviceCode);
   const answers = row.discovery.answers ?? {};
+  const commercial = await listOpportunityCommercialPath(principal.organizationId, row.discovery.opportunityId);
+  const existingPlan = commercial.plans[0];
+  const canApprove = can(principal, "discovery.write") && row.discovery.status !== "approved";
+  const canCreatePlan = can(principal, "solutions.write") && row.discovery.status === "approved" && !existingPlan;
 
   return (
     <PageShell>
@@ -42,6 +48,7 @@ export default async function DiscoveryDetailPage({
             {formatLabel(row.discovery.status)}
           </StatusBadge>
         }
+        actions={<AcademyHelp articleSlug="module-discovery" />}
       />
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         <Card>
@@ -75,13 +82,20 @@ export default async function DiscoveryDetailPage({
           ))}
         </dl>
       </section>
-      {can(principal, "discovery.write") && row.discovery.status !== "approved" ? (
+      {canApprove ? (
         <ActionForm action={approveDiscoveryAction} className="mt-8">
           <input type="hidden" name="discoveryId" value={row.discovery.id} />
           <PrimaryButton>Approve discovery</PrimaryButton>
         </ActionForm>
       ) : null}
-      {can(principal, "solutions.write") && row.discovery.status === "approved" ? (
+      {existingPlan && row.discovery.status === "approved" ? (
+        <div className="mt-8">
+          <ButtonLink href={`/app/solutions/${existingPlan.id}`} variant="primary">
+            Open solution plan
+          </ButtonLink>
+        </div>
+      ) : null}
+      {canCreatePlan ? (
         <ActionForm action={createSolutionPlanAction} className="mt-8 max-w-xl space-y-3">
           <input type="hidden" name="discoveryId" value={row.discovery.id} />
           <Field label="Plan title" name="title">

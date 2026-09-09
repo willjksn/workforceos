@@ -6,10 +6,14 @@ import {
   scoreOpportunityAction,
   updateOpportunityStageAction,
 } from "@/lib/actions/crm";
-import { createProposalAction } from "@/lib/actions/delivery";
+import { createContractPackageAction, createDeliveryProjectAction, createProposalAction } from "@/lib/actions/delivery";
+import { AcademyHelp } from "@/components/academy/academy-help";
+import { CommercialPath } from "@/components/ia/commercial-path";
+import { ConceptNote } from "@/components/ia/concept-note";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { SCORE_WEIGHTS } from "@/lib/crm/scoring";
 import { OPPORTUNITY_STAGES } from "@/lib/crm/stages";
+import { commercialPathSummary, resolveCommercialPrimaryCta } from "@/lib/delivery/commercial-path";
 import { listOpportunityCommercialPath } from "@/lib/delivery/engine";
 import { getOpportunityGraph } from "@/lib/repositories/crm";
 import { can } from "@/lib/rbac/permissions";
@@ -28,19 +32,22 @@ export default async function OpportunityDetailPage({
   const { opportunity, company, score } = graph;
   const canWrite = can(principal, "opportunities.write");
   const commercial = await listOpportunityCommercialPath(principal.organizationId, opportunity.id);
-  const approvedPlan = commercial.plans.find((plan) => plan.status === "approved");
-  const inFlightProposal = commercial.proposals.find((proposal) =>
-    ["draft", "internal_review", "approved", "sent", "viewed"].includes(proposal.status),
-  );
-  const canStartDiscovery = can(principal, "discovery.write");
-  const canBuildProposal = can(principal, "proposals.write") && Boolean(approvedPlan) && !inFlightProposal;
+  const primary = resolveCommercialPrimaryCta(commercial, opportunity.id);
+  const showPrimaryLink =
+    primary.kind === "link" &&
+    (primary.label !== "Start discovery" || can(principal, "discovery.write"));
+  const showBuildProposal = primary.kind === "build_proposal" && can(principal, "proposals.write");
+  const showCreateContract = primary.kind === "create_contract" && can(principal, "contracts.write") && Boolean(opportunity.serviceCode);
+  const showCreateProject = primary.kind === "create_project" && can(principal, "projects.write") && Boolean(primary.planId);
 
   return (
     <PageShell>
       <PageHeader
         title={opportunity.name}
         description={`${formatLabel(opportunity.stage)} · ${company.name}`}
+        actions={<AcademyHelp articleSlug="module-opportunities" />}
       />
+      <ConceptNote concept="solutionVsProposalVsSow" />
       <p className="mt-3 text-sm">
         Company:{" "}
         <Link className="underline" href={`/app/companies/${company.id}`}>
@@ -92,25 +99,39 @@ export default async function OpportunityDetailPage({
       <section className="mt-10">
         <h2 className="section-title">Commercial path</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Discovery → solution plan → build proposal → internal review → human approve → send. Scout may draft; it cannot approve or send.
+          {commercialPathSummary()}. Scout may draft; it cannot approve or send.
         </p>
+        <CommercialPath path={commercial} />
         <div className="mt-4 flex flex-wrap gap-3">
-          {canStartDiscovery ? (
-            <ButtonLink href={`/app/discovery?opportunityId=${opportunity.id}`} variant="primary">
-              Start discovery
+          {showPrimaryLink && primary.kind === "link" ? (
+            <ButtonLink href={primary.href} variant="primary">
+              {primary.label}
             </ButtonLink>
           ) : null}
-          {canBuildProposal && approvedPlan ? (
+          {showBuildProposal && primary.kind === "build_proposal" ? (
             <ActionForm action={createProposalAction}>
-              <input type="hidden" name="solutionPlanId" value={approvedPlan.id} />
+              <input type="hidden" name="solutionPlanId" value={primary.planId} />
               <PrimaryButton>Build proposal</PrimaryButton>
             </ActionForm>
           ) : null}
-          {inFlightProposal ? (
-            <ButtonLink href={`/app/proposals/${inFlightProposal.id}`} variant="secondary">
-              Open proposal
-            </ButtonLink>
+          {showCreateContract && primary.kind === "create_contract" && opportunity.serviceCode ? (
+            <ActionForm action={createContractPackageAction}>
+              <input type="hidden" name="serviceCode" value={opportunity.serviceCode} />
+              <input type="hidden" name="companyId" value={company.id} />
+              <input type="hidden" name="opportunityId" value={opportunity.id} />
+              <input type="hidden" name="solutionPlanId" value={primary.planId} />
+              <input type="hidden" name="proposalId" value={primary.proposalId} />
+              <PrimaryButton>Create contract / SOW</PrimaryButton>
+            </ActionForm>
           ) : null}
+          {showCreateProject && primary.kind === "create_project" ? (
+            <ActionForm action={createDeliveryProjectAction}>
+              <input type="hidden" name="solutionPlanId" value={primary.planId} />
+              <input type="hidden" name="contractId" value={primary.contractId} />
+              <PrimaryButton>Create delivery project</PrimaryButton>
+            </ActionForm>
+          ) : null}
+          {primary.kind === "none" ? <p className="text-sm text-muted-foreground">{primary.hint}</p> : null}
         </div>
         {commercial.discoveries.length === 0 && commercial.plans.length === 0 && commercial.proposals.length === 0 ? (
           <EmptyState>No discovery, plan, or proposal is linked yet.</EmptyState>

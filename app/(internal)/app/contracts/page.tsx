@@ -1,5 +1,8 @@
 import Link from "next/link";
 
+import { AcademyHelp } from "@/components/academy/academy-help";
+import { ConceptNote } from "@/components/ia/concept-note";
+import { FinanceSpine } from "@/components/ia/finance-spine";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { listContracts } from "@/lib/delivery/engine";
 import { DataTable, EmptyState, PageHeader, PageShell, formatDate, formatLabel } from "../_components/ui";
@@ -19,11 +22,14 @@ export default async function ContractsPage({
       <PageHeader
         eyebrow="Legal & Contracts"
         title={filter ? `${formatLabel(filter)} contracts` : "Contracts"}
-        description="Service-specific packages. Documents are not auto-sent. Language is not attorney-approved unless counsel has recorded approval on the linked template."
+        description="Client agreements and SOWs created after a proposal is accepted. Documents are not auto-sent."
+        actions={<AcademyHelp articleSlug="contracts" />}
       />
+      <ConceptNote concept="templateVsAgreementVsContract" />
+      <FinanceSpine activeHref="/app/contracts" />
       {rows.length === 0 ? (
         <EmptyState title="No contracts in this view.">
-          Create a package from an approved solution plan.
+          Create a package from an accepted proposal.
         </EmptyState>
       ) : (
         <DataTable columns={["Contract", "Client", "Service", "Status", "Value", "Expires"]}>

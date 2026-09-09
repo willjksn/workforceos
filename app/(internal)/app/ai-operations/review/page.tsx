@@ -28,9 +28,9 @@ export default async function ReviewQueuePage({
   return (
     <PageShell wide>
       <PageHeader
-        eyebrow="AI Operations"
+        eyebrow="Review Queue"
         title="Review Queue"
-        description="Material agent drafts wait here. Approve, reject, or request changes. The originating agent cannot decide."
+        description="Material agent drafts wait here. Approve, reject, or request changes. Cost, prompt, and provider admin live under Admin → AI & Automation."
       />
       <AiSubnav active="/app/ai-operations/review" />
       {rows.length === 0 ? (

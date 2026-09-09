@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { AcademyHelp } from "@/components/academy/academy-help";
+import { ConceptNote } from "@/components/ia/concept-note";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { listSolutionPlans } from "@/lib/delivery/engine";
 import { DataTable, EmptyState, PageHeader, PageShell, formatLabel } from "../_components/ui";
@@ -14,11 +16,13 @@ export default async function SolutionsPage() {
       <PageHeader
         eyebrow="Solutions"
         title="Solution plans"
-        description="Client-specific plans tied to an approved service version. Drafts stay internal until human approval."
+        description="The internal recommended offer. Build the client proposal only after this plan is approved."
+        actions={<AcademyHelp articleSlug="module-proposals" />}
       />
+      <ConceptNote concept="solutionVsProposalVsSow" />
       {rows.length === 0 ? (
         <EmptyState title="No solution plans yet.">
-          Create a plan from an approved discovery record.
+          Create a plan from an approved discovery record on the opportunity path.
         </EmptyState>
       ) : (
         <DataTable columns={["Plan", "Company", "Service", "Version", "Status", "Price"]}>
