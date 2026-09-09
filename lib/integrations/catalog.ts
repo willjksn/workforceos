@@ -78,7 +78,7 @@ export const INTEGRATION_CATALOG: IntegrationCatalogEntry[] = [
     id: "checkr",
     name: "Checkr",
     group: "Background checks",
-    summary: "Preferred future background provider. HTTP API is not wired in Phase 10. Manual workflow only. Human review required; results never auto-reject.",
+    summary: "Preferred background provider. Live invitations when CHECKR_API_KEY is set; otherwise manual. Human review required; results never auto-reject.",
   },
   {
     id: "resend",
@@ -95,11 +95,14 @@ export const INTEGRATION_CATALOG: IntegrationCatalogEntry[] = [
 ];
 
 export function integrationStatusLabel(health: IntegrationHealth) {
-  if (!health.configured || health.connectionHealth === "not_configured") {
-    return { label: "Not connected yet", tone: "neutral" as const };
+  if (health.liveWired && health.wiring === "live") {
+    return { label: "LIVE", tone: "success" as const };
   }
-  if (health.connectionHealth === "healthy") {
-    return { label: "Connected", tone: "success" as const };
+  if (health.configured) {
+    return { label: "CONFIGURED", tone: "warning" as const };
+  }
+  if (!health.configured || health.connectionHealth === "not_configured") {
+    return { label: "MOCK / MANUAL", tone: "neutral" as const };
   }
   if (health.connectionHealth === "error") {
     return { label: "Needs attention", tone: "danger" as const };

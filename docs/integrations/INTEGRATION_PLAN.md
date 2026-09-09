@@ -1,6 +1,6 @@
 # Integration Plan
 
-Status: Phase 6 operational finance adapters on the Integration Hub  
+Status: Phase I live adapters on the Integration Hub. Unconfigured providers stay labeled mock/manual (DEC-INT-002).  
 Requirement: WFOS-INT-001
 
 ## Principle
@@ -38,11 +38,11 @@ Adapters return a common result type. Missing credentials yield `not_configured`
 | LinkedIn Recruiter | recruiter operating source | profile URL and Recruiter IDs only; no scrape; blocked until internal search completes |
 | SeekOut | sourcing | preferred Phase 6 adapter; internal Talent Network first; labeled mock if unconfigured |
 | hireEZ | sourcing | thin placeholder hook |
-| Microsoft | calendar/meeting/email references | workspace references only; not a second Outlook |
-| Google | calendar/meeting/email references | workspace references only; not a second Gmail |
-| DocuSign | legal execution | adapter + manual execution if unconfigured; never mark executed without confirmation |
-| QuickBooks | finance/AR ledger | adapter maps customers/invoices/payments through `external_records`; labeled mock if unconfigured |
-| Checkr | background checks | adapter interface only; HTTP API not wired; manual workflow; never auto-reject |
+| Microsoft | calendar/meeting/email references | live interview events when `MICROSOFT_REFRESH_TOKEN` exists; otherwise Hub references / mock. Not a second Outlook inbox |
+| Google | calendar/meeting/email references | live interview events when `GOOGLE_REFRESH_TOKEN` exists; otherwise Hub references / mock. Not a second Gmail inbox |
+| DocuSign | legal execution | live envelopes when account + secret are set; manual execution if unconfigured; never mark executed without confirmation |
+| QuickBooks | finance/AR ledger | live invoice post when refresh token + realm exist; otherwise mapping / labeled mock. WorkforceOS is not the ledger |
+| Checkr | background checks | live invitations + signed webhook when `CHECKR_API_KEY` is set; otherwise manual; never auto-reject |
 | Resend | transactional recruiting/onboarding email | EmailProvider; mock in test/dev when unset; production fails clearly if unset; not a recruiter mailbox |
 | Drug screen | pre-employment screening | ManualDrugScreenProvider only; NOT CONFIGURED; no vendor selected |
 

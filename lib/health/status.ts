@@ -8,15 +8,15 @@ import { getServerEnv, isClerkConfigured, isInngestConfigured } from "../env";
 import { getIntegrationHubStatus } from "../integrations/hub";
 import { calendarProviderStatus } from "../calendar";
 import {
-  isApolloConfigured,
-  isCheckrConfigured,
-  isCheckrLiveApiWired,
-  isDocuSignConfigured,
-  isGoogleConfigured,
-  isMicrosoftConfigured,
-  isQuickBooksConfigured,
+  apolloWiringStatus,
+  calendarWiringStatus,
+  checkrWiringStatus,
+  docusignWiringStatus,
   isResendConfigured,
-  isSeekOutConfigured,
+  quickbooksWiringStatus,
+  resendWiringStatus,
+  seekoutWiringStatus,
+  sentryWiringStatus,
 } from "../integrations/credentials";
 import { drugScreenProviderStatus } from "../drug-screens";
 import { getPublicContentPayload } from "../public-content/service";
@@ -186,9 +186,7 @@ export async function getSystemHealth() {
     {
       title: "Sentry",
       ok: true,
-      detail: env.SENTRY_DSN
-        ? "SENTRY_DSN is set. The official Sentry SDK remains deferred (Phase I). The DSN is not displayed."
-        : "NOT CONFIGURED — SENTRY_DSN is unset. Thin DSN poster only until Phase I.",
+      detail: `${sentryWiringStatus().liveLabel} — ${sentryWiringStatus().detail}`,
     },
     {
       title: "Labor market (BLS / Census)",
@@ -200,23 +198,19 @@ export async function getSystemHealth() {
     {
       title: "Talent sourcing (SeekOut / Apollo)",
       ok: true,
-      detail: isSeekOutConfigured() || isApolloConfigured()
-        ? `Keys present: ${[isSeekOutConfigured() ? "SeekOut" : null, isApolloConfigured() ? "Apollo" : null].filter(Boolean).join(", ")}. External sourcing stays after internal Talent Network search. Values are not displayed.`
-        : "NOT CONFIGURED — SEEKOUT_API_KEY and APOLLO_API_KEY are unset. Internal Talent Network search remains first.",
+      detail: `${seekoutWiringStatus().liveLabel} SeekOut — ${seekoutWiringStatus().detail} ${apolloWiringStatus().liveLabel} Apollo — ${apolloWiringStatus().detail}`,
     },
     {
       title: "DocuSign / QuickBooks",
       ok: true,
-      detail: isDocuSignConfigured() || isQuickBooksConfigured()
-        ? `Keys present: ${[isDocuSignConfigured() ? "DocuSign" : null, isQuickBooksConfigured() ? "QuickBooks" : null].filter(Boolean).join(", ")}. Live envelopes / AR post stay Phase I. Values are not displayed.`
-        : "NOT CONFIGURED — DocuSign and QuickBooks client credentials are unset. Manual execution / posting remain.",
+      detail: `${docusignWiringStatus().liveLabel} DocuSign — ${docusignWiringStatus().detail} ${quickbooksWiringStatus().liveLabel} QuickBooks — ${quickbooksWiringStatus().detail}`,
     },
     {
       title: "Scout",
       ok: true,
       detail: aiRuntime.scoutLiveCompletions
-        ? "Scout is configured. Closed command registry only; the model never generates SQL. External send remains hard-denied. Live completions are available for agent tasks that use Scout's capability class."
-        : "Scout is configured. Closed command registry only; the model never generates SQL. External send remains hard-denied. Completions are heuristic until a live AI key is set.",
+        ? "Scout is configured. Closed command registry only; the model never generates SQL. External send requires scout.external_actions, a confirmation token, and Resend. Live completions are available for agent tasks that use Scout's capability class."
+        : "Scout is configured. Closed command registry only; the model never generates SQL. External send requires scout.external_actions, a confirmation token, and Resend. Completions are heuristic until a live AI key is set.",
     },
     {
       title: "Last successful live AI call",
@@ -233,31 +227,17 @@ export async function getSystemHealth() {
     {
       title: "Resend",
       ok: env.NODE_ENV === "production" ? isResendConfigured() : true,
-      detail: isResendConfigured()
-        ? "RESEND_API_KEY and RESEND_FROM_EMAIL are set. Sending still requires a verified Resend domain; DNS is not assumed complete."
-        : env.NODE_ENV === "production"
-          ? "NOT CONFIGURED — production transactional email fails clearly until RESEND_API_KEY and RESEND_FROM_EMAIL are set."
-          : "NOT CONFIGURED — MockEmailProvider is used in development/test until RESEND_API_KEY and RESEND_FROM_EMAIL are set.",
+      detail: `${resendWiringStatus().liveLabel} — ${resendWiringStatus().detail}`,
     },
     {
       title: "Calendar provider",
       ok: true,
-      detail: (() => {
-        const calendar = calendarProviderStatus();
-        const workspace = isMicrosoftConfigured() || isGoogleConfigured()
-          ? " Microsoft/Google workspace credentials are present as Integration Hub references only."
-          : "";
-        return `${calendar.detail}${workspace}`;
-      })(),
+      detail: `${calendarWiringStatus().liveLabel} — ${calendarProviderStatus().detail}`,
     },
     {
       title: "Background checks",
       ok: true,
-      detail: isCheckrLiveApiWired()
-        ? "Checkr live API is wired. Human review is still required. Results never auto-reject."
-        : isCheckrConfigured()
-          ? "CHECKR_API_KEY is set, but the Checkr HTTP API is not wired. Manual background-check workflow only. Results never auto-reject."
-          : "NOT CONFIGURED — ManualBackgroundCheckProvider only. Checkr is not sandbox-ready. Results never auto-reject.",
+      detail: `${checkrWiringStatus().liveLabel} — ${checkrWiringStatus().detail}`,
     },
     {
       title: "Drug screens",

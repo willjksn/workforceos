@@ -116,6 +116,7 @@ function ScoutDrawer({
   const router = useRouter();
   const page = parseScoutPageContext(pathname);
   const [prompt, setPrompt] = useState("");
+  const [sendRecipient, setSendRecipient] = useState("");
   const [pending, startTransition] = useTransition();
   const mounted = useClientMounted();
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -287,17 +288,36 @@ function ScoutDrawer({
               <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">Draft for human review</p>
               <p className="mt-2 text-sm font-medium text-navy">{result.draft.subject}</p>
               <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{result.draft.body}</p>
+              <label className="mt-3 block text-xs text-muted-foreground">
+                Recipient (transactional send only)
+                <input
+                  type="email"
+                  className="mt-1 w-full rounded border border-border bg-surface px-2 py-1 text-sm text-navy"
+                  value={sendRecipient}
+                  onChange={(event) => setSendRecipient(event.target.value)}
+                  placeholder="name@example.com"
+                />
+              </label>
               <button
                 type="button"
                 className={`${buttonClassName("secondary")} mt-3`}
                 onClick={() =>
                   startTransition(async () => {
-                    const blocked = await scoutSendDraftAction();
-                    onHistory((current) => [...current, { role: "scout", text: blocked.error ?? "Send blocked." }]);
+                    const next = await scoutSendDraftAction({
+                      subject: result.draft?.subject,
+                      body: result.draft?.body,
+                      to: sendRecipient,
+                      confirmationToken: result.draft?.confirmationToken,
+                    });
+                    onResult({ ...result, ...next, draft: next.draft ?? result.draft });
+                    onHistory((current) => [
+                      ...current,
+                      { role: "scout", text: next.message ?? next.error ?? "Send blocked." },
+                    ]);
                   })
                 }
               >
-                Send
+                {result.draft.confirmationToken ? "Confirm send" : "Request send confirmation"}
               </button>
             </div>
           ) : null}

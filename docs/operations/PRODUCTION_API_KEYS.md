@@ -67,8 +67,8 @@ Do not rotate DNS or overwrite a live Encrypted Vercel variable without a defect
 | Labor | `CENSUS_API_KEY` | Census flows | Optional | Labor market (BLS / Census) | Production when live |
 | Sourcing | `TALENT_SOURCING_PROVIDER` | Named sourcing provider | Optional | Talent sourcing | Phase I |
 | Sourcing | `HIRE_EZ_API_KEY` | HireEZ | Optional | Talent sourcing | Phase I |
-| Sourcing | `SEEKOUT_API_KEY` | SeekOut | Optional | Talent sourcing | Phase I |
-| Sourcing | `APOLLO_API_KEY` | Apollo enrichment | Optional | Talent sourcing | Phase I |
+| Sourcing | `SEEKOUT_API_KEY` | SeekOut | Optional | Talent sourcing | Phase I live lookup after internal search |
+| Sourcing | `APOLLO_API_KEY` | Apollo enrichment | Optional | Talent sourcing | Phase I review-gated enrich |
 | Observability | `SENTRY_DSN` | Error DSN | Optional | Sentry | Production / preview |
 | URLs | `NEXT_PUBLIC_APP_URL` | Public app origin | **Required** in prod | — | Production `https://app.pieronepartners.com` |
 | URLs | `APP_URL` | Server alias for app origin | Optional | — | Same |
@@ -76,13 +76,21 @@ Do not rotate DNS or overwrite a live Encrypted Vercel variable without a defect
 | URLs | `PUBLIC_APP_URL` | Public site origin | Optional | — | Production |
 | Finance | `QUICKBOOKS_CLIENT_ID` | QB OAuth | Optional | DocuSign / QuickBooks | Phase I |
 | Finance | `QUICKBOOKS_CLIENT_SECRET` | QB OAuth secret | Optional | DocuSign / QuickBooks | Phase I |
+| Finance | `QUICKBOOKS_REFRESH_TOKEN` | QB OAuth refresh token | Optional | DocuSign / QuickBooks | Required for LIVE posting |
+| Finance | `QUICKBOOKS_REALM_ID` | QB company realm | Optional | DocuSign / QuickBooks | Required for LIVE posting |
+| Finance | `QUICKBOOKS_ENVIRONMENT` | `sandbox` or `production` | Optional | DocuSign / QuickBooks | Defaults to sandbox |
 | Legal | `DOCUSIGN_INTEGRATION_KEY` | DocuSign | Optional | DocuSign / QuickBooks | Phase I |
 | Legal | `DOCUSIGN_USER_ID` | DocuSign user | Optional | DocuSign / QuickBooks | Phase I |
-| Legal | `DOCUSIGN_SECRET_KEY` | DocuSign secret | Optional | DocuSign / QuickBooks | Phase I |
+| Legal | `DOCUSIGN_SECRET_KEY` | DocuSign secret | Optional | DocuSign / QuickBooks | Required for LIVE envelopes |
+| Legal | `DOCUSIGN_ACCOUNT_ID` | DocuSign account | Optional | DocuSign / QuickBooks | Required for LIVE envelopes |
+| Legal | `DOCUSIGN_BASE_URL` | DocuSign host | Optional | DocuSign / QuickBooks | Defaults to demo |
 | Calendar | `MICROSOFT_CLIENT_ID` | Microsoft OAuth | Optional | Calendar provider | Phase I |
 | Calendar | `MICROSOFT_CLIENT_SECRET` | Microsoft secret | Optional | Calendar provider | Phase I |
+| Calendar | `MICROSOFT_REFRESH_TOKEN` | Microsoft OAuth refresh token | Optional | Calendar provider | Required for LIVE scheduling |
+| Calendar | `MICROSOFT_TENANT_ID` | Entra tenant | Optional | Calendar provider | Defaults to `common` |
 | Calendar | `GOOGLE_CLIENT_ID` | Google OAuth | Optional | Calendar provider | Phase I |
 | Calendar | `GOOGLE_CLIENT_SECRET` | Google secret | Optional | Calendar provider | Phase I |
+| Calendar | `GOOGLE_REFRESH_TOKEN` | Google OAuth refresh token | Optional | Calendar provider | Required for LIVE scheduling |
 | Integrations | `INTEGRATION_WEBHOOK_SECRET` | Shared webhook HMAC | Optional | Integrations | Production when webhooks live |
 | Email | `RESEND_API_KEY` | Transactional email | **Required** in prod | Resend | Production |
 | Email | `RESEND_FROM_EMAIL` | From address | **Required** with key | Resend | Production |
@@ -114,6 +122,19 @@ Decrypt limitation: `vercel env pull` / decrypt may return empty strings for Enc
 
 Also Encrypted on Preview: `PUBLIC_CAREERS_URL`, `PUBLIC_SITE_INTEGRATION_SECRET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, Clerk keys, `NODE_ENV`, `APP_VERSION`, Inngest keys, `LOCAL_STORAGE_DIR`, `AI_PROVIDER`, `AI_API_KEY`, `SENTRY_DSN`.
 
-**Missing on Production** (from `lib/env.ts`; optional unless noted): `DATABASE_URL_UNPOOLED` (needed for operator migrate, not the app runtime), Clerk fallback redirect URLs, `AI_BASE_URL` / `AI_MODEL*` / `OPENAI_*` aliases (live vs heuristic still depends on `AI_API_KEY`, which is Encrypted but not decryptable here), `WEB_SEARCH_*`, `TAVILY_API_KEY`, `BLS_API_KEY`, `CENSUS_API_KEY`, `TALENT_SOURCING_PROVIDER`, `HIRE_EZ_API_KEY`, `SEEKOUT_API_KEY`, `APOLLO_API_KEY`, `ONET_API_KEY`, `QUICKBOOKS_*`, `DOCUSIGN_*`, `MICROSOFT_*`, `GOOGLE_*`, `INTEGRATION_WEBHOOK_SECRET`, `CHECKR_*`, `DRUG_SCREEN_*`, `PUBLIC_APP_URL`, `PUBLIC_INTAKE_ORGANIZATION_ID`.
+**Missing on Production** (from `lib/env.ts`; optional unless noted): `DATABASE_URL_UNPOOLED` (needed for operator migrate, not the app runtime), Clerk fallback redirect URLs, `AI_BASE_URL` / `AI_MODEL*` / `OPENAI_*` aliases (live vs heuristic still depends on `AI_API_KEY`, which is Encrypted but not decryptable here), `WEB_SEARCH_*`, `TAVILY_API_KEY`, `BLS_API_KEY`, `CENSUS_API_KEY`, `TALENT_SOURCING_PROVIDER`, `HIRE_EZ_API_KEY`, `SEEKOUT_API_KEY`, `APOLLO_API_KEY`, `ONET_API_KEY`, `QUICKBOOKS_*` (including `QUICKBOOKS_REFRESH_TOKEN` / `QUICKBOOKS_REALM_ID` for LIVE posting), `DOCUSIGN_*` (including `DOCUSIGN_ACCOUNT_ID` for LIVE envelopes), `MICROSOFT_*` / `GOOGLE_*` (including refresh tokens for LIVE scheduling), `INTEGRATION_WEBHOOK_SECRET`, `CHECKR_*`, `DRUG_SCREEN_*`, `PUBLIC_APP_URL`, `PUBLIC_INTAKE_ORGANIZATION_ID`.
+
+Phase I live paths (names only; values stay in Vercel Encrypted / operator store):
+
+| Live path | Vars required for LIVE (not merely CONFIGURED) |
+| --- | --- |
+| Calendar | `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` + `GOOGLE_REFRESH_TOKEN` **or** `MICROSOFT_CLIENT_ID` + `MICROSOFT_CLIENT_SECRET` + `MICROSOFT_REFRESH_TOKEN` |
+| Scout / transactional send | `RESEND_API_KEY` + `RESEND_FROM_EMAIL` (present Encrypted). Send still needs `scout.external_actions` + confirmation |
+| DocuSign | `DOCUSIGN_INTEGRATION_KEY` + `DOCUSIGN_USER_ID` + `DOCUSIGN_SECRET_KEY` + `DOCUSIGN_ACCOUNT_ID` |
+| QuickBooks | `QUICKBOOKS_CLIENT_ID` + `QUICKBOOKS_CLIENT_SECRET` + `QUICKBOOKS_REFRESH_TOKEN` + `QUICKBOOKS_REALM_ID` |
+| Checkr | `CHECKR_API_KEY` (+ `CHECKR_WEBHOOK_SECRET` for signed webhooks) |
+| SeekOut | `SEEKOUT_API_KEY` |
+| Apollo | `APOLLO_API_KEY` |
+| Sentry | `SENTRY_DSN` (present Encrypted; official SDK) |
 
 No Encrypted Production variable was overwritten. No missing optional Phase I key was invented or uploaded.

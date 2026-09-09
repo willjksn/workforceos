@@ -4,7 +4,8 @@ import { z } from "zod";
 
 import { requireAppPermission } from "@/lib/auth/guard";
 import { parseScoutPageContext } from "@/lib/scout/page-context";
-import { confirmScoutAction, rejectScoutSend, runScoutTurn } from "@/lib/scout/execute";
+import { confirmScoutAction, runScoutTurn } from "@/lib/scout/execute";
+import { executeApprovedScoutSend, issueScoutSendConfirmation, rejectScoutSend } from "@/lib/scout/send";
 import { AuthorizationError } from "@/lib/rbac/permissions";
 import { suggestedScoutPrompts } from "@/lib/scout/prompts";
 
@@ -14,7 +15,7 @@ export type ScoutClientResult = {
   message?: string;
   cards?: Array<{ type: string; id: string; title: string; href: string; meta: string; fields: Record<string, string | number | null> }>;
   confirmation?: { actionId: string; title: string; body: string } | null;
-  draft?: { subject: string; body: string; sendAllowed: false; facts: string[] } | null;
+  draft?: { subject: string; body: string; sendAllowed: boolean; facts: string[]; confirmationToken?: string } | null;
   links?: Array<{ href: string; label: string }>;
   prompts?: string[];
 };
@@ -71,12 +72,54 @@ export async function scoutConfirmAction(actionId: string): Promise<ScoutClientR
   }
 }
 
-export async function scoutSendDraftAction(): Promise<ScoutClientResult> {
+export async function scoutSendDraftAction(input?: {
+  confirmationToken?: string | null;
+  to?: string | null;
+  subject?: string | null;
+  body?: string | null;
+}): Promise<ScoutClientResult> {
   try {
-    await requireAppPermission("scout.use");
-    const blocked = await rejectScoutSend();
-    return { error: blocked.message, draft: { subject: "", body: "", sendAllowed: false, facts: [] } };
+    const principal = await requireAppPermission("scout.use");
+    const subject = input?.subject?.trim() || "";
+    const body = input?.body?.trim() || "";
+    const to = input?.to?.trim() || "";
+    if (!input?.confirmationToken) {
+      const blocked = await rejectScoutSend();
+      if (!canSendPrepare(principal) || !subject || !body) {
+        return { error: blocked.message, draft: { subject, body, sendAllowed: false, facts: [] } };
+      }
+      const token = issueScoutSendConfirmation({ principal, subject, body, to: to || undefined });
+      return {
+        error: "Confirm send to proceed. Scout will not send until you confirm this step.",
+        draft: {
+          subject,
+          body,
+          sendAllowed: false,
+          facts: ["Human confirmation required.", "Transactional provider only."],
+          confirmationToken: token,
+        },
+      };
+    }
+    if (!to) {
+      return { error: "A recipient address is required for transactional send.", draft: { subject, body, sendAllowed: false, facts: [] } };
+    }
+    const result = await executeApprovedScoutSend({
+      principal,
+      confirmationToken: input.confirmationToken,
+      to,
+      subject,
+      body,
+    });
+    return {
+      error: result.sendAllowed ? undefined : result.message,
+      message: result.sendAllowed ? result.message : undefined,
+      draft: { subject, body, sendAllowed: result.sendAllowed, facts: [result.message] },
+    };
   } catch (error) {
     return fail(error);
   }
+}
+
+function canSendPrepare(principal: Awaited<ReturnType<typeof requireAppPermission>>) {
+  return principal.permissions.has("scout.external_actions") && principal.permissions.has("transactional_email.send");
 }

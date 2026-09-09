@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { WebhookError, receiveProviderWebhook } from "@/lib/integrations/webhooks";
+import { applyCheckrWebhook, WebhookError, receiveProviderWebhook } from "@/lib/integrations/webhooks";
 import { inngest } from "@/lib/inngest/client";
 
 export async function POST(
@@ -13,6 +13,7 @@ export async function POST(
     request.headers.get("x-workforceos-signature") ??
     request.headers.get("x-docusign-signature-1") ??
     request.headers.get("intuit-signature") ??
+    request.headers.get("x-checkr-signature") ??
     null;
   const eventId = request.headers.get("x-webhook-event-id");
   const organizationId = request.headers.get("x-organization-id");
@@ -28,13 +29,28 @@ export async function POST(
       eventId,
     });
     if (!result.replay && organizationId) {
+      if (provider === "checkr") {
+        const payload = result.receipt.payload as {
+          data?: { object?: { candidate_id?: string; id?: string; status?: string } };
+          type?: string;
+        };
+        await applyCheckrWebhook({
+          organizationId,
+          providerCandidateId: payload.data?.object?.candidate_id ?? null,
+          invitationId: payload.data?.object?.id ?? null,
+          reportId: payload.data?.object?.id ?? null,
+          status: payload.data?.object?.status ?? null,
+        });
+      }
       await inngest.send({
         name:
           provider === "docusign"
             ? "workforceos/docusign.status"
             : provider === "quickbooks"
               ? "workforceos/quickbooks.sync"
-              : "workforceos/workspace.sync",
+              : provider === "checkr"
+                ? "workforceos/workspace.sync"
+                : "workforceos/workspace.sync",
         data: { organizationId, provider, receiptId: result.receipt.id },
       });
     }

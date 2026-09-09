@@ -17,20 +17,29 @@ import { recordAuditEvent } from "../audit/record-audit-event";
 import { canOpenExternalSourcing } from "../recruiting/external-sourcing";
 import {
   isApolloConfigured,
+  isApolloLiveWired,
   isCheckrLiveApiWired,
   isDocuSignConfigured,
+  isDocuSignLiveWired,
   isDrugScreenConfigured,
+  isGoogleCalendarLive,
   isGoogleConfigured,
+  isMicrosoftCalendarLive,
   isMicrosoftConfigured,
   isOnetConfigured,
   isQuickBooksConfigured,
+  isQuickBooksLiveWired,
   isResendConfigured,
   isSeekOutConfigured,
+  isSeekOutLiveWired,
 } from "./credentials";
 import type { EsignAdapter, EsignResult } from "./esign";
 import type { IntegrationAdapter, IntegrationHealth } from "./hub";
+import { integrationCredential } from "./credentials";
+import { integrationFetch } from "./http";
 import { upsertExternalRecord } from "./records";
 import { logIntegrationEvent, markConnection } from "./retry";
+import type { ProviderWiring } from "./wiring";
 
 export class IntegrationError extends Error {
   constructor(message: string) {
@@ -41,13 +50,23 @@ export class IntegrationError extends Error {
 
 type OrgContext = { organizationId: string; actorUserId?: string | null };
 
-function labeledHealth(provider: string, configured: boolean, extra?: Partial<IntegrationHealth>): IntegrationHealth {
+function labeledHealth(
+  provider: string,
+  configured: boolean,
+  extra?: Partial<IntegrationHealth> & { liveWired?: boolean },
+): IntegrationHealth {
+  const liveWired = Boolean(configured && (extra?.liveWired ?? configured));
+  const wiring: ProviderWiring = liveWired ? "live" : configured ? "configured" : "mock";
   return {
     provider,
     configured,
-    connectionHealth: configured ? "healthy" : "not_configured",
+    liveWired,
+    wiring,
+    connectionHealth: liveWired ? "healthy" : configured ? "unknown" : "not_configured",
     lastSyncAt: extra?.lastSyncAt ?? null,
-    lastError: configured ? extra?.lastError ?? null : `${provider} is not configured. Adapter and labeled mock/dev setup only.`,
+    lastError: configured
+      ? extra?.lastError ?? null
+      : `${provider} is not configured. Adapter and labeled mock/dev setup only.`,
   };
 }
 
@@ -55,16 +74,17 @@ class BaseAdapter implements IntegrationAdapter {
   constructor(
     public readonly provider: string,
     private readonly configured: () => boolean,
+    private readonly liveWired: () => boolean = () => false,
   ) {}
 
   async connect(): Promise<IntegrationHealth> {
     return this.healthCheck();
   }
   async disconnect(): Promise<IntegrationHealth> {
-    return labeledHealth(this.provider, false);
+    return labeledHealth(this.provider, false, { liveWired: false });
   }
   async healthCheck(): Promise<IntegrationHealth> {
-    return labeledHealth(this.provider, this.configured());
+    return labeledHealth(this.provider, this.configured(), { liveWired: this.liveWired() });
   }
   async sync(): Promise<IntegrationHealth> {
     return this.healthCheck();
@@ -82,12 +102,39 @@ class BaseAdapter implements IntegrationAdapter {
 
 export class QuickBooksAdapter extends BaseAdapter {
   constructor() {
-    super("quickbooks", isQuickBooksConfigured);
+    super("quickbooks", isQuickBooksConfigured, isQuickBooksLiveWired);
+  }
+
+  async postInvoice(input: OrgContext & { invoiceId: string; invoiceNumber: string; amount: string }) {
+    return this.exportInvoice(input);
   }
 
   async mockExportInvoice(input: OrgContext & { invoiceId: string; invoiceNumber: string; amount: string }) {
+    return this.exportInvoice(input);
+  }
+
+  async exportInvoice(input: OrgContext & { invoiceId: string; invoiceNumber: string; amount: string }) {
     const configured = isQuickBooksConfigured();
-    const externalId = configured ? `qb-live-${input.invoiceId}` : `qb-dev-${input.invoiceId}`;
+    const live = isQuickBooksLiveWired();
+    let externalId = live ? `qb-live-${input.invoiceId}` : configured ? `qb-mapped-${input.invoiceId}` : `qb-dev-${input.invoiceId}`;
+    let mode = live ? "live_posted" : configured ? "credentials_present" : "dev_mock";
+    let status = live ? "posted" : configured ? "exported_pending_oauth" : "dev_mock";
+    let detail = live
+      ? "QuickBooks invoice posted through the Integration Hub. WorkforceOS remains the operating record."
+      : configured
+        ? "QuickBooks app credentials are present but OAuth tokens/realm are missing. Mapping stored; not a live post."
+        : "Labeled QuickBooks mock. Not a production connection.";
+
+    if (live) {
+      const posted = await this.postLiveInvoice(input);
+      externalId = posted.externalId;
+      if (posted.error) {
+        status = "failed";
+        detail = posted.error;
+        mode = "live_error";
+      }
+    }
+
     const mapping = await upsertExternalRecord({
       organizationId: input.organizationId,
       provider: "quickbooks",
@@ -97,37 +144,80 @@ export class QuickBooksAdapter extends BaseAdapter {
       payload: {
         invoiceNumber: input.invoiceNumber,
         amount: input.amount,
-        mode: configured ? "credentials_present" : "dev_mock",
+        mode,
       },
     });
     await logIntegrationEvent({
       organizationId: input.organizationId,
       provider: "quickbooks",
       action: "invoice.export",
-      status: configured ? "exported_pending_oauth" : "dev_mock",
-      detail: configured
-        ? "QuickBooks credentials are present but live OAuth posting is not enabled. Mapping stored."
-        : "Labeled QuickBooks mock. Not a production connection.",
+      status,
+      detail,
       idempotencyKey: `quickbooks:invoice:${input.invoiceId}`,
       payload: { invoiceId: input.invoiceId, externalId },
     });
     await markConnection({
       organizationId: input.organizationId,
       provider: "quickbooks",
-      status: configured ? "credentials_present" : "dev_mock",
-      environment: configured ? "sandbox" : "dev_mock",
-      accountLabel: configured ? "QuickBooks (credentials present, OAuth not completed)" : "QuickBooks labeled mock",
-      success: true,
+      status: live ? "live" : configured ? "credentials_present" : "dev_mock",
+      environment: live ? (integrationCredential("QUICKBOOKS_ENVIRONMENT") ?? "sandbox") : configured ? "sandbox" : "dev_mock",
+      accountLabel: live
+        ? "QuickBooks (live posting)"
+        : configured
+          ? "QuickBooks (credentials present, OAuth not completed)"
+          : "QuickBooks labeled mock",
+      success: status !== "failed",
     });
     await recordAuditEvent({
       organizationId: input.organizationId,
       actor: { type: input.actorUserId ? "human" : "system", userId: input.actorUserId },
-      action: "quickbooks.invoice_mapped",
+      action: live ? "quickbooks.invoice_posted" : "quickbooks.invoice_mapped",
       recordType: "invoice",
       recordId: input.invoiceId,
       after: mapping,
     });
     return mapping;
+  }
+
+  private async postLiveInvoice(input: { invoiceId: string; invoiceNumber: string; amount: string }) {
+    const realmId = integrationCredential("QUICKBOOKS_REALM_ID");
+    const refresh = integrationCredential("QUICKBOOKS_REFRESH_TOKEN");
+    const clientId = integrationCredential("QUICKBOOKS_CLIENT_ID");
+    const clientSecret = integrationCredential("QUICKBOOKS_CLIENT_SECRET");
+    if (!realmId || !refresh || !clientId || !clientSecret) {
+      return { externalId: `qb-live-${input.invoiceId}`, error: "QuickBooks OAuth tokens are incomplete." };
+    }
+    const tokenResponse = await integrationFetch("https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer", {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "application/json",
+      },
+      body: new URLSearchParams({ grant_type: "refresh_token", refresh_token: refresh }),
+    });
+    const tokenPayload = (await tokenResponse.json().catch(() => ({}))) as { access_token?: string };
+    if (!tokenResponse.ok || !tokenPayload.access_token) {
+      return { externalId: `qb-live-${input.invoiceId}`, error: "QuickBooks token refresh failed." };
+    }
+    const env = integrationCredential("QUICKBOOKS_ENVIRONMENT") === "production" ? "quickbooks.api" : "sandbox-quickbooks.api";
+    const response = await integrationFetch(`https://${env}.intuit.com/v3/company/${realmId}/invoice`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${tokenPayload.access_token}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        DocNumber: input.invoiceNumber,
+        Line: [{ Amount: Number(input.amount), DetailType: "SalesItemLineDetail" }],
+      }),
+    });
+    const payload = (await response.json().catch(() => ({}))) as { Invoice?: { Id?: string } };
+    if (!response.ok) {
+      return { externalId: `qb-live-${input.invoiceId}`, error: "QuickBooks invoice post failed." };
+    }
+    return { externalId: payload.Invoice?.Id ?? `qb-live-${input.invoiceId}`, error: null };
   }
 
   async mapCustomer(input: OrgContext & { companyId: string; companyName: string }) {
@@ -168,13 +258,13 @@ export class DocuSignAdapter implements EsignAdapter, IntegrationAdapter {
   }
 
   async connect() {
-    return labeledHealth(this.provider, isDocuSignConfigured());
+    return labeledHealth(this.provider, isDocuSignConfigured(), { liveWired: isDocuSignLiveWired() });
   }
   async disconnect() {
-    return labeledHealth(this.provider, false);
+    return labeledHealth(this.provider, false, { liveWired: false });
   }
   async healthCheck() {
-    return labeledHealth(this.provider, isDocuSignConfigured());
+    return labeledHealth(this.provider, isDocuSignConfigured(), { liveWired: isDocuSignLiveWired() });
   }
   async sync() {
     return this.healthCheck();
@@ -191,31 +281,135 @@ export class DocuSignAdapter implements EsignAdapter, IntegrationAdapter {
 
   async createEnvelope(input: { contractId: string; signerEmail?: string | null; title: string }) {
     if (!isDocuSignConfigured()) return this.result("not_configured");
-    return this.result("created", { envelopeId: `ds-dev-${input.contractId}` });
+    if (!isDocuSignLiveWired()) {
+      return this.result("created", { envelopeId: `ds-configured-${input.contractId}` });
+    }
+    const created = await this.createLiveEnvelope(input);
+    return this.result(created.status, { envelopeId: created.envelopeId, error: created.error });
   }
   async send(envelopeId: string) {
     if (!isDocuSignConfigured()) return this.result("not_configured");
-    return this.result("sent", { envelopeId });
+    if (!isDocuSignLiveWired()) return this.result("sent", { envelopeId });
+    const sent = await this.sendLiveEnvelope(envelopeId);
+    return this.result(sent.status, { envelopeId, error: sent.error });
   }
   async status(envelopeId: string) {
     if (!isDocuSignConfigured()) return this.result("not_configured");
-    return this.result("sent", { envelopeId });
+    if (!isDocuSignLiveWired()) return this.result("sent", { envelopeId });
+    const live = await this.liveEnvelopeStatus(envelopeId);
+    return this.result(live.status, { envelopeId, error: live.error });
   }
-  async completedDocument() {
+  async completedDocument(_envelopeId: string) {
     if (!isDocuSignConfigured()) return this.result("not_configured");
     return this.result("sent", {
-      error: "Envelope is not completed. WorkforceOS will not mark the contract executed.",
+      error: "Envelope completion does not execute a contract. applyDocuSignStatus requires confirmed=true.",
     });
   }
   async auditCertificate() {
     if (!isDocuSignConfigured()) return this.result("not_configured");
     return this.result("sent");
   }
+
+  private docusignBase() {
+    return integrationCredential("DOCUSIGN_BASE_URL") ?? "https://demo.docusign.net";
+  }
+
+  private async createLiveEnvelope(input: { contractId: string; signerEmail?: string | null; title: string }) {
+    const accountId = integrationCredential("DOCUSIGN_ACCOUNT_ID");
+    const key = integrationCredential("DOCUSIGN_INTEGRATION_KEY");
+    if (!accountId || !key) {
+      return { status: "error" as const, envelopeId: null, error: "DocuSign account credentials are incomplete." };
+    }
+    const response = await integrationFetch(`${this.docusignBase()}/restapi/v2.1/accounts/${accountId}/envelopes`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        emailSubject: input.title,
+        status: "created",
+        recipients: input.signerEmail
+          ? { signers: [{ email: input.signerEmail, name: "Signer", recipientId: "1" }] }
+          : undefined,
+      }),
+    });
+    const payload = (await response.json().catch(() => ({}))) as { envelopeId?: string };
+    if (!response.ok || !payload.envelopeId) {
+      return { status: "error" as const, envelopeId: null, error: "DocuSign envelope create failed." };
+    }
+    return { status: "created" as const, envelopeId: payload.envelopeId, error: null };
+  }
+
+  private async sendLiveEnvelope(envelopeId: string) {
+    const accountId = integrationCredential("DOCUSIGN_ACCOUNT_ID");
+    if (!accountId) return { status: "error" as const, error: "DOCUSIGN_ACCOUNT_ID is missing." };
+    const response = await integrationFetch(
+      `${this.docusignBase()}/restapi/v2.1/accounts/${accountId}/envelopes/${encodeURIComponent(envelopeId)}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${integrationCredential("DOCUSIGN_INTEGRATION_KEY")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: "sent" }),
+      },
+    );
+    if (!response.ok) return { status: "error" as const, error: "DocuSign envelope send failed." };
+    return { status: "sent" as const, error: null };
+  }
+
+  private async liveEnvelopeStatus(envelopeId: string) {
+    const accountId = integrationCredential("DOCUSIGN_ACCOUNT_ID");
+    if (!accountId) return { status: "error" as const, error: "DOCUSIGN_ACCOUNT_ID is missing." };
+    const response = await integrationFetch(
+      `${this.docusignBase()}/restapi/v2.1/accounts/${accountId}/envelopes/${encodeURIComponent(envelopeId)}`,
+      {
+        headers: { Authorization: `Bearer ${integrationCredential("DOCUSIGN_INTEGRATION_KEY")}` },
+      },
+    );
+    const payload = (await response.json().catch(() => ({}))) as { status?: string };
+    if (!response.ok) return { status: "error" as const, error: "DocuSign status poll failed." };
+    const completed = payload.status === "completed";
+    return {
+      status: completed ? ("completed" as const) : ("sent" as const),
+      error: completed
+        ? "Provider reports completed. WorkforceOS will not mark the contract executed without confirmed=true."
+        : null,
+    };
+  }
 }
 
 export class ApolloAdapter extends BaseAdapter {
   constructor() {
-    super("apollo", isApolloConfigured);
+    super("apollo", isApolloConfigured, isApolloLiveWired);
+  }
+
+  async liveProposeCompany(input: OrgContext & { companyId: string; domain?: string | null }) {
+    if (!isApolloLiveWired()) {
+      return this.proposeCompanyEnrichment({
+        ...input,
+        proposed: { note: "Apollo is not configured. No live enrich ran." },
+      });
+    }
+    const key = integrationCredential("APOLLO_API_KEY");
+    const response = await integrationFetch("https://api.apollo.io/api/v1/organizations/enrich", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Api-Key": key ?? "" },
+      body: JSON.stringify({ domain: input.domain }),
+    });
+    const payload = (await response.json().catch(() => ({}))) as {
+      organization?: { website_url?: string; industry?: string; estimated_num_employees?: number };
+    };
+    return this.proposeCompanyEnrichment({
+      ...input,
+      proposed: {
+        website: payload.organization?.website_url,
+        industry: payload.organization?.industry,
+        employeeCount: payload.organization?.estimated_num_employees,
+      },
+      externalId: input.domain ? `apollo-${input.domain}` : undefined,
+    });
   }
 
   async proposeCompanyEnrichment(input: OrgContext & {
@@ -441,10 +635,10 @@ export class OnetAdapter extends BaseAdapter {
 
 export class SeekOutAdapter extends BaseAdapter {
   constructor() {
-    super("seekout", isSeekOutConfigured);
+    super("seekout", isSeekOutConfigured, isSeekOutLiveWired);
   }
 
-  lookupCandidates(input: {
+  async lookupCandidates(input: {
     jobId: string;
     internalSearchCompletedAt: Date | null | undefined;
     query: string;
@@ -452,20 +646,42 @@ export class SeekOutAdapter extends BaseAdapter {
     if (!canOpenExternalSourcing(input.internalSearchCompletedAt)) {
       throw new IntegrationError("Internal Talent Network search must be completed before external sourcing.");
     }
+    if (!isSeekOutLiveWired()) {
+      return {
+        allowed: true as const,
+        provider: "seekout" as const,
+        mode: isSeekOutConfigured() ? "credentials_present" : "dev_mock",
+        results: isSeekOutConfigured()
+          ? []
+          : [
+              {
+                externalId: "seekout-dev-1",
+                displayName: "Labeled SeekOut mock profile",
+                title: input.query,
+                notes: "Mock result. Import requires human review. Not a live SeekOut connection.",
+              },
+            ],
+      };
+    }
+    const key = integrationCredential("SEEKOUT_API_KEY");
+    const response = await integrationFetch("https://api.seekout.com/v1/search", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ query: input.query, jobId: input.jobId }),
+    });
+    const payload = (await response.json().catch(() => ({}))) as {
+      results?: Array<{ id?: string; name?: string; title?: string }>;
+    };
     return {
       allowed: true as const,
       provider: "seekout" as const,
-      mode: isSeekOutConfigured() ? "credentials_present" : "dev_mock",
-      results: isSeekOutConfigured()
-        ? []
-        : [
-            {
-              externalId: "seekout-dev-1",
-              displayName: "Labeled SeekOut mock profile",
-              title: input.query,
-              notes: "Mock result. Import requires human review. Not a live SeekOut connection.",
-            },
-          ],
+      mode: "live" as const,
+      results: (payload.results ?? []).map((row) => ({
+        externalId: row.id ?? "seekout-live",
+        displayName: row.name ?? "SeekOut profile",
+        title: row.title ?? input.query,
+        notes: "Live SeekOut result. Import requires human review. Does not create a Talent Network candidate.",
+      })),
     };
   }
 }
@@ -482,7 +698,11 @@ export class LinkedInAdapter extends BaseAdapter {
 
 export class WorkspaceAdapter extends BaseAdapter {
   constructor(provider: "microsoft" | "google") {
-    super(provider, provider === "microsoft" ? isMicrosoftConfigured : isGoogleConfigured);
+    super(
+      provider,
+      provider === "microsoft" ? isMicrosoftConfigured : isGoogleConfigured,
+      provider === "microsoft" ? isMicrosoftCalendarLive : isGoogleCalendarLive,
+    );
   }
 }
 
@@ -515,8 +735,8 @@ export function buildProviderAdapters(): IntegrationAdapter[] {
     new WorkspaceAdapter("google"),
     new DocuSignAdapter(),
     new QuickBooksAdapter(),
-    new BaseAdapter("checkr", isCheckrLiveApiWired),
-    new BaseAdapter("resend", isResendConfigured),
+    new BaseAdapter("checkr", isCheckrLiveApiWired, isCheckrLiveApiWired),
+    new BaseAdapter("resend", isResendConfigured, isResendConfigured),
     new BaseAdapter("drug-screen", isDrugScreenConfigured),
   ];
 }

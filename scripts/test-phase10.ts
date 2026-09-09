@@ -293,9 +293,14 @@ async function main() {
     start: new Date(Date.now() + 86400000),
     end: new Date(Date.now() + 86400000 + 30 * 60000),
   });
-  assert(scheduled.calendarEvent.externalEventId.startsWith("MOCK-NON-PRODUCTION-"), "Calendar mock is unmistakably non-production");
-  assert(scheduled.calendarEvent.mock === true, "Calendar event is mock");
-  assert(getCalendarProvider().liveScheduling === false, "Live scheduling is not enabled");
+  if (getCalendarProvider().liveScheduling) {
+    assert(scheduled.calendarEvent.mock === false, "Configured calendar uses the live path");
+    assert(getCalendarProvider().liveScheduling === true, "Live scheduling follows OAuth tokens");
+  } else {
+    assert(scheduled.calendarEvent.externalEventId.startsWith("MOCK-NON-PRODUCTION-"), "Calendar mock is unmistakably non-production");
+    assert(scheduled.calendarEvent.mock === true, "Calendar event is mock");
+    assert(getCalendarProvider().liveScheduling === false, "Live scheduling stays off without OAuth tokens");
+  }
 
   console.log("TEST 19 — Unauthorized user cannot schedule interview");
   let denied = false;
@@ -335,8 +340,12 @@ async function main() {
 
   console.log("TEST 22 — Background check through adapter/mock");
   const bg = await requestBackgroundCheck({ principal: partner, applicationId: first.application.id });
-  assert(bg.provider === "manual", "Background check uses manual provider");
-  assert(getBackgroundCheckProvider().name === "manual", "Checkr HTTP API is not selected");
+  if (getBackgroundCheckProvider().name === "checkr") {
+    assert(bg.provider === "checkr", "Background check uses Checkr when live-wired");
+  } else {
+    assert(bg.provider === "manual", "Background check uses manual provider");
+    assert(getBackgroundCheckProvider().name === "manual", "Checkr stays manual when unconfigured");
+  }
 
   console.log("TEST 23 — Background result cannot auto-reject");
   let autoRejectBlocked = false;

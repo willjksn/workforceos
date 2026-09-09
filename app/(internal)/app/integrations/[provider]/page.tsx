@@ -12,14 +12,15 @@ import { ActionForm } from "../../_components/action-form";
 import { Card, EmptyState, PageHeader, PageShell, PrimaryButton, StatusBadge, formatDate, formatLabel } from "../../_components/ui";
 
 const SETUP: Record<string, string> = {
-  quickbooks: "Set QUICKBOOKS_CLIENT_ID and QUICKBOOKS_CLIENT_SECRET. WorkforceOS still owns operating invoices; QuickBooks is the ledger. No fake production connection is created without credentials.",
-  docusign: "Set DOCUSIGN_INTEGRATION_KEY and DOCUSIGN_USER_ID. Until then, use manual contract execution. Unsigned webhooks cannot mark a contract executed.",
+  quickbooks: "Set QUICKBOOKS_CLIENT_ID, QUICKBOOKS_CLIENT_SECRET, QUICKBOOKS_REFRESH_TOKEN, and QUICKBOOKS_REALM_ID for live posting. WorkforceOS still owns operating invoices; QuickBooks is the ledger.",
+  docusign: "Set DOCUSIGN_INTEGRATION_KEY, DOCUSIGN_USER_ID, DOCUSIGN_SECRET_KEY, and DOCUSIGN_ACCOUNT_ID for live envelopes. Until then, use manual execution. Unsigned webhooks cannot mark a contract executed.",
   apollo: "Set APOLLO_API_KEY. Enrichment writes a review record and will not overwrite approved CRM fields without a human accept.",
   onet: "Set ONET_API_KEY for live imports. The UI never calls O*NET per page. Unconfigured imports are labeled fixtures with source and version.",
   seekout: "Set SEEKOUT_API_KEY. Internal Talent Network search must complete before SeekOut lookup. hireEZ remains a thin placeholder.",
   "linkedin-recruiter": "Store LinkedIn profile URLs and Recruiter project/reference IDs only. Scraping is prohibited. RSC/CRM Connect is a future adapter.",
-  microsoft: "Set MICROSOFT_CLIENT_ID and MICROSOFT_CLIENT_SECRET to store calendar/meeting/email references. WorkforceOS does not duplicate Outlook.",
-  google: "Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to store workspace references. WorkforceOS does not duplicate Gmail.",
+  microsoft: "Set MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET, and MICROSOFT_REFRESH_TOKEN for live interview events. Client IDs alone stay CONFIGURED. WorkforceOS does not duplicate Outlook.",
+  google: "Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REFRESH_TOKEN for live interview events. Client IDs alone stay CONFIGURED. WorkforceOS does not duplicate Gmail.",
+  checkr: "Set CHECKR_API_KEY and CHECKR_WEBHOOK_SECRET for live invitations. Results never auto-reject. WorkforceOS does not generate FCRA adverse-action letters.",
 };
 
 export default async function IntegrationProviderPage({

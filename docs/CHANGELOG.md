@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Phase I — Live Integration Go-Live
+
+- Integration Hub now distinguishes MOCK / MANUAL vs CONFIGURED (credentials present) vs LIVE (tokens or API key actually wired). LIVE is never shown when credentials are missing.
+- Calendar: Google/Microsoft interview events when an OAuth refresh token exists. Client IDs alone stay CONFIGURED with `liveScheduling=false`.
+- Scout send: allowed only with `scout.external_actions` + `transactional_email.send` + a confirmation token + Resend. Recruiters still do not get `scout.external_actions`. Resend stays transactional (DEC-HIRE-004).
+- DocuSign live envelopes when account + secret are set. Contracts still require `confirmed=true` before executed (DEC-INT-003).
+- QuickBooks live invoice posting when refresh token + realm exist. Idempotent. WorkforceOS remains the operating record (DEC-FIN-002).
+- Checkr invitations + signed webhook when `CHECKR_API_KEY` is set. Results never auto-reject. No FCRA adverse-action letters are generated.
+- SeekOut/Apollo live lookup only after internal Talent Network search. Apollo still cannot overwrite approved CRM (DEC-INT-004).
+- Official `@sentry/node` SDK initializes when `SENTRY_DSN` is present. Events redact secrets and candidate contact fields (DEC-OBS-001).
+- Production vendor keys remain Phase M / Vercel Encrypted. This pass does not upload or rotate secrets.
+
 ### Phase H — PierOne employee onboarding
 
 - Staff path from Admin invite → access bundles → Day 1 checklist → required Academy → Week 4 human review. Routes: `/app/academy/onboarding` and `/app/admin/users/[id]/onboarding`. Distinct from ATS hire `/app/onboarding`.

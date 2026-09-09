@@ -1,6 +1,6 @@
 # Resend
 
-Resend is the WorkforceOS transactional email implementation (`EmailProvider` → `ResendEmailProvider`). Recruiter-authored mail still uses Microsoft 365 or Google Workspace. Scout drafts; it does not send.
+Resend is the WorkforceOS transactional email implementation (`EmailProvider` → `ResendEmailProvider`). Recruiter-authored mail still uses Microsoft 365 or Google Workspace. Scout drafts. Scout send fires only with `scout.external_actions`, `transactional_email.send`, a confirmation token, and Resend configured.
 
 ## Environment
 

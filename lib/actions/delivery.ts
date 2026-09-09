@@ -16,6 +16,7 @@ import {
   createProposalFromPlan,
   createSolutionPlanFromDiscovery,
   executeContractManual,
+  sendContractForSignature,
   markDeliverableDelivered,
   sendProposal,
   submitProposalForReview,
@@ -236,6 +237,26 @@ export async function executeContractAction(_prev: ActionState, formData: FormDa
         signerName: formData.get("signerName"),
       });
     await executeContractManual({ actor: actorFrom(principal), ...parsed });
+    redirect(`/app/contracts/${parsed.contractId}`);
+  } catch (error) {
+    if (isNextControlFlow(error)) throw error;
+    return fail(error);
+  }
+}
+
+export async function sendContractForSignatureAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    const principal = await requireAppPermission("contracts.write");
+    const parsed = z
+      .object({
+        contractId: z.string().uuid(),
+        signerEmail: z.string().email().optional(),
+      })
+      .parse({
+        contractId: formData.get("contractId"),
+        signerEmail: emptyToNull(formData.get("signerEmail")) ?? undefined,
+      });
+    await sendContractForSignature({ actor: actorFrom(principal), ...parsed });
     redirect(`/app/contracts/${parsed.contractId}`);
   } catch (error) {
     if (isNextControlFlow(error)) throw error;

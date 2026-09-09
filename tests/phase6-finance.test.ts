@@ -72,15 +72,15 @@ describe("Phase 6 integrations", () => {
     ).toBe(false);
   });
 
-  it("keeps internal Talent Network first for SeekOut", () => {
+  it("keeps internal Talent Network first for SeekOut", async () => {
     expect(canOpenExternalSourcing(null)).toBe(false);
-    expect(() =>
+    await expect(
       getSeekOutAdapter().lookupCandidates({
         jobId: "job-1",
         internalSearchCompletedAt: null,
         query: "electrician",
       }),
-    ).toThrow(/Internal Talent Network/);
+    ).rejects.toThrow(/Internal Talent Network/);
   });
 
   it("does not scrape LinkedIn", () => {

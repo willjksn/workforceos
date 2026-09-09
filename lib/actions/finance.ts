@@ -44,7 +44,7 @@ export async function createInvoiceAction(_prev: ActionState, formData: FormData
       actor: { organizationId: principal.organizationId, userId: principal.id, roleSlugs: principal.roleSlugs },
       billingEventId,
     });
-    await getQuickBooksAdapter().mockExportInvoice({
+    await getQuickBooksAdapter().postInvoice({
       organizationId: principal.organizationId,
       actorUserId: principal.id,
       invoiceId: invoice.id,

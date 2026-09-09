@@ -16,6 +16,7 @@ import {
 import { scheduleInterview } from "../hiring/service";
 import { getCalendarProvider } from "../calendar";
 import { scoutCommand } from "./commands";
+import { isScoutSendPathEnabled, rejectScoutSend as denyScoutSend } from "./send";
 import type { ScoutPageContext } from "./page-context";
 import { parseScoutIntent, type ScoutCommandDto } from "./parse-intent";
 import { executeScoutSearch, type ScoutResultCard } from "./search";
@@ -29,7 +30,7 @@ export type ScoutTurnResult = {
     title: string;
     body: string;
   };
-  draft: null | { subject: string; body: string; sendAllowed: false; facts: string[] };
+  draft: null | { subject: string; body: string; sendAllowed: boolean; facts: string[]; confirmationToken?: string };
   links: Array<{ href: string; label: string }>;
 };
 
@@ -220,7 +221,7 @@ export async function confirmScoutAction(input: { principal: Principal; actionId
 }
 
 export async function rejectScoutSend() {
-  return { sendAllowed: false as const, message: "Scout cannot send external messages without scout.external_actions and human confirmation." };
+  return denyScoutSend();
 }
 
 async function executeAuthorizedCommand(input: {
@@ -765,7 +766,7 @@ async function persistMessages(sessionId: string, userText: string, scoutText: s
 }
 
 export function isScoutExternalSendEnabled() {
-  return false;
+  return isScoutSendPathEnabled();
 }
 
 export function assertScoutCannotSend() {

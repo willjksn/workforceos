@@ -3,6 +3,8 @@ import { buildProviderAdapters } from "./providers";
 export type IntegrationHealth = {
   provider: string;
   configured: boolean;
+  liveWired: boolean;
+  wiring: "mock" | "configured" | "live";
   connectionHealth: "unknown" | "healthy" | "error" | "not_configured";
   lastSyncAt: Date | null;
   lastError: string | null;
@@ -45,6 +47,8 @@ export class PlaceholderAdapter implements IntegrationAdapter {
     return {
       provider: this.provider,
       configured: false,
+      liveWired: false,
+      wiring: "mock",
       connectionHealth: "not_configured",
       lastSyncAt: null,
       lastError: `${this.provider} is not configured. Adapter and labeled mock/dev setup only.`,

@@ -814,6 +814,54 @@ export async function executeContractManual(input: {
   return after;
 }
 
+export async function sendContractForSignature(input: {
+  actor: Actor;
+  contractId: string;
+  signerEmail?: string | null;
+}) {
+  const db = getDb();
+  const [contract] = await db
+    .select()
+    .from(contracts)
+    .where(and(eq(contracts.id, input.contractId), eq(contracts.organizationId, input.actor.organizationId)))
+    .limit(1);
+  if (!contract) throw new DeliveryError("Contract not found");
+  const { getEsignAdapter } = await import("../integrations/esign");
+  const envelope = await getEsignAdapter().createEnvelope({
+    contractId: contract.id,
+    signerEmail: input.signerEmail,
+    title: contract.title,
+  });
+  const [row] = await db
+    .insert(esignEnvelopes)
+    .values({
+      contractId: contract.id,
+      provider: envelope.provider,
+      providerEnvelopeId: envelope.envelopeId ?? null,
+      status: envelope.status === "not_configured" || envelope.status === "manual" || envelope.status === "error"
+        ? "not_sent"
+        : envelope.status === "completed"
+          ? "sent"
+          : envelope.status === "created" || envelope.status === "sent"
+            ? envelope.status
+            : "not_sent",
+      lastError: envelope.error ?? null,
+    })
+    .returning();
+  await db
+    .update(contracts)
+    .set({
+      signatureStatus: envelope.status === "not_configured" ? "not_sent" : "sent",
+      updatedAt: new Date(),
+    })
+    .where(eq(contracts.id, contract.id));
+  await audit(input.actor, "docusign.envelope_created", "esign_envelope", row.id, row, {
+    contractStatus: contract.status,
+    executed: false,
+  });
+  return { contract, envelope, row };
+}
+
 export async function createDeliveryProject(input: {
   actor: Actor;
   solutionPlanId: string;

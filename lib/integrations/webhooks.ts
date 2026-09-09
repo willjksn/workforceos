@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 
 import { getDb } from "../../db";
-import { contracts, esignEnvelopes, integrationWebhookReceipts } from "../../db/schema";
+import { backgroundChecks, contracts, esignEnvelopes, integrationWebhookReceipts } from "../../db/schema";
 import { recordAuditEvent } from "../audit/record-audit-event";
 import { webhookSecret } from "./credentials";
 import { stableEventId, verifyWebhookSignature } from "./providers";
@@ -141,4 +141,46 @@ export async function applyDocuSignStatus(input: {
     });
   }
   return updatedEnvelope;
+}
+
+export async function applyCheckrWebhook(input: {
+  organizationId: string;
+  providerCandidateId?: string | null;
+  invitationId?: string | null;
+  reportId?: string | null;
+  status?: string | null;
+}) {
+  const db = getDb();
+  const rows = input.providerCandidateId
+    ? await db
+        .select()
+        .from(backgroundChecks)
+        .where(eq(backgroundChecks.providerCandidateId, input.providerCandidateId))
+        .limit(1)
+    : [];
+  const [row] = rows;
+  if (!row || row.organizationId !== input.organizationId) {
+    return { updated: false, autoRejected: false };
+  }
+  const reviewStatus = input.status === "clear" || input.status === "cleared" ? "review_required" : "review_required";
+  await db
+    .update(backgroundChecks)
+    .set({
+      status: "review_required",
+      providerReportId: input.reportId ?? row.providerReportId,
+      resultSummary:
+        "Checkr webhook received. Human review required. Results never auto-reject. WorkforceOS does not generate FCRA adverse-action letters.",
+      reviewStatus,
+      updatedAt: new Date(),
+    })
+    .where(eq(backgroundChecks.id, row.id));
+  await recordAuditEvent({
+    organizationId: input.organizationId,
+    actor: { type: "system" },
+    action: "checkr.webhook_received",
+    recordType: "background_check",
+    recordId: row.id,
+    after: { autoRejected: false, reviewStatus },
+  });
+  return { updated: true, autoRejected: false, backgroundCheckId: row.id };
 }

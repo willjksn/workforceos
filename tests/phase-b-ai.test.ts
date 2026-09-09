@@ -175,12 +175,13 @@ describe("Phase B Scout closed commands and domains", () => {
     expect(stripped.currentTitle).toBe("Electrician");
   });
 
-  it("keeps Scout external send hard-denied", async () => {
+  it("keeps Scout external send denied without confirmation and permission", async () => {
     expect(isScoutExternalSendEnabled()).toBe(false);
     expect(assertScoutCannotSend()).toBe(false);
     const denied = await rejectScoutSend();
     expect(denied.sendAllowed).toBe(false);
     expect(can(principalFor("managing-partner"), "scout.external_actions")).toBe(true);
+    expect(can(principalFor("recruiter"), "scout.external_actions")).toBe(false);
     expect(isForbiddenTask("scout", "send_outbound")).toBe(true);
   });
 });

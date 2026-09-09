@@ -134,15 +134,16 @@ describe("disposition reasons", () => {
 });
 
 describe("phase 10 provider honesty", () => {
-  it("keeps calendar mock-only even if workspace credentials exist", () => {
+  it("keeps calendar mock when unconfigured and live only when OAuth tokens exist", () => {
     const calendar = getCalendarProvider();
     expect(calendar.name).toBe("mock");
     expect(calendar.liveScheduling).toBe(false);
     expect(calendarProviderStatus().liveScheduling).toBe(false);
     expect(calendarProviderStatus().provider).toBe("mock");
+    expect(calendarProviderStatus().liveLabel).toBe("MOCK");
   });
 
-  it("does not treat Checkr as live or sandbox-ready", () => {
+  it("does not treat Checkr as live when CHECKR_API_KEY is unset", () => {
     expect(isCheckrLiveApiWired()).toBe(false);
     expect(getBackgroundCheckProvider().name).toBe("manual");
     expect(getBackgroundCheckProvider().configured).toBe(false);
