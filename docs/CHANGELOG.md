@@ -19,6 +19,7 @@
 
 ### Production ops — 2026-09-09
 
+- Applied Drizzle `0017_quiet_scale` to Neon `production-launch`. Confirmed `skillbridge_profiles.ets_date` / `eaos_date`, `public_access_tokens`, `report_export_schedules` / `report_export_jobs`, and SkillBridge alert-rule codes `window_starting_soon` / `window_ending_soon`. Org FKs `ON DELETE restrict`. `npm run db:check` OK; no development fixtures. Checkpoint `prod-migrate-checkpoint-20260909-0017` expires 2026-09-16. `db:check` expected-tag list is still stale (13 through `0012`; 18 applied).
 - Applied Drizzle `0014_rainy_doomsday`, `0015_dizzy_wrecker`, and `0016_lyrical_giant_girl` to Neon `production-launch`. `0013_nervous_maggott` was already present. `npm run db:check` OK; no development fixtures. Checkpoint branch `prod-migrate-checkpoint-20260909` expires 2026-09-16.
 - Four archived launch-smoke PDF keys were re-identified on production. Operator confirmed 2026-09-09 that the objects were deleted in Cloudflare R2. Archived `files` rows remain. Bucket was not wiped.
 

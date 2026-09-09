@@ -53,6 +53,7 @@ Do not enable these with ad-hoc production SQL if a migration can do it.
 | `drizzle/0014_rainy_doomsday.sql` | Phase E Academy: `user_training_progress`. Do not rewrite `0000`–`0013`. Applied to production-launch 2026-09-09. |
 | `drizzle/0015_dizzy_wrecker.sql` | Phase H staff onboarding: `staff_onboarding`, `staff_onboarding_equipment`, `staff_policy_acknowledgements`, `users.manager_id`. Do not rewrite `0000`–`0014`. Applied to production-launch 2026-09-09. |
 | `drizzle/0016_lyrical_giant_girl.sql` | Phase K GTM: `companies.gtm_tier` / `companies.gtm_region`. Do not rewrite `0000`–`0015`. Applied to production-launch 2026-09-09. |
+| `drizzle/0017_quiet_scale.sql` | Phase L scale: SkillBridge `ets_date` / `eaos_date`, `public_access_tokens`, `report_export_schedules` / `report_export_jobs`, alert-rule codes `window_starting_soon` / `window_ending_soon`. Org FKs `ON DELETE restrict`. Do not rewrite `0000`–`0016`. Applied to production-launch 2026-09-09. |
 
 Enum values are added in a separate statement from column defaults that use those values. Postgres rejects `ADD VALUE` and `DEFAULT` of that value in the same transaction.
 
