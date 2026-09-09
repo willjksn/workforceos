@@ -5,7 +5,7 @@ Kind: shared delivery and expansion (not a sixth client offer)
 
 Cites: `docs/business/PIERONE_OPERATING_MANUAL.md` (Project → Delivery → Reporting → Invoice → Expansion), `docs/workflows/SERVICE_WORKFLOWS.md` reusable engine path and approval gates.
 
-This playbook covers **consulting delivery projects** (`/app/projects`). Professional Search execution still uses Jobs / Talent — see [Recruiting & Hiring](recruiting-and-hiring.md). Workforce intelligence screens are in [Workforce Pipeline Assessment](workforce-pipeline-assessment.md).
+This playbook covers **consulting delivery projects** (`/app/projects`). Professional & Technical Search execution still uses Jobs / Talent — see [Recruiting & Hiring](recruiting-and-hiring.md). Workforce intelligence screens are in [Workforce Pipeline Assessment](workforce-pipeline-assessment.md).
 
 Delivery projects require an executed contract unless a Managing Partner override is audited.
 
@@ -106,8 +106,8 @@ Delivery projects require an executed contract unless a Managing Partner overrid
 
 | From | May expand to |
 | --- | --- |
-| Professional Search | Fractional Talent Partner, Military Talent Opportunity Assessment, Workforce Pipeline Assessment |
+| Professional & Technical Search | Fractional Talent Partner, Military Talent Opportunity Assessment, Workforce Pipeline Assessment |
 | Military Talent Opportunity Assessment | Fractional Talent Partner, Workforce Pipeline Assessment |
-| Talent Acquisition Performance Assessment | Fractional Talent Partner, Professional Search |
-| Fractional Talent Partner | Professional Search, Military Talent Opportunity Assessment, Workforce Pipeline Assessment |
-| Workforce Pipeline Assessment | Military Talent Opportunity Assessment, Fractional Talent Partner, Professional Search |
+| Talent Acquisition Performance Assessment | Fractional Talent Partner, Professional & Technical Search |
+| Fractional Talent Partner | Professional & Technical Search, Military Talent Opportunity Assessment, Workforce Pipeline Assessment |
+| Workforce Pipeline Assessment | Military Talent Opportunity Assessment, Fractional Talent Partner, Professional & Technical Search |

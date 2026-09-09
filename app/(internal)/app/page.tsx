@@ -23,6 +23,7 @@ import {
   getOperatingRhythmBoards,
 } from "@/lib/reporting/operating-rhythms";
 import { evaluateOperationalAlerts } from "@/lib/alerts/evaluate";
+import { displayServiceName } from "@/lib/services/labels";
 
 function money(value: number) {
   return `$${moneyString(value)}`;
@@ -290,7 +291,7 @@ export default async function CommandCenterPage({
                     key={opportunity.id}
                     href={`/app/opportunities/${opportunity.id}`}
                     title={opportunity.name}
-                    meta={`${opportunity.companyName}${opportunity.serviceCode ? ` · ${formatLabel(opportunity.serviceCode)}` : ""}`}
+                    meta={`${opportunity.companyName}${opportunity.serviceCode ? ` · ${displayServiceName(opportunity.serviceCode)}` : ""}`}
                   />
                 ))}
               </RecordList>

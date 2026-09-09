@@ -90,7 +90,7 @@ export const LAUNCH_SERVICE_CATALOG: LaunchServiceCatalog[] = [
   {
     id: SERVICE_IDS["professional-search"],
     code: "professional-search",
-    name: "Professional Search",
+    name: "Professional & Technical Search",
     practiceArea: "Recruiting",
     pricingModel: "percentage_fee",
     minPrice: "25000",
@@ -562,7 +562,7 @@ export const LAUNCH_SERVICE_CATALOG: LaunchServiceCatalog[] = [
       billingRules: "Monthly billing events from the contract value / cadence.",
       kpis: "Active reqs, SLAs, fill rate, capacity, stakeholder satisfaction.",
       completionRules: "Renewal/expansion review completed; open issues documented.",
-      expansionRules: "Professional Search or assessments when scope is exceeded.",
+      expansionRules: "Professional & Technical Search or assessments when scope is exceeded.",
       exceptionHandling: "Demand above capacity is an exception, not silent over-commitment.",
       discoveryQuestions: [
         q("openReqs", "Number of open requisitions"),

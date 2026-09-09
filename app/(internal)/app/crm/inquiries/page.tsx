@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { requireAppPermission } from "@/lib/auth/guard";
 import { listWebsiteInquiries } from "@/lib/inquiries/service";
+import { displayServiceName } from "@/lib/services/labels";
 import {
   DataTable,
   EmptyState,
@@ -48,7 +49,7 @@ export default async function WebsiteInquiriesPage({
               <td>
                 {row.firstName} {row.lastName}
               </td>
-              <td>{formatLabel(row.serviceInterest)}</td>
+              <td>{displayServiceName(row.serviceInterest)}</td>
               <td>
                 <StatusBadge tone={row.status === "new" ? "warning" : "navy"}>{formatLabel(row.status)}</StatusBadge>
               </td>

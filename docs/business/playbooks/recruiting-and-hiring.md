@@ -3,9 +3,9 @@
 Name: **Recruiting & Hiring**  
 Kind: shared search execution (not a sixth client offer)
 
-Cites: `docs/business/PIERONE_OPERATING_MANUAL.md` (canonical recruiting flow), `docs/workflows/SERVICE_WORKFLOWS.md` (Professional Search execution steps), WFOS-TAL-002 / WFOS-TAL-003 / WFOS-TAL-004, Phase 10 hiring records.
+Cites: `docs/business/PIERONE_OPERATING_MANUAL.md` (canonical recruiting flow), `docs/workflows/SERVICE_WORKFLOWS.md` (Professional & Technical Search execution steps), WFOS-TAL-002 / WFOS-TAL-003 / WFOS-TAL-004, Phase 10 hiring records.
 
-This is how jobs and people move after a search is sold (usually [Professional Search](professional-search.md), or scoped reqs under [Fractional Talent Partner](fractional-talent-partner.md)). Recruiter Standard owns this path. Recruiter Standard does **not** own Opportunities (DEC-RBAC-001).
+This is how jobs and people move after a search is sold (usually [Professional & Technical Search](professional-search.md), or scoped reqs under [Fractional Talent Partner](fractional-talent-partner.md)). Recruiter Standard owns this path. Recruiter Standard does **not** own Opportunities (DEC-RBAC-001).
 
 Canonical flow:
 

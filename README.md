@@ -1,6 +1,6 @@
 # WorkforceOS
 
-Internal operating system for a Workforce & Talent Solutions firm. Phase 1 is the technical foundation. Phase 2 adds operating UI for company CRM, the Talent Network, and Professional Search.
+Internal operating system for a Workforce & Talent Solutions firm. Phase 1 is the technical foundation. Phase 2 adds operating UI for company CRM, the Talent Network, and Professional & Technical Search.
 
 WorkforceOS is not a generic ATS and not a public SaaS product in V1.
 

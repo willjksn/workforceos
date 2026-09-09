@@ -19,7 +19,7 @@ Service → Active Version → Active Workflow → Opportunity → Discovery →
 
 ## Launch workflows
 
-### Professional Search
+### Professional & Technical Search (`professional-search`)
 
 1. Confirm client need and capture a structured job record (not a single intake blob).
 2. Activate search. WorkforceOS must run Internal Talent Network review before any external sourcing hook.
@@ -46,7 +46,7 @@ Delivery project phases: Discovery, Job Inventory, Military Crosswalk, Installat
 
 Test fixture workflow for Phase 1 uses this service.
 
-Military Talent pathway operations (Phase 9) are an overlay on Talent Network candidates, not a sixth launch service and not a duplicate candidate database. Canonical flow: Transitioning Service Member → Military Talent Network → Transition Talent Profile → Skills Translation → Employer Opportunity Search / Development → Employer Match → Employer Engagement → Interview → SkillBridge / Direct Hire / Other Transition Pathway → Placement → Conversion. Transition Talent Profiles (`skillbridge_profiles`), employer/host-company opportunities (`skillbridge_opportunities`), configurable alert rules, and human connect/submit stay inside this military practice area. SkillBridge is one pathway/opportunity type. Matching reuses Professional Search job-match architecture. Operator access bundle: Military Talent Partner.
+Military Talent pathway operations (Phase 9) are an overlay on Talent Network candidates, not a sixth launch service and not a duplicate candidate database. Canonical flow: Transitioning Service Member → Military Talent Network → Transition Talent Profile → Skills Translation → Employer Opportunity Search / Development → Employer Match → Employer Engagement → Interview → SkillBridge / Direct Hire / Other Transition Pathway → Placement → Conversion. Transition Talent Profiles (`skillbridge_profiles`), employer/host-company opportunities (`skillbridge_opportunities`), configurable alert rules, and human connect/submit stay inside this military practice area. SkillBridge is one pathway/opportunity type. Matching reuses Professional & Technical Search job-match architecture. Operator access bundle: Military Talent Partner.
 
 ### TA Performance Assessment
 

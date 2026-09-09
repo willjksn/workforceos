@@ -64,7 +64,7 @@ Server-only modules live under `db/` and `lib/`. Client components must not impo
 
 ## Domain map (future modules)
 
-Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Talent Network, Professional Search, and Military Talent Opportunity Assessment. Phase 3 activates recruiting operations and the military talent translator. Phase 4 activates the five launch service engines, proposals, contracts, and delivery projects. Phase 5 adds workforce development and workforce intelligence without a second taxonomy or project system.
+Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Talent Network, Professional & Technical Search, and Military Talent Opportunity Assessment. Phase 3 activates recruiting operations and the military talent translator. Phase 4 activates the five launch service engines, proposals, contracts, and delivery projects. Phase 5 adds workforce development and workforce intelligence without a second taxonomy or project system.
 
 - CRM: companies, contacts, opportunities, signals
 - Talent Network: candidates, pools, rediscovery

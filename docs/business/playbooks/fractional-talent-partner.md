@@ -102,7 +102,7 @@ Search work opened under this engagement still follows [Recruiting & Hiring](rec
 | **Required data** | Monthly billing events. Completion rule: renewal/expansion review completed; open issues documented. |
 | **Owner** | Operations (billing/invoice). Senior Talent Partner (commercial next step). |
 | **Access / permission** | `invoices.read` / `invoices.write`; `finance.approve`; `opportunities.write` |
-| **Approval** | Invoice from stored events. QuickBooks post is off until Phase I. Expansion only to Professional Search, Military Talent Opportunity Assessment, or Workforce Pipeline Assessment (workflow expansion rules). |
+| **Approval** | Invoice from stored events. QuickBooks post is off until Phase I. Expansion only to Professional & Technical Search, Military Talent Opportunity Assessment, or Workforce Pipeline Assessment (workflow expansion rules). |
 | **Scout prompt** | `SEARCH` finance. `CREATE` a follow-on opportunity (confirm) only with commercial access. |
 | **Deliverable** | Billing events; renewal decision; optional new opportunity |
 | **Next step** | Continue the cadence or SOLVE again on a new offer |

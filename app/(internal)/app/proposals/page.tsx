@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { requireAppPermission } from "@/lib/auth/guard";
 import { listProposals } from "@/lib/delivery/engine";
+import { displayServiceName } from "@/lib/services/labels";
 import { AcademyHelp } from "@/components/academy/academy-help";
 import { ConceptNote } from "@/components/ia/concept-note";
 import { DataTable, EmptyState, PageHeader, PageShell, formatLabel } from "../_components/ui";
@@ -39,7 +40,7 @@ export default async function ProposalsPage({
                 </Link>
               </td>
               <td>{row.companyName}</td>
-              <td>{formatLabel(row.serviceCode)}</td>
+              <td>{displayServiceName(row.serviceCode)}</td>
               <td>
                 <StatusBadge tone={row.proposal.status === "approved" || row.proposal.status === "accepted" ? "success" : "navy"}>
                   {formatLabel(row.proposal.status)}

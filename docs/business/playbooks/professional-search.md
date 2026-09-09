@@ -1,11 +1,11 @@
-# Professional Search
+# Professional & Technical Search
 
-Catalog name: **Professional Search**  
-Code: `professional-search`  
-Public alias: PierOnePartners.com may say **Professional & Technical Search** (`/services/professional-technical-search`). Same offer — not a rename.  
+Display name: **Professional & Technical Search**  
+Code: `professional-search` (slug and workflow keys — DEC-SVC-005)  
+Public path: `/services/professional-technical-search`. Same offer — not a sixth service.  
 Kind: launch service (one of five)
 
-Cites: `docs/business/SERVICE_CATALOG.md`, `docs/workflows/SERVICE_WORKFLOWS.md` (Professional Search), approved `service_workflows` for `professional-search`, `docs/business/PIERONE_OPERATING_MANUAL.md`. Do not invent search, scoring, or fee rules in this file.
+Cites: `docs/business/SERVICE_CATALOG.md`, `docs/workflows/SERVICE_WORKFLOWS.md` (Professional & Technical Search), approved `service_workflows` for `professional-search`, `docs/business/PIERONE_OPERATING_MANUAL.md`. Do not invent search, scoring, or fee rules in this file.
 
 Commercial close detail: [Client Discovery](client-discovery.md), [Proposal / Contract Handoff](proposal-contract-handoff.md), [Project Delivery / Closeout](project-delivery-closeout.md). Search execution detail: [Recruiting & Hiring](recruiting-and-hiring.md).
 

@@ -82,7 +82,7 @@ Load questions from the approved workflow — this table is a pointer, not a rep
 
 | Service code | Playbook |
 | --- | --- |
-| `professional-search` | [Professional Search](professional-search.md) |
+| `professional-search` | [Professional & Technical Search](professional-search.md) |
 | `military-talent-opportunity-assessment` | [Military Talent Opportunity Assessment](military-talent-opportunity-assessment.md) |
 | `ta-performance-assessment` | [Talent Acquisition Performance Assessment](talent-acquisition-performance-assessment.md) |
 | `fractional-talent-partner` | [Fractional Talent Partner](fractional-talent-partner.md) |

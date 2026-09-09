@@ -12,11 +12,11 @@ Weekly review in the OS: **Command Center → GTM** at `/app?cadence=gtm`. Acade
 
 ### Five launch services only
 
-Catalog names are canonical. Public pages may say **Professional & Technical Search** — same offer as **Professional Search**, not a rename.
+Display names are canonical for operators and the public site. The search offer is **Professional & Technical Search**; the slug stays `professional-search` (DEC-SVC-005). Not a sixth service.
 
-| Catalog name | Code | Typical GTM motion |
+| Display name | Code | Typical GTM motion |
 | --- | --- | --- |
-| Professional Search | `professional-search` | Retained or project search. Talent Network first. |
+| Professional & Technical Search | `professional-search` | Retained or project search. Talent Network first. |
 | Military Talent Opportunity Assessment | `military-talent-opportunity-assessment` | Employer conversation: can this need be served through military talent translation? |
 | Talent Acquisition Performance Assessment | `ta-performance-assessment` | Diagnose a client TA function. |
 | Fractional Talent Partner | `fractional-talent-partner` | Scoped fractional talent leadership. Not temp staffing or payroll. |
@@ -162,10 +162,10 @@ Each row cites the operating manual / playbook screen. Chat is not the system of
 
 | | |
 | --- | --- |
-| **Motion** | Execute search nationally once a Professional Search (or other launch) engagement exists. |
+| **Motion** | Execute search nationally once a Professional & Technical Search (or other launch) engagement exists. |
 | **WorkforceOS screens** | Jobs `/app/jobs`. Talent `/app/talent`. Submissions `/app/submissions`. Interviews `/app/interviews`. Command Center Talent board `/app?cadence=talent`. |
 | **Owner / access** | Recruiter Standard: jobs/candidates/submissions. No commercial GTM board. Talent Partner owns the client opportunity. |
-| **Playbook** | Playbook 1 (Professional Search). Playbook 7 (Recruiting & Hiring). |
+| **Playbook** | Playbook 1 (Professional & Technical Search). Playbook 7 (Recruiting & Hiring). |
 | **Rule** | Internal Talent Network before SeekOut/Apollo/LinkedIn. Do not duplicate candidates. |
 | **KPI** | Active searches, submissions, interviews, placements — reviewed on the Talent cadence, not rebuilt on GTM. |
 

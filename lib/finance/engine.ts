@@ -26,6 +26,7 @@ import { agingBucket, daysPastDue, isInvoiceOverdue, type AgingBucket } from "./
 import { assertFeeOverrideAllowed, assertScheduleChangeAfterExecutionAllowed } from "./gates";
 import { addMoney, FinanceError, moneyString, parseMoney, requireMoney, subtractMoney } from "./money";
 import { calculatePlacementFee } from "./placement-fees";
+import { displayServiceName } from "../services/labels";
 
 export { FinanceError };
 export { calculatePlacementFee } from "./placement-fees";
@@ -930,7 +931,7 @@ export async function companyFinanceSnapshot(organizationId: string, companyId: 
   }, 0);
   const byService = new Map<string, number>();
   for (const row of revenueRows) {
-    const key = row.serviceName ?? "Unassigned";
+    const key = row.serviceName ? displayServiceName(undefined, row.serviceName) : "Unassigned";
     byService.set(key, addMoney(byService.get(key) ?? 0, parseMoney(row.event.amount) ?? 0));
   }
   return {
@@ -983,7 +984,7 @@ export async function financeOverview(organizationId: string) {
     .leftJoin(services, eq(revenueEvents.serviceId, services.id))
     .where(eq(revenueEvents.organizationId, organizationId));
   for (const row of revenueWithService) {
-    const key = row.serviceName ?? "Unassigned";
+    const key = row.serviceName ? displayServiceName(undefined, row.serviceName) : "Unassigned";
     byService.set(key, addMoney(byService.get(key) ?? 0, parseMoney(row.amount) ?? 0));
   }
   const economics = await engagementEconomics(organizationId);

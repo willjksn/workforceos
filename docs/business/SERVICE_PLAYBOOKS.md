@@ -5,11 +5,11 @@ These are the repeatable PierOne delivery playbooks mapped to live WorkforceOS s
 
 Do not invent military-mapping or workflow rules here. Do not treat this folder as the deploy/recover guide (`docs/operations/WORKFORCEOS_OPERATING_PLAYBOOK.md`). In-app Academy (Help & Training) at `/app/academy` surfaces these playbooks — it is not a second source of truth.
 
-Catalog names are canonical. Public pages may say **Professional & Technical Search** — same offer as **Professional Search**, not a rename.
+Display names are canonical for operators and the public site. The search offer is **Professional & Technical Search**; the slug and workflow keys stay `professional-search` (DEC-SVC-005). Not a sixth service.
 
 | # | Playbook | Kind | File |
 | --- | --- | --- | --- |
-| 1 | Professional Search | Launch service (`professional-search`) | [playbooks/professional-search.md](playbooks/professional-search.md) |
+| 1 | Professional & Technical Search | Launch service (`professional-search`) | [playbooks/professional-search.md](playbooks/professional-search.md) |
 | 2 | Military Talent Opportunity Assessment | Launch service (`military-talent-opportunity-assessment`) | [playbooks/military-talent-opportunity-assessment.md](playbooks/military-talent-opportunity-assessment.md) |
 | 3 | Talent Acquisition Performance Assessment | Launch service (`ta-performance-assessment`) | [playbooks/talent-acquisition-performance-assessment.md](playbooks/talent-acquisition-performance-assessment.md) |
 | 4 | Fractional Talent Partner | Launch service (`fractional-talent-partner`) | [playbooks/fractional-talent-partner.md](playbooks/fractional-talent-partner.md) |

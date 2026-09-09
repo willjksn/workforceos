@@ -84,7 +84,7 @@ SkillBridge people are existing Talent Network candidates. Do not duplicate a ca
 
 | | |
 | --- | --- |
-| **WorkforceOS screen** | No `/app/military/match`. Compare profile ↔ employer opportunity on `/app/military/skillbridge/[id]` (stored match scores/explanations). Matching reuses Professional Search job-match architecture. Reverse Search `/app/military/reverse` supports occupation→role exploration. |
+| **WorkforceOS screen** | No `/app/military/match`. Compare profile ↔ employer opportunity on `/app/military/skillbridge/[id]` (stored match scores/explanations). Matching reuses Professional & Technical Search job-match architecture. Reverse Search `/app/military/reverse` supports occupation→role exploration. |
 | **Required data** | Profile + employer opportunity. Scores do not auto-place. |
 | **Owner** | Military Talent Partner |
 | **Access / permission** | `skillbridge.read` / `skillbridge.write` |

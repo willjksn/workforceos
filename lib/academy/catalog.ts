@@ -109,7 +109,7 @@ export const ACADEMY_ARTICLES: AcademyArticle[] = [
     stepByStep: [
       "PierOne Partners is a Workforce & Talent Solutions firm. We are not a temp staffing agency, payroll company, public job marketplace, or SkillBridge host (PIERONE_OPERATING_MANUAL.md).",
       "Every engagement follows SOLVE → BUILD → OPERATE.",
-      "Five launch services only: Professional Search, Military Talent Opportunity Assessment, Talent Acquisition Performance Assessment, Fractional Talent Partner, Workforce Pipeline Assessment.",
+      "Five launch services only: Professional & Technical Search, Military Talent Opportunity Assessment, Talent Acquisition Performance Assessment, Fractional Talent Partner, Workforce Pipeline Assessment.",
       "Access comes from PostgreSQL access bundles, not job title (DEC-AUTH-002).",
       "Open required training on this Academy home. Completion does not raise permissions.",
       "New PierOne employees use Staff onboarding at /app/academy/onboarding. That is not the ATS hire queue at /app/onboarding.",
@@ -149,7 +149,7 @@ export const ACADEMY_ARTICLES: AcademyArticle[] = [
       "Client: Website Inquiry → CRM → Qualification → Discovery → Solution → Proposal → Contract → Project → Delivery → Reporting → Invoice → Expansion.",
       "Recruiting: Job → Candidate → Application → Screening → Matching → Client Submission → Interview → Offer → Hire → Onboarding. Internal Talent Network before external sourcing.",
       "Military (DEC-MIL-005): Transitioning Service Member → Military Talent Network → Transition Talent Profile → Skills Translation → Employer Opportunity → Match → Employer Engagement → Interview → SkillBridge / Direct Hire / Other → Placement → Conversion.",
-      "Public site may say Professional & Technical Search — same offer as Professional Search, not a rename.",
+      "The search offer display name is Professional & Technical Search. Slug and workflow keys stay professional-search (DEC-SVC-005). Not a sixth service.",
     ],
     scoutCommands: ["SEARCH", "SUMMARIZE", "SHOW_RECORD"],
     approvalRequirements: "Workflow steps that require human approval stay in the approved service_workflows records.",
@@ -188,7 +188,7 @@ export const ACADEMY_ARTICLES: AcademyArticle[] = [
       "Solution vs proposal vs SOW: the solution plan is internal; the proposal is client-facing after approval; the SOW lives on the contract after accept.",
       "Template vs agreement vs contract: ATTORNEY APPROVED only when counsel recorded approval; otherwise DRAFT — NOT APPROVED FOR USE.",
       "Title ≠ Access. Recruiter Standard does not get opportunities.read.",
-      "Public site may say Professional & Technical Search — same offer as Professional Search.",
+      "The search offer display name is Professional & Technical Search. Slug and workflow keys stay professional-search (DEC-SVC-005).",
     ],
     scoutCommands: ["SEARCH"],
     approvalRequirements: "None to read. Do not invent mapping rules from this article.",
@@ -544,7 +544,7 @@ export const ACADEMY_ARTICLES: AcademyArticle[] = [
     sources: ["docs/business/playbooks/recruiting-and-hiring.md"],
     contextualRoutes: ["/app/jobs"],
     purpose: "Run search assignments on one job surface.",
-    whenToUse: "When Professional Search or hiring execution starts.",
+    whenToUse: "When Professional & Technical Search or hiring execution starts.",
     whoUsesIt: "Recruiter Standard, Senior Talent Partner, Military Talent Partner.",
     accessRequired: ["jobs.read"],
     screenOverview: [
@@ -659,7 +659,7 @@ export const ACADEMY_ARTICLES: AcademyArticle[] = [
     ],
     stepByStep: [
       "Create from an approved solution, service workflow, and executed contract.",
-      "Professional Search execution still uses Jobs — do not confuse the two.",
+      "Professional & Technical Search execution still uses Jobs — do not confuse the two.",
       "Cite playbooks/project-delivery-closeout.md.",
     ],
     scoutCommands: ["SEARCH", "SUMMARIZE", "SHOW_RECORD", "CREATE_TASK", "ASSIGN"],
@@ -753,9 +753,9 @@ export const ACADEMY_ARTICLES: AcademyArticle[] = [
   }),
   playbookArticle({
     slug: "playbook-professional-search",
-    title: "Professional Search playbook",
+    title: "Professional & Technical Search playbook",
     file: "professional-search.md",
-    summary: "Launch service professional-search. Public alias Professional & Technical Search.",
+    summary: "Launch service professional-search. Display name Professional & Technical Search (DEC-SVC-005).",
     screens: [{ href: "/app/jobs", label: "Jobs" }, { href: "/app/talent", label: "Candidates" }],
     accessRequired: ["jobs.read"],
     relatedSlugs: ["recruiting-hiring", "operating-model"],
@@ -1232,20 +1232,22 @@ export function articleForRoute(pathname: string) {
   );
 }
 
+function normalizeAcademySearch(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replaceAll("&", " ")
+    .replaceAll("-", " ")
+    .replace(/\s+/g, " ");
+}
+
 export function searchAcademyArticles(query: string) {
-  const needle = query.trim().toLowerCase();
+  const needle = normalizeAcademySearch(query);
   if (!needle) return ACADEMY_ARTICLES.slice(0, 12);
   return ACADEMY_ARTICLES.filter((item) => {
-    const hay = [
-      item.slug,
-      item.title,
-      item.summary,
-      item.purpose,
-      item.section,
-      ...item.sources,
-    ]
-      .join(" ")
-      .toLowerCase();
+    const hay = normalizeAcademySearch(
+      [item.slug, item.title, item.summary, item.purpose, item.section, ...item.sources].join(" "),
+    );
     return hay.includes(needle);
   }).slice(0, 12);
 }

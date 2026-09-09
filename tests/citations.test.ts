@@ -6,10 +6,10 @@ describe("knowledge citations", () => {
   it("formats stored source references for operators", () => {
     expect(
       formatCitations([
-        { type: "knowledge_record", label: "Professional Search playbook" },
+        { type: "knowledge_record", label: "Professional & Technical Search playbook" },
         { type: "service_workflow", label: "Intake" },
       ]),
-    ).toBe("Professional Search playbook · Intake");
+    ).toBe("Professional & Technical Search playbook · Intake");
   });
 
   it("says when no citations were recorded", () => {

@@ -14,6 +14,7 @@ import { requireAppPermission } from "@/lib/auth/guard";
 import { SCORE_WEIGHTS } from "@/lib/crm/scoring";
 import { OPPORTUNITY_STAGES } from "@/lib/crm/stages";
 import { commercialPathSummary, resolveCommercialPrimaryCta } from "@/lib/delivery/commercial-path";
+import { displayServiceName } from "@/lib/services/labels";
 import { listOpportunityCommercialPath } from "@/lib/delivery/engine";
 import { getOpportunityGraph } from "@/lib/repositories/crm";
 import { can } from "@/lib/rbac/permissions";
@@ -66,7 +67,7 @@ export default async function OpportunityDetailPage({
       <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
         <div>
           <dt className="text-muted-foreground">Service</dt>
-          <dd>{formatLabel(opportunity.serviceCode)}</dd>
+          <dd>{displayServiceName(opportunity.serviceCode)}</dd>
         </div>
         <div>
           <dt className="text-muted-foreground">Score</dt>

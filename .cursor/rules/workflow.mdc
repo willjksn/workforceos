@@ -7,7 +7,7 @@ alwaysApply: true
 
 Follow `docs/workflows/SERVICE_WORKFLOWS.md` and `docs/requirements/REQUIREMENTS_REGISTRY.md`.
 
-- Support the five launch services only as documented: Professional Search, Military Talent Opportunity Assessment, TA Performance Assessment, Fractional Talent Partner, Workforce Pipeline Assessment.
+- Support the five launch services only as documented: Professional & Technical Search (`professional-search`), Military Talent Opportunity Assessment, TA Performance Assessment, Fractional Talent Partner, Workforce Pipeline Assessment.
 - Service workflows are version-controlled database records. Agents must query an approved workflow rather than hardcode material process rules.
 - Do not improvise material workflow, matching, or military-mapping rules in prompts or agent code.
 - New jobs search the internal Talent Network before external sourcing.

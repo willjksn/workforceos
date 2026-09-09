@@ -72,7 +72,7 @@ describe("Phase G service delivery playbooks", () => {
 
   it("maps every required field and cites approved sources", () => {
     const index = readDoc("docs/business/SERVICE_PLAYBOOKS.md");
-    expect(index).toMatch(/Professional Search/);
+    expect(index).toMatch(/Professional & Technical Search/);
     expect(index).toMatch(/Military Talent Opportunity Assessment/);
     expect(index).toMatch(/Talent Acquisition Performance Assessment/);
     expect(index).toMatch(/Fractional Talent Partner/);

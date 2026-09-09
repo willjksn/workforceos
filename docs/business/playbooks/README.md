@@ -12,7 +12,7 @@ Engineering deploy / recover / PITR: [`docs/operations/WORKFORCEOS_OPERATING_PLA
 
 Playbooks 1–5 are the sellable offers. Playbook 6 is **Military Talent pathway operations** (SkillBridge-eligible work on existing Talent Network people). It is not a sixth client offer and not a PierOne-owned SkillBridge program (DEC-MIL-005).
 
-Public site may label Professional Search as **Professional & Technical Search**. Same offer.
+Display name **Professional & Technical Search**; slug `professional-search` (DEC-SVC-005). Same offer — not a sixth service.
 
 ## How to read each playbook
 
@@ -83,7 +83,7 @@ Not live in this phase: calendar OAuth, DocuSign envelopes, QuickBooks AR post, 
 
 ## The ten playbooks
 
-1. [Professional Search](professional-search.md)
+1. [Professional & Technical Search](professional-search.md)
 2. [Military Talent Opportunity Assessment](military-talent-opportunity-assessment.md)
 3. [Talent Acquisition Performance Assessment](talent-acquisition-performance-assessment.md)
 4. [Fractional Talent Partner](fractional-talent-partner.md)

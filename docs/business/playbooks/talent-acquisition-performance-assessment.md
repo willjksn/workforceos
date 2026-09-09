@@ -114,7 +114,7 @@ Delivery project phases (`ta-performance-assessment-delivery`): Discovery → Da
 | **Required data** | Approved executive presentation. Billing trigger from the contract. Optional implementation project only from an approved plan + executed contract (workflow). |
 | **Owner** | Workforce Consultant (content). Operations (invoice / closeout). |
 | **Access / permission** | `deliverables.approve`; `invoices.read`; `opportunities.write` for a follow-on |
-| **Approval** | Suggested expansion ≠ sold. Follow-on offers are Fractional Talent Partner or Professional Search only (workflow expansion rules). |
+| **Approval** | Suggested expansion ≠ sold. Follow-on offers are Fractional Talent Partner or Professional & Technical Search only (workflow expansion rules). |
 | **Scout prompt** | `SUMMARIZE` this project. `CREATE` a follow-up opportunity only with confirmation and commercial access. |
 | **Deliverable** | Executive presentation; billing event; optional implementation project |
 | **Next step** | Closeout or a new opportunity on one of the five offers |

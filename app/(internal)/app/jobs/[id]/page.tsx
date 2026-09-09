@@ -201,7 +201,7 @@ export default async function JobDetailPage({
       </section>
 
       <section className="mt-10">
-        <h2 className="section-title">Professional Search workflow</h2>
+        <h2 className="section-title">Professional & Technical Search workflow</h2>
         <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm">
           {(workflow?.workflows ?? []).map((step) => (
             <li key={step.id}>

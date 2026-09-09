@@ -22,7 +22,7 @@ Every engagement follows **SOLVE → BUILD → OPERATE**.
 | **BUILD** | Design and sell the engagement. | Proposal → contract (legal package inside the workflow) → delivery project |
 | **OPERATE** | Deliver, report, invoice, and expand from stored work. | Project delivery → reporting → invoice → expansion |
 
-Professional Search still executes search on jobs and the Talent Network. Assessment and fractional work execute on delivery projects. Military Talent pathway operations overlay Talent Network candidates; they are not a sixth service.
+Professional & Technical Search still executes search on jobs and the Talent Network. Assessment and fractional work execute on delivery projects. Military Talent pathway operations overlay Talent Network candidates; they are not a sixth service.
 
 ## Title ≠ Access
 
@@ -49,15 +49,15 @@ People and bundles: `/app/admin/users`, `/app/admin/users/[id]`, `/app/admin/rol
 
 ## Five offers
 
-These are the five launch services. Catalog names are canonical. Do not rename an offer without a Decision Log entry. Do not add a sixth.
+These are the five launch services. Display names are canonical for operators and the public site. Do not rename an offer without a Decision Log entry. Do not add a sixth.
 
-| Catalog name | Code | Public-site alias | What PierOne sells |
+| Display name | Code | Notes | What PierOne sells |
 | --- | --- | --- | --- |
-| **Professional Search** | `professional-search` | Public pages say **Professional & Technical Search** (`/services/professional-technical-search`). Same offer — do not treat the public label as a rename. | Retained or project search. Internal Talent Network first, then approved external sources. |
-| **Military Talent Opportunity Assessment** | `military-talent-opportunity-assessment` | Same name | Assess whether a client need can be served through military talent translation. SkillBridge is a pathway type inside this practice, not a separate service. |
-| **Talent Acquisition Performance Assessment** | `ta-performance-assessment` | Same name (catalog short name: TA Performance Assessment) | Evaluate a client’s TA operating performance and recommend improvements. |
-| **Fractional Talent Partner** | `fractional-talent-partner` | Same name | Scoped fractional talent leadership. Not temp staffing or payroll. Scope is never unlimited recruiting. |
-| **Workforce Pipeline Assessment** | `workforce-pipeline-assessment` | Same name | Demand, supply, gaps, and a human-approved Workforce Pipeline Plan. |
+| **Professional & Technical Search** | `professional-search` | Slug and workflow keys stay `professional-search` (DEC-SVC-005). Public path `/services/professional-technical-search`. | Retained or project search. Internal Talent Network first, then approved external sources. |
+| **Military Talent Opportunity Assessment** | `military-talent-opportunity-assessment` | Public path matches the display name. | Assess whether a client need can be served through military talent translation. SkillBridge is a pathway type inside this practice, not a separate service. |
+| **Talent Acquisition Performance Assessment** | `ta-performance-assessment` | Catalog short name: TA Performance Assessment. | Evaluate a client’s TA operating performance and recommend improvements. |
+| **Fractional Talent Partner** | `fractional-talent-partner` | Public path matches the display name. | Scoped fractional talent leadership. Not temp staffing or payroll. Scope is never unlimited recruiting. |
+| **Workforce Pipeline Assessment** | `workforce-pipeline-assessment` | Public path matches the display name. | Demand, supply, gaps, and a human-approved Workforce Pipeline Plan. |
 
 Internal catalog: `/app/services` and `/app/services/[code]`. Public copy lives in `sites/pierone`; operational public content is published from `/app/public-content`.
 
@@ -147,7 +147,7 @@ This is the commercial spine. Recruiter Standard does **not** own this spine (DE
 
 ### 8. Project
 
-- **WorkforceOS screen:** **Projects** `/app/projects` and `/app/projects/[id]`. This is consulting delivery, not a search project. Professional Search execution still uses the job / search-project path under **Jobs**.
+- **WorkforceOS screen:** **Projects** `/app/projects` and `/app/projects/[id]`. This is consulting delivery, not a search project. Professional & Technical Search execution still uses the job / search-project path under **Jobs**.
 - **Owner / access:** Operations, Senior Talent Partner, Workforce Consultant, Administrator / Executive (`projects.read` / `projects.write`). Recruiter Standard can read projects.
 - **Approval:** Project create is gated by the contract rule above.
 - **Scout:** `SEARCH` / `SUMMARIZE` / `SHOW_RECORD` projects. `CREATE_TASK` / `ASSIGN` with confirmation.
@@ -389,7 +389,7 @@ Operator access bundle: **Military Talent Partner**. Senior Talent Partner and R
 
 Repeatable delivery maps live in `docs/business/SERVICE_PLAYBOOKS.md` and `docs/business/playbooks/`. This manual stays the company operating model (SOLVE → BUILD → OPERATE). Playbooks cite this file, the catalog, `docs/workflows/SERVICE_WORKFLOWS.md`, and approved `service_workflows` records — they do not replace those records.
 
-1. Professional Search
+1. Professional & Technical Search
 2. Military Talent Opportunity Assessment
 3. Talent Acquisition Performance Assessment
 4. Fractional Talent Partner

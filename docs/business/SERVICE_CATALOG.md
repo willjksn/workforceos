@@ -3,9 +3,10 @@
 Status: Phase 6 operational finance on the five launch services  
 These are the five launch service engines WorkforceOS supports. Definitions are stored as approved `service_versions`. Application code loads those records; it does not invent material service rules.
 
-## 1. Professional Search
+## 1. Professional & Technical Search
 
-Code: `professional-search`  
+Display name: **Professional & Technical Search**  
+Code: `professional-search` (slug and workflow keys stay on this code — DEC-SVC-005)  
 Purpose: retained or project search against the internal Talent Network first, then approved external sources.  
 Primary records: jobs, candidates, matches, submissions, interviews, offers, placements.  
 Locked rules:

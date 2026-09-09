@@ -49,7 +49,12 @@ import {
   projectHealthFromRisks,
   sentProposalIsImmutable,
 } from "./gates";
+import { displayServiceName } from "../services/labels";
 import { legalPackageForService, primaryContractType } from "./legal-packages";
+
+function withServiceDisplayName<T extends { serviceName?: string | null; serviceCode?: string | null }>(row: T): T {
+  return { ...row, serviceName: displayServiceName(row.serviceCode, row.serviceName) };
+}
 import { assertPricingApproved, describePricingModel, pricingOutsideRange } from "./pricing";
 import { expansionCodesFromVersion } from "./expansion";
 import { createDeliveryBillingFoundation } from "../finance/engine";
@@ -418,7 +423,7 @@ export async function createSolutionPlanFromDiscovery(input: {
       serviceVersionId: workflow.version.id,
       companyId: discovery.companyId,
       discoveryId: discovery.id,
-      title: input.title ?? `${service.name} solution plan`,
+      title: input.title ?? `${displayServiceName(service.code, service.name)} solution plan`,
       status: "draft",
       summary: draft.recommendedScope,
       problemStatement: draft.problemStatement,
@@ -760,7 +765,7 @@ export async function createContractPackage(input: {
         solutionPlanId: input.solutionPlanId ?? null,
         contractType: templateType as typeof contracts.$inferSelect.contractType,
         templateId: template?.id ?? null,
-        title: `${workflow.service.name} · ${template?.name ?? templateType}`,
+        title: `${displayServiceName(workflow.service.code, workflow.service.name)} · ${template?.name ?? templateType}`,
         status: "draft",
         sow: template?.body ?? LEGAL_DRAFT_SOW,
       })
@@ -1366,7 +1371,7 @@ export async function listOpportunityCommercialPath(organizationId: string, oppo
 
 export async function listDiscoveries(organizationId: string) {
   const db = getDb();
-  return db
+  const rows = await db
     .select({
       discovery: discoveries,
       companyName: companies.name,
@@ -1380,6 +1385,7 @@ export async function listDiscoveries(organizationId: string) {
     .innerJoin(services, eq(discoveries.serviceId, services.id))
     .where(and(eq(discoveries.organizationId, organizationId), isNull(discoveries.archivedAt)))
     .orderBy(desc(discoveries.updatedAt));
+  return rows.map(withServiceDisplayName);
 }
 
 export async function getDiscovery(id: string, organizationId: string) {
@@ -1398,12 +1404,12 @@ export async function getDiscovery(id: string, organizationId: string) {
     .innerJoin(services, eq(discoveries.serviceId, services.id))
     .where(and(eq(discoveries.id, id), eq(discoveries.organizationId, organizationId)))
     .limit(1);
-  return row ?? null;
+  return row ? withServiceDisplayName(row) : null;
 }
 
 export async function listSolutionPlans(organizationId: string) {
   const db = getDb();
-  return db
+  const rows = await db
     .select({
       plan: solutionPlans,
       companyName: companies.name,
@@ -1419,6 +1425,7 @@ export async function listSolutionPlans(organizationId: string) {
     .innerJoin(services, eq(serviceVersions.serviceId, services.id))
     .where(and(eq(solutionPlans.organizationId, organizationId), isNull(solutionPlans.archivedAt)))
     .orderBy(desc(solutionPlans.updatedAt));
+  return rows.map(withServiceDisplayName);
 }
 
 export async function getSolutionPlan(id: string, organizationId: string) {
@@ -1484,9 +1491,10 @@ export async function listContracts(organizationId: string, filter?: string) {
     .leftJoin(services, eq(contracts.serviceId, services.id))
     .where(and(eq(contracts.organizationId, organizationId), isNull(contracts.archivedAt)))
     .orderBy(desc(contracts.updatedAt));
-  if (filter === "executed") return rows.filter((row) => row.contract.status === "executed");
+  const labeled = rows.map(withServiceDisplayName);
+  if (filter === "executed") return labeled.filter((row) => row.contract.status === "executed");
   if (filter === "expiring") {
-    return rows.filter(
+    return labeled.filter(
       (row) =>
         row.contract.expirationDate &&
         row.contract.expirationDate >= now &&
@@ -1494,9 +1502,9 @@ export async function listContracts(organizationId: string, filter?: string) {
     );
   }
   if (filter === "compliance") {
-    return rows.filter((row) => row.contract.status === "executed" || row.contract.status === "client_review");
+    return labeled.filter((row) => row.contract.status === "executed" || row.contract.status === "client_review");
   }
-  return rows;
+  return labeled;
 }
 
 export async function getContract(id: string, organizationId: string) {
@@ -1514,7 +1522,7 @@ export async function getContract(id: string, organizationId: string) {
     .limit(1);
   if (!row) return null;
   const envelopes = await db.select().from(esignEnvelopes).where(eq(esignEnvelopes.contractId, id));
-  return { ...row, envelopes };
+  return { ...withServiceDisplayName(row), envelopes };
 }
 
 export async function listLegalTemplates() {
@@ -1535,10 +1543,11 @@ export async function listDeliveryProjects(organizationId: string, filter?: stri
     .leftJoin(services, eq(projects.serviceId, services.id))
     .where(and(eq(projects.organizationId, organizationId), isNull(projects.archivedAt)))
     .orderBy(desc(projects.updatedAt));
-  if (filter === "active") return rows.filter((row) => row.project.status === "active" || row.project.status === "at_risk");
-  if (filter === "at_risk") return rows.filter((row) => row.project.status === "at_risk" || row.project.health === "at_risk");
-  if (filter === "completed") return rows.filter((row) => row.project.status === "completed");
-  return rows;
+  const labeled = rows.map(withServiceDisplayName);
+  if (filter === "active") return labeled.filter((row) => row.project.status === "active" || row.project.status === "at_risk");
+  if (filter === "at_risk") return labeled.filter((row) => row.project.status === "at_risk" || row.project.health === "at_risk");
+  if (filter === "completed") return labeled.filter((row) => row.project.status === "completed");
+  return labeled;
 }
 
 export async function getProjectBundle(id: string, organizationId: string) {

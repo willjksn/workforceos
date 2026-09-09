@@ -203,6 +203,16 @@ Database mirror: `decision_log` table, seeded from this file.
 - Affected modules: projects, legal
 - Reconsideration: if a later legal workflow supports limited notice-to-proceed, it must still be an explicit audited exception.
 
+## DEC-SVC-005 — Professional & Technical Search display name
+
+- Date: 2026-09-09
+- Owner: Product Build
+- Status: accepted
+- Decision: Canonical public and operator copy for the search launch service is **Professional & Technical Search**. The service slug, workflow keys, and approved `service_workflows` records remain `professional-search`. This is one of the five launch services, not a rename of the record and not a sixth offer.
+- Reason: Public site and operators already used the longer name; treating “Professional Search” as a separate catalog name created an alias split.
+- Affected modules: service catalog, playbooks, Academy, Scout knowledge, operator UI labels, `sites/pierone`
+- Reconsideration: do not change `professional-search` codes or workflow rows to match the display name.
+
 ## DEC-FIN-001 — Billing events are operational triggers only
 
 - Date: 2026-09-05

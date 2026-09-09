@@ -93,7 +93,7 @@ Scout cannot send. Live DocuSign envelopes are Phase I — record execution in W
 
 | Service | Required package types (workflow) |
 | --- | --- |
-| Professional Search | `direct_hire_search_agreement` (conditional MSA, NDA, DPA, retained search) |
+| Professional & Technical Search | `direct_hire_search_agreement` (conditional MSA, NDA, DPA, retained search) |
 | Military Talent Opportunity Assessment | MSA, `military_talent_assessment_sow`, NDA (conditional DPA) |
 | Talent Acquisition Performance Assessment | MSA, `ta_performance_assessment_sow`, NDA (conditional DPA) |
 | Fractional Talent Partner | MSA, `fractional_ta_sow`, NDA, DPA, confidentiality/IP |

@@ -13,6 +13,7 @@ import {
 import { recordAuditEvent } from "../audit/record-audit-event";
 import { USER_IDS } from "../../db/seed/constants";
 import { createDeliveryProject } from "../delivery/engine";
+import { displayServiceName } from "../services/labels";
 
 export async function listLaunchServices() {
   const db = getDb();
@@ -31,7 +32,12 @@ export async function listLaunchServices() {
           .where(eq(serviceWorkflows.serviceVersionId, approved.id))
           .orderBy(asc(serviceWorkflows.stepNumber))
       : [];
-    result.push({ service, versions, approvedVersion: approved ?? null, workflows });
+    result.push({
+      service: { ...service, name: displayServiceName(service.code, service.name) },
+      versions,
+      approvedVersion: approved ?? null,
+      workflows,
+    });
   }
   return result;
 }
@@ -64,7 +70,13 @@ export async function getServiceBundle(serviceCode: string) {
         .innerJoin(companies, eq(opportunities.companyId, companies.id))
         .where(eq(solutionPlans.serviceVersionId, approved.id))
     : [];
-  return { service, versions, approvedVersion: approved ?? null, workflows, plans };
+  return {
+    service: { ...service, name: displayServiceName(service.code, service.name) },
+    versions,
+    approvedVersion: approved ?? null,
+    workflows,
+    plans,
+  };
 }
 
 export async function createDraftSolutionPlan(input: {

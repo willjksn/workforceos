@@ -3,7 +3,8 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { getAcademyArticle } from "../lib/academy/catalog";
+import { getAcademyArticle, searchAcademyArticles } from "../lib/academy/catalog";
+import { displayServiceName, PROFESSIONAL_SEARCH_CODE, PROFESSIONAL_SEARCH_DISPLAY_NAME } from "../lib/services/labels";
 import {
   commercialPathSummary,
   resolveCommercialPrimaryCta,
@@ -32,6 +33,22 @@ function emptyPath(): CommercialPathRecord {
 }
 
 describe("leftover IA", () => {
+  it("uses Professional & Technical Search as the operator display name", () => {
+    expect(PROFESSIONAL_SEARCH_CODE).toBe("professional-search");
+    expect(PROFESSIONAL_SEARCH_DISPLAY_NAME).toBe("Professional & Technical Search");
+    expect(displayServiceName("professional-search", "Professional Search")).toBe("Professional & Technical Search");
+    expect(readFileSync(path.join(root, "docs/decisions/DECISION_LOG.md"), "utf8")).toMatch(/DEC-SVC-005/);
+    expect(readFileSync(path.join(root, "docs/business/SERVICE_CATALOG.md"), "utf8")).toMatch(
+      /Display name: \*\*Professional & Technical Search\*\*/,
+    );
+    expect(readFileSync(path.join(root, "docs/business/SERVICE_CATALOG.md"), "utf8")).toMatch(
+      /Code: `professional-search`/,
+    );
+    expect(searchAcademyArticles("professional search").some((article) => article.slug === "playbook-professional-search")).toBe(
+      true,
+    );
+  });
+
   it("keeps the commercial path and hides Build proposal until the plan is approved", () => {
     expect(commercialPathSummary()).toContain("Company → Opportunity → Discovery");
     expect(commercialPathSummary()).toContain("Build Proposal");

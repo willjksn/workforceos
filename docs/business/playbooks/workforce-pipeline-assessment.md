@@ -113,7 +113,7 @@ Delivery project phases (`workforce-pipeline-assessment-delivery`): Discovery �
 | **Required data** | Approved plan. Roadmap `project_tasks` on the existing delivery project (0–90 days through 12–24 months per catalog). |
 | **Owner** | Workforce Consultant (tasks / presentation). Operations (invoice). |
 | **Access / permission** | `projects.write`; `invoices.read`; `opportunities.write` for follow-on |
-| **Approval** | Executive presentation is client-facing (`deliverables.approve`). Expansion suggestions: Military Talent Opportunity Assessment, Fractional Talent Partner, or Professional Search only. |
+| **Approval** | Executive presentation is client-facing (`deliverables.approve`). Expansion suggestions: Military Talent Opportunity Assessment, Fractional Talent Partner, or Professional & Technical Search only. |
 | **Scout prompt** | `CREATE_TASK` (confirm) only after the plan is approved. `SUMMARIZE` the project. |
 | **Deliverable** | Roadmap tasks; executive presentation; billing event |
 | **Next step** | [Project Delivery / Closeout](project-delivery-closeout.md) |

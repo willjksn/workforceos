@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { convertInquiryAction, updateInquiryStatusAction } from "@/lib/actions/inquiries";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { getWebsiteInquiry } from "@/lib/inquiries/service";
+import { displayServiceName } from "@/lib/services/labels";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../../_components/action-form";
 import {
@@ -42,7 +43,7 @@ export default async function WebsiteInquiryDetailPage({
       <dl className="grid gap-4 sm:grid-cols-2">
         <div>
           <dt className="text-xs uppercase tracking-wide text-muted-foreground">Service interest</dt>
-          <dd className="mt-1">{formatLabel(inquiry.serviceInterest)}</dd>
+          <dd className="mt-1">{displayServiceName(inquiry.serviceInterest)}</dd>
         </div>
         <div>
           <dt className="text-xs uppercase tracking-wide text-muted-foreground">Submitted</dt>

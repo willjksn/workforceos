@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Professional & Technical Search display name — 2026-09-09
+
+- Accepted DEC-SVC-005: canonical public and operator copy is **Professional & Technical Search**. Slug and workflow keys stay `professional-search`. Not a sixth service.
+- Catalog, operating manual, playbooks, Academy, Scout knowledge titles, and operator UI labels use the display name. Public site already used it.
+- Signed-in leftover-CTA click-through on production was blocked (Clerk + no usable browser session). Public `/services/professional-technical-search` already shows Professional & Technical Search.
+
 ### Leftover IA — 2026-09-09
 
 - Commercial path is one primary CTA per stage: Company → Opportunity → Discovery → Solution / Service Plan → Build Proposal → Draft → Internal Approval → Send Client → Accepted → Contract / SOW → Project → Delivery. Build proposal stays hidden until the solution plan is approved and no proposal is in flight.

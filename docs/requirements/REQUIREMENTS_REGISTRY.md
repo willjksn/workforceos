@@ -84,7 +84,7 @@ Remaining work: `docs/operations/MASTER_COMPLETION_LEDGER.md`.
 - Module: services
 - Priority: locked
 - Status: approved
-- Acceptance: Professional Search, Military Talent Opportunity Assessment, TA Performance Assessment, Fractional Talent Partner, and Workforce Pipeline Assessment exist as versioned services.
+- Acceptance: Professional & Technical Search (`professional-search`), Military Talent Opportunity Assessment, TA Performance Assessment, Fractional Talent Partner, and Workforce Pipeline Assessment exist as versioned services.
 
 ### WFOS-LEGAL-001
 
