@@ -57,8 +57,15 @@ describe("PierOne public website", () => {
     expect(labels).not.toContain("Insights");
     expect(labels).not.toContain("What We Do");
     expect(labels).not.toContain("Workforce Development");
-    expect(SOLUTIONS_NAV.map((item) => item.label)).toContain("Workforce Development");
-    expect(SOLUTIONS_NAV).toHaveLength(6);
+    expect(SOLUTIONS_NAV.map((item) => item.label)).not.toContain("Workforce Development");
+    expect(SOLUTIONS_NAV).toHaveLength(5);
+    expect(SOLUTIONS_NAV.map((item) => item.label)).toEqual([
+      "Professional & Technical Search",
+      "Military Talent Opportunity Assessment",
+      "Talent Acquisition Performance Assessment",
+      "Fractional Talent Partner",
+      "Workforce Pipeline Assessment",
+    ]);
   });
 
   it("accepts an empty public content payload so pages can omit sections", () => {

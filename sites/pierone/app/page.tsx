@@ -156,8 +156,8 @@ export default async function HomePage() {
               supply.
             </p>
             <div className="mt-8">
-              <CtaLink href="/workforce-development" variant="secondary">
-                Workforce Development
+              <CtaLink href="/services/workforce-pipeline-assessment" variant="secondary">
+                Workforce Pipeline Assessment
               </CtaLink>
             </div>
           </div>

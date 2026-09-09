@@ -128,7 +128,9 @@ export default async function ReportCategoryPage({
       <div className="mt-10">
         <SectionHeader title="Rows" />
         {report.rows.length === 0 ? (
-          <EmptyState title="No rows for these filters.">Reports only show stored records.</EmptyState>
+          <EmptyState title="No stored records answer this yet.">
+            Change the filters or add the operating records this question reads. Reports never invent metrics.
+          </EmptyState>
         ) : (
           <DataTable columns={report.columns}>
             {report.rows.map((row) => (

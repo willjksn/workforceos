@@ -20,6 +20,7 @@ import {
   inputClassName,
 } from "../_components/ui";
 import { StatusBadge } from "@/components/ui/display";
+import { JobsSubnav } from "./_components/jobs-subnav";
 
 export default async function JobsPage({
   searchParams,
@@ -37,10 +38,11 @@ export default async function JobsPage({
   return (
     <PageShell wide>
       <PageHeader
-        eyebrow="Recruiting"
+        eyebrow="Talent"
         title="Jobs"
-        description="Search assignments. Activating a job always creates an Internal Talent Network search project before any external sourcing hook."
+        description="One operating surface for search assignments. Request headcount, open the job, then run the Internal Talent Network search before any external sourcing hook."
       />
+      <JobsSubnav active="/app/jobs" />
       <FilterBar>
         <SearchForm action="/app/jobs" q={q} placeholder="Search job title" className="" />
       </FilterBar>

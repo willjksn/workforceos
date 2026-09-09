@@ -6,7 +6,6 @@ const columns = [
     title: "Solutions",
     links: [
       ...SERVICES.map((service) => ({ href: `/services/${service.slug}`, label: service.name })),
-      { href: "/workforce-development", label: "Workforce Development" },
     ],
   },
   {

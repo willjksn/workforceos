@@ -12,6 +12,7 @@ import {
   formatLabel,
   inputClassName,
 } from "../../_components/ui";
+import { formatCitations } from "@/lib/ai/citations";
 import { AiSubnav } from "../_components/ai-subnav";
 
 export default async function ReviewQueuePage({
@@ -46,6 +47,9 @@ export default async function ReviewQueuePage({
                   <h2 className="mt-1 text-base font-medium text-navy">{output.summary}</h2>
                   <p className="mt-2 text-sm text-muted-foreground">
                     Confidence {output.confidence ?? "not numeric"} · {output.provider ?? "heuristic"} / {output.model ?? "n/a"}
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Citations: {formatCitations(output.sourceReferences) ?? "None recorded"}
                   </p>
                   {output.assumptions ? <p className="mt-2 text-sm">{output.assumptions}</p> : null}
                 </div>

@@ -8,7 +8,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "",
     "/what-we-do",
     "/military-talent",
-    "/workforce-development",
     "/industries",
     "/careers",
     "/about",

@@ -29,6 +29,7 @@ export type NavItem = {
   icon: NavIconName;
   permission?: Permission;
   anyPermission?: Permission[];
+  adminOnly?: boolean;
 };
 
 export type NavGroup = {
@@ -37,6 +38,11 @@ export type NavGroup = {
   adminOnly?: boolean;
 };
 
+/**
+ * Internal nav follows the operating lifecycle, not a module dump:
+ * Commercial → Delivery → Talent → Pathway → Admin.
+ * Item visibility is still permission-gated. Do not hide authorized work.
+ */
 const NAV: NavGroup[] = [
   {
     label: "",
@@ -47,13 +53,28 @@ const NAV: NavGroup[] = [
     ],
   },
   {
-    label: "CRM",
+    label: "Commercial",
     items: [
       { href: "/app/companies", label: "Companies", icon: "building", permission: "companies.read" },
       { href: "/app/contacts", label: "Contacts", icon: "users", permission: "contacts.read" },
       { href: "/app/opportunities", label: "Opportunities", icon: "briefcase", permission: "opportunities.read" },
       { href: "/app/crm/inquiries", label: "Website inquiries", icon: "radio", permission: "opportunities.read" },
       { href: "/app/signals", label: "Signals", icon: "radio", permission: "opportunities.read" },
+      { href: "/app/discovery", label: "Discovery", icon: "clipboard", permission: "discovery.read" },
+      { href: "/app/solutions", label: "Solution Plans", icon: "layers", permission: "solutions.read" },
+      { href: "/app/services", label: "Service Catalog", icon: "checks", anyPermission: ["services.read", "solutions.read", "jobs.read"] },
+      { href: "/app/proposals", label: "Proposals", icon: "briefcase", permission: "proposals.read" },
+    ],
+  },
+  {
+    label: "Delivery",
+    items: [
+      { href: "/app/projects", label: "Projects", icon: "folder", permission: "projects.read" },
+      { href: "/app/projects/deliverables", label: "Deliverables", icon: "clipboard", permission: "deliverables.read" },
+      { href: "/app/contracts", label: "Contracts", icon: "scale", permission: "contracts.read" },
+      { href: "/app/legal/templates", label: "Legal templates", icon: "layers", permission: "legal.read" },
+      { href: "/app/workforce", label: "Workforce planning", icon: "network", permission: "workforce.read" },
+      { href: "/app/finance", label: "Finance", icon: "wallet", anyPermission: ["finance.read", "billing.read"] },
     ],
   },
   {
@@ -66,16 +87,9 @@ const NAV: NavGroup[] = [
       { href: "/app/talent/watchlists", label: "Watchlists", icon: "eye", permission: "candidates.read" },
       { href: "/app/talent/rediscovery", label: "Rediscovery", icon: "rotate", permission: "candidates.read" },
       { href: "/app/talent/nurture", label: "Nurture", icon: "sprout", permission: "candidates.read" },
-    ],
-  },
-  {
-    label: "Recruiting",
-    items: [
       { href: "/app/recruiting/workbench", label: "Recruiting Workbench", icon: "clipboard", permission: "applications.read" },
-      { href: "/app/recruiting/applications", label: "Applications", icon: "users", permission: "applications.read" },
-      { href: "/app/recruiting/requisitions", label: "Requisitions", icon: "folder", permission: "jobs.read" },
       { href: "/app/jobs", label: "Jobs", icon: "clipboard", permission: "jobs.read" },
-      { href: "/app/search-projects", label: "Search Projects", icon: "search", permission: "search_projects.read" },
+      { href: "/app/recruiting/applications", label: "Applications", icon: "users", permission: "applications.read" },
       { href: "/app/pipeline", label: "Candidate Pipeline", icon: "layers", permission: "jobs.read" },
       { href: "/app/submissions", label: "Submissions", icon: "users", permission: "submissions.read" },
       { href: "/app/interviews", label: "Interviews", icon: "briefcase", permission: "interviews.read" },
@@ -87,9 +101,9 @@ const NAV: NavGroup[] = [
     ],
   },
   {
-    label: "Military Talent",
+    label: "Pathway",
     items: [
-      { href: "/app/military", label: "Overview", icon: "shield", permission: "military.read" },
+      { href: "/app/military", label: "Military Talent", icon: "shield", permission: "military.read" },
       { href: "/app/military/candidates", label: "Transitioning Talent", icon: "user", permission: "military.read" },
       { href: "/app/military/opportunities", label: "Employer Opportunities", icon: "briefcase", anyPermission: ["skillbridge.read", "military.read"] },
       { href: "/app/military/skillbridge", label: "Pathway operations", icon: "sprout", anyPermission: ["skillbridge.read", "military.read"] },
@@ -105,132 +119,36 @@ const NAV: NavGroup[] = [
     ],
   },
   {
-    label: "Solutions",
-    items: [
-      { href: "/app/discovery", label: "Discovery", icon: "clipboard", permission: "discovery.read" },
-      { href: "/app/solutions", label: "Solution Plans", icon: "layers", permission: "solutions.read" },
-      { href: "/app/services", label: "Service Catalog", icon: "checks", anyPermission: ["services.read", "solutions.read", "jobs.read"] },
-    ],
-  },
-  {
-    label: "Proposals",
-    items: [
-      { href: "/app/proposals", label: "All Proposals", icon: "briefcase", permission: "proposals.read" },
-      { href: "/app/proposals?status=draft", label: "Drafts", icon: "clipboard", permission: "proposals.read" },
-      { href: "/app/proposals?status=internal_review", label: "Awaiting Approval", icon: "bell", permission: "proposals.read" },
-      { href: "/app/proposals?status=sent", label: "Sent", icon: "checks", permission: "proposals.read" },
-      { href: "/app/proposals?status=accepted", label: "Accepted", icon: "medal", permission: "proposals.read" },
-      { href: "/app/proposals?status=declined", label: "Declined", icon: "rotate", permission: "proposals.read" },
-    ],
-  },
-  {
-    label: "Legal & Contracts",
-    items: [
-      { href: "/app/contracts", label: "Contracts", icon: "scale", permission: "contracts.read" },
-      { href: "/app/legal/templates", label: "Templates", icon: "layers", permission: "legal.read" },
-      { href: "/app/contracts?filter=executed", label: "Executed", icon: "checks", permission: "contracts.read" },
-      { href: "/app/contracts?filter=expiring", label: "Expiring", icon: "bell", permission: "contracts.read" },
-      { href: "/app/contracts?filter=compliance", label: "Compliance", icon: "shield", permission: "contracts.read" },
-    ],
-  },
-  {
-    label: "Projects",
-    items: [
-      { href: "/app/projects", label: "All Projects", icon: "folder", permission: "projects.read" },
-      { href: "/app/projects?filter=active", label: "Active", icon: "checks", permission: "projects.read" },
-      { href: "/app/projects?filter=at_risk", label: "At Risk", icon: "bell", permission: "projects.read" },
-      { href: "/app/projects?filter=completed", label: "Completed", icon: "medal", permission: "projects.read" },
-      { href: "/app/projects/deliverables", label: "Deliverables", icon: "clipboard", permission: "deliverables.read" },
-    ],
-  },
-  {
-    label: "Workforce",
-    items: [
-      { href: "/app/workforce", label: "Overview", icon: "network", permission: "workforce.read" },
-      { href: "/app/workforce/assessments", label: "Assessments", icon: "clipboard", permission: "workforce.read" },
-      { href: "/app/workforce/roles", label: "Workforce Roles", icon: "users", permission: "workforce.read" },
-      { href: "/app/workforce/skills", label: "Skills", icon: "layers", permission: "workforce.read" },
-      { href: "/app/workforce/forecasts", label: "Forecasts", icon: "dashboard", permission: "forecasts.read" },
-      { href: "/app/workforce/gaps", label: "Workforce Gaps", icon: "bell", permission: "workforce.read" },
-      { href: "/app/workforce/supply", label: "Talent Supply", icon: "sprout", permission: "workforce.read" },
-      { href: "/app/workforce/pipelines", label: "Talent Pipelines", icon: "rotate", permission: "pipelines.read" },
-      { href: "/app/workforce/career-pathways", label: "Career Pathways", icon: "medal", permission: "career_paths.read" },
-      { href: "/app/workforce/training-programs", label: "Training Programs", icon: "checks", permission: "training_programs.read" },
-      { href: "/app/workforce/education-partners", label: "Education Partners", icon: "building", permission: "education_partners.read" },
-      { href: "/app/workforce/apprenticeships", label: "Apprenticeships", icon: "folder", permission: "workforce.read" },
-      { href: "/app/workforce/military-supply", label: "Military Supply", icon: "shield", anyPermission: ["workforce.read", "military.read"] },
-      { href: "/app/workforce/scenarios", label: "Scenario Modeling", icon: "sparkles", permission: "scenario_models.read" },
-      { href: "/app/workforce/analytics", label: "Workforce Analytics", icon: "dashboard", permission: "workforce.read" },
-    ],
-  },
-  {
-    label: "Finance",
-    items: [
-      { href: "/app/finance", label: "Finance", icon: "wallet", anyPermission: ["finance.read", "billing.read"] },
-      { href: "/app/finance/invoices", label: "Invoices", icon: "clipboard", permission: "invoices.read" },
-      { href: "/app/finance/ar", label: "Accounts Receivable", icon: "bell", permission: "finance.read" },
-    ],
-  },
-  {
-    label: "AI Operations",
+    label: "Admin",
     items: [
       { href: "/app/ai-operations", label: "AI administration", icon: "sparkles", permission: "agents.manage" },
       { href: "/app/ai-operations/review", label: "Review Queue", icon: "bell", permission: "agents.read" },
-      { href: "/app/ai-operations/runs", label: "Agent Runs", icon: "clipboard", permission: "agents.manage" },
-      { href: "/app/ai-operations/outputs", label: "Agent Outputs", icon: "layers", permission: "agents.manage" },
-      { href: "/app/ai-operations/automation", label: "Automation Rules", icon: "rotate", permission: "automations.read" },
-      { href: "/app/ai-operations/permissions", label: "Agent Permissions", icon: "shield", permission: "agents.manage" },
-      { href: "/app/ai-operations/prompts", label: "Prompt Versions", icon: "clipboard", permission: "agents.manage" },
-      { href: "/app/ai-operations/costs", label: "Costs & Usage", icon: "wallet", permission: "agents.manage" },
-      { href: "/app/ai-operations/failures", label: "Failures", icon: "bell", permission: "agents.manage" },
       { href: "/app/ai-operations/knowledge", label: "Knowledge Sources", icon: "folder", permission: "knowledge.read" },
-    ],
-  },
-  {
-    label: "Integrations",
-    items: [
-      { href: "/app/integrations", label: "Overview", icon: "network", anyPermission: ["integrations.read", "admin.users", "admin.roles"] },
-      { href: "/app/integrations/quickbooks", label: "QuickBooks", icon: "wallet", anyPermission: ["integrations.read", "admin.users"] },
-      { href: "/app/integrations/docusign", label: "DocuSign", icon: "scale", anyPermission: ["integrations.read", "admin.users"] },
-      { href: "/app/integrations/apollo", label: "Apollo", icon: "search", anyPermission: ["integrations.read", "admin.users"] },
-    ],
-  },
-  {
-    label: "Public website",
-    items: [
+      { href: "/app/integrations", label: "Connected tools", icon: "network", anyPermission: ["integrations.read", "admin.users", "admin.roles"] },
       { href: "/app/public-content", label: "Public content", icon: "eye", permission: "public_content.read" },
-    ],
-  },
-  {
-    label: "Admin",
-    adminOnly: true,
-    items: [
       { href: "/app/admin/users", label: "People", icon: "users", permission: "admin.users" },
-      { href: "/app/admin/roles", label: "Roles & access", icon: "shield", permission: "admin.roles" },
-      { href: "/app/admin/integrations", label: "Connected tools", icon: "network" },
-      { href: "/app/admin/system-health", label: "System status", icon: "dashboard" },
+      { href: "/app/admin/roles", label: "Access bundles", icon: "shield", permission: "admin.roles" },
+      { href: "/app/admin/integrations", label: "Integration Hub", icon: "network", adminOnly: true },
+      { href: "/app/admin/system-health", label: "System status", icon: "dashboard", adminOnly: true },
       { href: "/app/admin/data-quality", label: "Data quality", icon: "clipboard", permission: "data_quality.read" },
       { href: "/app/admin/access-review", label: "Access review", icon: "shield", permission: "admin.users" },
-      { href: "/app/admin/approvals", label: "Approvals", icon: "bell" },
+      { href: "/app/admin/approvals", label: "Approvals", icon: "bell", adminOnly: true },
     ],
   },
 ];
 
 export function navGroupsForPrincipal(principal: Principal): NavGroup[] {
-  return NAV.map((group) => {
-    if (group.adminOnly && !isPlatformAdmin(principal)) {
-      return { ...group, items: [] };
-    }
-    return {
-      label: group.label,
-      adminOnly: group.adminOnly,
-      items: group.items.filter((item) => {
-        if (item.permission && !can(principal, item.permission)) return false;
-        if (item.anyPermission && !canAny(principal, item.anyPermission)) return false;
-        return true;
-      }),
-    };
-  }).filter((group) => group.items.length > 0);
+  const platformAdmin = isPlatformAdmin(principal);
+  return NAV.map((group) => ({
+    label: group.label,
+    adminOnly: group.adminOnly,
+    items: group.items.filter((item) => {
+      if ((group.adminOnly || item.adminOnly) && !platformAdmin) return false;
+      if (item.permission && !can(principal, item.permission)) return false;
+      if (item.anyPermission && !canAny(principal, item.anyPermission)) return false;
+      return true;
+    }),
+  })).filter((group) => group.items.length > 0);
 }
 
 export function isNavActive(href: string, pathname: string) {
@@ -238,7 +156,18 @@ export function isNavActive(href: string, pathname: string) {
   if (href === "/app/talent") {
     return pathname === "/app/talent" || /^\/app\/talent\/[0-9a-f-]{36}/i.test(pathname);
   }
-  if (href === "/app/workforce") return pathname === "/app/workforce";
+  if (href === "/app/jobs") {
+    return (
+      pathname === "/app/jobs" ||
+      pathname.startsWith("/app/jobs/") ||
+      pathname.startsWith("/app/recruiting/requisitions") ||
+      pathname.startsWith("/app/search-projects")
+    );
+  }
+  if (href === "/app/military") return pathname === "/app/military";
   if (href === "/app/ai-operations") return pathname === "/app/ai-operations";
+  if (href === "/app/integrations") {
+    return pathname === "/app/integrations" || pathname.startsWith("/app/integrations/");
+  }
   return pathname === href || pathname.startsWith(`${href}/`);
 }

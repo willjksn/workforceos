@@ -25,7 +25,7 @@ export const ROLE_GUIDE: Record<
   },
   recruiter: {
     audience: "Recruiting staff",
-    access: "Candidates, jobs, and military talent for searches. No admin screens.",
+    access: "Candidates, jobs, and military talent for searches. No commercial opportunity ownership and no admin screens.",
   },
   "workforce-consultant": {
     audience: "Workforce delivery",

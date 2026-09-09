@@ -15,6 +15,7 @@ import {
   formatLabel,
   inputClassName,
 } from "../../_components/ui";
+import { knowledgeCitation } from "@/lib/ai/citations";
 import { AiSubnav } from "../_components/ai-subnav";
 
 export default async function KnowledgePage() {
@@ -27,7 +28,7 @@ export default async function KnowledgePage() {
       <PageHeader
         eyebrow="AI Operations"
         title="Knowledge Sources"
-        description="Approved playbooks, methodologies, and lessons. Retrieval applies access control before content is returned. Restricted candidate PII is not stored here."
+        description="Approved playbooks, methodologies, and lessons. Retrieval applies access control before content is returned. Restricted candidate PII is not stored here. Material answers must show the source citation."
       />
       <AiSubnav active="/app/ai-operations/knowledge" />
       {canWrite ? (
@@ -72,7 +73,7 @@ export default async function KnowledgePage() {
             <RecordRow
               key={row.id}
               title={`${row.title} · ${row.version}`}
-              meta={`${formatLabel(row.knowledgeType)} · ${formatLabel(row.status)} · ${row.source ?? "no source"}`}
+              meta={`${formatLabel(row.knowledgeType)} · ${formatLabel(row.status)} · ${knowledgeCitation(row)}`}
               trailing={
                 canApprove && row.status !== "approved" ? (
                   <ActionForm action={approveKnowledgeAction}>

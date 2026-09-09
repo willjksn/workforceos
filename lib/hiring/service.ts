@@ -111,6 +111,15 @@ function emailRecordStatus(status: "queued" | "sent" | "failed") {
   return status === "failed" ? ("failed" as const) : ("sent" as const);
 }
 
+export async function listRequisitions(organizationId: string) {
+  const db = getDb();
+  return db
+    .select()
+    .from(jobRequisitions)
+    .where(eq(jobRequisitions.organizationId, organizationId))
+    .orderBy(desc(jobRequisitions.updatedAt));
+}
+
 export async function createRequisition(input: {
   principal: Principal;
   title: string;

@@ -12,12 +12,12 @@ export default async function LegalTemplatesPage() {
       <PageHeader
         eyebrow="Legal & Contracts"
         title="Templates"
-        description="Structural templates only. Language is not attorney-approved unless the attorney-approved flag is set."
+        description="Structural templates. The Attorney-approved label appears only when counsel has recorded approval on the template."
       />
       {rows.length === 0 ? (
         <EmptyState title="No templates seeded.">Seed the launch catalog to load placeholder templates.</EmptyState>
       ) : (
-        <DataTable columns={["Template", "Type", "Version", "Status", "Attorney approved"]}>
+        <DataTable columns={["Template", "Type", "Version", "Status", "Legal review"]}>
           {rows.map((row) => (
             <tr key={row.id}>
               <td className="font-medium text-navy">{row.name}</td>
@@ -26,7 +26,13 @@ export default async function LegalTemplatesPage() {
               <td>
                 <StatusBadge>{formatLabel(row.status)}</StatusBadge>
               </td>
-              <td>{row.attorneyApproved ? "Yes" : "No"}</td>
+              <td>
+                {row.attorneyApproved ? (
+                  <StatusBadge tone="success">Attorney-approved</StatusBadge>
+                ) : (
+                  <span className="text-muted-foreground">Placeholder — not attorney-reviewed</span>
+                )}
+              </td>
             </tr>
           ))}
         </DataTable>

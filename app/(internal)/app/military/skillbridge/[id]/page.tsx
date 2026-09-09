@@ -117,7 +117,7 @@ export default async function SkillBridgeDetailPage({
             <p className="mt-3 text-sm text-muted-foreground">
               {canReadPii
                 ? "Resume metadata is missing. Re-upload from this profile if the file cannot be opened."
-                : "Resume on file is hidden without candidate contact access."
+                : "Resume on file is hidden without candidate contact access."}
             </p>
           ) : (
             <p className="mt-3 text-sm text-muted-foreground">No resume on file.</p>

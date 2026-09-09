@@ -33,12 +33,12 @@ export default async function AdminUsersPage() {
       <PageHeader
         eyebrow="Admin"
         title="People"
-        description="Invite from this page and pick their role at the same time. Clerk emails the invite. The role is stored here, so the first sign-in is not Command Center-only. Active can sign in. Disabled cannot, but stays on this list. Archived is hidden, not deleted."
+        description="Invite from this page and assign an access bundle at the same time. Clerk emails the invite. The bundle is stored in PostgreSQL, so the first sign-in is not Command Center-only. Job titles are not permissions. Active can sign in. Disabled cannot, but stays on this list. Archived is hidden, not deleted."
       />
       {rows.length === 0 ? (
         <EmptyState>No people are recorded for this organization.</EmptyState>
       ) : (
-        <DataTable columns={["Name", "Email", "Role", "Access"]}>
+        <DataTable columns={["Name", "Email", "Access bundle", "Sign-in"]}>
             {rows.map((user) => {
               const currentSlug = user.roles[0]?.slug ?? "";
               const canEditRole =
@@ -84,7 +84,7 @@ export default async function AdminUsersPage() {
       {canAssign && assignableRoles.length > 0 ? (
         <CreatePanel
           title="Invite person"
-          description="Sends a Clerk invitation email and records them as invited with the role you choose. When they accept and sign in, that role is already assigned."
+          description="Sends a Clerk invitation email and records them as invited with the access bundle you choose. When they accept and sign in, that bundle is already assigned."
         >
           <ActionForm action={inviteUserAction} className="max-w-xl space-y-3">
             <Field label="Work email" name="email">
@@ -93,10 +93,10 @@ export default async function AdminUsersPage() {
             <Field label="Name" name="fullName">
               <input className={inputClassName} id="fullName" name="fullName" autoComplete="off" placeholder="Optional" />
             </Field>
-            <Field label="Role" name="roleSlug">
+            <Field label="Access bundle" name="roleSlug">
               <select className={inputClassName} id="roleSlug" name="roleSlug" required defaultValue="">
                 <option value="" disabled>
-                  Choose a role
+                  Choose an access bundle
                 </option>
                 {assignableRoles.map((role) => (
                   <option key={role.id} value={role.slug}>

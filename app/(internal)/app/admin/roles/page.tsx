@@ -11,13 +11,13 @@ export default async function AdminRolesPage() {
     <PageShell>
       <PageHeader
         eyebrow="Admin"
-        title="Roles & access"
-        description="People sign in with Clerk. Assign their WorkforceOS role on People. Managing Partner and Strategy & Technology Administrator can assign roles. Only a Managing Partner can grant Managing Partner."
+        title="Access bundles"
+        description="An access bundle is a PostgreSQL role with a set of permissions. Job titles are display-only and are not permissions. Clerk authenticates; it does not grant access. Assign bundles on People. Only a Managing Partner can grant Managing Partner."
       />
       {rows.length === 0 ? (
-        <EmptyState>No roles are configured for this organization.</EmptyState>
+        <EmptyState>No access bundles are configured for this organization.</EmptyState>
       ) : (
-        <DataTable columns={["Role", "Who it is for", "What they can do", "People"]}>
+        <DataTable columns={["Access bundle", "Who it is for", "What they can do", "People"]}>
             {rows.map((role) => {
               const guide = guideForRole(role.slug);
               return (

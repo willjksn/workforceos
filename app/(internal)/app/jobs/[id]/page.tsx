@@ -20,6 +20,7 @@ import { ActionForm } from "../../_components/action-form";
 import { Field, PageHeader, PageShell, PrimaryButton, formatLabel, inputClassName } from "../../_components/ui";
 import { Card, StatusBadge } from "@/components/ui/display";
 import { ButtonLink } from "@/components/ui/button";
+import { JobsSubnav } from "../_components/jobs-subnav";
 
 export default async function JobDetailPage({
   params,
@@ -50,9 +51,15 @@ export default async function JobDetailPage({
         title={workspace.job.title}
         description={`${workspace.companyName ?? "No company"} · ${workspace.job.locationLabel ?? "Location not recorded"}`}
         actions={
-          <ButtonLink href={`/app/jobs/${workspace.job.id}/pipeline`}>Pipeline</ButtonLink>
+          <div className="flex flex-wrap gap-2">
+            {searchProject ? (
+              <ButtonLink href={`/app/search-projects/${searchProject.id}`}>Internal search</ButtonLink>
+            ) : null}
+            <ButtonLink href={`/app/jobs/${workspace.job.id}/pipeline`}>Pipeline</ButtonLink>
+          </div>
         }
       />
+      <JobsSubnav active="/app/jobs" />
       <div className="mt-4 flex flex-wrap gap-2">
         <StatusBadge tone="navy">{formatLabel(workspace.job.status)}</StatusBadge>
         {workspace.job.priority ? <StatusBadge>{workspace.job.priority}</StatusBadge> : null}

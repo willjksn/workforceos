@@ -15,7 +15,7 @@ export default function WhatWeDoPage() {
       <PageHero eyebrow="Solutions" title="Five solutions. One workforce practice." size="narrow">
         <p className="mt-6 text-[17px] leading-8 text-white/80">
           PierOne Partners is a workforce and talent solutions firm. These are the commercial offerings. Internal
-          recruiting, SkillBridge operations, and workforce intelligence support the work; they are not five extra
+          recruiting, Military Talent pathway operations, and workforce intelligence support the work; they are not five extra
           public products.
         </p>
       </PageHero>

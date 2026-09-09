@@ -50,7 +50,7 @@ export function RoleAssignField({
         <select
           value={value}
           disabled={pending}
-          aria-label={`Role for ${fullName}`}
+          aria-label={`Access bundle for ${fullName}`}
           className={selectClassName}
           onChange={(event) => {
             const next = event.currentTarget.value;
@@ -61,7 +61,7 @@ export function RoleAssignField({
         >
           {!value ? (
             <option value="" disabled>
-              Assign a role
+              Assign an access bundle
             </option>
           ) : null}
           {roles.map((role) => (

@@ -17,8 +17,8 @@ export default async function WorkforceHubPage() {
     <PageShell wide>
       <PageHeader
         eyebrow="Workforce intelligence"
-        title="Workforce Development"
-        description="Planning estimates for demand, supply, gaps, and pipelines. Forecasts are not guaranteed. Client-facing recommendations require human approval."
+        title="Workforce Pipeline Assessment work"
+        description="Planning estimates for demand, supply, gaps, and pipelines on Workforce Pipeline Assessment engagements. Forecasts are not guaranteed. Client-facing recommendations require human approval. This is not a sixth commercial service."
       />
       <WorkforceSubnav active="/app/workforce" />
       <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

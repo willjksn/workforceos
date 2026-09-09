@@ -41,7 +41,7 @@ import { parseMoney } from "../finance/money";
 import { recruitingAnalytics } from "../repositories/recruiting-delivery";
 import { getWorkforceCommandSnapshot } from "../repositories/workforce";
 import { recruitingCycleTimes } from "./cycle-time";
-import { inDateRange, type ReportCategory, type ReportFilters } from "./filters";
+import { inDateRange, REPORT_QUESTIONS, type ReportCategory, type ReportFilters } from "./filters";
 
 export type ReportMetric = { label: string; value: string | number; hint?: string };
 export type ReportRow = { id: string; cells: string[]; href?: string };
@@ -133,8 +133,8 @@ async function businessReport(organizationId: string, category: ReportCategory, 
 
   return {
     category,
-    title: category === "finance" ? "Finance" : "Business",
-    description: "Stored invoice, contract, and revenue amounts only. QuickBooks remains the accounting ledger. Margin is collected minus recorded delivery costs, not a general-ledger profit figure.",
+    title: REPORT_QUESTIONS[category].title,
+    description: `${REPORT_QUESTIONS[category].summary} Margin is collected minus recorded delivery costs, not a general-ledger profit figure.`,
     metrics: [
       { label: "Contracted", value: moneyLabel(overview.contractedRevenue) },
       { label: "Invoiced", value: moneyLabel(overview.invoicedRevenue) },
@@ -182,8 +182,8 @@ async function salesReport(organizationId: string, filters: ReportFilters) {
   const lost = filtered.filter((row) => row.opportunity.stage === "lost").length;
   return {
     category: "sales" as const,
-    title: "Sales",
-    description: "Opportunity pipeline from stored stages and scores.",
+    title: REPORT_QUESTIONS.sales.title,
+    description: REPORT_QUESTIONS.sales.summary,
     metrics: [
       { label: "Open opportunities", value: open.length },
       { label: "Won", value: won },
@@ -246,8 +246,8 @@ async function recruitingReport(organizationId: string, filters: ReportFilters) 
   const maxWorkload = Math.max(0, ...Object.values(analytics.recruiterWorkload));
   return {
     category: "recruiting" as const,
-    title: "Recruiting",
-    description: "Funnel, cycle time, and Talent Network usage from stored recruiting records. Averages omit jobs without both dates.",
+    title: REPORT_QUESTIONS.recruiting.title,
+    description: `${REPORT_QUESTIONS.recruiting.summary} Averages omit jobs without both dates.`,
     metrics: [
       { label: "Active searches", value: analytics.activeSearches },
       { label: "Time to shortlist (days)", value: cycleTimes.timeToShortlistDays ?? "—" },
@@ -288,10 +288,10 @@ async function talentReport(organizationId: string, filters: ReportFilters, incl
   const silverIds = new Set(silver.map((row) => row.candidateId));
   return {
     category: "talent" as const,
-    title: "Talent Network",
+    title: REPORT_QUESTIONS.talent.title,
     description: includePii
       ? "Restricted PII columns are included because this export was authorized and audited."
-      : "Candidate operating counts. Email and phone are omitted unless a PII export is authorized.",
+      : REPORT_QUESTIONS.talent.summary,
     metrics: [
       { label: "Total candidates", value: filtered.length },
       { label: "Available now", value: filtered.filter((row) => row.availability === "available_now").length },
@@ -356,8 +356,8 @@ async function militaryReport(organizationId: string, filters: ReportFilters) {
     );
   return {
     category: "military" as const,
-    title: "Military Talent",
-    description: "Occupation coverage and military candidate counts from stored translator records. Transition Talent Profile and employer opportunity metrics appear when those records exist.",
+    title: REPORT_QUESTIONS.military.title,
+    description: REPORT_QUESTIONS.military.summary,
     metrics: [
       { label: "Occupations mapped", value: Number(occupations[0]?.value ?? 0) },
       { label: "Civilian role coverage", value: Number(mappings[0]?.value ?? 0) },
@@ -417,8 +417,8 @@ async function workforceReport(organizationId: string, filters: ReportFilters) {
   ]);
   return {
     category: "workforce" as const,
-    title: "Workforce",
-    description: "Planning estimates from stored assessments. Figures are never presented as certain.",
+    title: REPORT_QUESTIONS.workforce.title,
+    description: REPORT_QUESTIONS.workforce.summary,
     metrics: [
       { label: "Assessments", value: filtered.length },
       { label: "Critical gaps", value: snapshot.criticalGaps.length },
@@ -465,8 +465,8 @@ async function projectsReport(organizationId: string, filters: ReportFilters) {
   ]);
   return {
     category: "projects" as const,
-    title: "Projects",
-    description: "Delivery health from stored project, risk, and closeout records.",
+    title: REPORT_QUESTIONS.projects.title,
+    description: REPORT_QUESTIONS.projects.summary,
     metrics: [
       { label: "Projects", value: filtered.length },
       { label: "At risk", value: filtered.filter((row) => row.project.status === "at_risk" || row.project.health === "at_risk").length },
@@ -495,8 +495,8 @@ async function aiReport(organizationId: string, filters: ReportFilters) {
   const filtered = runs.filter((run) => inDateRange(run.createdAt, filters));
   return {
     category: "ai" as const,
-    title: "AI Operations",
-    description: "Run volume and estimated cost from the usage ledger. Heuristic provider cost is recorded when available.",
+    title: REPORT_QUESTIONS.ai.title,
+    description: `${REPORT_QUESTIONS.ai.summary} Heuristic provider cost is recorded when available.`,
     metrics: [
       { label: "Runs this month", value: usage.monthRuns },
       { label: "Estimated month cost", value: moneyLabel(usage.monthCostUsd) },

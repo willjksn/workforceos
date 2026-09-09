@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { listSearchProjects } from "@/lib/repositories/recruiting";
 import { DataTable, EmptyState, PageHeader, PageShell, StatusBadge, formatLabel } from "../_components/ui";
+import { JobsSubnav } from "../jobs/_components/jobs-subnav";
 
 export default async function SearchProjectsPage() {
   const principal = await requireAppPermission("search_projects.read");
@@ -11,10 +12,11 @@ export default async function SearchProjectsPage() {
   return (
     <PageShell>
       <PageHeader
-        eyebrow="Recruiting"
-        title="Search projects"
-        description="Each job has an internal-first search project. Strategy is client-facing only after human approval."
+        eyebrow="Talent"
+        title="Internal searches"
+        description="Each job has an internal-first search project created when the job is activated. Strategy is client-facing only after human approval. This is the same job work as Jobs — not a second service."
       />
+      <JobsSubnav active="/app/search-projects" />
       {rows.length === 0 ? (
         <EmptyState title="No search projects yet.">
           Activating a job creates an Internal Talent Network search project before any external sourcing hook.

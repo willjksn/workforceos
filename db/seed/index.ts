@@ -1165,6 +1165,7 @@ async function seedRequirementsAndDecisions(db: ReturnType<typeof getDb>) {
     ["DEC-MIL-003", "SkillBridge people are Talent Network candidates", "skillbridge_profiles link to candidates. No duplicate person records."],
     ["DEC-MIL-004", "SkillBridge matching and alerts stay human-gated", "Configurable alert rules, Inngest scans, in-app notifications. Humans connect/submit."],
     ["DEC-MIL-005", "PierOne is the military-talent intermediary", "SkillBridge is a pathway/opportunity type, not a PierOne-owned SkillBridge program. Physical tables are retained."],
+    ["DEC-RBAC-001", "Recruiter is not a commercial opportunity owner", "Recruiter has talent and jobs work. opportunities.read stays on consultant, partner, and admin bundles."],
     ["DEC-OPS-002", "In-app notifications are a foundation", "Not a second inbox. Point at source records."],
   ] as const;
 

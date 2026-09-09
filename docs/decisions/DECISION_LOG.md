@@ -1,6 +1,6 @@
 # Decision Log
 
-Status: Binding architecture and product decisions (through DEC-MIL-005)  
+Status: Binding architecture and product decisions (through DEC-RBAC-001)  
 Database mirror: `decision_log` table, seeded from this file.
 
 ## DEC-DB-001 — PostgreSQL over Firebase
@@ -712,4 +712,14 @@ Database mirror: `decision_log` table, seeded from this file.
 - Reason: Correct the operating model so SkillBridge is not presented as PierOne's own program and so matching can begin from a transition profile.
 - Affected modules: military, SkillBridge, public website, Scout, public content, email
 - Reconsideration: only if PierOne later becomes a SkillBridge host for a specific, documented engagement.
+
+## DEC-RBAC-001 — Recruiter is not a commercial opportunity owner
+
+- Date: 2026-09-08
+- Owner: Product Build
+- Status: accepted
+- Decision: The Recruiter access bundle includes talent, jobs, pipeline, and military talent work. It does not include `opportunities.read` or `opportunities.write`. Commercial opportunity ownership stays on Talent Partner, Workforce Consultant, Operations Administrator, Strategy & Technology Administrator, and Managing Partner. Recruiters reach authorized job work from Talent, not from the commercial spine. Do not grant `opportunities.read` to Recruiter without a new accepted decision.
+- Reason: The operating-model audit found Recruiter missing `opportunities.read`. That is intentional, not drift. Expanding Recruiter into inquiry and opportunity ownership would mix search execution with commercial ownership.
+- Affected modules: RBAC, navigation, CRM
+- Reconsideration: only if recruiters are explicitly assigned commercial opportunity ownership.
 

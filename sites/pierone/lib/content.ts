@@ -24,7 +24,6 @@ export const SOLUTIONS_NAV = [
   { href: "/services/talent-acquisition-performance-assessment", label: "Talent Acquisition Performance Assessment" },
   { href: "/services/fractional-talent-partner", label: "Fractional Talent Partner" },
   { href: "/services/workforce-pipeline-assessment", label: "Workforce Pipeline Assessment" },
-  { href: "/workforce-development", label: "Workforce Development" },
 ] as const;
 
 export const SERVICES = [

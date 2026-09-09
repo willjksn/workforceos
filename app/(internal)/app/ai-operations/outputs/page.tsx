@@ -1,5 +1,6 @@
 import { requireAppPermission } from "@/lib/auth/guard";
 import { listAgentOutputs } from "@/lib/ai/engine";
+import { formatCitations } from "@/lib/ai/citations";
 import { EmptyState, PageHeader, PageShell, RecordList, RecordRow, formatLabel } from "../../_components/ui";
 import { AiSubnav } from "../_components/ai-subnav";
 
@@ -22,7 +23,7 @@ export default async function AgentOutputsPage() {
             <RecordRow
               key={output.id}
               title={output.summary}
-              meta={`${agent.name} · ${formatLabel(output.status)} · ${output.confidence ?? "no numeric confidence"}`}
+              meta={`${agent.name} · ${formatLabel(output.status)} · ${output.provider ?? "no provider"} / ${output.model ?? "no model"} · ${output.confidence ?? "no numeric confidence"} · ${formatCitations(output.sourceReferences) ?? "No citations recorded"}`}
             />
           ))}
         </RecordList>

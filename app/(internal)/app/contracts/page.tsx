@@ -19,7 +19,7 @@ export default async function ContractsPage({
       <PageHeader
         eyebrow="Legal & Contracts"
         title={filter ? `${formatLabel(filter)} contracts` : "Contracts"}
-        description="Service-specific packages. Documents are not auto-sent. Placeholder templates are not attorney-approved."
+        description="Service-specific packages. Documents are not auto-sent. Language is not attorney-approved unless counsel has recorded approval on the linked template."
       />
       {rows.length === 0 ? (
         <EmptyState title="No contracts in this view.">

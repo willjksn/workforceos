@@ -1,3 +1,18 @@
+/**
+ * Sync `role_permissions` from `ROLE_PERMISSIONS` in lib/rbac/permissions.ts.
+ *
+ * Usage:
+ *   npx tsx scripts/sync-role-permissions.ts
+ *
+ * DATABASE_URL must already be set for the target database. dotenv does not
+ * override a pre-set DATABASE_URL. Do not run db:seed:dev against production.
+ *
+ * Locked bundle notes:
+ * - Recruiter / Talent Partner / consultant / specialist do not receive agents.read.
+ * - Recruiter does not receive opportunities.read (commercial spine stays on
+ *   consultant / partner / admin bundles). Do not add it here without an
+ *   accepted decision.
+ */
 import "./load-env";
 
 import { and, eq, notInArray } from "drizzle-orm";

@@ -378,6 +378,8 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "transactional_email.send",
     "public_content.read",
   ],
+  // Recruiter is talent/jobs execution, not commercial opportunity ownership (DEC-RBAC-001).
+  // Do not add opportunities.read unless product explicitly expands that bundle.
   recruiter: [
     "companies.read",
     "contacts.read",
