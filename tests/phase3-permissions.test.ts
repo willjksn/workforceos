@@ -28,11 +28,11 @@ describe("Phase 3 permissions and skills", () => {
     expect(can(reader, "recruiting.analytics.read")).toBe(true);
   });
 
-  it("lets a military specialist review mappings without admin rights", () => {
-    const specialist = principalFor("military-talent-specialist");
-    expect(can(specialist, "military.review")).toBe(true);
-    expect(can(specialist, "military_reference.manage")).toBe(true);
-    expect(can(specialist, "admin.roles")).toBe(false);
+  it("lets a Military Talent Partner review mappings without admin rights", () => {
+    const partner = principalFor("military-talent-partner");
+    expect(can(partner, "military.review")).toBe(true);
+    expect(can(partner, "military_reference.manage")).toBe(true);
+    expect(can(partner, "admin.roles")).toBe(false);
   });
 
   it("redacts compensation expectations without candidate_pii.read", () => {

@@ -2,7 +2,7 @@ import { relations } from "drizzle-orm";
 import { index, integer, numeric, pgTable, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 import { timestamps } from "./_common";
-import { userStatusEnum } from "./enums";
+import { permissionOverrideEffectEnum, userStatusEnum } from "./enums";
 
 export const organizations = pgTable("organizations", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -21,6 +21,7 @@ export const users = pgTable("users", {
   clerkUserId: text("clerk_user_id"),
   email: text("email").notNull(),
   fullName: text("full_name").notNull(),
+  organizationalTitle: text("organizational_title"),
   status: userStatusEnum("status").notNull().default("invited"),
   lastLoginAt: timestamp("last_login_at", { withTimezone: true, mode: "date" }),
   ...timestamps(),
@@ -77,6 +78,20 @@ export const userRoles = pgTable("user_roles", {
   unique("user_roles_user_role_uq").on(table.userId, table.roleId),
 ]);
 
+export const userPermissionOverrides = pgTable("user_permission_overrides", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  permissionId: uuid("permission_id").notNull().references(() => permissions.id, {
+    onDelete: "cascade",
+  }),
+  effect: permissionOverrideEffectEnum("effect").notNull(),
+  ...timestamps(),
+}, (table) => [
+  index("user_permission_overrides_user_id_idx").on(table.userId),
+  index("user_permission_overrides_permission_id_idx").on(table.permissionId),
+  unique("user_permission_overrides_user_permission_uq").on(table.userId, table.permissionId),
+]);
+
 export const agents = pgTable("agents", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
@@ -117,6 +132,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     references: [organizations.id],
   }),
   userRoles: many(userRoles),
+  permissionOverrides: many(userPermissionOverrides),
 }));
 
 export const rolesRelations = relations(roles, ({ one, many }) => ({
@@ -130,6 +146,18 @@ export const rolesRelations = relations(roles, ({ one, many }) => ({
 
 export const permissionsRelations = relations(permissions, ({ many }) => ({
   rolePermissions: many(rolePermissions),
+  userPermissionOverrides: many(userPermissionOverrides),
+}));
+
+export const userPermissionOverridesRelations = relations(userPermissionOverrides, ({ one }) => ({
+  user: one(users, {
+    fields: [userPermissionOverrides.userId],
+    references: [users.id],
+  }),
+  permission: one(permissions, {
+    fields: [userPermissionOverrides.permissionId],
+    references: [permissions.id],
+  }),
 }));
 
 export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => ({

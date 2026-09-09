@@ -1,6 +1,6 @@
 # WorkforceOS Operating Playbook
 
-Internal operating procedures for deploying, recovering, and running WorkforceOS. This is not a second product spec. Canonical architecture remains `docs/architecture/WORKFORCEOS_MASTER_SPEC.md`. Remaining work is tracked in `docs/operations/MASTER_COMPLETION_LEDGER.md`.
+Internal operating procedures for deploying, recovering, and running WorkforceOS. This is not a second product spec. Canonical architecture remains `docs/architecture/WORKFORCEOS_MASTER_SPEC.md`. Remaining work is tracked in `docs/operations/MASTER_COMPLETION_LEDGER.md`. Production API key names and required-vs-optional status live in `docs/operations/PRODUCTION_API_KEYS.md`. Never paste secret values into docs or System Health.
 
 ## Environments
 
@@ -55,13 +55,14 @@ npm run db:bootstrap-admin -- --email you@company.com
 
 ## User onboarding
 
-1. A Managing Partner or Strategy & Technology Administrator invites from `/app/admin/users` (**Invite person**) and chooses the role then. Clerk emails the invite; the local `users` row is recorded as invited with that role. Clerk metadata is not authorization.
-2. They accept the email and sign in at `/sign-in` (or complete `/sign-up` from the invite). Local sync attaches their Clerk id and activates the invited row; the role is already assigned.
-3. To resend, submit **Invite person** again with the same email. Disabled local users are rejected even if a Clerk session still exists.
+1. A Managing Partner or Strategy & Technology Administrator invites from `/app/admin/users` (**Invite person**), sets an optional organizational title (display only), and chooses a starting access bundle. Clerk emails the invite; the local `users` row is recorded as invited with that bundle. Clerk metadata is not authorization.
+2. They accept the email and sign in at `/sign-in` (or complete `/sign-up` from the invite). Local sync attaches their Clerk id and activates the invited row; the bundle is already assigned.
+3. Open `/app/admin/users/[id]` to assign multiple access bundles, view effective permissions, set grant/deny overrides, copy access from another person, or reset overrides. Title ≠ Access (DEC-AUTH-002).
+4. To resend, submit **Invite person** again with the same email. Disabled local users are rejected even if a Clerk session still exists.
 
 ## Role changes
 
-Use `/app/admin/users` and `/app/admin/roles`. Role assignment is audited. The last Managing Partner cannot be removed. Review stale accounts on `/app/admin/access-review`.
+Use `/app/admin/users` (People + person detail) and `/app/admin/roles` (access-bundle catalog). Bundle assignment is audited. The last Managing Partner cannot be removed. Review stale accounts on `/app/admin/access-review`. Training requirements are Phase E and do not grant access.
 
 ## Integration reconnect
 

@@ -1,6 +1,6 @@
 # Schema Specification
 
-Status: Implemented through Phase 10 hiring and public content (`drizzle/0010`–`0012`)  
+Status: Implemented through Phase C access model (`drizzle/0010`–`0013`)  
 Implementation: `db/schema/`  
 Migrations: `drizzle/`
 
@@ -23,7 +23,7 @@ Migrations: `drizzle/`
 | Path | Contents |
 | --- | --- |
 | `db/schema/enums.ts` | Postgres enums |
-| `db/schema/core.ts` | organizations, users, roles, user_roles, agents, system_settings |
+| `db/schema/core.ts` | organizations, users, roles, user_roles, user_permission_overrides, agents, system_settings |
 | `db/schema/system/` | audit, approvals, files, privacy deletion requests, rate-limit buckets, requirements, decision log, semantic documents |
 | `db/schema/crm/` | companies through opportunities and opportunity_scores |
 | `db/schema/talent/` | candidates and pools |
@@ -129,6 +129,12 @@ Do not apply raw production SQL outside migrations unless an emergency runbook s
 ## Phase 10 hiring tables
 
 Hiring tables are in `db/schema/hiring/` and `drizzle/0010_*`. Do not edit `0000`–`0009`. Index `applications.candidate_id`, `applications.job_id`, `applications.status`, `applications.current_stage`, `applications.applied_at`, posting slug, interview/offer `application_id`, and `employees.candidate_id`. Unique person identity stays on `candidates`.
+
+## Phase C access model
+
+- Migration `drizzle/0013_nervous_maggott.sql` adds `users.organizational_title` (nullable text, display only) and `user_permission_overrides` (`grant` / `deny`, unique on user + permission). Do not rewrite `0000`–`0012`.
+- Organizations are not cascade-deleted. Override and `user_roles` rows cascade when a user or permission is hard-deleted.
+- Role slug `military-talent-specialist` is renamed to `military-talent-partner` in the same migration. One-release code alias remains in `LEGACY_ROLE_SLUG_ALIASES`.
 
 ## Public content items
 

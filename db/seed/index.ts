@@ -114,32 +114,32 @@ export async function seedFoundation(
     {
       id: ROLE_IDS["managing-partner"],
       slug: "managing-partner",
-      name: "Managing Partner",
-      description: "Full operational access",
+      name: "Administrator / Executive",
+      description: "Full operational access. Access bundle slug remains managing-partner.",
     },
     {
       id: ROLE_IDS["operations-administrator"],
       slug: "operations-administrator",
-      name: "Operations Administrator",
+      name: "Operations",
       description: "Operations and delivery administration",
     },
     {
       id: ROLE_IDS["strategy-technology-administrator"],
       slug: "strategy-technology-administrator",
-      name: "Strategy & Technology Administrator",
+      name: "Strategy & Technology",
       description: "Platform, agents, and role configuration",
     },
     {
       id: ROLE_IDS["talent-partner"],
       slug: "talent-partner",
-      name: "Talent Partner",
+      name: "Senior Talent Partner",
       description: "Talent, search, and solution planning",
     },
     {
       id: ROLE_IDS.recruiter,
       slug: "recruiter",
-      name: "Recruiter",
-      description: "Recruiting and candidate operations",
+      name: "Recruiter Standard",
+      description: "Recruiting and candidate operations. No commercial opportunity ownership.",
     },
     {
       id: ROLE_IDS["workforce-consultant"],
@@ -148,15 +148,15 @@ export async function seedFoundation(
       description: "Workforce assessments and projects",
     },
     {
-      id: ROLE_IDS["military-talent-specialist"],
-      slug: "military-talent-specialist",
-      name: "Military Talent Specialist",
-      description: "Military occupation translation",
+      id: ROLE_IDS["military-talent-partner"],
+      slug: "military-talent-partner",
+      name: "Military Talent Partner",
+      description: "Military occupation translation and Transition Talent Profile work",
     },
     {
       id: ROLE_IDS["read-only"],
       slug: "read-only",
-      name: "Read Only",
+      name: "Read only",
       description: "Read access without mutation or restricted PII",
     },
   ];
@@ -173,7 +173,7 @@ export async function seedFoundation(
       })
       .onConflictDoUpdate({
         target: roles.id,
-        set: { name: role.name, description: role.description, updatedAt: now() },
+        set: { name: role.name, slug: role.slug, description: role.description, updatedAt: now() },
       });
 
     for (const permissionSlug of ROLE_PERMISSIONS[role.slug]) {
@@ -261,7 +261,7 @@ export async function seedFoundation(
     .values({
       organizationId: INTERNAL_ORG_ID,
       inquiryOwnerRoleSlug: "managing-partner",
-      militaryTalentOwnerRoleSlug: "military-talent-specialist",
+      militaryTalentOwnerRoleSlug: "military-talent-partner",
       applicationNotifyRoleSlug: "recruiter",
     })
     .onConflictDoNothing();
@@ -1141,6 +1141,7 @@ async function seedRequirementsAndDecisions(db: ReturnType<typeof getDb>) {
     ["DEC-SEC-002", "No ownership or cap-table data", "Not stored in normal WorkforceOS."],
     ["DEC-SEM-001", "Temporary embedding dimension", "1536-dimension vectors until a production model is selected."],
     ["DEC-AUTH-001", "Clerk authenticates; PostgreSQL authorizes", "Local roles remain authoritative."],
+    ["DEC-AUTH-002", "Title ≠ Access; bundles plus optional overrides", "Organizational title is display-only. Effective permissions are bundle union then grant/deny overrides. Deny wins. military-talent-partner is the Military Talent bundle slug."],
     ["DEC-CRM-001", "Phase 2 CRM scoring and first-class records", "Opportunities use a stored 100-point score. Contacts, opportunities, and signals are first-class records. Company annual revenue is operating size, not ownership."],
     ["DEC-REC-001", "Internal Talent Network first; job-specific scores only", "External sourcing stays blocked until internal search completes. Scores are job-specific and never auto-reject."],
     ["DEC-REC-002", "Guarantee and fee terms come from the search agreement", "Placement terms are copied from the search project. Finance is a billing hook only."],

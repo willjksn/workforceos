@@ -1,8 +1,9 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import { organizations, roles, userRoles, users } from "../../db/schema";
 import { getServerEnv } from "../env";
+import { roleSlugLookupValues } from "../rbac/permissions";
 
 export async function resolvePublicOrganizationId() {
   const env = getServerEnv();
@@ -48,7 +49,7 @@ export async function resolveOwnerByRole(input: {
       and(
         eq(users.organizationId, input.organizationId),
         eq(users.status, "active"),
-        eq(roles.slug, input.roleSlug),
+        inArray(roles.slug, roleSlugLookupValues(input.roleSlug)),
         isNull(users.archivedAt),
       ),
     )

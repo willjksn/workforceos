@@ -1,4 +1,6 @@
-import { assignUserRoleAction, inviteUserAction, setUserAccessStatusAction } from "@/lib/actions/admin";
+import Link from "next/link";
+
+import { inviteUserAction, setUserAccessStatusAction } from "@/lib/actions/admin";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { assignableRoleSlugs } from "@/lib/rbac/assign-role";
 import { can, type RoleSlug } from "@/lib/rbac/permissions";
@@ -14,7 +16,7 @@ import {
   PrimaryButton,
   inputClassName,
 } from "../../_components/ui";
-import { RoleAssignField, UserStatusField } from "../_components/role-assign-field";
+import { UserStatusField } from "../_components/role-assign-field";
 
 export const dynamic = "force-dynamic";
 
@@ -33,58 +35,48 @@ export default async function AdminUsersPage() {
       <PageHeader
         eyebrow="Admin"
         title="People"
-        description="Invite from this page and assign an access bundle at the same time. Clerk emails the invite. The bundle is stored in PostgreSQL, so the first sign-in is not Command Center-only. Job titles are not permissions. Active can sign in. Disabled cannot, but stays on this list. Archived is hidden, not deleted."
+        description="Organizational title is display-only. Access bundles grant permissions. Clerk authenticates; PostgreSQL authorizes. Open a person to assign multiple bundles, view effective permissions, or set overrides. Training requirements are Phase E."
       />
       {rows.length === 0 ? (
         <EmptyState>No people are recorded for this organization.</EmptyState>
       ) : (
-        <DataTable columns={["Name", "Email", "Access bundle", "Sign-in"]}>
-            {rows.map((user) => {
-              const currentSlug = user.roles[0]?.slug ?? "";
-              const canEditRole =
-                canAssign && (currentSlug !== "managing-partner" || allowedSlugs.includes("managing-partner"));
-              const isSelf = user.id === principal.id;
-              return (
-                <tr key={user.id}>
-                  <td className="align-middle">
+        <DataTable columns={["Name", "Title", "Email", "Access bundles", "Sign-in"]}>
+          {rows.map((user) => {
+            const isSelf = user.id === principal.id;
+            return (
+              <tr key={user.id}>
+                <td className="align-middle">
+                  <Link className="font-medium text-navy underline decoration-border underline-offset-4 hover:decoration-teal" href={`/app/admin/users/${user.id}`}>
                     {user.fullName}
-                    {isSelf ? <span className="ml-2 text-[11px] text-muted-foreground">You</span> : null}
-                  </td>
-                  <td className="align-middle">{user.email}</td>
-                  <td className="align-middle">
-                    {canEditRole ? (
-                      <RoleAssignField
-                        userId={user.id}
-                        fullName={user.fullName}
-                        currentSlug={currentSlug}
-                        roles={assignableRoles.map((role) => ({ id: role.id, slug: role.slug, name: role.name }))}
-                        action={assignUserRoleAction}
-                      />
-                    ) : (
-                      user.roles.map((role) => role.name).join(", ") || "—"
-                    )}
-                  </td>
-                  <td className="align-middle">
-                    {isSelf ? (
-                      <p className="text-sm text-navy">{user.status === "active" ? "Active" : user.status}</p>
-                    ) : (
-                      <UserStatusField
-                        userId={user.id}
-                        fullName={user.fullName}
-                        status={user.status as "active" | "invited" | "disabled"}
-                        action={setUserAccessStatusAction}
-                      />
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
+                  </Link>
+                  {isSelf ? <span className="ml-2 text-[11px] text-muted-foreground">You</span> : null}
+                </td>
+                <td className="align-middle text-muted-foreground">{user.organizationalTitle || "—"}</td>
+                <td className="align-middle">{user.email}</td>
+                <td className="align-middle">
+                  {user.roles.map((role) => role.name).join(", ") || "—"}
+                </td>
+                <td className="align-middle">
+                  {isSelf ? (
+                    <p className="text-sm text-navy">{user.status === "active" ? "Active" : user.status}</p>
+                  ) : (
+                    <UserStatusField
+                      userId={user.id}
+                      fullName={user.fullName}
+                      status={user.status as "active" | "invited" | "disabled"}
+                      action={setUserAccessStatusAction}
+                    />
+                  )}
+                </td>
+              </tr>
+            );
+          })}
         </DataTable>
       )}
       {canAssign && assignableRoles.length > 0 ? (
         <CreatePanel
           title="Invite person"
-          description="Sends a Clerk invitation email and records them as invited with the access bundle you choose. When they accept and sign in, that bundle is already assigned."
+          description="Sends a Clerk invitation and records them as invited with one starting access bundle. Add more bundles on their People record. Title is not a permission."
         >
           <ActionForm action={inviteUserAction} className="max-w-xl space-y-3">
             <Field label="Work email" name="email">
@@ -93,7 +85,16 @@ export default async function AdminUsersPage() {
             <Field label="Name" name="fullName">
               <input className={inputClassName} id="fullName" name="fullName" autoComplete="off" placeholder="Optional" />
             </Field>
-            <Field label="Access bundle" name="roleSlug">
+            <Field label="Organizational title" name="organizationalTitle">
+              <input
+                className={inputClassName}
+                id="organizationalTitle"
+                name="organizationalTitle"
+                autoComplete="off"
+                placeholder="Display only — not an access bundle"
+              />
+            </Field>
+            <Field label="Starting access bundle" name="roleSlug">
               <select className={inputClassName} id="roleSlug" name="roleSlug" required defaultValue="">
                 <option value="" disabled>
                   Choose an access bundle

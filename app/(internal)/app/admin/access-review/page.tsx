@@ -12,15 +12,16 @@ export default async function AccessReviewPage() {
       <PageHeader
         eyebrow="Admin"
         title="Access review"
-        description="Local account status, roles, last login, and sensitive permissions. Clerk authenticates; these rows authorize."
+        description="Local account status, organizational title, access bundles, last login, and sensitive effective permissions. Clerk authenticates; these rows authorize."
       />
       {rows.length === 0 ? (
         <EmptyState>No people are recorded for this organization.</EmptyState>
       ) : (
-        <DataTable columns={["Name", "Email", "Status", "Roles", "Last login", "Sensitive", "Stale"]}>
+        <DataTable columns={["Name", "Title", "Email", "Status", "Access bundles", "Last login", "Sensitive", "Stale"]}>
           {rows.map((row) => (
             <tr key={row.id}>
               <td>{row.fullName}</td>
+              <td>{row.organizationalTitle || "—"}</td>
               <td>{row.email}</td>
               <td>{row.status}</td>
               <td>{row.roles.join(", ") || "—"}</td>

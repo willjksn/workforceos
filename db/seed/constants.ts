@@ -9,7 +9,7 @@ export const ROLE_IDS = {
   "talent-partner": "00000000-0000-4000-8000-000000000104",
   recruiter: "00000000-0000-4000-8000-000000000105",
   "workforce-consultant": "00000000-0000-4000-8000-000000000106",
-  "military-talent-specialist": "00000000-0000-4000-8000-000000000107",
+  "military-talent-partner": "00000000-0000-4000-8000-000000000107",
   "read-only": "00000000-0000-4000-8000-000000000108",
 } as const;
 

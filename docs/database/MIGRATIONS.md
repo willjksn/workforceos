@@ -47,6 +47,9 @@ Do not enable these with ad-hoc production SQL if a migration can do it.
 | `drizzle/0008_cooing_blade.sql` | Phase 9: Scout sessions/messages/actions, SkillBridge operating tables, in-app notifications. Do not rewrite `0000`–`0007`. |
 | `drizzle/0009_swift_saracen.sql` | Post-Phase-9: unique index so SkillBridge follow-up scans do not duplicate in-app notifications. Do not rewrite `0000`–`0008`. |
 | `drizzle/0010_nostalgic_scarecrow.sql` | Phase 10 hiring/ATS/onboarding tables, plus research session/cache tables that were already in the Drizzle schema when this migration was generated. Do not rewrite `0000`–`0009`. |
+| `drizzle/0011_keen_korvac.sql` | Public intake settings and website inquiries. Do not rewrite `0000`–`0010`. |
+| `drizzle/0012_wise_scourge.sql` | Public content items. Do not rewrite `0000`–`0011`. |
+| `drizzle/0013_nervous_maggott.sql` | Phase C: `users.organizational_title`, `user_permission_overrides`, Military Talent Partner role slug and access-bundle display names. Do not rewrite `0000`–`0012`. |
 
 Enum values are added in a separate statement from column defaults that use those values. Postgres rejects `ADD VALUE` and `DEFAULT` of that value in the same transaction.
 

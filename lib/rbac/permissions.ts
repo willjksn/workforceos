@@ -139,7 +139,7 @@ export const ROLE_SLUGS = [
   "talent-partner",
   "recruiter",
   "workforce-consultant",
-  "military-talent-specialist",
+  "military-talent-partner",
   "read-only",
 ] as const;
 
@@ -491,7 +491,7 @@ export const ROLE_PERMISSIONS: Record<RoleSlug, Permission[]> = {
     "scout.search",
     "skillbridge.read",
   ],
-  "military-talent-specialist": [
+  "military-talent-partner": [
     "companies.read",
     "candidates.read",
     "candidates.write",
@@ -544,11 +544,70 @@ export type Principal = {
   permissions: ReadonlySet<string>;
 };
 
+export type PermissionOverrideEffect = "grant" | "deny";
+
+export type PermissionOverride = {
+  permission: string;
+  effect: PermissionOverrideEffect;
+};
+
+/** One-release alias after DEC-MIL-005 / Phase C. Production rows are migrated to `military-talent-partner`. */
+export const LEGACY_ROLE_SLUG_ALIASES: Record<string, RoleSlug> = {
+  "military-talent-specialist": "military-talent-partner",
+};
+
+export function canonicalizeRoleSlug(slug: string): string {
+  return LEGACY_ROLE_SLUG_ALIASES[slug] ?? slug;
+}
+
+export function isRoleSlug(value: string): value is RoleSlug {
+  return (ROLE_SLUGS as readonly string[]).includes(canonicalizeRoleSlug(value));
+}
+
+export function asRoleSlug(value: string): RoleSlug | null {
+  const canonical = canonicalizeRoleSlug(value);
+  return (ROLE_SLUGS as readonly string[]).includes(canonical) ? (canonical as RoleSlug) : null;
+}
+
+export function roleSlugLookupValues(slug: string): string[] {
+  const canonical = canonicalizeRoleSlug(slug);
+  const aliases = Object.entries(LEGACY_ROLE_SLUG_ALIASES)
+    .filter(([, target]) => target === canonical)
+    .map(([from]) => from);
+  return [...new Set([canonical, slug, ...aliases])];
+}
+
+/**
+ * Effective permissions = union of assigned access-bundle permissions, then overrides.
+ * Explicit deny removes a bundle grant. Explicit grant adds a permission. Deny wins if both exist.
+ * Organizational title is never an input.
+ */
+export function applyPermissionOverrides(
+  bundlePermissions: Iterable<string>,
+  overrides: readonly PermissionOverride[] = [],
+): Set<string> {
+  const effective = new Set(bundlePermissions);
+  const grants = new Set<string>();
+  const denies = new Set<string>();
+  for (const override of overrides) {
+    if (override.effect === "deny") denies.add(override.permission);
+    if (override.effect === "grant") grants.add(override.permission);
+  }
+  for (const permission of grants) {
+    if (!denies.has(permission)) effective.add(permission);
+  }
+  for (const permission of denies) {
+    effective.delete(permission);
+  }
+  return effective;
+}
+
 export function roleSlugsHavePermission(roleSlugs: readonly string[] | undefined, permission: Permission) {
   return (roleSlugs ?? []).some((slug) => {
-    if (slug === "managing-partner") return true;
-    if (!(slug in ROLE_PERMISSIONS)) return false;
-    return ROLE_PERMISSIONS[slug as RoleSlug].includes(permission);
+    const canonical = canonicalizeRoleSlug(slug);
+    if (canonical === "managing-partner") return true;
+    if (!(canonical in ROLE_PERMISSIONS)) return false;
+    return ROLE_PERMISSIONS[canonical as RoleSlug].includes(permission);
   });
 }
 
@@ -567,7 +626,7 @@ export function isPlatformAdmin(principal: Principal) {
 }
 
 export function hasRole(principal: Principal, roleSlug: RoleSlug) {
-  return principal.roleSlugs.includes(roleSlug);
+  return principal.roleSlugs.some((slug) => canonicalizeRoleSlug(slug) === roleSlug);
 }
 
 export function requirePermission(principal: Principal, permission: Permission) {

@@ -50,7 +50,7 @@ export async function resolveMilitaryTalentOwner(organizationId: string) {
   return resolveOwnerByRole({
     organizationId,
     userId: settings?.militaryTalentOwnerUserId,
-    roleSlug: settings?.militaryTalentOwnerRoleSlug ?? "military-talent-specialist",
+    roleSlug: settings?.militaryTalentOwnerRoleSlug ?? "military-talent-partner",
   });
 }
 

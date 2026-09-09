@@ -1,6 +1,6 @@
 # Decision Log
 
-Status: Binding architecture and product decisions (through DEC-RBAC-001)  
+Status: Binding architecture and product decisions (through DEC-AUTH-002)  
 Database mirror: `decision_log` table, seeded from this file.
 
 ## DEC-DB-001 — PostgreSQL over Firebase
@@ -722,6 +722,16 @@ Database mirror: `decision_log` table, seeded from this file.
 - Reason: Correct the operating model so SkillBridge is not presented as PierOne's own program and so matching can begin from a transition profile.
 - Affected modules: military, SkillBridge, public website, Scout, public content, email
 - Reconsideration: only if PierOne later becomes a SkillBridge host for a specific, documented engagement.
+
+## DEC-AUTH-002 — Title ≠ Access; bundles plus optional overrides
+
+- Date: 2026-09-08
+- Owner: Product Build + Managing Partner
+- Status: accepted
+- Decision: Organizational title is display-only (`users.organizational_title`) and is never used for authorization. Access is granted by zero or more PostgreSQL access bundles (`roles` / `user_roles`). Optional `user_permission_overrides` apply after the union of bundle permissions: explicit deny removes a bundle grant; explicit grant adds a permission; deny wins if both exist. Effective permissions are computed in `loadPrincipalByUserId`. Clerk metadata is not a permission source (DEC-AUTH-001). Recruiter still lacks `opportunities.read` (DEC-RBAC-001). The Military Talent access bundle slug is `military-talent-partner` (one-release alias `military-talent-specialist`).
+- Reason: Job titles and access templates were conflated in the People UI. Operators need multiple bundles and rare per-person exceptions without a second permission system.
+- Affected modules: RBAC, People, access review
+- Reconsideration: only if a later design adds a parallel template table; do not invent new permission slugs such as `candidate.read`.
 
 ## DEC-RBAC-001 — Recruiter is not a commercial opportunity owner
 

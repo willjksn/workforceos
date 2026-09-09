@@ -8,7 +8,12 @@ import {
   requirePermission,
   type Principal,
 } from "../lib/rbac/permissions";
-import { assertAccountAccessChange, assertRoleAssignmentAllowed, assignableRoleSlugs } from "../lib/rbac/assign-role";
+import {
+  assertAccessBundlesAllowed,
+  assertAccountAccessChange,
+  assertRoleAssignmentAllowed,
+  assignableRoleSlugs,
+} from "../lib/rbac/assign-role";
 
 function principalFor(role: keyof typeof ROLE_PERMISSIONS, status: Principal["status"] = "active"): Principal {
   return {
@@ -53,7 +58,7 @@ describe("RBAC", () => {
     const recruiter = principalFor("recruiter");
     const talentPartner = principalFor("talent-partner");
     const consultant = principalFor("workforce-consultant");
-    const specialist = principalFor("military-talent-specialist");
+    const specialist = principalFor("military-talent-partner");
     const ops = principalFor("operations-administrator");
     const tech = principalFor("strategy-technology-administrator");
     expect(can(recruiter, "agents.read")).toBe(false);
@@ -76,6 +81,7 @@ describe("RBAC", () => {
     const tech = principalFor("strategy-technology-administrator");
     expect(assignableRoleSlugs(tech)).toContain("recruiter");
     expect(assignableRoleSlugs(tech)).toContain("operations-administrator");
+    expect(assignableRoleSlugs(tech)).toContain("military-talent-partner");
     expect(assignableRoleSlugs(tech)).not.toContain("managing-partner");
     expect(() =>
       assertRoleAssignmentAllowed({
@@ -103,6 +109,18 @@ describe("RBAC", () => {
         nextSlug: "recruiter",
         currentSlugs: ["managing-partner"],
         managingPartnerCount: 2,
+      }),
+    ).not.toThrow();
+  });
+
+  it("allows one person to hold two access bundles", () => {
+    const partner = principalFor("managing-partner");
+    expect(() =>
+      assertAccessBundlesAllowed({
+        actor: partner,
+        nextSlugs: ["recruiter", "military-talent-partner"],
+        currentSlugs: ["recruiter"],
+        managingPartnerCount: 1,
       }),
     ).not.toThrow();
   });

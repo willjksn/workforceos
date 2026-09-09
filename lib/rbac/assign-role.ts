@@ -22,12 +22,29 @@ export function assertRoleAssignmentAllowed(input: {
   currentSlugs: string[];
   managingPartnerCount: number;
 }) {
+  assertAccessBundlesAllowed({
+    actor: input.actor,
+    nextSlugs: [input.nextSlug],
+    currentSlugs: input.currentSlugs,
+    managingPartnerCount: input.managingPartnerCount,
+  });
+}
+
+export function assertAccessBundlesAllowed(input: {
+  actor: Principal;
+  nextSlugs: readonly RoleSlug[];
+  currentSlugs: string[];
+  managingPartnerCount: number;
+}) {
   requirePermission(input.actor, "admin.roles");
-  if (!assignableRoleSlugs(input.actor).includes(input.nextSlug)) {
-    throw new AuthorizationError("Only a Managing Partner can assign the Managing Partner role.");
+  const allowed = assignableRoleSlugs(input.actor);
+  for (const slug of input.nextSlugs) {
+    if (!allowed.includes(slug)) {
+      throw new AuthorizationError("Only a Managing Partner can assign the Managing Partner role.");
+    }
   }
   const currentlyManagingPartner = input.currentSlugs.includes(MANAGING_PARTNER_SLUG);
-  const nextIsManagingPartner = input.nextSlug === MANAGING_PARTNER_SLUG;
+  const nextIsManagingPartner = input.nextSlugs.includes(MANAGING_PARTNER_SLUG);
   if (currentlyManagingPartner && !nextIsManagingPartner && input.managingPartnerCount <= 1) {
     throw new AuthorizationError("The organization must keep at least one Managing Partner.");
   }

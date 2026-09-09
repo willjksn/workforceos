@@ -27,7 +27,7 @@ export const publicIntakeSettings = pgTable(
     }),
     militaryTalentOwnerRoleSlug: text("military_talent_owner_role_slug")
       .notNull()
-      .default("military-talent-specialist"),
+      .default("military-talent-partner"),
     applicationNotifyUserId: uuid("application_notify_user_id").references(() => users.id, {
       onDelete: "set null",
     }),

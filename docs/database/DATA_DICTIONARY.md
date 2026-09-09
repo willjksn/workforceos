@@ -27,9 +27,10 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | Table | Purpose |
 | --- | --- |
 | `organizations` | Internal WorkforceOS tenant. Seed one firm organization. Do not store ownership percentages. |
-| `users` | Local application users mapped from Clerk. Authoritative status and identity for authorization. `last_login_at` is updated on Clerk sync. |
-| `roles` | Named roles such as Managing Partner and Recruiter. |
-| `user_roles` | Many-to-many user/role assignments. |
+| `users` | Local application users mapped from Clerk. Authoritative status and identity for authorization. `last_login_at` is updated on Clerk sync. `organizational_title` is display-only and is never used for authorization (DEC-AUTH-002). |
+| `roles` | Access bundles (permission templates), not job titles. Slugs include `managing-partner`, `military-talent-partner`, `recruiter`. |
+| `user_roles` | Many-to-many user/access-bundle assignments. A person may hold zero or more bundles. |
+| `user_permission_overrides` | Optional per-user grant or deny after the bundle union. Unique on `(user_id, permission_id)`. Deny wins over grant. |
 | `agents` | Registered AI agents with autonomy level and cost limits. Default was disabled in earlier phases; Phase 7 enables the approved registry. |
 
 ## Platform

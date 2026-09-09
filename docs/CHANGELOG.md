@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Phase M — Production API keys
+
+- Added `docs/operations/PRODUCTION_API_KEYS.md`: every `lib/env.ts` production variable by name (purpose, required vs optional, System Health signal, where to set). No secret values.
+- System Health adds no-secret rows for Sentry, BLS/Census, SeekOut/Apollo, and DocuSign/QuickBooks. AI remains labeled LIVE vs HEURISTIC.
+
+### Phase C — Title ≠ Access
+
+- Organizational title is display-only (`users.organizational_title`). Access is 0..N PostgreSQL bundles plus optional grant/deny overrides (`user_permission_overrides`; deny wins). People detail is `/app/admin/users/[id]`.
+- Renamed access bundle `military-talent-specialist` → `military-talent-partner` (Military Talent Partner). One-release alias documented. Recruiter still lacks `opportunities.read`.
+
 ### Phase B — AI as intentional production operation
 
 - Features pick FAST / STANDARD / REASONING / EMBEDDING capability classes (`AI_MODEL_*`) instead of scattered model brand strings. `OPENAI_*` aliases remain. Missing keys stay honest `internal_heuristic`.

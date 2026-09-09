@@ -37,6 +37,7 @@ export async function inviteOrganizationUser(input: {
   actor: Principal;
   email: string;
   fullName?: string;
+  organizationalTitle?: string;
   roleSlug: RoleSlug;
   sendInvitation?: typeof sendWorkforceOsInvitation;
 }) {
@@ -101,10 +102,18 @@ export async function inviteOrganizationUser(input: {
 
     resent = true;
     userId = existing.id;
-    if (input.fullName?.trim() && existing.fullName !== fullName) {
+    const nextTitle = input.organizationalTitle?.trim() || null;
+    if (
+      (input.fullName?.trim() && existing.fullName !== fullName) ||
+      (nextTitle && existing.organizationalTitle !== nextTitle)
+    ) {
       await db
         .update(users)
-        .set({ fullName, updatedAt: new Date() })
+        .set({
+          fullName: input.fullName?.trim() ? fullName : existing.fullName,
+          organizationalTitle: nextTitle ?? existing.organizationalTitle,
+          updatedAt: new Date(),
+        })
         .where(eq(users.id, existing.id));
     }
     await assignUserRole({
@@ -127,6 +136,7 @@ export async function inviteOrganizationUser(input: {
         clerkUserId: null,
         email,
         fullName,
+        organizationalTitle: input.organizationalTitle?.trim() || null,
         status: "invited",
       })
       .returning();

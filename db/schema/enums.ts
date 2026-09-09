@@ -6,6 +6,11 @@ export const userStatusEnum = pgEnum("user_status", [
   "disabled",
 ]);
 
+export const permissionOverrideEffectEnum = pgEnum("permission_override_effect", [
+  "grant",
+  "deny",
+]);
+
 export const actorTypeEnum = pgEnum("actor_type", ["human", "agent", "system"]);
 
 export const approvalStatusEnum = pgEnum("approval_status", [

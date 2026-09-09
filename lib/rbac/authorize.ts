@@ -1,9 +1,11 @@
 import { eq } from "drizzle-orm";
 
 import { getDb } from "../../db";
-import { permissions, rolePermissions, roles, userRoles, users } from "../../db/schema";
+import { permissions, rolePermissions, roles, userPermissionOverrides, userRoles, users } from "../../db/schema";
 import {
   AuthorizationError,
+  applyPermissionOverrides,
+  canonicalizeRoleSlug,
   type Permission,
   type Principal,
   type RoleSlug,
@@ -32,12 +34,25 @@ export async function loadPrincipalByUserId(userId: string): Promise<Principal |
     .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
     .where(eq(userRoles.userId, user.id));
 
+  const overrides = await db
+    .select({ slug: permissions.slug, effect: userPermissionOverrides.effect })
+    .from(userPermissionOverrides)
+    .innerJoin(permissions, eq(userPermissionOverrides.permissionId, permissions.id))
+    .where(eq(userPermissionOverrides.userId, user.id));
+
+  const roleSlugs = [...new Set(assignedRoles.map((row) => canonicalizeRoleSlug(row.slug)))];
+  const bundlePermissions = assignedPermissions.map((row) => row.slug);
+  const effective = applyPermissionOverrides(
+    bundlePermissions,
+    overrides.map((row) => ({ permission: row.slug, effect: row.effect })),
+  );
+
   return {
     id: user.id,
     status: user.status,
     organizationId: user.organizationId,
-    roleSlugs: [...new Set(assignedRoles.map((row) => row.slug))],
-    permissions: new Set(assignedPermissions.map((row) => row.slug)),
+    roleSlugs,
+    permissions: effective,
   };
 }
 
