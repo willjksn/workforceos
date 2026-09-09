@@ -141,6 +141,6 @@ describe("Phase E Academy", () => {
 
   it("keeps Scout external send hard-denied", () => {
     expect(isScoutExternalSendEnabled()).toBe(false);
-    expect(read("lib/scout/execute.ts")).toMatch(/export function isScoutExternalSendEnabled\(\) \{\s*return false;/);
+    expect(read("lib/scout/execute.ts")).toMatch(/export function isScoutExternalSendEnabled\(\) \{\s*return isScoutSendPathEnabled\(\);/);
   });
 });

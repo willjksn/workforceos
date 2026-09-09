@@ -229,6 +229,25 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
     entity = pageContext?.entityType ?? "skillbridge_profile";
     summary = "Open the current authorized Transition Talent Profile or record.";
   } else if (
+    /\bweekly (operating )?review\b|\bexecutive summary\b|\boperating review\b|\bcommand center (summary|review|brief)\b|\bleadership (cadence|review|pipeline review)\b/.test(
+      text,
+    )
+  ) {
+    family = "SHOW_DASHBOARD";
+    entity = "command_center";
+    summary = "Summarize Command Center operating counts the operator can already read.";
+  } else if (/\bshow_dashboard\b/.test(text)) {
+    family = "SHOW_DASHBOARD";
+    if (
+      pageContext?.module === "command_center" ||
+      /\bcommand center|weekly|executive|operating review\b/.test(text)
+    ) {
+      entity = "command_center";
+      summary = "Summarize Command Center operating counts the operator can already read.";
+    } else {
+      summary = "Show today's Military Talent priorities from stored records.";
+    }
+  } else if (
     /\bdaily brief\b|\btoday'?s priorities\b|\bwho needs my attention\b|\b(my )?(military talent|pathway) queue\b|\bmy skillbridge queue\b/.test(
       text,
     )
@@ -357,7 +376,13 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
     entity,
     filters: Object.keys(filters).length ? filters : undefined,
     poolName: poolName || (family === "ADD_TO_POOL" ? "Scout pool" : undefined),
-    dashboard: family === "SHOW_DASHBOARD" ? "daily_brief" : undefined,
+    dashboard:
+      family === "SHOW_DASHBOARD"
+        ? entity === "command_center" ||
+          /\bweekly (operating )?review\b|\bexecutive summary\b|\boperating review\b/.test(text)
+          ? "command_center"
+          : "daily_brief"
+        : undefined,
     draftKind: family === "DRAFT"
       ? (/\bfollow-?up\b/.test(text)
         ? "follow_up"

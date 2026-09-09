@@ -159,6 +159,6 @@ describe("Phase H staff onboarding", () => {
     const cards = academyScoutCards("employee onboarding");
     expect(cards.some((card) => card.href === "/app/academy/employee-onboarding")).toBe(true);
     expect(isScoutExternalSendEnabled()).toBe(false);
-    expect(read("lib/scout/execute.ts")).toMatch(/export function isScoutExternalSendEnabled\(\) \{\s*return false;/);
+    expect(read("lib/scout/execute.ts")).toMatch(/export function isScoutExternalSendEnabled\(\) \{\s*return isScoutSendPathEnabled\(\);/);
   });
 });

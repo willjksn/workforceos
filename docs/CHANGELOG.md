@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Phase J — Management operating rhythms
+
+- Command Center `/app` now hosts weekly review boards (tabs, not extra nav items): Leadership, Operations, Talent, Military Talent, Finance. Each widget is a business question, a live PostgreSQL aggregate, a short exception list, and a link to the operating screen.
+- Recruiter Standard still cannot see the commercial opportunity pipeline (DEC-RBAC-001). Finance widgets require `finance.read`. Military copy stays intermediary; SkillBridge is a pathway type.
+- Risks are derived from stale opportunities, overdue deliverables, past-due AR, and failed integrations. Alerts stay on `/app/alerts`.
+- Scout `SHOW_DASHBOARD` / “weekly operating review” summarizes counts the operator can already read. No SQL, no candidate email/phone/compensation/resume in model context, no new autonomy. Humans still own decisions.
+- Academy article `weekly-operating-review`. Operating manual points at the leadership cadence.
+
 ### Phase I — Live Integration Go-Live
 
 - Integration Hub now distinguishes MOCK / MANUAL vs CONFIGURED (credentials present) vs LIVE (tokens or API key actually wired). LIVE is never shown when credentials are missing.

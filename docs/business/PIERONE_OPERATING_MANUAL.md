@@ -163,11 +163,15 @@ This is the commercial spine. Recruiter Standard does **not** own this spine (DE
 
 ### 10. Reporting
 
-- **WorkforceOS screen:** **Reports** `/app/reports` and `/app/reports/[category]`. Leadership roll-up: **Command Center** `/app`. Alerts: `/app/alerts`.
-- **Owner / access:** Bundles with `reports.read` (Senior Talent Partner, Recruiter Standard, Workforce Consultant, Military Talent Partner, Operations, Administrator / Executive). PII CSV export is a separate permission.
-- **Approval:** Reports read stored rows. They do not invent metrics.
-- **Scout:** `SHOW_DASHBOARD`. `SEARCH` / `SUMMARIZE` the module in context.
+- **WorkforceOS screen:** **Reports** `/app/reports` and `/app/reports/[category]`. Leadership roll-up: **Command Center** `/app`. Weekly operating reviews (not extra nav items): `/app?cadence=leadership` (pipeline, proposals, recruiting delivery, Military Talent pathway, project health, cash/AR, derived risks), `/app?cadence=operations`, `/app?cadence=talent`, `/app?cadence=military`, `/app?cadence=finance`. Alerts: `/app/alerts`.
+- **Owner / access:** Bundles with `reports.read` (Senior Talent Partner, Recruiter Standard, Workforce Consultant, Military Talent Partner, Operations, Administrator / Executive). Cadence widgets still hide without the module permission (`opportunities.read`, `jobs.read`, `military.read`, `finance.read`, and so on). Recruiter Standard does not see the commercial opportunity pipeline (DEC-RBAC-001). PII CSV export is a separate permission.
+- **Approval:** Reports and cadence boards read stored rows. They do not invent metrics. Scout `SHOW_DASHBOARD` / weekly operating review repeats counts the operator can already read; humans still own decisions.
+- **Scout:** `SHOW_DASHBOARD` (Command Center executive summary or Military Talent daily brief). `SEARCH` / `SUMMARIZE` the module in context. Scout never generates SQL and still cannot send.
 - **Next:** Invoice when billing events exist.
+
+#### Leadership cadence
+
+PierOne weekly pipeline review runs inside WorkforceOS, not a slide deck. Managing Partner and other authorized bundles open **Command Center → Leadership**. Operations, Talent, Military Talent, and Finance reviews are sibling boards on the same page. Academy: Weekly operating review.
 
 ### 11. Invoice
 

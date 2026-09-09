@@ -1,5 +1,7 @@
 import { AcademyHelp } from "@/components/academy/academy-help";
-import { MetricCard } from "@/components/ui/display";
+import { CadenceBoard } from "@/components/command-center/cadence-board";
+import { MetricCard, TabNav } from "@/components/ui/display";
+import { buttonClassName } from "@/components/ui/button";
 import {
   EmptyState,
   PageHeader,
@@ -14,6 +16,12 @@ import { requireCurrentPrincipal } from "@/lib/auth/session";
 import { moneyString } from "@/lib/finance/money";
 import { can, isPlatformAdmin } from "@/lib/rbac/permissions";
 import { getExecutiveCommandCenter } from "@/lib/reporting/executive";
+import {
+  CADENCE_LABELS,
+  isCadenceId,
+  visibleCadenceIds,
+  getOperatingRhythmBoards,
+} from "@/lib/reporting/operating-rhythms";
 import { evaluateOperationalAlerts } from "@/lib/alerts/evaluate";
 
 function money(value: number) {
@@ -25,27 +33,104 @@ function ratio(value: number | null) {
   return `${Math.round(value * 100)}%`;
 }
 
-export default async function CommandCenterPage() {
+export default async function CommandCenterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ cadence?: string }>;
+}) {
   const principal = await requireCurrentPrincipal();
-  const snapshot = await getExecutiveCommandCenter(principal.organizationId);
-  const alerts = can(principal, "alerts.read") || can(principal, "reports.read")
-    ? await evaluateOperationalAlerts(principal.organizationId)
-    : [];
+  const { cadence: cadenceParam } = await searchParams;
+  const cadence = isCadenceId(cadenceParam) ? cadenceParam : null;
+  const availableCadences = visibleCadenceIds(principal);
   const canOpportunities = can(principal, "opportunities.read");
   const canCandidates = can(principal, "candidates.read");
   const canJobs = can(principal, "jobs.read");
   const canFinance = can(principal, "finance.read");
   const canReviewApprovals = isPlatformAdmin(principal) || can(principal, "agents.read");
+  const canScout = can(principal, "scout.use");
+
+  const tabItems = [
+    { id: "overview", href: "/app", label: "Overview" },
+    ...availableCadences.map((id) => ({
+      id,
+      href: `/app?cadence=${id}`,
+      label: CADENCE_LABELS[id],
+    })),
+  ];
+  const activeId = cadence ?? "overview";
+
+  if (cadence) {
+    const { boards, generatedAt } = await getOperatingRhythmBoards(principal, { cadence });
+    const board = boards[0];
+    return (
+      <PageShell wide>
+        <PageHeader
+          eyebrow="WorkforceOS / Weekly review"
+          title="Workforce Command Center"
+          description="PierOne management cadence from live PostgreSQL aggregates. Cards hide when you lack the module permission. Recruiter Standard does not see the commercial opportunity pipeline."
+          metadata={`${principal.roleSlugs.join(", ") || "no roles"} · ${generatedAt.toLocaleString()}`}
+          actions={
+            <div className="flex flex-wrap items-center gap-2">
+              <AcademyHelp articleSlug="weekly-operating-review" />
+              {canScout ? (
+                <span className="text-sm text-muted-foreground">Ask Scout: weekly operating review</span>
+              ) : null}
+            </div>
+          }
+        />
+        <TabNav items={tabItems} activeId={activeId} />
+        {board ? (
+          <CadenceBoard board={board} />
+        ) : (
+          <EmptyState title="This review board is not available.">
+            Your access bundles do not include the permissions for this cadence.
+          </EmptyState>
+        )}
+        {can(principal, "alerts.read") || can(principal, "reports.read") ? (
+          <p className="mt-8 text-sm text-muted-foreground">
+            Operational exceptions stay on{" "}
+            <a className="font-medium text-teal hover:underline" href="/app/alerts">
+              Alerts
+            </a>
+            . Linked reports:{" "}
+            <a className="font-medium text-teal hover:underline" href="/app/reports">
+              Reports
+            </a>
+            .
+          </p>
+        ) : null}
+      </PageShell>
+    );
+  }
+
+  const snapshot = await getExecutiveCommandCenter(principal.organizationId);
+  const alerts = can(principal, "alerts.read") || can(principal, "reports.read")
+    ? await evaluateOperationalAlerts(principal.organizationId)
+    : [];
 
   return (
     <PageShell wide>
       <PageHeader
         eyebrow="WorkforceOS / Executive view"
         title="Workforce Command Center"
-        description="Live snapshot of your firm's operating records. Figures come from saved data, not projections."
+        description="Live snapshot of your firm's operating records. Weekly reviews live on the Leadership, Operations, Talent, Military Talent, and Finance boards. Figures come from saved data, not projections."
         metadata={`${principal.roleSlugs.join(", ") || "no roles"} · ${snapshot.generatedAt.toLocaleString()}`}
-        actions={<AcademyHelp articleSlug="module-command-center" />}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <AcademyHelp articleSlug="module-command-center" />
+            {availableCadences.includes("leadership") ? (
+              <a className={buttonClassName("secondary")} href="/app?cadence=leadership">
+                Weekly pipeline review
+              </a>
+            ) : availableCadences[0] ? (
+              <a className={buttonClassName("secondary")} href={`/app?cadence=${availableCadences[0]}`}>
+                Open weekly review
+              </a>
+            ) : null}
+          </div>
+        }
       />
+      <TabNav items={tabItems} activeId={activeId} />
 
       {canFinance ? (
         <section className="mt-8">
@@ -56,8 +141,12 @@ export default async function CommandCenterPage() {
             <MetricCard href="/app/finance/ar" label="Collected" value={money(snapshot.business.collected)} />
             <MetricCard href="/app/finance/schedules" label="MRR" value={money(snapshot.business.mrr)} />
             <MetricCard href="/app/finance/ar" label="AR" value={money(snapshot.business.ar)} />
-            <MetricCard href="/app/opportunities" label="Pipeline value" value={money(snapshot.business.pipelineValue)} />
-            <MetricCard href="/app/reports/sales" label="Win rate" value={ratio(snapshot.business.winRate)} />
+            {canOpportunities ? (
+              <MetricCard href="/app/opportunities" label="Pipeline value" value={money(snapshot.business.pipelineValue)} />
+            ) : null}
+            {canOpportunities ? (
+              <MetricCard href="/app/reports/sales" label="Win rate" value={ratio(snapshot.business.winRate)} />
+            ) : null}
           </div>
         </section>
       ) : null}
@@ -204,12 +293,17 @@ export default async function CommandCenterPage() {
 
         {alerts.length > 0 ? (
           <section>
-            <SectionHeader title="Operational alerts" />
+            <SectionHeader title="Operational alerts" description="Full list stays on Alerts — this is not a second inbox." />
             <RecordList>
               {alerts.slice(0, 8).map((alert) => (
                 <RecordRow key={`${alert.code}-${alert.recordId}`} href={alert.href} title={alert.title} meta={`${formatLabel(alert.domain)} · ${alert.severity}`} />
               ))}
             </RecordList>
+            <p className="mt-3 text-sm">
+              <a className="font-medium text-teal hover:underline" href="/app/alerts">
+                Open Alerts
+              </a>
+            </p>
           </section>
         ) : canReviewApprovals ? (
           <section>

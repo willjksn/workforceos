@@ -15,6 +15,7 @@ import {
 } from "../skillbridge/service";
 import { scheduleInterview } from "../hiring/service";
 import { getCalendarProvider } from "../calendar";
+import { scoutOperatingRhythmSummary } from "../reporting/operating-rhythms";
 import { scoutCommand } from "./commands";
 import { isScoutSendPathEnabled, rejectScoutSend as denyScoutSend } from "./send";
 import type { ScoutPageContext } from "./page-context";
@@ -263,6 +264,9 @@ async function executeAuthorizedCommand(input: {
   }
 
   if (input.dto.family === "SHOW_DASHBOARD") {
+    if (input.dto.dashboard === "command_center" || input.dto.entity === "command_center") {
+      return scoutOperatingRhythmSummary(input.principal);
+    }
     const queue = await getMySkillBridgeQueue({
       organizationId: input.principal.organizationId,
       ownerUserId: input.principal.id,
@@ -358,6 +362,9 @@ async function executeAuthorizedCommand(input: {
         draft: null,
         links: bundle ? [{ href: `/app/projects/${bundle.project.id}`, label: bundle.project.name }] : [],
       };
+    }
+    if (input.pageContext.module === "command_center" || input.dto.entity === "command_center") {
+      return scoutOperatingRhythmSummary(input.principal);
     }
     const metrics = await getSkillBridgeMetrics(input.principal.organizationId);
     return {
