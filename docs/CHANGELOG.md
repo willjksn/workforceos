@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Production ops — 2026-09-09
+
+- Applied Drizzle `0014_rainy_doomsday`, `0015_dizzy_wrecker`, and `0016_lyrical_giant_girl` to Neon `production-launch`. `0013_nervous_maggott` was already present. `npm run db:check` OK; no development fixtures. Checkpoint branch `prod-migrate-checkpoint-20260909` expires 2026-09-16.
+- Four archived launch-smoke PDF keys were re-identified on production. R2 delete remains blocked: Vercel `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` are Sensitive and decrypt to empty in this environment (HTTP 200, not missing, not 403). No objects deleted.
+
 ### Phase K — 90-day GTM / launch operations
 
 - Written plan: `docs/business/PIERONE_90_DAY_GTM_PLAN.md`. Five launch services only. Locked Tier 1/2 industries. Southeast BD vs national recruiting. Inquiries stay intake (DEC-WEB-004).

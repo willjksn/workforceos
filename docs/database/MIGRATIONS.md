@@ -49,7 +49,10 @@ Do not enable these with ad-hoc production SQL if a migration can do it.
 | `drizzle/0010_nostalgic_scarecrow.sql` | Phase 10 hiring/ATS/onboarding tables, plus research session/cache tables that were already in the Drizzle schema when this migration was generated. Do not rewrite `0000`–`0009`. |
 | `drizzle/0011_keen_korvac.sql` | Public intake settings and website inquiries. Do not rewrite `0000`–`0010`. |
 | `drizzle/0012_wise_scourge.sql` | Public content items. Do not rewrite `0000`–`0011`. |
-| `drizzle/0013_nervous_maggott.sql` | Phase C: `users.organizational_title`, `user_permission_overrides`, Military Talent Partner role slug and access-bundle display names. Do not rewrite `0000`–`0012`. |
+| `drizzle/0013_nervous_maggott.sql` | Phase C: `users.organizational_title`, `user_permission_overrides`, Military Talent Partner role slug and access-bundle display names. Do not rewrite `0000`–`0012`. Already on production-launch before 2026-09-09. |
+| `drizzle/0014_rainy_doomsday.sql` | Phase E Academy: `user_training_progress`. Do not rewrite `0000`–`0013`. Applied to production-launch 2026-09-09. |
+| `drizzle/0015_dizzy_wrecker.sql` | Phase H staff onboarding: `staff_onboarding`, `staff_onboarding_equipment`, `staff_policy_acknowledgements`, `users.manager_id`. Do not rewrite `0000`–`0014`. Applied to production-launch 2026-09-09. |
+| `drizzle/0016_lyrical_giant_girl.sql` | Phase K GTM: `companies.gtm_tier` / `companies.gtm_region`. Do not rewrite `0000`–`0015`. Applied to production-launch 2026-09-09. |
 
 Enum values are added in a separate statement from column defaults that use those values. Postgres rejects `ADD VALUE` and `DEFAULT` of that value in the same transaction.
 
