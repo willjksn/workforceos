@@ -27,6 +27,13 @@ export function suggestedScoutPrompts(module: string, entityType: string | null)
       "Show military placements likely to convert",
     ];
   }
+  if (module === "academy") {
+    return [
+      "Open the Academy",
+      "How do I use Scout?",
+      "How do I run a professional search?",
+    ];
+  }
   if (entityType === "company" || module === "crm") {
     return [
       "Summarize workforce activity",

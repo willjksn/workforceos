@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AcademyHelp } from "@/components/academy/academy-help";
 import { requireAnyAppPermission } from "@/lib/auth/guard";
 import { PageHeader, PageShell } from "../_components/ui";
 import { MilitarySubnav } from "./_components/military-subnav";
@@ -26,6 +27,7 @@ export default async function MilitaryOverviewPage() {
         eyebrow="Military talent"
         title="Military Talent operations"
         description="PierOne is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is a transition pathway and opportunity type — not a PierOne-owned SkillBridge program."
+        actions={<AcademyHelp articleSlug="module-military" />}
       />
       <MilitarySubnav active="/app/military" />
       <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">

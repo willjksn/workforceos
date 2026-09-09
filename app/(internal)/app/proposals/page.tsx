@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { requireAppPermission } from "@/lib/auth/guard";
 import { listProposals } from "@/lib/delivery/engine";
+import { AcademyHelp } from "@/components/academy/academy-help";
 import { DataTable, EmptyState, PageHeader, PageShell, formatLabel } from "../_components/ui";
 import { StatusBadge } from "@/components/ui/display";
 
@@ -20,6 +21,7 @@ export default async function ProposalsPage({
         eyebrow="Proposals"
         title={status ? `${formatLabel(status)} proposals` : "Proposals"}
         description="Proposals are generated from approved solution plans. Human approval is required before sending."
+        actions={<AcademyHelp articleSlug="module-proposals" />}
       />
       {rows.length === 0 ? (
         <EmptyState title="No proposals in this view.">

@@ -35,6 +35,7 @@ function moduleFromPath(pathname: string) {
   if (pathname.startsWith("/app/projects")) return "projects";
   if (pathname.startsWith("/app/finance")) return "finance";
   if (pathname.startsWith("/app/reports")) return "reports";
+  if (pathname.startsWith("/app/academy")) return "academy";
   if (pathname === "/app") return "command_center";
   return "app";
 }

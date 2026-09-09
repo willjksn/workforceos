@@ -5,6 +5,7 @@ import { requireAppPermission } from "@/lib/auth/guard";
 import { LAUNCH_SERVICE_CODES, OPPORTUNITY_STAGES } from "@/lib/crm/stages";
 import { listCompaniesForSelect, listOpportunitiesFiltered } from "@/lib/repositories/crm";
 import { can } from "@/lib/rbac/permissions";
+import { AcademyHelp } from "@/components/academy/academy-help";
 import { ActionForm } from "../_components/action-form";
 import {
   CreatePanel,
@@ -54,6 +55,7 @@ export default async function OpportunitiesPage({
         eyebrow="CRM / Pipeline"
         title="Opportunities"
         description="Commercial pipeline for the five launch services. Scores are stored, not invented at render time."
+        actions={<AcademyHelp articleSlug="module-opportunities" />}
       />
       <FilterBar>
         <SearchForm action="/app/opportunities" q={q} placeholder="Search opportunity or company" className="" submitLabel="Filter">

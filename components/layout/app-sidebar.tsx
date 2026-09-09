@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import {
   Bell,
+  CircleHelp,
   Briefcase,
   Building2,
   ClipboardList,
@@ -53,6 +54,7 @@ const ICONS: Record<NavIconName, LucideIcon> = {
   wallet: Wallet,
   sparkles: Sparkles,
   bell: Bell,
+  help: CircleHelp,
 };
 
 export function AppSidebar({
@@ -90,6 +92,7 @@ export function AppSidebar({
                   <li key={item.href}>
                     <Link
                       href={item.href}
+                      title={item.title}
                       onClick={onNavigate}
                       className={`flex items-center gap-2.5 rounded-[6px] px-2.5 py-1.5 text-[13px] ${
                         active

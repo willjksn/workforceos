@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowUp, Sparkles, X } from "lucide-react";
 
@@ -88,6 +89,7 @@ const PAGE_LABELS: Record<string, string> = {
   projects: "Projects",
   finance: "Finance",
   reports: "Reports",
+  academy: "Academy",
   app: "WorkforceOS",
 };
 
@@ -191,9 +193,19 @@ function ScoutDrawer({
             <p className="mt-2 text-[11px] uppercase tracking-[0.14em] text-white/70">WorkforceOS Intelligence</p>
             <p className="mt-2 truncate text-xs text-white/80">This page · {pageLabel}</p>
           </div>
-          <button type="button" className="rounded-[6px] p-1.5 hover:bg-white/10" aria-label="Close Scout" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/app/academy/module-scout"
+              title="Academy"
+              className="rounded-[6px] px-2 py-1 text-xs font-medium text-white/80 hover:bg-white/10"
+              onClick={onClose}
+            >
+              ? Help
+            </Link>
+            <button type="button" className="rounded-[6px] p-1.5 hover:bg-white/10" aria-label="Close Scout" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </header>
 
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-surface-muted px-4 py-4">

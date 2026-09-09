@@ -401,4 +401,4 @@ Repeatable delivery maps live in `docs/business/SERVICE_PLAYBOOKS.md` and `docs/
 - Architecture: `docs/architecture/WORKFORCEOS_MASTER_SPEC.md`
 - Remaining work: `docs/operations/MASTER_COMPLETION_LEDGER.md`
 - Deploy / recover / PITR: `docs/operations/WORKFORCEOS_OPERATING_PLAYBOOK.md`
-- In-app Academy (Phase E) is not built. Do not treat this markdown file as an LMS.
+- In-app Academy (Help & Training): `/app/academy`. This manual remains the company operating model. Academy articles cite this file and the playbooks; they do not replace them. Training states follow effective access, not title. Completion does not grant permissions. Employee Day 1–Week 4 onboarding is Phase H (not this file).

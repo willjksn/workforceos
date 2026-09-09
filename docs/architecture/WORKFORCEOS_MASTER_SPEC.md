@@ -161,7 +161,7 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 - Resume status is `missing | outdated | current | needs_review` — not a quality score. Files use the existing storage abstraction; binaries stay out of PostgreSQL.
 - Matching is Transition Talent Profile ↔ employer opportunity using skills, military occupation, translated civilian role, location, timing, SkillBridge window, certifications, clearance when required, industry, and preferences. It reuses the existing job-match architecture. Humans connect or submit. Employer briefs and message drafts require human review.
 - Follow-up, window, no-opportunity, employer-feedback, resume-missing, and conversion rules live in configurable `skillbridge_alert_rules`. Inngest runs scans. In-app notifications are the delivery channel.
-- Metrics and Military Talent queue counts come from stored rows only. The queue is pathway follow-ups for assigned talent, not a PierOne SkillBridge program dashboard. Permissions: `skillbridge.read`, `skillbridge.write`, `skillbridge.manage`, `skillbridge.export`. Restricted PII rules still apply. In-app Academy is not available yet.
+- Metrics and Military Talent queue counts come from stored rows only. The queue is pathway follow-ups for assigned talent, not a PierOne SkillBridge program dashboard. Permissions: `skillbridge.read`, `skillbridge.write`, `skillbridge.manage`, `skillbridge.export`. Restricted PII rules still apply. In-app Academy is `/app/academy` (nav: Help & Training). Training is by effective access; completion does not grant permissions.
 - Development fixtures include labeled transitioning talent. Production seed (`db:seed:prod`) loads alert-rule defaults only, not those people.
 
 ## Careers, ATS, and onboarding (Phase 10)

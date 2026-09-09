@@ -5,6 +5,7 @@ import { listDiscoveries, loadApprovedWorkflow } from "@/lib/delivery/engine";
 import { getOpportunityGraph, listCompaniesForSelect, listOpportunities } from "@/lib/repositories/crm";
 import { listLaunchServices } from "@/lib/repositories/services";
 import { can } from "@/lib/rbac/permissions";
+import { AcademyHelp } from "@/components/academy/academy-help";
 import { StatusBadge } from "@/components/ui/display";
 import { DiscoveryCreateForm } from "./discovery-create-form";
 import {
@@ -44,6 +45,7 @@ export default async function DiscoveryPage({
         eyebrow="Solutions"
         title="Discovery"
         description="Discovery is tied to a company, opportunity, and recommended service. Question sets come from the approved workflow."
+        actions={<AcademyHelp articleSlug="module-discovery" />}
       />
       {rows.length === 0 ? (
         <EmptyState title="No discovery records yet.">

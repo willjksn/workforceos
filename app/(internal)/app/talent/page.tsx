@@ -20,6 +20,7 @@ import {
   inputClassName,
 } from "../_components/ui";
 import { StatusBadge } from "@/components/ui/display";
+import { AcademyHelp } from "@/components/academy/academy-help";
 import { ButtonLink } from "@/components/ui/button";
 
 function availabilityTone(value: string) {
@@ -48,7 +49,12 @@ export default async function TalentPage({
         eyebrow="Talent Network / Candidates"
         title="Talent Network"
         description="Permanent candidate records. One person is never duplicated per job. Email is Restricted PII."
-        actions={<ButtonLink href="/app/talent/pools">Pools</ButtonLink>}
+        actions={
+          <>
+            <AcademyHelp articleSlug="module-talent" />
+            <ButtonLink href="/app/talent/pools">Pools</ButtonLink>
+          </>
+        }
       />
       <FilterBar>
         <SearchForm action="/app/talent" q={q} placeholder="Search name or title" className="" />

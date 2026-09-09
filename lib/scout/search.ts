@@ -181,8 +181,22 @@ export async function executeScoutSearch(input: {
     return searchFinance(input.organizationId, filters.title);
   }
 
+  if (input.dto.entity === "academy") {
+    if (!input.permissions.has("knowledge.read") && !input.permissions.has("scout.use")) {
+      return { summary: "No Academy access.", cards: [] };
+    }
+    const { academyScoutCards } = await import("../academy/scout");
+    const cards = academyScoutCards(filters.title ?? filters.skill ?? input.dto.note ?? "");
+    return {
+      summary: cards.length
+        ? `Academy articles (approved operating knowledge): ${cards.map((card) => card.title).join("; ")}.`
+        : "No matching Academy article.",
+      cards,
+    };
+  }
+
   if (input.dto.entity === "knowledge" || input.dto.entity === "training") {
-    if (!input.permissions.has("knowledge.read") && !input.permissions.has("training_programs.read")) {
+    if (!input.permissions.has("knowledge.read") && !input.permissions.has("training_programs.read") && !input.permissions.has("scout.use")) {
       return { summary: "No knowledge or training access.", cards: [] };
     }
     return searchKnowledgeAndTraining(input.organizationId, input.permissions, filters.title ?? filters.skill);
@@ -406,6 +420,10 @@ async function searchKnowledgeAndTraining(
   query?: string,
 ) {
   const cards: ScoutResultCard[] = [];
+  if (permissions.has("knowledge.read") || permissions.has("scout.use")) {
+    const { academyScoutCards } = await import("../academy/scout");
+    cards.push(...academyScoutCards(query ?? "academy"));
+  }
   if (permissions.has("knowledge.read")) {
     const { listKnowledge } = await import("../ai/engine");
     const rows = await listKnowledge(organizationId);

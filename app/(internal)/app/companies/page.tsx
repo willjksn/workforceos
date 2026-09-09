@@ -4,6 +4,7 @@ import { createCompanyAction } from "@/lib/actions/crm";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { listCompanies } from "@/lib/repositories/crm";
 import { can } from "@/lib/rbac/permissions";
+import { AcademyHelp } from "@/components/academy/academy-help";
 import { ButtonLink } from "@/components/ui/button";
 import { ActionForm } from "../_components/action-form";
 import {
@@ -37,7 +38,12 @@ export default async function CompaniesPage({
         eyebrow="CRM / Account intelligence"
         title="Companies"
         description="Understand client relationships, workforce signals, and revenue opportunities."
-        actions={canWrite ? <ButtonLink href="#add-company" variant="primary">Add company</ButtonLink> : undefined}
+        actions={
+          <>
+            <AcademyHelp articleSlug="module-companies" />
+            {canWrite ? <ButtonLink href="#add-company" variant="primary">Add company</ButtonLink> : null}
+          </>
+        }
       />
       <FilterBar>
         <SearchForm action="/app/companies" q={q} placeholder="Search company name" className="" />

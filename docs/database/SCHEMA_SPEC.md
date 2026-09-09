@@ -1,6 +1,6 @@
 # Schema Specification
 
-Status: Implemented through Phase C access model (`drizzle/0010`–`0013`)  
+Status: Implemented through Phase E Academy (`drizzle/0010`–`0014_rainy_doomsday`)  
 Implementation: `db/schema/`  
 Migrations: `drizzle/`
 
@@ -40,6 +40,7 @@ Migrations: `drizzle/`
 | `db/schema/scout/` | scout_sessions, scout_messages, scout_actions |
 | `db/schema/skillbridge/` | profiles, preferred locations, target roles, opportunities, stage history, notes, documents, alert rules |
 | `db/schema/public-site/` | website_inquiries, public_intake_settings, public_content_items |
+| `db/schema/academy/` | user_training_progress |
 
 ## Key uniqueness rules
 
@@ -135,6 +136,12 @@ Hiring tables are in `db/schema/hiring/` and `drizzle/0010_*`. Do not edit `0000
 - Migration `drizzle/0013_nervous_maggott.sql` adds `users.organizational_title` (nullable text, display only) and `user_permission_overrides` (`grant` / `deny`, unique on user + permission). Do not rewrite `0000`–`0012`.
 - Organizations are not cascade-deleted. Override and `user_roles` rows cascade when a user or permission is hard-deleted.
 - Role slug `military-talent-specialist` is renamed to `military-talent-partner` in the same migration. One-release code alias remains in `LEGACY_ROLE_SLUG_ALIASES`.
+
+## Phase E Academy training progress
+
+- Migration `drizzle/0014_rainy_doomsday.sql` adds `user_training_progress` (UUID PK, `user_id` FK to `users` with cascade on user delete, unique `(user_id, module_slug)`, timestamptz). It does not reference `organizations` and does not cascade-delete organizations.
+- Required vs Not Required is not a stored column. It is computed from effective permissions in `lib/academy/training.ts`.
+- Completion must not grant roles or permissions.
 
 ## Public content items
 

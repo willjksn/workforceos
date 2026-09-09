@@ -5,6 +5,7 @@ import { requireAppPermission } from "@/lib/auth/guard";
 import { listCompaniesForSelect, listContacts } from "@/lib/repositories/crm";
 import { listCanonicalSkills, listJobs } from "@/lib/repositories/recruiting";
 import { can } from "@/lib/rbac/permissions";
+import { AcademyHelp } from "@/components/academy/academy-help";
 import { ActionForm } from "../_components/action-form";
 import {
   CreatePanel,
@@ -41,6 +42,7 @@ export default async function JobsPage({
         eyebrow="Talent"
         title="Jobs"
         description="One operating surface for search assignments. Request headcount, open the job, then run the Internal Talent Network search before any external sourcing hook."
+        actions={<AcademyHelp articleSlug="module-jobs" />}
       />
       <JobsSubnav active="/app/jobs" />
       <FilterBar>

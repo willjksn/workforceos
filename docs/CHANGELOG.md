@@ -2,11 +2,18 @@
 
 ## Unreleased
 
+### Phase E — WorkforceOS Academy / Help & Training
+
+- In-app Academy at `/app/academy` (nav: Help & Training; tooltip/Scout: Academy). Articles cite the operating manual, ten service playbooks, DEC-SEC / `candidate_pii`, DEC-AI human-review rules, and Title ≠ Access — they do not rewrite those sources.
+- Required training is computed from effective permissions (`lib/academy/training.ts`), never from organizational title. Recruiter Standard does not get AI-cost training (`agents.manage`). Completing a module writes `user_training_progress` only and does not grant permissions.
+- Contextual `? Help` on Command Center, Companies, Opportunities, Discovery, Proposals, Jobs, Talent, Military, Projects, Finance, Admin People, and Scout. Scout procedural answers can link `/app/academy/[slug]`. External send stays hard-denied.
+- Schema: `user_training_progress` (UUID PK, timestamptz, indexed `user_id`, unique user+module). No organization cascade-delete.
+
 ### Phase G — Service delivery playbooks
 
 - Added ten PierOne delivery playbooks under `docs/business/playbooks/` with a short index at `docs/business/SERVICE_PLAYBOOKS.md`. Each step maps to a live WorkforceOS screen, required data, access-bundle owner, permission slug, approval gate, closed Scout command, deliverable, and next step.
 - Seeded approved knowledge records for those playbooks in `db/seed/phase7.ts` so Scout can cite them after re-seed. No candidate PII in knowledge.
-- Company operating manual (`PIERONE_OPERATING_MANUAL.md`) now points at the playbooks. Engineering deploy/recover playbook is unchanged. Academy (Phase E) and Scout send are not started.
+- Company operating manual (`PIERONE_OPERATING_MANUAL.md`) now points at the playbooks. Engineering deploy/recover playbook is unchanged. Scout send is not started.
 
 ### Phase F — PierOne company operating manual
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AcademyHelp } from "@/components/academy/academy-help";
 import { inviteUserAction, setUserAccessStatusAction } from "@/lib/actions/admin";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { assignableRoleSlugs } from "@/lib/rbac/assign-role";
@@ -35,7 +36,8 @@ export default async function AdminUsersPage() {
       <PageHeader
         eyebrow="Admin"
         title="People"
-        description="Organizational title is display-only. Access bundles grant permissions. Clerk authenticates; PostgreSQL authorizes. Open a person to assign multiple bundles, view effective permissions, or set overrides. Training requirements are Phase E."
+        description="Organizational title is display-only. Access bundles grant permissions. Clerk authenticates; PostgreSQL authorizes. Open a person to assign multiple bundles, view effective permissions, or set overrides. Required Academy training follows effective access, not title."
+        actions={<AcademyHelp articleSlug="module-admin-people" />}
       />
       {rows.length === 0 ? (
         <EmptyState>No people are recorded for this organization.</EmptyState>

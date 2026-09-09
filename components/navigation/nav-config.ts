@@ -21,12 +21,14 @@ export type NavIconName =
   | "scale"
   | "wallet"
   | "sparkles"
-  | "bell";
+  | "bell"
+  | "help";
 
 export type NavItem = {
   href: string;
   label: string;
   icon: NavIconName;
+  title?: string;
   permission?: Permission;
   anyPermission?: Permission[];
   adminOnly?: boolean;
@@ -50,6 +52,13 @@ const NAV: NavGroup[] = [
       { href: "/app", label: "Command Center", icon: "dashboard" },
       { href: "/app/reports", label: "Reports", icon: "clipboard", permission: "reports.read" },
       { href: "/app/alerts", label: "Alerts", icon: "bell", anyPermission: ["alerts.read", "reports.read"] },
+      {
+        href: "/app/academy",
+        label: "Help & Training",
+        icon: "help",
+        title: "Academy",
+        anyPermission: ["knowledge.read", "scout.use"],
+      },
     ],
   },
   {
@@ -153,6 +162,9 @@ export function navGroupsForPrincipal(principal: Principal): NavGroup[] {
 
 export function isNavActive(href: string, pathname: string) {
   if (href === "/app") return pathname === "/app";
+  if (href === "/app/academy") {
+    return pathname === "/app/academy" || pathname.startsWith("/app/academy/");
+  }
   if (href === "/app/talent") {
     return pathname === "/app/talent" || /^\/app\/talent\/[0-9a-f-]{36}/i.test(pathname);
   }

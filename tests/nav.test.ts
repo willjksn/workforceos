@@ -40,6 +40,7 @@ describe("admin navigation", () => {
     expect(links).not.toContain("/app/ai-operations/knowledge");
     expect(links).toContain("/app/reports");
     expect(links).toContain("/app/alerts");
+    expect(links).toContain("/app/academy");
   });
 
   it("shows operating Admin screens to Managing Partner and hides engineering registries", () => {
@@ -53,6 +54,7 @@ describe("admin navigation", () => {
     expect(links).toContain("/app/admin/access-review");
     expect(links).toContain("/app/reports");
     expect(links).toContain("/app/alerts");
+    expect(links).toContain("/app/academy");
     expect(links).toContain("/app/ai-operations");
     expect(links).toContain("/app/ai-operations/knowledge");
     expect(links).not.toContain("/app/ai-operations/costs");

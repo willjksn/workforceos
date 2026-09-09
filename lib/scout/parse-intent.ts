@@ -335,6 +335,12 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
   } else if (/\b(invoices?|accounts receivable|\bar aging\b|finance)\b/.test(text)) {
     entity = "finance";
     summary = "Search authorized finance records.";
+  } else if (
+    /\b(academy|help & training|help and training|how do i|how to |user manual|open (the )?academy)\b/.test(text)
+  ) {
+    entity = "academy";
+    filters.title = raw.slice(0, 200);
+    summary = "Search WorkforceOS Academy articles.";
   } else if (/\b(knowledge|training programs?|lessons learned)\b/.test(text)) {
     entity = "knowledge";
     summary = "Search approved knowledge playbooks and workforce training programs.";

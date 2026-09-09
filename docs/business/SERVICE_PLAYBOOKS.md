@@ -3,7 +3,7 @@
 Status: Phase G (2026-09-09)  
 These are the repeatable PierOne delivery playbooks mapped to live WorkforceOS screens. They cite `docs/business/PIERONE_OPERATING_MANUAL.md`, `docs/business/SERVICE_CATALOG.md`, `docs/workflows/SERVICE_WORKFLOWS.md`, and approved `services` / `service_versions` / `service_workflows` records. They do not replace those records.
 
-Do not invent military-mapping or workflow rules here. Do not treat this folder as the deploy/recover guide (`docs/operations/WORKFORCEOS_OPERATING_PLAYBOOK.md`) or as in-app Academy (Phase E, not built).
+Do not invent military-mapping or workflow rules here. Do not treat this folder as the deploy/recover guide (`docs/operations/WORKFORCEOS_OPERATING_PLAYBOOK.md`). In-app Academy (Help & Training) at `/app/academy` surfaces these playbooks — it is not a second source of truth.
 
 Catalog names are canonical. Public pages may say **Professional & Technical Search** — same offer as **Professional Search**, not a rename.
 

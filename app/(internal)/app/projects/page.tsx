@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AcademyHelp } from "@/components/academy/academy-help";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { listDeliveryProjects } from "@/lib/delivery/engine";
 import { DataTable, EmptyState, PageHeader, PageShell, formatLabel } from "../_components/ui";
@@ -20,6 +21,7 @@ export default async function ProjectsPage({
         eyebrow="Projects"
         title={filter ? `${formatLabel(filter)} projects` : "Delivery projects"}
         description="Delivery projects are created from an approved solution plan, service workflow, and executed contract. Search projects stay under Recruiting."
+        actions={<AcademyHelp articleSlug="module-projects" />}
       />
       {rows.length === 0 ? (
         <EmptyState title="No delivery projects in this view.">

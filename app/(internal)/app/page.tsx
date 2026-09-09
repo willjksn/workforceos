@@ -1,3 +1,4 @@
+import { AcademyHelp } from "@/components/academy/academy-help";
 import { MetricCard } from "@/components/ui/display";
 import {
   EmptyState,
@@ -43,6 +44,7 @@ export default async function CommandCenterPage() {
         title="Workforce Command Center"
         description="Live snapshot of your firm's operating records. Figures come from saved data, not projections."
         metadata={`${principal.roleSlugs.join(", ") || "no roles"} · ${snapshot.generatedAt.toLocaleString()}`}
+        actions={<AcademyHelp articleSlug="module-command-center" />}
       />
 
       {canFinance ? (

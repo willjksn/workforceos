@@ -79,7 +79,7 @@ Do not document these as live URLs. Work the listed screen instead.
 | No `/app/military/match` | Transition Talent Profile `/app/military/skillbridge/[id]` |
 | `/app/legal` index redirects | Redirects to `/app/contracts`. Templates: `/app/legal/templates` (list; no template detail route) |
 
-Not live in this phase: calendar OAuth, DocuSign envelopes, QuickBooks AR post, Checkr HTTP, Scout send, in-app Academy.
+Not live in this phase: calendar OAuth, DocuSign envelopes, QuickBooks AR post, Checkr HTTP, Scout send. In-app Academy (Help & Training) is `/app/academy` and cites these playbooks.
 
 ## The ten playbooks
 

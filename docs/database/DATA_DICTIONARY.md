@@ -66,6 +66,7 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | `decision_log` | Architectural decisions. |
 | `system_settings` | Seed/version metadata. |
 | `semantic_documents` | Embeddings for later semantic search. |
+| `user_training_progress` | Lightweight Academy completion (`user_id`, `module_slug`, `status`, timestamps). Unique on `(user_id, module_slug)`. Required vs Not Required is computed from effective permissions in code, not stored here. Completion does not grant permissions. Not an LMS and not Phase H employee onboarding. |
 
 ## CRM
 
