@@ -249,7 +249,10 @@ export async function runGeminiDirectProbe(input: {
   actorUserId?: string | null;
 }): Promise<AiProbeRecord> {
   if (!isGeminiFallbackConfigured()) {
-    throw new AgentError("Gemini fallback is not configured. Direct connectivity probe refused.", "config");
+    throw new AgentError(
+      "Gemini availability fallback is deferred. Set AI_FALLBACK_ENABLED=true with AI_FALLBACK_PROVIDER=gemini to run this probe.",
+      "config",
+    );
   }
   const fallbackModel = resolveClassFallbackModel("FAST");
   if (!fallbackModel) {
@@ -302,7 +305,10 @@ export async function runGeminiAvailabilityProbe(input: {
   actorUserId?: string | null;
 }): Promise<AiProbeRecord> {
   if (!isGeminiFallbackConfigured()) {
-    throw new AgentError("Gemini fallback is not configured. Probe refused.", "config");
+    throw new AgentError(
+      "Gemini availability fallback is deferred. Set AI_FALLBACK_ENABLED=true with AI_FALLBACK_PROVIDER=gemini to run this probe.",
+      "config",
+    );
   }
   if (!resolveClassFallbackModel("FAST")) {
     throw new AgentError("AI_MODEL_FAST_FALLBACK is unset. Gemini hop cannot run.", "config");

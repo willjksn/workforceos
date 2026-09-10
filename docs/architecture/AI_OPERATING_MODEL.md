@@ -11,6 +11,8 @@ This document evolves Phase B capability-class routing. It does not replace the 
 
 Locked operating principle: **humans own process; AI makes operations faster.** AI drafts and recommends. PostgreSQL remains the system of record.
 
+**Launch (2026-09-10):** OpenAI is the production AI provider for launch. Gemini availability fallback remains supported by the architecture but is deferred until post-launch validation. Do not reopen Anthropic.
+
 ---
 
 ## Current-state findings (audit)
@@ -208,7 +210,7 @@ Gemini is **availability backup**, not a style tuner.
 
 - Primary OpenAI-compatible call failed for availability (timeout, 429, 5xx, abort, empty body), and
 - Same-provider `AI_FALLBACK_MODEL` either is unset, matches the failed model, or also failed for availability, and
-- `AI_FALLBACK_PROVIDER=gemini` and `GEMINI_API_KEY` are set, and
+- `AI_FALLBACK_PROVIDER=gemini`, `GEMINI_API_KEY`, and `AI_FALLBACK_ENABLED=true` are set, and
 - The task is not in a “primary-only” deny list (initial deny list: none, but military mapping / legal / pricing outputs must show `usedFallback` + provider on the Review Queue card).
 
 **Must not call Gemini when:**
@@ -223,6 +225,8 @@ Gemini is **availability backup**, not a style tuner.
 **After Gemini:** if it also fails, return `internal_heuristic` and label it. Operators must see HEURISTIC vs LIVE and fallback flags. Reviewers must see which provider wrote a material draft.
 
 Prefer Gemini OpenAI-compatible HTTP so the existing client stays. **Do not add a Gemini SDK in this program of work.**
+
+**Launch deferral:** Gemini hop is off unless `AI_FALLBACK_ENABLED=true`. Leftover Gemini keys do not make fallback a launch dependency or a System Status failure. System Status shows Fallback **DEFERRED**.
 
 ---
 

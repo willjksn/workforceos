@@ -63,6 +63,7 @@ describe("AI capability-class env", () => {
 
   it("accepts optional Gemini availability-fallback vars without Anthropic or NEXT_PUBLIC_AI", () => {
     vi.stubEnv("AI_FALLBACK_PROVIDER", "gemini");
+    vi.stubEnv("AI_FALLBACK_ENABLED", "true");
     vi.stubEnv("GEMINI_API_KEY", "gemini-test-key");
     vi.stubEnv("AI_FALLBACK_BASE_URL", "https://example.test/openai");
     vi.stubEnv("AI_MODEL_FAST_FALLBACK", "fast-fallback");
@@ -71,6 +72,7 @@ describe("AI capability-class env", () => {
     resetServerEnvCache();
     const env = getServerEnv();
     expect(env.AI_FALLBACK_PROVIDER).toBe("gemini");
+    expect(env.AI_FALLBACK_ENABLED).toBe("true");
     expect(env.GEMINI_API_KEY).toBe("gemini-test-key");
     expect(env.AI_FALLBACK_BASE_URL).toBe("https://example.test/openai");
     expect(env.AI_MODEL_FAST_FALLBACK).toBe("fast-fallback");

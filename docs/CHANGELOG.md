@@ -2,16 +2,23 @@
 
 ## Unreleased
 
+### AI launch simplification — 2026-09-10
+
+- OpenAI is the production AI provider for launch (FAST / STANDARD / REASONING). Gemini availability fallback remains supported by the architecture but is deferred until post-launch validation.
+- System Status has one **AI Runtime Verification** card (`Run AI verification`). **Run fallback test** appears only when `AI_FALLBACK_ENABLED=true` and `AI_FALLBACK_PROVIDER=gemini`.
+- Leftover Gemini secrets are not deleted. Hops stay off until `AI_FALLBACK_ENABLED=true`. Fallback status is **DEFERRED**, not a production failure.
+- Do not reopen Anthropic.
+
 ### System Status honesty + AI verification — 2026-09-10
 
-- System Status badges use LIVE / CONFIGURED / DEGRADED / MOCK / MANUAL / NOT CONFIGURED / DEVELOPMENT / ERROR. MOCK, MANUAL, and NOT CONFIGURED are never green HEALTHY.
+- System Status badges use LIVE / CONFIGURED / DEGRADED / MOCK / MANUAL / NOT CONFIGURED / DEFERRED / DEVELOPMENT / ERROR. MOCK, MANUAL, NOT CONFIGURED, and DEFERRED are never green HEALTHY.
 - OpenAI is LIVE only after a recorded live completion. Key presence alone is CONFIGURED (or DEGRADED if class model ids are unset).
 - Gemini, DocuSign, QuickBooks, SeekOut, Apollo, Sentry, Calendar, embeddings, and labor-market fixtures are split and labeled honestly.
-- Admin System Status can run a controlled FAST / STANDARD / REASONING probe without changing env vars or deferred vendors. Gemini is a separate Controlled fallback probe (direct connectivity, then a simulated OpenAI 429 hop).
-- Controlled probes throw the provider HTTP failure (status/code) instead of returning heuristic. `/app/admin` redirects to Team & Access. OpenAI/Gemini cards show the completion host only.
+- Admin System Status runs FAST / STANDARD / REASONING verification from the AI Runtime Verification card. Gemini is not a launch dependency.
+- Controlled probes throw the provider HTTP failure (status/code) instead of returning heuristic. `/app/admin` redirects to Team & Access. OpenAI cards show the completion host only.
 - OpenAI-compatible completions send `max_completion_tokens` (Gemini still starts with `max_tokens`). GPT-5 / o-series and unknown OpenAI ids omit `temperature` rather than sending 0.2. `unsupported_value` / `unsupported_parameter` retries stay as a safety net and are not Gemini hops.
-- Live OpenAI verification uses configured FAST/STANDARD/REASONING model ids only. The synthetic unavailable-model id is a separate Controlled fallback probe and is never reported as the production FAST model.
-- Gemini fallback hops only for timeout / 408 / 429 / 5xx / abort / empty body. Unknown model ids (404 / model_not_found) stay configuration defects. The controlled probe checks Gemini directly, then simulates HTTP 429.
+- Live OpenAI verification uses configured FAST/STANDARD/REASONING model ids only.
+- Gemini fallback hops only for timeout / 408 / 429 / 5xx / abort / empty body, and only when explicitly enabled. Unknown model ids (404 / model_not_found) stay configuration defects.
 
 
 ### Admin sidebar — daily destinations only — 2026-09-09

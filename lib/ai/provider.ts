@@ -360,10 +360,9 @@ export async function completePrompt(request: CompletionRequest): Promise<Comple
   async function hopGemini(): Promise<CompletionResult | null> {
     const geminiKey = resolveGeminiApiKey(env);
     const classFallback = resolveClassFallbackModel(capabilityClass, env);
-    const requestWantsGemini = request.fallbackProvider?.trim().toLowerCase() === "gemini";
     if (
       capabilityClass === "EMBEDDING" ||
-      !(isGeminiFallbackConfigured(env) || (requestWantsGemini && Boolean(geminiKey))) ||
+      !isGeminiFallbackConfigured(env) ||
       !geminiKey ||
       !classFallback ||
       isHeuristicModelName(classFallback)

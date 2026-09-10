@@ -55,7 +55,8 @@ function openaiStatus(input: {
   return "LIVE";
 }
 
-function geminiStatus(input: { configured: boolean; lastFallback: boolean }): HealthStatus {
+function geminiStatus(input: { enabled: boolean; configured: boolean; lastFallback: boolean }): HealthStatus {
+  if (!input.enabled) return "DEFERRED";
   if (!input.configured) return "NOT_CONFIGURED";
   if (!input.lastFallback) return "CONFIGURED";
   return "LIVE";
@@ -152,6 +153,7 @@ export async function getSystemHealth() {
     lastLive: Boolean(lastLive),
   });
   const gemini = geminiStatus({
+    enabled: !aiRuntime.fallbackDeferred,
     configured: aiRuntime.fallbackConfigured,
     lastFallback: Boolean(lastFallback && lastFallback.provider === "gemini"),
   });
@@ -249,10 +251,21 @@ export async function getSystemHealth() {
       `${formatIntegrationSummary(integrationSummary)} Hub adapters: ${hubLive} live / ${hubConfigured} configured of ${integrations.length}. Mock providers are not counted as live.`,
     ),
     healthCheck(
+      "AI Runtime",
+      openai === "LIVE" ? "LIVE" : openai,
+      openai === "LIVE"
+        ? `LIVE — primary provider OpenAI. FAST/STANDARD/REASONING class routing is verified in this database. Gemini availability fallback is ${gemini === "DEFERRED" ? "deferred" : gemini.toLowerCase().replaceAll("_", " ")}.`
+        : openai === "CONFIGURED"
+          ? "CONFIGURED — OpenAI class models are set but no successful live completion is recorded yet."
+          : openai === "DEGRADED"
+            ? "DEGRADED — an API key is present but FAST/STANDARD/REASONING class ids are unset or heuristic."
+            : "HEURISTIC — no live API key is configured (or AI_PROVIDER=internal_heuristic).",
+    ),
+    healthCheck(
       "OpenAI",
       openai,
       openai === "LIVE"
-        ? `LIVE — OpenAI-compatible completions have succeeded in this database (host ${aiRuntime.primaryHost}). Capability-class routing is in use. The API key is not displayed.`
+        ? `LIVE + VERIFIED — OpenAI-compatible completions have succeeded in this database (host ${aiRuntime.primaryHost}). FAST=${aiRuntime.capabilityModels.FAST} · STANDARD=${aiRuntime.capabilityModels.STANDARD} · REASONING=${aiRuntime.capabilityModels.REASONING}. The API key is not displayed.`
         : openai === "CONFIGURED"
           ? `CONFIGURED — OpenAI-compatible key and FAST/STANDARD/REASONING class ids are set (host ${aiRuntime.primaryHost}). No successful live completion is recorded yet. Do not treat this as verified LIVE.`
           : openai === "DEGRADED"
@@ -260,21 +273,25 @@ export async function getSystemHealth() {
             : "HEURISTIC — no live API key is configured (or AI_PROVIDER=internal_heuristic). Agents draft from stored PostgreSQL records.",
     ),
     healthCheck(
-      "Gemini fallback",
+      "Fallback",
       gemini,
       gemini === "LIVE"
-        ? `LIVE — Gemini availability fallback has completed a recorded hop (host ${aiRuntime.fallbackHost ?? "n/a"}). Failover is timeout / 408 / 429 / 5xx / abort / empty body only. Unknown model ids are configuration defects, not hops.`
+        ? `LIVE — Gemini availability fallback has completed a recorded hop (host ${aiRuntime.fallbackHost ?? "n/a"}). Failover is timeout / 408 / 429 / 5xx / abort / empty body only.`
         : gemini === "CONFIGURED"
-          ? `CONFIGURED — GEMINI_API_KEY and AI_FALLBACK_PROVIDER are set (host ${aiRuntime.fallbackHost ?? "n/a"}). No successful Gemini fallback is recorded yet. Style/tone never hops.`
-          : "NOT CONFIGURED — AI_FALLBACK_PROVIDER / GEMINI_API_KEY unset. Do not treat this as LIVE.",
+          ? `CONFIGURED — AI_FALLBACK_ENABLED=true with Gemini keys set (host ${aiRuntime.fallbackHost ?? "n/a"}). No successful Gemini fallback is recorded yet. Style/tone never hops.`
+          : gemini === "DEFERRED"
+            ? "DEFERRED — OpenAI is the production AI provider for launch. Gemini availability fallback remains supported by the architecture but is not enabled. Leftover Gemini secrets are ignored until AI_FALLBACK_ENABLED=true and AI_FALLBACK_PROVIDER=gemini. This is not a production failure."
+            : "NOT CONFIGURED — Gemini fallback is enabled but AI_FALLBACK_PROVIDER / GEMINI_API_KEY are unset.",
     ),
     healthCheck(
       "Last AI fallback",
-      lastFallback ? "LIVE" : "OK",
-      formatAiEvidence(
-        lastFallback,
-        "None recorded. Same-provider model fallback or Gemini has not completed a run in this database.",
-      ),
+      gemini === "DEFERRED" ? "DEFERRED" : lastFallback ? "LIVE" : "OK",
+      gemini === "DEFERRED"
+        ? "Not in use. Gemini availability fallback is deferred for launch."
+        : formatAiEvidence(
+            lastFallback,
+            "None recorded. Same-provider model fallback or Gemini has not completed a run in this database.",
+          ),
     ),
     healthCheck(
       "Embeddings",

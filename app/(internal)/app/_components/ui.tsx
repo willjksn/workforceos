@@ -17,5 +17,5 @@ export {
   formatLabel,
   inputClassName,
 } from "@/components/ui/page";
-export { PrimaryButton, ButtonLink } from "@/components/ui/button";
+export { Button, PrimaryButton, ButtonLink } from "@/components/ui/button";
 export { Card, MetricCard, ScoreBadge, StatusBadge, TabNav } from "@/components/ui/display";

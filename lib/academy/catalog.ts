@@ -1110,7 +1110,7 @@ export const ACADEMY_ARTICLES: AcademyArticle[] = [
     approvalRequirements: "Prompt versions are immutable once approved (DEC-AI-004).",
     relatedSlugs: ["ai-use-human-review", "admin"],
     commonMistakes: ["Opening AI costs to Recruiter Standard."],
-    troubleshooting: ["LIVE vs HEURISTIC is labeled on System Health. Do not print secrets."],
+    troubleshooting: ["LIVE vs HEURISTIC is labeled on System Health. Fallback is DEFERRED for launch. Do not print secrets."],
   }),
   article({
     slug: "security-candidate-privacy",

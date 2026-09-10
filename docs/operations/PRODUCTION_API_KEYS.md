@@ -60,9 +60,10 @@ Do not rotate DNS or overwrite a live Encrypted Vercel variable without a defect
 | AI | `OPENAI_MODEL_BALANCED` | Alias → STANDARD | Optional | — | Any |
 | AI | `OPENAI_MODEL_FAST` | Alias → FAST | Optional | — | Any |
 | AI | `OPENAI_EMBEDDING_MODEL` | Alias → EMBEDDING | Optional | Embeddings | Any |
-| AI | `AI_FALLBACK_PROVIDER` | `gemini` or unset | Optional | AI fallback configured | Production when Gemini backup is intended |
-| AI | `GEMINI_API_KEY` | Gemini OpenAI-compatible key | Optional | AI fallback configured | Production Gemini BLOCKED until set |
-| AI | `AI_FALLBACK_BASE_URL` | Gemini OpenAI-compatible base | Optional | AI fallback configured | Same |
+| AI | `AI_FALLBACK_PROVIDER` | `gemini` or unset | Optional | Fallback DEFERRED unless also enabled | Not required for launch |
+| AI | `AI_FALLBACK_ENABLED` | `true` to activate Gemini hop | Optional | Fallback DEFERRED when unset | Production Gemini deferred until post-launch validation |
+| AI | `GEMINI_API_KEY` | Gemini OpenAI-compatible key | Optional | Ignored until fallback enabled | Leftover secrets are not deleted |
+| AI | `AI_FALLBACK_BASE_URL` | Gemini OpenAI-compatible base | Optional | Ignored until fallback enabled | Same |
 | AI | `AI_MODEL_FAST_FALLBACK` | Gemini FAST class id | Optional | — | Same |
 | AI | `AI_MODEL_STANDARD_FALLBACK` | Gemini STANDARD class id | Optional | — | Same |
 | AI | `AI_MODEL_REASONING_FALLBACK` | Gemini REASONING class id | Optional | — | Same |

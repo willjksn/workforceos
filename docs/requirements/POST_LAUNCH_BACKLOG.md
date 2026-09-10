@@ -32,3 +32,4 @@ Do not build these items during Post-Phase-9 stabilization. New work enters the 
 | Scout result pagination beyond 25 | Hard cap for safety | Larger search sets | P3 | Scout DTOs | S | COMPLETE (25/page, max 100) |
 | Invite-only local user pre-provision | Unknown Clerk users auto-create as active with no roles | Defense in depth if Clerk public sign-up is mis-set | P2 | Clerk webhooks | M | COMPLETE 2026-09-08: production Clerk `sign_up_mode=restricted`; `syncLocalUser` rejects uninvited Clerk users |
 | Semantic search dimension | `vector(1536)` is temporary (DEC-SEM-001) | Real embeddings | P3 | Embedding model choice | M | IN REVIEW / deferred until `AI_MODEL_EMBEDDING` is configured |
+| Gemini availability fallback | Launch uses OpenAI only | Optional resilience after outage | P3 | DEC-AI-012; `AI_FALLBACK_ENABLED=true` | M | DEFERRED until post-launch validation |

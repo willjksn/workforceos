@@ -30,7 +30,7 @@ Enable as features are connected:
 - `INNGEST_SIGNING_KEY`
 - `STORAGE_PROVIDER=s3` plus `S3_BUCKET`, `S3_REGION`, `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`. The S3-compatible adapter is implemented. Candidate resumes stay private (no public bucket URL).
 - `AI_PROVIDER`, `AI_API_KEY` (or `OPENAI_API_KEY` as an OpenAI-compatible alias). Do not put AI keys in `NEXT_PUBLIC_*`.
-- Capability-class models (DEC-AI-011 / DEC-AI-012): `AI_MODEL_FAST`, `AI_MODEL_STANDARD`, `AI_MODEL_REASONING`, `AI_MODEL_EMBEDDING`. Aliases: `OPENAI_MODEL_FAST`, `OPENAI_MODEL_BALANCED` / `AI_MODEL`, `OPENAI_MODEL_PRIMARY`, `OPENAI_EMBEDDING_MODEL`. `AI_FALLBACK_MODEL` remains the same-provider spare. Optional Gemini availability fallback: `AI_FALLBACK_PROVIDER=gemini`, `GEMINI_API_KEY`, `AI_FALLBACK_BASE_URL`, `AI_MODEL_FAST_FALLBACK` / `STANDARD` / `REASONING`. No Anthropic. No `NEXT_PUBLIC_AI_*`. Do not hard-code GPT-5.6 Luna/Terra/Sol in app code. `AI_BASE_URL` is optional (default `https://api.openai.com/v1`). Production Gemini is BLOCKED until `GEMINI_API_KEY` is set. System Health must say LIVE vs HEURISTIC for the primary; do not claim production is LIVE until Health says so.
+- Capability-class models (DEC-AI-011 / DEC-AI-012): `AI_MODEL_FAST`, `AI_MODEL_STANDARD`, `AI_MODEL_REASONING`, `AI_MODEL_EMBEDDING`. Aliases: `OPENAI_MODEL_FAST`, `OPENAI_MODEL_BALANCED` / `AI_MODEL`, `OPENAI_MODEL_PRIMARY`, `OPENAI_EMBEDDING_MODEL`. `AI_FALLBACK_MODEL` remains the same-provider spare. Gemini availability fallback remains in the architecture but is **deferred for launch**. It hops only when `AI_FALLBACK_ENABLED=true` and `AI_FALLBACK_PROVIDER=gemini` with `GEMINI_API_KEY`. Leftover Gemini secrets are ignored until that switch is on. No Anthropic. No `NEXT_PUBLIC_AI_*`. Do not hard-code GPT-5.6 Luna/Terra/Sol in app code. `AI_BASE_URL` is optional (default `https://api.openai.com/v1`). System Health must say LIVE vs HEURISTIC for the primary; do not claim production is LIVE until Health says so.
 - Development / Preview / Production should use separate AI keys where Vercel already has env per environment. When the key is unset, System Health labels the runtime **HEURISTIC**, not live.
 - `SENTRY_DSN` when Sentry is wired
 - `APP_VERSION`
@@ -62,7 +62,7 @@ Do not put secrets in client bundles. Only `NEXT_PUBLIC_*` values are public. `C
 | Storage | `local` | R2/S3 test bucket recommended | R2/S3 production bucket |
 | AI keys | Development key or unset (heuristic) | Preview key or unset (heuristic) | Production key; System Health must say LIVE vs HEURISTIC |
 | `AI_MODEL_FAST` / `STANDARD` / `REASONING` / `EMBEDDING` | Capability-class names for this environment | Same, preview-specific if needed | Production capability-class models |
-| `AI_FALLBACK_PROVIDER` / `GEMINI_API_KEY` / `AI_FALLBACK_BASE_URL` / `AI_MODEL_*_FALLBACK` | Unset (no Gemini hop) | Optional preview Gemini | Production Gemini BLOCKED until key is set |
+| `AI_FALLBACK_PROVIDER` / `AI_FALLBACK_ENABLED` / `GEMINI_API_KEY` / `AI_FALLBACK_BASE_URL` / `AI_MODEL_*_FALLBACK` | Unset (deferred, no Gemini hop) | Unset unless validating fallback | Deferred for launch. Do not require for production readiness. Activate later with `AI_FALLBACK_ENABLED=true` and `AI_FALLBACK_PROVIDER=gemini`. Do not delete leftover secrets automatically. |
 
 Do not put production Clerk live keys in `.env.local`.
 

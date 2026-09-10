@@ -12,7 +12,7 @@ A disabled local user cannot use the app even with a live Clerk session.
 
 ## System status
 
-`/app/admin/system-health` is not on the daily Admin sidebar. Open it from Connected tools. It shows app version, environment, database, migrations, `vector` / `pg_trgm`, Clerk, Inngest, storage, integrations, AI provider, Resend, calendar, background/drug providers, public careers API, 24h queue failures, and a backup reminder. It never displays secrets or connection strings.
+`/app/admin/system-health` is not on the daily Admin sidebar. Open it from Connected tools. It shows app version, environment, database, migrations, `vector` / `pg_trgm`, Clerk, Inngest, storage, integrations, AI Runtime / OpenAI / Fallback, Resend, calendar, background/drug providers, public careers API, 24h queue failures, and a backup reminder. OpenAI is the production AI provider for launch (LIVE + VERIFIED after a recorded FAST/STANDARD/REASONING completion). Gemini availability fallback is DEFERRED until `AI_FALLBACK_ENABLED=true`. The page has one **AI Runtime Verification** card (`Run AI verification`). **Run fallback test** appears only when fallback is enabled. It never displays secrets or connection strings.
 
 ## Data quality vs alerts
 

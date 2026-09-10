@@ -56,6 +56,10 @@ export function healthStatusTone(status: HealthStatus): HealthStatusTone {
     case "MANUAL":
     case "OK":
       return "navy";
+    case "DEFERRED":
+    case "NOT_CONFIGURED":
+    case "MOCK":
+      return "neutral";
     default:
       return "neutral";
   }
@@ -90,5 +94,5 @@ export function summarizeIntegrationStatuses(statuses: HealthStatus[]): Integrat
 }
 
 export function formatIntegrationSummary(summary: IntegrationHonestySummary) {
-  return `Live: ${summary.live}. Configured: ${summary.configured}. Mock/Manual: ${summary.mockManual}. Not configured: ${summary.notConfigured}.`;
+  return `Live: ${summary.live}. Configured: ${summary.configured}. Mock/Manual: ${summary.mockManual}. Not configured: ${summary.notConfigured}. Deferred: ${summary.deferred}.`;
 }

@@ -108,6 +108,12 @@ export function resolveFallbackProviderName(env: ServerEnv = getServerEnv()) {
   return null;
 }
 
+/** Intentional launch switch. Leftover Gemini keys do not hop until this is true. */
+export function isGeminiFallbackEnabled(env: ServerEnv = getServerEnv()) {
+  const flag = env.AI_FALLBACK_ENABLED?.trim().toLowerCase();
+  return flag === "true" || flag === "1" || flag === "yes";
+}
+
 export function resolveGeminiApiKey(env: ServerEnv = getServerEnv()) {
   return env.GEMINI_API_KEY;
 }
@@ -127,7 +133,11 @@ export function resolveClassFallbackModel(
 }
 
 export function isGeminiFallbackConfigured(env: ServerEnv = getServerEnv()) {
-  return resolveFallbackProviderName(env) === "gemini" && Boolean(resolveGeminiApiKey(env));
+  return (
+    isGeminiFallbackEnabled(env) &&
+    resolveFallbackProviderName(env) === "gemini" &&
+    Boolean(resolveGeminiApiKey(env))
+  );
 }
 
 export function isHeuristicModelName(model: string | null | undefined) {
@@ -178,6 +188,7 @@ export function describeAiRuntime(env: ServerEnv = getServerEnv()) {
       : "Embeddings use development-hash vectors (DEC-SEM-001 temporary 1536). No live embedding model is configured.",
     scoutConfigured: true,
     scoutLiveCompletions: live,
+    fallbackDeferred: !isGeminiFallbackEnabled(env),
     fallbackConfigured: isGeminiFallbackConfigured(env),
     fallbackProviderName: isGeminiFallbackConfigured(env) ? "gemini" : null,
     businessClassesConfigured: areBusinessCapabilityModelsConfigured(env),

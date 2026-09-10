@@ -49,6 +49,7 @@ const serverEnvSchema = z.object({
   AI_MODEL_EMBEDDING: optionalString,
   AI_FALLBACK_MODEL: optionalString,
   AI_FALLBACK_PROVIDER: optionalString,
+  AI_FALLBACK_ENABLED: optionalString,
   GEMINI_API_KEY: optionalString,
   AI_FALLBACK_BASE_URL: optionalString,
   AI_MODEL_FAST_FALLBACK: optionalString,

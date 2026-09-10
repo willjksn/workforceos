@@ -36,7 +36,7 @@ In V1, WorkforceOS:
 | File storage | StorageProvider abstraction; Cloudflare R2 / S3-compatible in production; local adapter in development |
 | Search | pgvector semantic search; pg_trgm fuzzy search; PostgreSQL full-text where useful |
 | Background jobs | Inngest |
-| AI models | OpenAI-compatible primary (DEC-AI-012); Gemini availability fallback only; heuristic when no live key. Agents do not own data. No Anthropic. |
+| AI models | OpenAI-compatible primary for launch (DEC-AI-012). Gemini availability fallback remains in the architecture but is deferred until post-launch validation. Heuristic when no live key. Agents do not own data. No Anthropic. |
 | Monitoring | Sentry when `SENTRY_DSN` is set; redacted server logs otherwise |
 
 Firebase and Firestore are prohibited.

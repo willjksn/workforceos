@@ -30,6 +30,7 @@ describe("System status honesty", () => {
     expect(healthStatusTone("LIVE")).toBe("success");
     expect(healthStatusTone("CONFIGURED")).toBe("teal");
     expect(healthStatusTone("DEGRADED")).toBe("warning");
+    expect(healthStatusTone("DEFERRED")).toBe("neutral");
     expect(healthStatusTone("MOCK")).toBe("neutral");
     expect(healthStatusTone("MANUAL")).toBe("navy");
     expect(healthStatusTone("NOT_CONFIGURED")).toBe("neutral");
@@ -37,6 +38,7 @@ describe("System status honesty", () => {
     expect(healthStatusTone("ERROR")).toBe("danger");
     expect(healthStatusLabel("NOT_CONFIGURED")).toBe("NOT CONFIGURED");
     expect(healthStatusOk("MOCK")).toBe(true);
+    expect(healthStatusOk("DEFERRED")).toBe(true);
     expect(healthStatusOk("ERROR")).toBe(false);
   });
 
@@ -63,12 +65,13 @@ describe("System status honesty", () => {
     const page = readFileSync(path.join(__dirname, "../app/(internal)/app/admin/system-health/page.tsx"), "utf8");
     expect(page).not.toMatch(/Healthy/);
     expect(page).toMatch(/healthStatusLabel\(check\.status\)/);
-    expect(page).toMatch(/Run live OpenAI test/);
-    expect(page).toMatch(/Run controlled fallback probe/);
+    expect(page).toMatch(/Run AI verification/);
+    expect(page).toMatch(/AI Runtime Verification/);
+    expect(page).not.toMatch(/Run live OpenAI test/);
+    expect(page).not.toMatch(/Run controlled fallback probe/);
     expect(page).not.toMatch(/defaultChecked/);
     expect(page).not.toMatch(/includeGemini/);
-    expect(page).toMatch(/HTTP 429/);
-    expect(page).toMatch(/runtime\.fallbackModels/);
+    expect(page).toMatch(/runtime\.fallbackConfigured/);
   });
 });
 
@@ -107,6 +110,7 @@ describe("AI capability class configuration", () => {
 
   it("resolves Gemini class fallback model ids without exposing keys", () => {
     vi.stubEnv("AI_FALLBACK_PROVIDER", "gemini");
+    vi.stubEnv("AI_FALLBACK_ENABLED", "true");
     vi.stubEnv("GEMINI_API_KEY", "gemini-test-key");
     vi.stubEnv("AI_MODEL_FAST_FALLBACK", "gemini-fast-id");
     vi.stubEnv("AI_MODEL_STANDARD_FALLBACK", "gemini-standard-id");
@@ -121,6 +125,17 @@ describe("AI capability class configuration", () => {
       REASONING: "gemini-reasoning-id",
     });
     expect(JSON.stringify(runtime)).not.toContain("gemini-test-key");
+  });
+
+  it("ignores leftover Gemini keys until AI_FALLBACK_ENABLED is true", () => {
+    vi.stubEnv("AI_FALLBACK_PROVIDER", "gemini");
+    vi.stubEnv("GEMINI_API_KEY", "gemini-test-key");
+    vi.stubEnv("AI_MODEL_FAST_FALLBACK", "gemini-fast-id");
+    resetServerEnvCache();
+    const runtime = describeAiRuntime();
+    expect(runtime.fallbackDeferred).toBe(true);
+    expect(runtime.fallbackConfigured).toBe(false);
+    expect(runtime.fallbackProviderName).toBeNull();
   });
 });
 
@@ -141,6 +156,7 @@ describe("Gemini availability failover", () => {
     vi.stubEnv("AI_API_KEY", "sk-test");
     vi.stubEnv("AI_PROVIDER", "openai_compatible");
     vi.stubEnv("AI_FALLBACK_PROVIDER", "gemini");
+    vi.stubEnv("AI_FALLBACK_ENABLED", "true");
     vi.stubEnv("GEMINI_API_KEY", "gemini-test-key");
     vi.stubEnv("AI_MODEL_FAST_FALLBACK", "fast-fallback");
     resetServerEnvCache();
@@ -176,6 +192,7 @@ describe("Gemini availability failover", () => {
     vi.stubEnv("AI_PROVIDER", "openai_compatible");
     vi.stubEnv("AI_MODEL_FAST", "gpt-5.6-luna");
     vi.stubEnv("AI_FALLBACK_PROVIDER", "gemini");
+    vi.stubEnv("AI_FALLBACK_ENABLED", "true");
     vi.stubEnv("GEMINI_API_KEY", "gemini-test-key");
     vi.stubEnv("AI_MODEL_FAST_FALLBACK", "fast-fallback");
     resetServerEnvCache();
@@ -231,6 +248,7 @@ describe("Gemini availability failover", () => {
     vi.stubEnv("AI_PROVIDER", "openai_compatible");
     vi.stubEnv("AI_MODEL_FAST", "gpt-5.6-luna");
     vi.stubEnv("AI_FALLBACK_PROVIDER", "gemini");
+    vi.stubEnv("AI_FALLBACK_ENABLED", "true");
     vi.stubEnv("GEMINI_API_KEY", "gemini-test-key");
     vi.stubEnv("AI_MODEL_FAST_FALLBACK", "fast-fallback");
     resetServerEnvCache();
@@ -249,6 +267,34 @@ describe("Gemini availability failover", () => {
       }),
     ).rejects.toMatchObject({
       message: expect.stringMatching(/http_404|model_not_found/),
+    });
+    expect(fetchMock.mock.calls.some((call) => String(call[0]).includes("generativelanguage"))).toBe(false);
+  });
+
+  it("does not hop to Gemini when leftover keys exist but fallback is deferred", async () => {
+    vi.stubEnv("AI_API_KEY", "sk-test");
+    vi.stubEnv("AI_PROVIDER", "openai_compatible");
+    vi.stubEnv("AI_MODEL_FAST", "gpt-5.6-luna");
+    vi.stubEnv("AI_FALLBACK_PROVIDER", "gemini");
+    vi.stubEnv("GEMINI_API_KEY", "gemini-test-key");
+    vi.stubEnv("AI_MODEL_FAST_FALLBACK", "fast-fallback");
+    resetServerEnvCache();
+    const fetchMock = vi.fn(async (_url: string) => ({
+      ok: false,
+      status: 429,
+      json: async () => ({ error: { code: "rate_limit_exceeded", message: "slow down" } }),
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(
+      completePrompt({
+        taskType: "status_summary",
+        capabilityClass: "FAST",
+        requireLive: true,
+        skipSameProviderRetry: true,
+        messages: [{ role: "user", content: "live" }],
+      }),
+    ).rejects.toMatchObject({
+      message: expect.stringMatching(/http_429/),
     });
     expect(fetchMock.mock.calls.some((call) => String(call[0]).includes("generativelanguage"))).toBe(false);
   });
@@ -305,6 +351,7 @@ describe("Gemini availability failover", () => {
     vi.stubEnv("AI_PROVIDER", "openai_compatible");
     vi.stubEnv("AI_MODEL_FAST", "fast-class");
     vi.stubEnv("AI_FALLBACK_PROVIDER", "gemini");
+    vi.stubEnv("AI_FALLBACK_ENABLED", "true");
     vi.stubEnv("GEMINI_API_KEY", "gemini-test-key");
     vi.stubEnv("AI_MODEL_FAST_FALLBACK", "fast-fallback");
     resetServerEnvCache();

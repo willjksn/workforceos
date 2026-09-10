@@ -6,6 +6,7 @@ import { requireAppPermission, requirePlatformAdmin } from "@/lib/auth/guard";
 import { AuthorizationError } from "@/lib/rbac/permissions";
 import { AgentError } from "@/lib/ai/errors";
 import { runControlledFallbackVerification, runProductionAiVerification } from "@/lib/ai/health-probe";
+import { isGeminiFallbackConfigured } from "@/lib/ai/capabilities";
 import { runAgentTask, retryAgentRun } from "@/lib/ai/runner";
 import { decideReviewItem } from "@/lib/ai/review";
 import { acceptHandoff, createAgentHandoff } from "@/lib/ai/handoffs";
@@ -234,7 +235,8 @@ export async function acceptHandoffAction(_prev: ActionState, formData: FormData
 
 function summarizeLiveProbe(label: string, probe: { ok: boolean; requestedModel: string; model: string; provider: string; usedFallback: boolean }) {
   const echoed = probe.model !== probe.requestedModel ? ` (provider echoed ${probe.model})` : "";
-  return `OpenAI ${label} LIVE — ${probe.requestedModel}${echoed} — ${probe.ok && !probe.usedFallback && probe.provider !== "internal_heuristic" ? "PASS" : "FAIL"}`;
+  const pass = probe.ok && !probe.usedFallback && probe.provider !== "internal_heuristic" ? "PASS" : "FAIL";
+  return `${label}: ${probe.requestedModel}${echoed} — ${pass}`;
 }
 
 export async function verifyProductionAiAction(_prev: ActionState, _formData: FormData): Promise<ActionState> {
@@ -246,12 +248,12 @@ export async function verifyProductionAiAction(_prev: ActionState, _formData: Fo
       includeGeminiFailover: false,
     });
     const lines = [
-      `Resolved FAST=${result.resolvedModels.FAST} STANDARD=${result.resolvedModels.STANDARD} REASONING=${result.resolvedModels.REASONING}`,
+      "Primary provider: OpenAI",
       summarizeLiveProbe("FAST", result.fast),
       summarizeLiveProbe("STANDARD", result.standard),
       summarizeLiveProbe("REASONING", result.reasoning),
-      "Gemini fallback: not run (use Controlled fallback probe)",
-      `PII used: ${result.piiUsed ? "yes" : "no"}`,
+      isGeminiFallbackConfigured() ? "Fallback: Gemini — not run" : "Fallback: Deferred",
+      `PII used in verification: ${result.piiUsed ? "yes" : "No"}`,
     ];
     return { message: lines.join(" · ") };
   } catch (error) {
