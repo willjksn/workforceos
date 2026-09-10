@@ -201,4 +201,118 @@ describe("Gemini availability failover", () => {
     });
     expect(heuristic.provider).toBe("internal_heuristic");
   });
+
+  it("uses max_completion_tokens for OpenAI and retries without hopping to Gemini", async () => {
+    vi.stubEnv("AI_API_KEY", "sk-test");
+    vi.stubEnv("AI_PROVIDER", "openai_compatible");
+    vi.stubEnv("AI_MODEL_FAST", "fast-class");
+    vi.stubEnv("AI_FALLBACK_PROVIDER", "gemini");
+    vi.stubEnv("GEMINI_API_KEY", "gemini-test-key");
+    vi.stubEnv("AI_MODEL_FAST_FALLBACK", "fast-fallback");
+    resetServerEnvCache();
+
+    const fetchMock = vi.fn(async (_url: string, init?: { body?: BodyInit | null }) => {
+      const body = typeof init?.body === "string" ? init.body : "";
+      if (body.includes('"max_tokens"') && !body.includes("max_completion_tokens")) {
+        return {
+          ok: false,
+          status: 400,
+          json: async () => ({
+            error: {
+              code: "unsupported_parameter",
+              message: "Unsupported parameter: 'max_tokens' is not supported with this model. Use 'max_completion_tokens' instead.",
+            },
+          }),
+        };
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          choices: [{ message: { content: '{"summary":"openai probe"}' } }],
+          model: "fast-class",
+          usage: { prompt_tokens: 9, completion_tokens: 4 },
+        }),
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await completePrompt({
+      taskType: "status_summary",
+      capabilityClass: "FAST",
+      requireLive: true,
+      messages: [{ role: "user", content: "Task: status_summary" }],
+    });
+    expect(result.provider).toBe("openai_compatible");
+    expect(result.usedFallback).toBe(false);
+    expect(fetchMock.mock.calls.some((call) => String(call[0]).includes("generativelanguage"))).toBe(false);
+    const firstBody = String(fetchMock.mock.calls[0]?.[1]?.body ?? "");
+    expect(firstBody).toContain("max_completion_tokens");
+    expect(firstBody).not.toContain('"max_tokens"');
+  });
+
+  it("retries max_tokens when max_completion_tokens is unsupported and omits temperature when rejected", async () => {
+    vi.stubEnv("AI_API_KEY", "sk-test");
+    vi.stubEnv("AI_PROVIDER", "openai_compatible");
+    vi.stubEnv("AI_MODEL_FAST", "fast-class");
+    resetServerEnvCache();
+
+    const fetchMock = vi.fn(async (_url: string, init?: { body?: BodyInit | null }) => {
+      const body = typeof init?.body === "string" ? init.body : "";
+      if (body.includes("max_completion_tokens")) {
+        return {
+          ok: false,
+          status: 400,
+          json: async () => ({
+            error: {
+              code: "unsupported_parameter",
+              message: "Unsupported parameter: 'max_completion_tokens' is not supported with this model.",
+            },
+          }),
+        };
+      }
+      if (body.includes('"temperature"')) {
+        return {
+          ok: false,
+          status: 400,
+          json: async () => ({
+            error: {
+              code: "unsupported_parameter",
+              message: "Unsupported parameter: 'temperature' is not supported with this model.",
+            },
+          }),
+        };
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          choices: [{ message: { content: '{"summary":"legacy"}' } }],
+          model: "fast-class",
+          usage: { prompt_tokens: 3, completion_tokens: 2 },
+        }),
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await completePrompt({
+      taskType: "status_summary",
+      capabilityClass: "FAST",
+      requireLive: true,
+      messages: [{ role: "user", content: "Task: status_summary" }],
+    });
+    expect(result.provider).toBe("openai_compatible");
+    expect(result.usedFallback).toBe(false);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("does not treat unsupported_parameter as a Gemini availability hop", () => {
+    expect(
+      shouldFailoverForAvailability(
+        classifyProviderError(
+          new Error(
+            "Provider HTTP 400 unsupported_parameter: Unsupported parameter: 'max_tokens' is not supported with this model.",
+          ),
+        ),
+      ),
+    ).toBe(false);
+  });
 });

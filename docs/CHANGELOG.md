@@ -9,6 +9,7 @@
 - Gemini, DocuSign, QuickBooks, SeekOut, Apollo, Sentry, Calendar, embeddings, and labor-market fixtures are split and labeled honestly.
 - Admin System Status can run a controlled FAST / STANDARD / REASONING probe (optional Gemini unavailable-model hop) without changing env vars or deferred vendors.
 - Controlled probes throw the provider HTTP failure (status/code) instead of returning heuristic. `/app/admin` redirects to Team & Access. OpenAI/Gemini cards show the completion host only.
+- OpenAI-compatible completions send `max_completion_tokens` (Gemini still starts with `max_tokens`) and retry the other name or omit `temperature` on `unsupported_parameter`. That 400 is not a Gemini hop.
 
 
 ### Admin sidebar — daily destinations only — 2026-09-09

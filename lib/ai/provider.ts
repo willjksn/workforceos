@@ -82,6 +82,50 @@ function heuristicResult(input: {
   };
 }
 
+type TokenField = "max_tokens" | "max_completion_tokens";
+
+function initialTokenField(provider: string): TokenField {
+  return provider === "gemini" ? "max_tokens" : "max_completion_tokens";
+}
+
+function unsupportedParameterName(message: string) {
+  const quoted = /unsupported parameter:\s*'([^']+)'/i.exec(message);
+  return quoted?.[1] ?? null;
+}
+
+function chatCompletionsBody(input: {
+  model: string;
+  messages: ChatMessage[];
+  temperature?: number;
+  maxTokens?: number;
+  tokenField: TokenField;
+  includeTemperature: boolean;
+}) {
+  const body: Record<string, unknown> = {
+    model: input.model,
+    messages: input.messages,
+  };
+  if (input.includeTemperature) body.temperature = input.temperature ?? 0.2;
+  body[input.tokenField] = input.maxTokens ?? 1200;
+  return body;
+}
+
+function nextRequestShape(
+  current: { tokenField: TokenField; includeTemperature: boolean },
+  unsupported: string | null,
+): { tokenField: TokenField; includeTemperature: boolean } | null {
+  if (unsupported === "max_tokens" && current.tokenField === "max_tokens") {
+    return { ...current, tokenField: "max_completion_tokens" };
+  }
+  if (unsupported === "max_completion_tokens" && current.tokenField === "max_completion_tokens") {
+    return { ...current, tokenField: "max_tokens" };
+  }
+  if (unsupported === "temperature" && current.includeTemperature) {
+    return { ...current, includeTemperature: false };
+  }
+  return null;
+}
+
 async function callOpenAiCompatible(input: {
   baseUrl: string;
   apiKey: string;
@@ -101,53 +145,75 @@ async function callOpenAiCompatible(input: {
     timedOut = true;
     controller.abort();
   }, input.timeoutMs);
+  let tokenField = initialTokenField(input.provider);
+  let includeTemperature = true;
+  const attempted = new Set<string>();
   try {
-    const response = await fetch(`${input.baseUrl.replace(/\/$/, "")}/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${input.apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: input.model,
-        messages: input.messages,
-        temperature: input.temperature ?? 0.2,
-        max_tokens: input.maxTokens ?? 1200,
-      }),
-      signal: controller.signal,
-    });
-    if (!response.ok) {
-      const errJson = (await response.json().catch(() => ({}))) as {
-        error?: { code?: string; type?: string; message?: string };
+    while (true) {
+      const shape = `${tokenField}:${includeTemperature ? "temp" : "notemp"}`;
+      if (attempted.has(shape)) {
+        throw new AgentError("Provider HTTP 400 unsupported_parameter: request shape retries exhausted", "provider");
+      }
+      attempted.add(shape);
+      const response = await fetch(`${input.baseUrl.replace(/\/$/, "")}/chat/completions`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${input.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(
+          chatCompletionsBody({
+            model: input.model,
+            messages: input.messages,
+            temperature: input.temperature,
+            maxTokens: input.maxTokens,
+            tokenField,
+            includeTemperature,
+          }),
+        ),
+        signal: controller.signal,
+      });
+      if (!response.ok) {
+        const errJson = (await response.json().catch(() => ({}))) as {
+          error?: { code?: string; type?: string; message?: string };
+        };
+        const errorCode = errJson.error?.code ?? errJson.error?.type ?? "";
+        const errorMessage =
+          typeof errJson.error?.message === "string" ? sanitizeProviderMessage(errJson.error.message) : "";
+        const combined = `Provider HTTP ${response.status}${errorCode ? ` ${errorCode}` : ""}${errorMessage ? `: ${errorMessage}` : ""}`;
+        const retry =
+          response.status === 400
+            ? nextRequestShape({ tokenField, includeTemperature }, unsupportedParameterName(combined))
+            : null;
+        if (retry) {
+          tokenField = retry.tokenField;
+          includeTemperature = retry.includeTemperature;
+          continue;
+        }
+        throw new AgentError(combined, "provider");
+      }
+      const json = (await response.json()) as {
+        choices?: Array<{ message?: { content?: string } }>;
+        model?: string;
+        usage?: { prompt_tokens?: number; completion_tokens?: number };
       };
-      const errorCode = errJson.error?.code ?? errJson.error?.type ?? "";
-      const errorMessage = typeof errJson.error?.message === "string" ? sanitizeProviderMessage(errJson.error.message) : "";
-      throw new AgentError(
-        `Provider HTTP ${response.status}${errorCode ? ` ${errorCode}` : ""}${errorMessage ? `: ${errorMessage}` : ""}`,
-        "provider",
-      );
+      const text = json.choices?.[0]?.message?.content?.trim();
+      if (!text) throw new AgentError("Provider returned an empty completion", "provider");
+      const inputTokens = json.usage?.prompt_tokens;
+      const outputTokens = json.usage?.completion_tokens;
+      return {
+        text,
+        provider: input.provider,
+        model: json.model ?? input.model,
+        modelVersion: json.model ?? input.model,
+        capabilityClass: input.capabilityClass,
+        inputTokens,
+        outputTokens,
+        estimatedCostUsd: estimateCost(inputTokens, outputTokens),
+        usedFallback: input.usedFallback,
+        latencyMs: Date.now() - started,
+      };
     }
-    const json = (await response.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-      model?: string;
-      usage?: { prompt_tokens?: number; completion_tokens?: number };
-    };
-    const text = json.choices?.[0]?.message?.content?.trim();
-    if (!text) throw new AgentError("Provider returned an empty completion", "provider");
-    const inputTokens = json.usage?.prompt_tokens;
-    const outputTokens = json.usage?.completion_tokens;
-    return {
-      text,
-      provider: input.provider,
-      model: json.model ?? input.model,
-      modelVersion: json.model ?? input.model,
-      capabilityClass: input.capabilityClass,
-      inputTokens,
-      outputTokens,
-      estimatedCostUsd: estimateCost(inputTokens, outputTokens),
-      usedFallback: input.usedFallback,
-      latencyMs: Date.now() - started,
-    };
   } catch (error) {
     if (timedOut) {
       throw new AgentError("Provider timed out", "provider");
