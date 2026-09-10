@@ -1,6 +1,7 @@
 import { getSystemHealth } from "@/lib/health/status";
 import { healthStatusLabel, healthStatusTone } from "@/lib/health/taxonomy";
-import { verifyProductionAiAction } from "@/lib/actions/ai";
+import { verifyProductionAiAction, verifyProductionAiFallbackAction } from "@/lib/actions/ai";
+import { describeAiRuntime } from "@/lib/ai/capabilities";
 import { requirePlatformAdmin } from "@/lib/auth/guard";
 import { ActionForm } from "../../_components/action-form";
 import { Card, PageHeader, PageShell, StatusBadge, ButtonLink, PrimaryButton } from "../../_components/ui";
@@ -10,6 +11,7 @@ export const maxDuration = 60;
 export default async function SystemHealthPage() {
   await requirePlatformAdmin();
   const health = await getSystemHealth();
+  const runtime = describeAiRuntime();
   return (
     <PageShell>
       <PageHeader
@@ -19,18 +21,25 @@ export default async function SystemHealthPage() {
         actions={<ButtonLink href="/app/integrations">Connected tools</ButtonLink>}
       />
       <Card className="mt-8">
-        <p className="font-medium text-navy">Controlled AI verification</p>
+        <p className="font-medium text-navy">Live OpenAI model test</p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Runs FAST, STANDARD, and REASONING probes against the live provider with harmless internal JSON. Optionally forces an unavailable-model hop to Gemini. Does not change environment variables.
+          Calls the configured FAST, STANDARD, and REASONING models. Does not use the synthetic unavailable-model id. API keys are not displayed.
         </p>
-        <ActionForm action={verifyProductionAiAction} className="mt-4 flex flex-col gap-3">
-          <label className="flex items-center gap-2 text-sm text-navy">
-            <input type="checkbox" name="includeGemini" value="1" defaultChecked />
-            Include Gemini availability fallback (unavailable-model hop)
-          </label>
-          <span>
-            <PrimaryButton>Run controlled AI verification</PrimaryButton>
-          </span>
+        <p className="mt-2 text-sm text-navy">
+          Resolved FAST={runtime.capabilityModels.FAST} · STANDARD={runtime.capabilityModels.STANDARD} · REASONING=
+          {runtime.capabilityModels.REASONING}
+        </p>
+        <ActionForm action={verifyProductionAiAction} className="mt-4">
+          <PrimaryButton>Run live OpenAI test</PrimaryButton>
+        </ActionForm>
+      </Card>
+      <Card className="mt-4">
+        <p className="font-medium text-navy">Controlled fallback probe</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Separate from the live model test. Intentionally requests a nonexistent model so OpenAI fails availability and Gemini may hop. Never treated as the production FAST model.
+        </p>
+        <ActionForm action={verifyProductionAiFallbackAction} className="mt-4">
+          <PrimaryButton>Run controlled fallback probe</PrimaryButton>
         </ActionForm>
       </Card>
       <div className="mt-8 grid gap-3 sm:grid-cols-2">

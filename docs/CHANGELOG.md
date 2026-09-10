@@ -10,6 +10,7 @@
 - Admin System Status can run a controlled FAST / STANDARD / REASONING probe (optional Gemini unavailable-model hop) without changing env vars or deferred vendors.
 - Controlled probes throw the provider HTTP failure (status/code) instead of returning heuristic. `/app/admin` redirects to Team & Access. OpenAI/Gemini cards show the completion host only.
 - OpenAI-compatible completions send `max_completion_tokens` (Gemini still starts with `max_tokens`). GPT-5 / o-series and unknown OpenAI ids omit `temperature` rather than sending 0.2. `unsupported_value` / `unsupported_parameter` retries stay as a safety net and are not Gemini hops.
+- Live OpenAI verification uses configured FAST/STANDARD/REASONING model ids only. The synthetic unavailable-model id is a separate Controlled fallback probe and is never reported as the production FAST model.
 
 
 ### Admin sidebar — daily destinations only — 2026-09-09

@@ -7,8 +7,9 @@ import { completePrompt } from "../lib/ai/provider";
 import {
   areBusinessCapabilityModelsConfigured,
   describeAiRuntime,
+  resolveCapabilityModel,
 } from "../lib/ai/capabilities";
-import { styleDoesNotFailover } from "../lib/ai/health-probe";
+import { styleDoesNotFailover, UNAVAILABLE_PROBE_MODEL } from "../lib/ai/health-probe";
 import { resetServerEnvCache } from "../lib/env";
 import {
   formatIntegrationSummary,
@@ -62,7 +63,10 @@ describe("System status honesty", () => {
     const page = readFileSync(path.join(__dirname, "../app/(internal)/app/admin/system-health/page.tsx"), "utf8");
     expect(page).not.toMatch(/Healthy/);
     expect(page).toMatch(/healthStatusLabel\(check\.status\)/);
-    expect(page).toMatch(/Run controlled AI verification/);
+    expect(page).toMatch(/Run live OpenAI test/);
+    expect(page).toMatch(/Run controlled fallback probe/);
+    expect(page).not.toMatch(/defaultChecked/);
+    expect(page).not.toMatch(/includeGemini/);
   });
 });
 
@@ -82,6 +86,21 @@ describe("AI capability class configuration", () => {
     vi.stubEnv("AI_MODEL_REASONING", "reasoning-class");
     resetServerEnvCache();
     expect(areBusinessCapabilityModelsConfigured()).toBe(true);
+  });
+
+  it("resolves the production FAST STANDARD and REASONING class ids from env", () => {
+    vi.stubEnv("AI_MODEL_FAST", "gpt-5.6-luna");
+    vi.stubEnv("AI_MODEL_STANDARD", "gpt-5.6-terra");
+    vi.stubEnv("AI_MODEL_REASONING", "gpt-5.6-sol");
+    resetServerEnvCache();
+    expect(resolveCapabilityModel("FAST")).toBe("gpt-5.6-luna");
+    expect(resolveCapabilityModel("STANDARD")).toBe("gpt-5.6-terra");
+    expect(resolveCapabilityModel("REASONING")).toBe("gpt-5.6-sol");
+    expect(describeAiRuntime().capabilityModels).toMatchObject({
+      FAST: "gpt-5.6-luna",
+      STANDARD: "gpt-5.6-terra",
+      REASONING: "gpt-5.6-sol",
+    });
   });
 });
 
@@ -315,5 +334,75 @@ describe("Gemini availability failover", () => {
         ),
       ),
     ).toBe(false);
+  });
+
+  it("sends the configured FAST model and never the synthetic fallback id on a live class call", async () => {
+    vi.stubEnv("AI_API_KEY", "sk-test");
+    vi.stubEnv("AI_PROVIDER", "openai_compatible");
+    vi.stubEnv("AI_MODEL_FAST", "gpt-5.6-luna");
+    resetServerEnvCache();
+    const fetchMock = vi.fn(async (_url: string, init?: { body?: BodyInit | null }) => {
+      const body = typeof init?.body === "string" ? init.body : "";
+      expect(body).toContain("gpt-5.6-luna");
+      expect(body).not.toContain(UNAVAILABLE_PROBE_MODEL);
+      expect(body).not.toContain('"temperature"');
+      return {
+        ok: true,
+        json: async () => ({
+          choices: [{ message: { content: '{"status":"ok","capability":"FAST"}' } }],
+          model: "gpt-5.6-luna",
+          usage: { prompt_tokens: 6, completion_tokens: 3 },
+        }),
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const result = await completePrompt({
+      taskType: "status_summary",
+      capabilityClass: "FAST",
+      requireLive: true,
+      messages: [{ role: "user", content: "Return JSON with status=ok and capability=FAST." }],
+    });
+    expect(result.requestedModel).toBe("gpt-5.6-luna");
+    expect(result.provider).toBe("openai_compatible");
+    expect(result.usedFallback).toBe(false);
+  });
+
+  it("labels synthetic unavailable-model failures as a controlled fallback probe", async () => {
+    vi.stubEnv("AI_API_KEY", "sk-test");
+    vi.stubEnv("AI_PROVIDER", "openai_compatible");
+    vi.stubEnv("AI_MODEL_FAST", "gpt-5.6-luna");
+    resetServerEnvCache();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: false,
+        status: 404,
+        json: async () => ({ error: { code: "model_not_found", message: `${UNAVAILABLE_PROBE_MODEL} not found` } }),
+      })),
+    );
+    await expect(
+      completePrompt({
+        taskType: "status_summary",
+        model: UNAVAILABLE_PROBE_MODEL,
+        fallbackModel: UNAVAILABLE_PROBE_MODEL,
+        requireLive: true,
+        liveFailureLabel: "Controlled OpenAI fallback probe",
+        messages: [{ role: "user", content: "fallback" }],
+      }),
+    ).rejects.toMatchObject({
+      message: expect.stringMatching(/^Controlled OpenAI fallback probe/),
+    });
+    await expect(
+      completePrompt({
+        taskType: "status_summary",
+        model: UNAVAILABLE_PROBE_MODEL,
+        fallbackModel: UNAVAILABLE_PROBE_MODEL,
+        requireLive: true,
+        liveFailureLabel: "Controlled OpenAI fallback probe",
+        messages: [{ role: "user", content: "fallback" }],
+      }),
+    ).rejects.not.toMatchObject({
+      message: expect.stringMatching(/^Live FAST provider call failed/),
+    });
   });
 });

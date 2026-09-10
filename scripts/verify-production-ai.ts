@@ -31,13 +31,13 @@ async function main() {
     console.log("API key present: yes (value not printed)");
   }
   const result = await runProductionAiVerification({
-    includeGeminiFailover: runtime.fallbackConfigured,
+    includeGeminiFailover: false,
   });
   printProbe("FAST", result.fast);
   printProbe("STANDARD", result.standard);
   printProbe("REASONING", result.reasoning);
-  if (result.gemini) printProbe("GEMINI", result.gemini);
-  else console.log("GEMINI: skipped");
+  console.log(`Resolved FAST=${result.resolvedModels.FAST} STANDARD=${result.resolvedModels.STANDARD} REASONING=${result.resolvedModels.REASONING}`);
+  console.log("GEMINI: not run (live OpenAI test only)");
   console.log(`Style/tone does not failover: ${result.styleDoesNotFailover}`);
   console.log(`PII used: ${result.piiUsed}`);
   const health = await getSystemHealth();

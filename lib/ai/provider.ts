@@ -42,6 +42,8 @@ export type CompletionRequest = {
   fallbackModel?: string;
   /** When true, never return a heuristic draft. Throw the provider failure instead. */
   requireLive?: boolean;
+  /** Overrides the requireLive error prefix. Use for controlled fallback probes. */
+  liveFailureLabel?: string;
 };
 
 export type CompletionResult = {
@@ -55,6 +57,7 @@ export type CompletionResult = {
   estimatedCostUsd: number;
   usedFallback: boolean;
   latencyMs: number;
+  requestedModel: string;
 };
 
 function heuristicReply(messages: ChatMessage[]) {
@@ -87,6 +90,7 @@ function heuristicResult(input: {
     estimatedCostUsd: 0,
     usedFallback: input.usedFallback,
     latencyMs: input.latencyMs,
+    requestedModel: HEURISTIC_MODEL,
   };
 }
 
@@ -187,6 +191,7 @@ async function callOpenAiCompatible(input: {
         estimatedCostUsd: estimateCost(inputTokens, outputTokens),
         usedFallback: input.usedFallback,
         latencyMs: Date.now() - started,
+        requestedModel: input.model,
       };
     }
   } catch (error) {
@@ -217,10 +222,12 @@ function throwLiveFailure(input: {
   capabilityClass: AiCapabilityClass;
   reason: FailoverReason;
   error: unknown;
+  label?: string;
 }): never {
   const message = input.error instanceof Error ? input.error.message : String(input.error);
+  const prefix = input.label?.trim() || `Live ${input.capabilityClass} provider call failed`;
   throw new AgentError(
-    `Live ${input.capabilityClass} provider call failed (${failoverLabel(input.reason)}). ${sanitizeProviderMessage(message)} No heuristic fill-in.`,
+    `${prefix} (${failoverLabel(input.reason)}). ${sanitizeProviderMessage(message)} No heuristic fill-in.`,
     "provider",
   );
 }
@@ -371,7 +378,12 @@ export async function completePrompt(request: CompletionRequest): Promise<Comple
           });
           if (!shouldFailoverForAvailability(sameReason)) {
             if (request.requireLive) {
-              throwLiveFailure({ capabilityClass, reason: sameReason, error: fallbackError });
+              throwLiveFailure({
+                capabilityClass,
+                reason: sameReason,
+                error: fallbackError,
+                label: request.liveFailureLabel,
+              });
             }
             return finishHeuristicAfterFailure({
               started,
@@ -419,7 +431,12 @@ export async function completePrompt(request: CompletionRequest): Promise<Comple
     }
 
     if (request.requireLive) {
-      throwLiveFailure({ capabilityClass, reason: primaryReason, error });
+      throwLiveFailure({
+        capabilityClass,
+        reason: primaryReason,
+        error,
+        label: request.liveFailureLabel,
+      });
     }
     return finishHeuristicAfterFailure({
       started,

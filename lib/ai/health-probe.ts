@@ -32,6 +32,7 @@ export type AiProbeRecord = {
   ok: boolean;
   provider: string;
   model: string;
+  requestedModel: string;
   capabilityClass: AiCapabilityClass;
   usedFallback: boolean;
   inputTokens: number | null;
@@ -63,16 +64,7 @@ function probeMessages(label: string) {
     },
     {
       role: "user" as const,
-      content: [
-        `Task: production AI health probe (${label}).`,
-        "Return JSON with keys summary, facts, inferences, missingData, assumptions, confidence.",
-        "summary must be a short confirmation that this is a harmless internal probe.",
-        "facts: [\"No candidate or client records were supplied.\"].",
-        "inferences: [].",
-        "missingData: [].",
-        "assumptions: \"Internal health probe only.\"",
-        "confidence: 1.",
-      ].join("\n"),
+      content: `Return JSON with status=ok and capability=${label}. No candidate or client records were supplied.`,
     },
   ];
 }
@@ -173,11 +165,13 @@ function toRecord(
 ): AiProbeRecord {
   const expectedClass = kind === "GEMINI_FAILOVER" ? capabilityClassForTask(taskType) : kind;
   const configuredModel = resolveCapabilityModel(expectedClass);
+  const requestedModel = result.requestedModel;
   return {
     kind,
     ok: !extra?.error,
     provider: result.provider,
     model: result.model,
+    requestedModel,
     capabilityClass: result.capabilityClass,
     usedFallback: result.usedFallback,
     inputTokens: result.inputTokens ?? null,
@@ -201,6 +195,10 @@ export async function runClassProbe(input: {
   kind: "FAST" | "STANDARD" | "REASONING";
 }): Promise<AiProbeRecord> {
   const taskType = AI_HEALTH_PROBE_TASK[input.kind];
+  const configuredModel = resolveCapabilityModel(input.kind);
+  if (isHeuristicModelName(configuredModel) || configuredModel === UNAVAILABLE_PROBE_MODEL) {
+    throw new AgentError(`${input.kind} live test has no configured class model id.`, "config");
+  }
   const result = await completePrompt({
     taskType,
     capabilityClass: input.kind,
@@ -209,6 +207,15 @@ export async function runClassProbe(input: {
     messages: probeMessages(input.kind),
   });
   failIfHeuristic(result, input.kind);
+  if (result.requestedModel !== configuredModel) {
+    throw new AgentError(
+      `${input.kind} live test sent ${result.requestedModel} instead of configured ${configuredModel}.`,
+      "config",
+    );
+  }
+  if (result.requestedModel === UNAVAILABLE_PROBE_MODEL) {
+    throw new AgentError(`${input.kind} live test used the synthetic fallback probe model.`, "config");
+  }
   if (result.usedFallback) {
     throw new AgentError(`${input.kind} probe used fallback. OpenAI live call did not complete on the primary provider.`, "provider");
   }
@@ -242,6 +249,7 @@ export async function runGeminiAvailabilityProbe(input: {
     fallbackModel: UNAVAILABLE_PROBE_MODEL,
     maxTokens: 400,
     requireLive: true,
+    liveFailureLabel: "Controlled OpenAI fallback probe",
     messages: probeMessages("GEMINI_FAILOVER"),
   });
   failIfHeuristic(result, "GEMINI_FAILOVER");
@@ -289,15 +297,21 @@ export async function runProductionAiVerification(input: {
   if (styleGate.style || styleGate.tone || styleGate.structure || styleGate.lowConfidence) {
     throw new AgentError("Style/tone/structure incorrectly classified as availability failures.", "config");
   }
+  const resolvedModels = {
+    FAST: resolveCapabilityModel("FAST"),
+    STANDARD: resolveCapabilityModel("STANDARD"),
+    REASONING: resolveCapabilityModel("REASONING"),
+  };
   const fast = await runClassProbe({ organizationId, actorUserId: input.actorUserId, kind: "FAST" });
   const standard = await runClassProbe({ organizationId, actorUserId: input.actorUserId, kind: "STANDARD" });
   const reasoning = await runClassProbe({ organizationId, actorUserId: input.actorUserId, kind: "REASONING" });
   let gemini: AiProbeRecord | null = null;
-  if (input.includeGeminiFailover !== false && isGeminiFallbackConfigured()) {
+  if (input.includeGeminiFailover === true && isGeminiFallbackConfigured()) {
     gemini = await runGeminiAvailabilityProbe({ organizationId, actorUserId: input.actorUserId });
   }
   return {
     organizationId,
+    resolvedModels,
     fast,
     standard,
     reasoning,
@@ -305,6 +319,18 @@ export async function runProductionAiVerification(input: {
     styleDoesNotFailover: true,
     piiUsed: false,
   };
+}
+
+export async function runControlledFallbackVerification(input: {
+  organizationId?: string | null;
+  actorUserId?: string | null;
+}) {
+  if (!isLiveAiConfigured()) {
+    throw new AgentError("Live AI is not configured. Probe refused.", "config");
+  }
+  const organizationId = await resolveProbeOrganizationId(input.organizationId);
+  const gemini = await runGeminiAvailabilityProbe({ organizationId, actorUserId: input.actorUserId });
+  return { organizationId, gemini, piiUsed: false };
 }
 
 export async function loadLastLiveAiEvidence(): Promise<LastAiEvidence | null> {
