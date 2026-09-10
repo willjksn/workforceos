@@ -57,7 +57,7 @@ Closed families: `SEARCH` · `SUMMARIZE` · `DRAFT` · `CREATE` · `UPDATE` · `
 
 Read commands may run immediately. Material writes require confirmation. Drafts stay Draft → Human Review → Send/Copy. Scout cannot send externally. Chat is not the system of record.
 
-Approved knowledge slugs for these playbooks live in `db/seed/phase7.ts` and appear under Admin → Knowledge Sources (`/app/ai-operations/knowledge`) after re-seed.
+Approved knowledge slugs for these playbooks live in `db/seed/phase7.ts` and appear under AI & Automation → Knowledge (`/app/ai-operations/knowledge`) after re-seed.
 
 ## Screens that have no dedicated route
 
@@ -77,7 +77,7 @@ Do not document these as live URLs. Work the listed screen instead.
 | No `/app/military/opportunities/[id]` | Employer Opportunities list `/app/military/opportunities` |
 | No `/app/military/candidates/[id]` | Transitioning Talent list `/app/military/candidates` (person is `/app/talent/[id]`) |
 | No `/app/military/match` | Transition Talent Profile `/app/military/skillbridge/[id]` |
-| `/app/legal` index redirects | Redirects to `/app/contracts`. Templates: `/app/legal/templates` (list; no template detail route) |
+| `/app/legal` index redirects | Redirects to `/app/contracts`. Templates: `/app/legal/templates` / `/app/legal/templates/[id]` (read stored language) |
 
 Not live in this phase: calendar OAuth, DocuSign envelopes, QuickBooks AR post, Checkr HTTP, Scout send. In-app Academy (Help & Training) is `/app/academy` and cites these playbooks.
 

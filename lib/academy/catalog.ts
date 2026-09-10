@@ -728,6 +728,7 @@ export const ACADEMY_ARTICLES: AcademyArticle[] = [
     stepByStep: [
       "Invite from Team & Access. Public sign-up is restricted. Only admin.roles can invite.",
       "Open the person. Check any module combination (Finance, Military Talent, Projects, and so on) regardless of title. Optionally keep a job-shaped template as a shortcut.",
+      "Access bundles and Access review are tabs on Team & Access.",
       "Optionally set grant/deny overrides. Deny wins. Disabled local users are rejected even if a Clerk session exists.",
     ],
     scoutCommands: ["SEARCH", "SHOW_RECORD"],
@@ -1000,6 +1001,7 @@ export const ACADEMY_ARTICLES: AcademyArticle[] = [
     ],
     stepByStep: [
       "Packages link to the service/engagement. Not a free-standing legal product.",
+      "Open Legal templates and click a name to read the stored language. Drafts live on that list, not a separate inbox.",
       "Record execution in WorkforceOS until DocuSign is live.",
       "Scout cannot execute or send contracts.",
     ],
@@ -1100,7 +1102,7 @@ export const ACADEMY_ARTICLES: AcademyArticle[] = [
       { href: "/app/admin/system-health", label: "System status" },
     ],
     stepByStep: [
-      "Open Admin → AI & Automation. Costs, prompts, and runs require agents.manage. Recruiters use the Review Queue only.",
+      "Open Admin → AI & Automation. Costs, prompts, runs, and Knowledge require agents.manage. Recruiters use the Review Queue only.",
       "Knowledge records stay approved and ACL-filtered (DEC-AI-006).",
       "Completing this module does not grant agents.manage.",
     ],
@@ -1140,7 +1142,7 @@ export const ACADEMY_ARTICLES: AcademyArticle[] = [
     slug: "admin",
     title: "Admin",
     section: "admin",
-    summary: "People, bundles, access review, and connected tools.",
+    summary: "Team & Access, Review Queue, AI & Automation, Public content, and Connected tools.",
     sources: ["docs/business/PIERONE_OPERATING_MANUAL.md"],
     isTrainingModule: true,
     requiredIfAny: ["admin.users", "admin.roles"],
@@ -1150,11 +1152,12 @@ export const ACADEMY_ARTICLES: AcademyArticle[] = [
     accessRequired: ["admin.users"],
     screenOverview: [
       { href: "/app/admin/users", label: "Team & Access" },
-      { href: "/app/admin/roles", label: "Access bundles" },
-      { href: "/app/admin/access-review", label: "Access review" },
+      { href: "/app/ai-operations/review", label: "Review Queue" },
+      { href: "/app/integrations", label: "Connected tools" },
     ],
     stepByStep: [
       "Invite-only. Assign bundles and optional overrides on the person detail.",
+      "Access bundles and Access review are tabs on Team & Access, not separate Admin nav items.",
       "Operations cannot change access bundles.",
       "Do not grant recruiters agents.manage.",
     ],

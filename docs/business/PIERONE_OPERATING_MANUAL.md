@@ -45,7 +45,7 @@ Live access bundle names (not job titles):
 
 Do not call the military access bundle **Military Talent Specialist**. The live slug is `military-talent-partner`. `military-talent-specialist` is a one-release alias only (DEC-MIL-005, DEC-AUTH-002).
 
-People and bundles: `/app/admin/users`, `/app/admin/users/[id]`, `/app/admin/roles`. Access review: `/app/admin/access-review`. New PierOne employees follow **staff onboarding** at `/app/academy/onboarding` (admin view: `/app/admin/users/[id]/onboarding`). That cadence is Day 1–Week 4 and is **not** the ATS hire queue at `/app/onboarding`. Academy article: Employee onboarding. Completing training does not grant permissions.
+People and bundles: `/app/admin/users` (Team & Access). Access bundles and access review are tabs on that screen (`/app/admin/roles`, `/app/admin/access-review`). New PierOne employees follow **staff onboarding** at `/app/academy/onboarding` (admin view: `/app/admin/users/[id]/onboarding`). That cadence is Day 1–Week 4 and is **not** the ATS hire queue at `/app/onboarding`. Academy article: Employee onboarding. Completing training does not grant permissions.
 
 ## Five offers
 
@@ -81,7 +81,7 @@ Closed command families only (`lib/scout/commands.ts`):
 
 `SEARCH` · `SUMMARIZE` · `DRAFT` · `CREATE` · `UPDATE` · `ASSIGN` · `ADD_TO_POOL` · `ADD_TO_JOB` · `CREATE_TASK` · `CREATE_FOLLOW_UP` · `SHOW_RECORD` · `SHOW_DASHBOARD` · `FIND_MATCHES`
 
-Read commands may run immediately. Material internal writes (`CREATE`, `UPDATE`, `ASSIGN`, pool/job/task/follow-up) require confirmation. Drafts follow Draft → Human Review → Send/Copy and never auto-send. Knowledge citations use approved `knowledge_records` (Admin → Knowledge Sources at `/app/ai-operations/knowledge`).
+Read commands may run immediately. Material internal writes (`CREATE`, `UPDATE`, `ASSIGN`, pool/job/task/follow-up) require confirmation. Drafts follow Draft → Human Review → Send/Copy and never auto-send. Knowledge citations use approved `knowledge_records` (AI & Automation → Knowledge at `/app/ai-operations/knowledge`).
 
 ## Canonical client flow
 

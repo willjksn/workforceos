@@ -1530,6 +1530,12 @@ export async function listLegalTemplates() {
   return db.select().from(legalTemplates).orderBy(legalTemplates.name);
 }
 
+export async function getLegalTemplate(id: string) {
+  const db = getDb();
+  const [row] = await db.select().from(legalTemplates).where(eq(legalTemplates.id, id)).limit(1);
+  return row ?? null;
+}
+
 export async function listDeliveryProjects(organizationId: string, filter?: string) {
   const db = getDb();
   const rows = await db

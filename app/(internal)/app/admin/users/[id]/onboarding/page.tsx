@@ -6,6 +6,7 @@ import { requireAppPermission } from "@/lib/auth/guard";
 import { getStaffOnboardingSnapshot } from "@/lib/staff-onboarding/service";
 import { StaffOnboardingPanel } from "../../../../_components/staff-onboarding-panel";
 import { PageHeader, PageShell } from "../../../../_components/ui";
+import { TeamAccessSubnav } from "../../../_components/team-access-subnav";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,7 @@ export default async function AdminUserOnboardingPage({
             </p>
           }
         />
+        <TeamAccessSubnav active="/app/admin/users" />
         <StaffOnboardingPanel snapshot={snapshot} showAdminControls />
       </PageShell>
     );

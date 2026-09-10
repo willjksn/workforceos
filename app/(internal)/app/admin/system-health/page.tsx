@@ -1,6 +1,6 @@
 import { getSystemHealth } from "@/lib/health/status";
 import { requirePlatformAdmin } from "@/lib/auth/guard";
-import { Card, PageHeader, PageShell, StatusBadge } from "../../_components/ui";
+import { Card, PageHeader, PageShell, StatusBadge, ButtonLink } from "../../_components/ui";
 
 export default async function SystemHealthPage() {
   await requirePlatformAdmin();
@@ -11,6 +11,7 @@ export default async function SystemHealthPage() {
         eyebrow="Admin"
         title="System status"
         description="Whether WorkforceOS can sign people in, reach PostgreSQL, and talk to connected tools. AI is labeled LIVE or HEURISTIC. Secrets are never shown."
+        actions={<ButtonLink href="/app/integrations">Connected tools</ButtonLink>}
       />
       <div className="mt-8 grid gap-3 sm:grid-cols-2">
         {health.checks.map((check) => (

@@ -71,7 +71,7 @@ Delivery project phases (approved template `professional-search-delivery`): Inta
 
 | | |
 | --- | --- |
-| **WorkforceOS screen** | Proposals `/app/proposals` / `/app/proposals/[id]`; Contracts `/app/contracts` / `/app/contracts/[id]`; Legal templates `/app/legal/templates` (list only) |
+| **WorkforceOS screen** | Proposals `/app/proposals` / `/app/proposals/[id]`; Contracts `/app/contracts` / `/app/contracts/[id]`; Legal templates `/app/legal/templates` / `/app/legal/templates/[id]` |
 | **Required data** | Approved plan; legal package linked to this engagement |
 | **Owner** | Senior Talent Partner drafts (`proposals.write`). `proposals.approve` and `contracts.approve` are Operations / Administrator / Executive. Senior Talent Partner has `contracts.read` only. |
 | **Access / permission** | `proposals.read` / `proposals.write` / `proposals.approve`; `contracts.read` / `contracts.write` / `contracts.approve`; `legal.read` |

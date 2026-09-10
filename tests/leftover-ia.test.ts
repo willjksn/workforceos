@@ -94,6 +94,10 @@ describe("leftover IA", () => {
     expect(readFileSync(path.join(root, "app/(internal)/app/legal/templates/page.tsx"), "utf8")).not.toMatch(
       /Structural templates/,
     );
+    expect(readFileSync(path.join(root, "app/(internal)/app/legal/templates/page.tsx"), "utf8")).toMatch(
+      /\/app\/legal\/templates\/\$\{row\.id\}/,
+    );
+    expect(existsSync(path.join(root, "app/(internal)/app/legal/templates/[id]/page.tsx"))).toBe(true);
   });
 
   it("asks business questions in reports and drops leftover implementation wording", () => {

@@ -1,6 +1,7 @@
 import { requireAppPermission } from "@/lib/auth/guard";
 import { getAccessReview } from "@/lib/admin/access-review";
 import { DataTable, EmptyState, PageHeader, PageShell, formatDate } from "../../_components/ui";
+import { TeamAccessSubnav } from "../_components/team-access-subnav";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,7 @@ export default async function AccessReviewPage() {
         title="Access review"
         description="Local account status, organizational title, access bundles, last login, and sensitive effective permissions. Clerk authenticates; these rows authorize."
       />
+      <TeamAccessSubnav active="/app/admin/access-review" />
       {rows.length === 0 ? (
         <EmptyState>No people are recorded for this organization.</EmptyState>
       ) : (

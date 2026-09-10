@@ -12,7 +12,7 @@ export default async function ReportsIndexPage() {
       <PageHeader
         eyebrow="Reports"
         title="What needs attention?"
-        description="Each report answers one operating question from stored PostgreSQL records. This is not a BI dashboard builder. Weekly operating reviews live on Command Center cadence boards."
+        description="Each report answers one operating question from saved records. You cannot build custom dashboards here. Weekly operating reviews live on Command Center cadence boards."
       />
       <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Link href="/app?cadence=leadership">

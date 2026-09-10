@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { AcademyHelp } from "@/components/academy/academy-help";
 import { ConceptNote } from "@/components/ia/concept-note";
 import { requireAppPermission } from "@/lib/auth/guard";
@@ -25,7 +27,11 @@ export default async function LegalTemplatesPage() {
         <DataTable columns={["Template", "Type", "Version", "Use status"]}>
           {rows.map((row) => (
             <tr key={row.id}>
-              <td className="font-medium text-navy">{row.name}</td>
+              <td>
+                <Link className="font-medium text-navy" href={`/app/legal/templates/${row.id}`}>
+                  {row.name}
+                </Link>
+              </td>
               <td>{formatLabel(row.templateType)}</td>
               <td>{row.version}</td>
               <td>

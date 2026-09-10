@@ -3,6 +3,7 @@ import { isFunctionalBundleSlug } from "@/lib/rbac/access-bundles";
 import { guideForRole } from "@/lib/rbac/role-guide";
 import { listOrganizationRoles } from "@/lib/repositories/platform";
 import { DataTable, EmptyState, PageHeader, PageShell, SectionHeader } from "../../_components/ui";
+import { TeamAccessSubnav } from "../_components/team-access-subnav";
 
 export default async function AdminRolesPage() {
   const principal = await requireAppPermission("admin.roles");
@@ -17,6 +18,7 @@ export default async function AdminRolesPage() {
         title="Access bundles"
         description="Module checkboxes are functions. Templates are shortcuts. Job titles are display-only. Only admin.roles can assign either on Team & Access. Clerk authenticates; it does not grant access. Only a Managing Partner can grant Managing Partner."
       />
+      <TeamAccessSubnav active="/app/admin/roles" />
       {rows.length === 0 ? (
         <EmptyState>No access bundles are configured for this organization.</EmptyState>
       ) : (

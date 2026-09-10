@@ -62,11 +62,11 @@ npm run db:bootstrap-admin -- --email you@company.com
 
 ## Role changes
 
-Use `/app/admin/users` (Team & Access) and `/app/admin/roles` (module and template catalog). Only `admin.roles` assigns access. Assignment is audited. The last Managing Partner cannot be removed. Review stale accounts on `/app/admin/access-review`. Training requirements follow effective access and do not grant access.
+Use `/app/admin/users` (Team & Access). Access bundles (`/app/admin/roles`) and stale-account review (`/app/admin/access-review`) are tabs on that screen, not separate Admin nav items. Only `admin.roles` assigns access. Assignment is audited. The last Managing Partner cannot be removed. Training requirements follow effective access and do not grant access.
 
 ## Integration reconnect
 
-1. Open `/app/admin/integrations`.
+1. Open `/app/integrations` (Connected tools), then Integration Hub `/app/admin/integrations`.
 2. Confirm the provider is labeled configured vs mock. Unconfigured providers stay mocks.
 3. Rotate credentials in Vercel env vars. Never paste secrets into the UI or logs.
 4. Re-run a health check from System status. Failed syncs appear on `/app/alerts` and Integration Hub.

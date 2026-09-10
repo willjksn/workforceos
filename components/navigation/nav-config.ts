@@ -43,7 +43,9 @@ export type NavGroup = {
 /**
  * Internal nav follows the operating lifecycle, not a module dump:
  * Commercial → Delivery → Talent → Pathway → Admin.
- * Item visibility is still permission-gated. Do not hide authorized work.
+ * Item visibility is still permission-gated. Admin lists daily destinations;
+ * nested screens (bundles, access review, knowledge, hub, health) stay on
+ * their routes and in-page tabs.
  */
 const NAV: NavGroup[] = [
   {
@@ -139,16 +141,9 @@ const NAV: NavGroup[] = [
     items: [
       { href: "/app/ai-operations", label: "AI & Automation", icon: "sparkles", permission: "agents.manage" },
       { href: "/app/ai-operations/review", label: "Review Queue", icon: "bell", permission: "agents.read" },
-      { href: "/app/ai-operations/knowledge", label: "Knowledge Sources", icon: "folder", permission: "knowledge.read" },
       { href: "/app/integrations", label: "Connected tools", icon: "network", anyPermission: ["integrations.read", "admin.users", "admin.roles"] },
       { href: "/app/public-content", label: "Public content", icon: "eye", permission: "public_content.read" },
       { href: "/app/admin/users", label: "Team & Access", icon: "users", permission: "admin.users" },
-      { href: "/app/admin/roles", label: "Access bundles", icon: "shield", permission: "admin.roles" },
-      { href: "/app/admin/integrations", label: "Integration Hub", icon: "network", adminOnly: true },
-      { href: "/app/admin/system-health", label: "System status", icon: "dashboard", adminOnly: true },
-      { href: "/app/admin/data-quality", label: "Data quality", icon: "clipboard", permission: "data_quality.read" },
-      { href: "/app/admin/access-review", label: "Access review", icon: "shield", permission: "admin.users" },
-      { href: "/app/admin/approvals", label: "Approvals", icon: "bell", adminOnly: true },
     ],
   },
 ];
@@ -188,13 +183,27 @@ export function isNavActive(href: string, pathname: string) {
   }
   if (href === "/app/military") return pathname === "/app/military";
   if (href === "/app/ai-operations") {
-    if (pathname.startsWith("/app/ai-operations/review") || pathname.startsWith("/app/ai-operations/knowledge")) {
+    if (pathname.startsWith("/app/ai-operations/review")) {
       return false;
     }
     return pathname === "/app/ai-operations" || pathname.startsWith("/app/ai-operations/");
   }
   if (href === "/app/integrations") {
-    return pathname === "/app/integrations" || pathname.startsWith("/app/integrations/");
+    return (
+      pathname === "/app/integrations" ||
+      pathname.startsWith("/app/integrations/") ||
+      pathname === "/app/admin/integrations" ||
+      pathname.startsWith("/app/admin/system-health")
+    );
+  }
+  if (href === "/app/admin/users") {
+    return (
+      pathname === "/app/admin/users" ||
+      pathname.startsWith("/app/admin/users/") ||
+      pathname === "/app/admin/roles" ||
+      pathname.startsWith("/app/admin/roles/") ||
+      pathname === "/app/admin/access-review"
+    );
   }
   return pathname === href || pathname.startsWith(`${href}/`);
 }

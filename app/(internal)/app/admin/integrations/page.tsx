@@ -3,7 +3,7 @@ import Link from "next/link";
 import { requirePlatformAdmin } from "@/lib/auth/guard";
 import { INTEGRATION_CATALOG, integrationStatusLabel } from "@/lib/integrations/catalog";
 import { getIntegrationHubStatus } from "@/lib/integrations/hub";
-import { Card, PageHeader, PageShell, StatusBadge, formatDate } from "../../_components/ui";
+import { Card, PageHeader, PageShell, StatusBadge, formatDate, ButtonLink } from "../../_components/ui";
 
 export default async function IntegrationsAdminPage() {
   await requirePlatformAdmin();
@@ -17,6 +17,7 @@ export default async function IntegrationsAdminPage() {
         eyebrow="Admin · Integration Hub"
         title="Integration Hub"
         description="Credentials and health for external products. Operators check status on Connected tools. These tools feed WorkforceOS; they do not replace PostgreSQL."
+        actions={<ButtonLink href="/app/integrations">Connected tools</ButtonLink>}
       />
       <div className="mt-8 space-y-8">
         {groups.map((group) => (

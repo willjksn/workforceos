@@ -3,20 +3,30 @@ import Link from "next/link";
 import { requireAnyAppPermission } from "@/lib/auth/guard";
 import { INTEGRATION_CATALOG, integrationStatusLabel } from "@/lib/integrations/catalog";
 import { getIntegrationHubStatus } from "@/lib/integrations/hub";
-import { Card, PageHeader, PageShell, StatusBadge, formatDate } from "../_components/ui";
+import { isPlatformAdmin } from "@/lib/rbac/permissions";
+import { ButtonLink, Card, PageHeader, PageShell, StatusBadge, formatDate } from "../_components/ui";
 
 export default async function IntegrationsOverviewPage() {
-  await requireAnyAppPermission(["integrations.read", "admin.users", "admin.roles"]);
+  const principal = await requireAnyAppPermission(["integrations.read", "admin.users", "admin.roles"]);
   const providers = await getIntegrationHubStatus();
   const byId = Object.fromEntries(providers.map((item) => [item.provider, item]));
   const groups = [...new Set(INTEGRATION_CATALOG.map((item) => item.group))];
+  const showHub = isPlatformAdmin(principal);
 
   return (
     <PageShell>
       <PageHeader
         eyebrow="Connected tools"
         title="Connected tools"
-        description="Status of external products that feed WorkforceOS. Credential changes live on Admin → Integration Hub. These tools are not the system of record."
+        description="Status of external products that feed WorkforceOS. Credential changes live on Integration Hub. These tools are not the system of record."
+        actions={
+          showHub ? (
+            <div className="flex flex-wrap gap-2">
+              <ButtonLink href="/app/admin/integrations">Integration Hub</ButtonLink>
+              <ButtonLink href="/app/admin/system-health">System status</ButtonLink>
+            </div>
+          ) : undefined
+        }
       />
       <div className="mt-8 space-y-8">
         {groups.map((group) => (

@@ -19,6 +19,7 @@ import {
   inputClassName,
 } from "../../_components/ui";
 import { UserStatusField } from "../_components/role-assign-field";
+import { TeamAccessSubnav } from "../_components/team-access-subnav";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,7 @@ export default async function AdminUsersPage() {
         description="Organizational title is display-only. Only an Administrator with Access bundles permission (admin.roles) can assign modules or templates. Open a person to check any combination for any employee. Training follows effective access, not title."
         actions={<AcademyHelp articleSlug="module-admin-people" />}
       />
+      <TeamAccessSubnav active="/app/admin/users" />
       {rows.length === 0 ? (
         <EmptyState>No people are recorded for this organization.</EmptyState>
       ) : (

@@ -45,27 +45,32 @@ describe("admin navigation", () => {
 
   it("shows operating Admin screens to Managing Partner and hides engineering registries", () => {
     const links = hrefs(principalFor("managing-partner"));
+    const admin = navGroupsForPrincipal(principalFor("managing-partner")).find((group) => group.label === "Admin");
+    expect(admin?.items.map((item) => item.href)).toEqual([
+      "/app/ai-operations",
+      "/app/ai-operations/review",
+      "/app/integrations",
+      "/app/public-content",
+      "/app/admin/users",
+    ]);
     expect(links).toContain("/app/admin/users");
-    expect(links).toContain("/app/admin/roles");
-    expect(links).toContain("/app/admin/integrations");
-    expect(links).toContain("/app/admin/system-health");
-    expect(links).toContain("/app/admin/approvals");
-    expect(links).toContain("/app/admin/data-quality");
-    expect(links).toContain("/app/admin/access-review");
+    expect(links).toContain("/app/integrations");
     expect(links).toContain("/app/reports");
     expect(links).toContain("/app/alerts");
     expect(links).toContain("/app/academy");
     expect(links).toContain("/app/ai-operations");
-    expect(links).toContain("/app/ai-operations/knowledge");
-    expect(
-      navGroupsForPrincipal(principalFor("managing-partner"))
-        .find((group) => group.label === "Admin")
-        ?.items.some((item) => item.label === "AI & Automation"),
-    ).toBe(true);
+    expect(links).not.toContain("/app/admin/roles");
+    expect(links).not.toContain("/app/admin/integrations");
+    expect(links).not.toContain("/app/admin/system-health");
+    expect(links).not.toContain("/app/admin/approvals");
+    expect(links).not.toContain("/app/admin/data-quality");
+    expect(links).not.toContain("/app/admin/access-review");
+    expect(links).not.toContain("/app/ai-operations/knowledge");
     expect(links).not.toContain("/app/ai-operations/costs");
     expect(links).not.toContain("/app/admin/agents");
     expect(links).not.toContain("/app/admin/requirements");
     expect(links).not.toContain("/app/admin/decisions");
+    expect(admin?.items.some((item) => item.label === "AI & Automation")).toBe(true);
   });
 
   it("labels Military Talent pathway operations instead of a SkillBridge program", () => {
@@ -83,14 +88,15 @@ describe("admin navigation", () => {
     expect(links).not.toContain("/app/ai-operations/costs");
   });
 
-  it("keeps Talent Partner on knowledge without AI cost consoles", () => {
+  it("keeps Talent Partner on Review Queue without AI cost consoles or knowledge in the sidebar", () => {
     const groups = navGroupsForPrincipal(principalFor("talent-partner"));
     const admin = groups.find((group) => group.label === "Admin");
     const links = hrefs(principalFor("talent-partner"));
     expect(links).not.toContain("/app/ai-operations/costs");
     expect(links).not.toContain("/app/ai-operations/runs");
     expect(admin?.items.some((item) => item.label === "AI & Automation")).toBe(false);
-    expect(admin?.items.some((item) => item.href === "/app/ai-operations/knowledge")).toBe(true);
+    expect(admin?.items.some((item) => item.href === "/app/ai-operations/knowledge")).toBe(false);
+    expect(admin?.items.some((item) => item.href === "/app/ai-operations/review")).toBe(true);
   });
 
   it("does not put commercial opportunities on the Recruiter sidebar", () => {

@@ -1,7 +1,7 @@
 import { requireAppPermission } from "@/lib/auth/guard";
 import { evaluateDataQuality } from "@/lib/data-quality/evaluate";
 import { Card } from "@/components/ui/display";
-import { PageHeader, PageShell, StatusBadge } from "../../_components/ui";
+import { PageHeader, PageShell, StatusBadge, ButtonLink } from "../../_components/ui";
 
 export default async function DataQualityPage() {
   const principal = await requireAppPermission("data_quality.read");
@@ -12,6 +12,7 @@ export default async function DataQualityPage() {
         eyebrow="Admin"
         title="Data quality"
         description="Completeness and freshness flags only. These are not performance or quality-of-hire scores."
+        actions={<ButtonLink href="/app/alerts">Operational alerts</ButtonLink>}
       />
       <div className="mt-8 grid gap-3 sm:grid-cols-2">
         {flags.map((flag) => (

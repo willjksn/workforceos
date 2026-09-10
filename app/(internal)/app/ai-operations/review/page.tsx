@@ -1,6 +1,7 @@
 import { requireAppPermission } from "@/lib/auth/guard";
 import { canDecideReview, listReviewQueue } from "@/lib/ai/review";
 import { decideReviewAction } from "@/lib/actions/ai";
+import { isPlatformAdmin } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../_components/action-form";
 import {
   EmptyState,
@@ -10,6 +11,7 @@ import {
   StatusBadge,
   formatLabel,
   inputClassName,
+  ButtonLink,
 } from "../../_components/ui";
 import { formatCitations } from "@/lib/ai/citations";
 import { AiSubnav } from "../_components/ai-subnav";
@@ -29,6 +31,11 @@ export default async function ReviewQueuePage({
         eyebrow="Review Queue"
         title="Review Queue"
         description="Material agent drafts wait here. Approve, reject, or request changes. Cost, prompt, and provider admin live under Admin → AI & Automation."
+        actions={
+          isPlatformAdmin(principal) ? (
+            <ButtonLink href="/app/admin/approvals">Approval history</ButtonLink>
+          ) : undefined
+        }
       />
       <AiSubnav active="/app/ai-operations/review" />
       {rows.length === 0 ? (

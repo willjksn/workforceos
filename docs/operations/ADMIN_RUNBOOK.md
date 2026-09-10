@@ -4,19 +4,19 @@ Day-to-day operating tasks for WorkforceOS administrators. Managing Partner, Ope
 
 ## People and access
 
-- `/app/admin/users` — **Invite person** sends the Clerk email and assigns the local role at the same time. Do not invite only in the Clerk Dashboard; that signs them in with no role (Command Center only). Disable rather than delete when someone leaves. Clerk metadata is not authorization.
-- `/app/admin/roles` — Strategy & Technology Administrator and Managing Partner. Operations Administrator cannot open this screen.
-- `/app/admin/access-review` — last login, account status, sensitive permissions (`candidate_pii.read`, `reports.export_pii`, `privacy.delete`, admin/finance/contract approvals), stale accounts (no login in 30 days).
+- `/app/admin/users` — **Invite person** sends the Clerk email and assigns the local role at the same time. Do not invite only in the Clerk Dashboard; that signs them in with no role (Command Center only). Disable rather than delete when someone leaves. Clerk metadata is not authorization. Access bundles and access review are tabs on this screen, not separate Admin nav items.
+- `/app/admin/roles` — Strategy & Technology Administrator and Managing Partner. Open from Team & Access → Access bundles. Operations Administrator cannot open this screen.
+- `/app/admin/access-review` — Team & Access → Access review. Last login, account status, sensitive permissions (`candidate_pii.read`, `reports.export_pii`, `privacy.delete`, admin/finance/contract approvals), stale accounts (no login in 30 days).
 
 A disabled local user cannot use the app even with a live Clerk session.
 
 ## System status
 
-`/app/admin/system-health` shows app version, environment, database, migrations, `vector` / `pg_trgm`, Clerk, Inngest, storage, integrations, AI provider, Resend, calendar, background/drug providers, public careers API, 24h queue failures, and a backup reminder. It never displays secrets or connection strings.
+`/app/admin/system-health` is not on the daily Admin sidebar. Open it from Connected tools. It shows app version, environment, database, migrations, `vector` / `pg_trgm`, Clerk, Inngest, storage, integrations, AI provider, Resend, calendar, background/drug providers, public careers API, 24h queue failures, and a backup reminder. It never displays secrets or connection strings.
 
 ## Data quality vs alerts
 
-- `/app/admin/data-quality` — completeness and freshness only (missing fields, stale contacts, unknown consent). Not performance or quality-of-hire.
+- `/app/admin/data-quality` — completeness and freshness only (missing fields, stale contacts, unknown consent). Not performance or quality-of-hire. Not on the daily Admin sidebar; open from Alerts.
 - `/app/alerts` — operating exceptions from current records (stale opportunities, overdue invoices, failed syncs, review backlog).
 
 ## Reports and exports
@@ -33,11 +33,11 @@ Privacy deletion (`privacy.delete` on the candidate Privacy tab) anonymizes Rest
 
 ## Approvals
 
-`/app/admin/approvals` and `/app/ai-operations/review` are the human gates for material AI output, workforce recommendations, and similar reviews.
+`/app/ai-operations/review` is the operator Review Queue (Admin sidebar). `/app/admin/approvals` is the platform-admin history of stored approval rows; open it from Review Queue → Approval history. Agents cannot approve their own work.
 
 ## Integrations
 
-`/app/admin/integrations` — reconnect credentials via environment variables. Failed billing syncs and unsigned webhooks are not “fixed” by clicking a mock provider healthy.
+`/app/integrations` (Connected tools) is the Admin sidebar destination. `/app/admin/integrations` (Integration Hub) is credentials and health — open it from Connected tools. Failed billing syncs and unsigned webhooks are not “fixed” by clicking a mock provider healthy.
 
 ## Seeds and fixtures
 

@@ -30,6 +30,7 @@ import {
   inputClassName,
 } from "../../../_components/ui";
 import { UserStatusField } from "../../_components/role-assign-field";
+import { TeamAccessSubnav } from "../../_components/team-access-subnav";
 
 export const dynamic = "force-dynamic";
 
@@ -81,6 +82,7 @@ export default async function AdminUserDetailPage({
           </p>
         }
       />
+      <TeamAccessSubnav active="/app/admin/users" />
 
       <section className="mt-8 space-y-4">
         <SectionHeader

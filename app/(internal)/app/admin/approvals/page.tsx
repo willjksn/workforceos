@@ -3,7 +3,7 @@ import { desc, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { approvals } from "@/db/schema";
 import { requirePlatformAdmin } from "@/lib/auth/guard";
-import { DataTable, EmptyState, PageHeader, PageShell, StatusBadge, formatLabel } from "../../_components/ui";
+import { DataTable, EmptyState, PageHeader, PageShell, StatusBadge, formatLabel, ButtonLink } from "../../_components/ui";
 
 export default async function ApprovalsAdminPage() {
   const principal = await requirePlatformAdmin();
@@ -21,6 +21,7 @@ export default async function ApprovalsAdminPage() {
         eyebrow="Admin"
         title="Approvals"
         description="Platform-admin list of stored approval rows for this organization. Operators review material AI on the Review Queue. Agents cannot approve their own work."
+        actions={<ButtonLink href="/app/ai-operations/review">Review Queue</ButtonLink>}
       />
       {rows.length === 0 ? (
         <EmptyState title="Nothing waiting">

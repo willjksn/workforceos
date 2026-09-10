@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Admin sidebar — daily destinations only — 2026-09-09
+
+- Admin nav keeps Team & Access, Review Queue, AI & Automation, Public content, and Connected tools.
+- Access bundles and Access review are tabs on Team & Access. Knowledge stays a tab under AI & Automation. Integration Hub and System status open from Connected tools. Data quality opens from Alerts. Approval history opens from Review Queue. Routes and permissions are unchanged.
+
+### Legal templates — open a stored draft — 2026-09-09
+
+- Template names on `/app/legal/templates` link to `/app/legal/templates/[id]`. Drafts are the yellow rows on that list; there is no separate drafts inbox. The detail page is read-only stored language.
+
 ### Phase 12 — Flexible module access, admin-only assignment — 2026-09-09
 
 - Accepted DEC-AUTH-003: title stays display-only. Any employee may hold any mix of functional module bundles (Finance, Military Talent, Projects, and so on). Job-shaped templates remain shortcuts.

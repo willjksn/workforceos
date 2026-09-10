@@ -67,7 +67,7 @@ Scout cannot send. Live DocuSign envelopes are Phase I — record execution in W
 
 | | |
 | --- | --- |
-| **WorkforceOS screen** | Contracts `/app/contracts` / `/app/contracts/[id]`. Legal templates `/app/legal/templates` (list; **no** template detail route). `/app/legal` redirects to `/app/contracts`. |
+| **WorkforceOS screen** | Contracts `/app/contracts` / `/app/contracts/[id]`. Legal templates `/app/legal/templates` / `/app/legal/templates/[id]` (read stored language; drafts are listed here, not a separate inbox). `/app/legal` redirects to `/app/contracts`. |
 | **Required data** | Required/conditional templates from that service’s approved workflow (see each service playbook). “Attorney-approved” only if `attorney_approved` is recorded. |
 | **Owner** | Operations and Administrator / Executive (`contracts.write`). Senior Talent Partner has `contracts.read` only. |
 | **Access / permission** | `contracts.read` / `contracts.write`; `legal.read` / `legal.write` |
