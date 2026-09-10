@@ -248,12 +248,13 @@ describe("Gemini availability failover", () => {
     const firstBody = String(fetchMock.mock.calls[0]?.[1]?.body ?? "");
     expect(firstBody).toContain("max_completion_tokens");
     expect(firstBody).not.toContain('"max_tokens"');
+    expect(firstBody).not.toContain('"temperature"');
   });
 
-  it("retries max_tokens when max_completion_tokens is unsupported and omits temperature when rejected", async () => {
+  it("retries max_tokens when max_completion_tokens is unsupported on a temperature-capable model", async () => {
     vi.stubEnv("AI_API_KEY", "sk-test");
     vi.stubEnv("AI_PROVIDER", "openai_compatible");
-    vi.stubEnv("AI_MODEL_FAST", "fast-class");
+    vi.stubEnv("AI_MODEL_FAST", "gpt-4o-mini");
     resetServerEnvCache();
 
     const fetchMock = vi.fn(async (_url: string, init?: { body?: BodyInit | null }) => {
@@ -276,8 +277,8 @@ describe("Gemini availability failover", () => {
           status: 400,
           json: async () => ({
             error: {
-              code: "unsupported_parameter",
-              message: "Unsupported parameter: 'temperature' is not supported with this model.",
+              code: "unsupported_value",
+              message: "Unsupported value: 'temperature' does not support 0.2 with this model. Only the default (1) value is supported.",
             },
           }),
         };
@@ -286,7 +287,7 @@ describe("Gemini availability failover", () => {
         ok: true,
         json: async () => ({
           choices: [{ message: { content: '{"summary":"legacy"}' } }],
-          model: "fast-class",
+          model: "gpt-4o-mini",
           usage: { prompt_tokens: 3, completion_tokens: 2 },
         }),
       };

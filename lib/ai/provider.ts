@@ -18,6 +18,14 @@ import {
 } from "./capabilities";
 import { AgentError } from "./errors";
 import { classifyProviderError, shouldFailoverForAvailability, type FailoverReason } from "./failover";
+import {
+  buildChatCompletionsBody,
+  chatParameterProfile,
+  describeParameterProfile,
+  nextChatRequestShape,
+  rejectedRequestField,
+  type TokenField,
+} from "./request-profile";
 
 export type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
@@ -82,47 +90,7 @@ function heuristicResult(input: {
   };
 }
 
-type TokenField = "max_tokens" | "max_completion_tokens";
 type ChatRequestShape = { tokenField: TokenField; includeTemperature: boolean };
-
-function initialTokenField(provider: string): TokenField {
-  return provider === "gemini" ? "max_tokens" : "max_completion_tokens";
-}
-
-function unsupportedParameterName(message: string) {
-  const quoted = /unsupported parameter:\s*'([^']+)'/i.exec(message);
-  return quoted?.[1] ?? null;
-}
-
-function chatCompletionsBody(input: {
-  model: string;
-  messages: ChatMessage[];
-  temperature?: number;
-  maxTokens?: number;
-  tokenField: TokenField;
-  includeTemperature: boolean;
-}) {
-  const body: Record<string, unknown> = {
-    model: input.model,
-    messages: input.messages,
-  };
-  if (input.includeTemperature) body.temperature = input.temperature ?? 0.2;
-  body[input.tokenField] = input.maxTokens ?? 1200;
-  return body;
-}
-
-function nextRequestShape(current: ChatRequestShape, unsupported: string | null): ChatRequestShape | null {
-  if (unsupported === "max_tokens" && current.tokenField === "max_tokens") {
-    return { ...current, tokenField: "max_completion_tokens" };
-  }
-  if (unsupported === "max_completion_tokens" && current.tokenField === "max_completion_tokens") {
-    return { ...current, tokenField: "max_tokens" };
-  }
-  if (unsupported === "temperature" && current.includeTemperature) {
-    return { ...current, includeTemperature: false };
-  }
-  return null;
-}
 
 async function callOpenAiCompatible(input: {
   baseUrl: string;
@@ -143,9 +111,17 @@ async function callOpenAiCompatible(input: {
     timedOut = true;
     controller.abort();
   }, input.timeoutMs);
-  let tokenField = initialTokenField(input.provider);
-  let includeTemperature = true;
+  const profile = chatParameterProfile({ model: input.model, provider: input.provider });
+  let tokenField = profile.tokenField;
+  let includeTemperature = profile.temperature === "send";
   const attempted = new Set<string>();
+  logServerEvent("ai.request", {
+    provider: input.provider,
+    capabilityClass: input.capabilityClass,
+    model: input.model,
+    usedFallback: input.usedFallback,
+    ...describeParameterProfile(profile, input.temperature ?? 0.2),
+  });
   try {
     while (true) {
       const shape = `${tokenField}:${includeTemperature ? "temp" : "notemp"}`;
@@ -160,11 +136,12 @@ async function callOpenAiCompatible(input: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(
-          chatCompletionsBody({
+          buildChatCompletionsBody({
             model: input.model,
             messages: input.messages,
             temperature: input.temperature,
             maxTokens: input.maxTokens,
+            profile,
             tokenField,
             includeTemperature,
           }),
@@ -181,7 +158,7 @@ async function callOpenAiCompatible(input: {
         const combined = `Provider HTTP ${response.status}${errorCode ? ` ${errorCode}` : ""}${errorMessage ? `: ${errorMessage}` : ""}`;
         const retry: ChatRequestShape | null =
           response.status === 400
-            ? nextRequestShape({ tokenField, includeTemperature }, unsupportedParameterName(combined))
+            ? nextChatRequestShape({ tokenField, includeTemperature }, rejectedRequestField(combined))
             : null;
         if (retry) {
           tokenField = retry.tokenField;
