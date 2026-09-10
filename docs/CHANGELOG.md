@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### System Status honesty + AI verification — 2026-09-10
+
+- System Status badges use LIVE / CONFIGURED / DEGRADED / MOCK / MANUAL / NOT CONFIGURED / DEVELOPMENT / ERROR. MOCK, MANUAL, and NOT CONFIGURED are never green HEALTHY.
+- OpenAI is LIVE only after a recorded live completion. Key presence alone is CONFIGURED (or DEGRADED if class model ids are unset).
+- Gemini, DocuSign, QuickBooks, SeekOut, Apollo, Sentry, Calendar, embeddings, and labor-market fixtures are split and labeled honestly.
+- Admin System Status can run a controlled FAST / STANDARD / REASONING probe (optional Gemini unavailable-model hop) without changing env vars or deferred vendors.
+
+
 ### Admin sidebar — daily destinations only — 2026-09-09
 
 - Admin nav keeps Team & Access, Review Queue, AI & Automation, Public content, and Connected tools.

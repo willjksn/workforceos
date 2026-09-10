@@ -1,8 +1,12 @@
-import { and, desc, eq, gt, gte, ne, or, sql } from "drizzle-orm";
+import { and, count, eq, gte, sql } from "drizzle-orm";
 
 import { createDb, getDb } from "../../db";
-import { agentRuns, integrationEvents } from "../../db/schema";
-import { describeAiRuntime } from "../ai/capabilities";
+import { agentRuns, integrationEvents, transactionalEmailEvents } from "../../db/schema";
+import {
+  areBusinessCapabilityModelsConfigured,
+  describeAiRuntime,
+} from "../ai/capabilities";
+import { formatAiEvidence, loadLastAiFallbackEvidence, loadLastLiveAiEvidence } from "../ai/health-probe";
 import { SEED_VERSION } from "../../db/seed/constants";
 import { getServerEnv, isClerkConfigured, isInngestConfigured } from "../env";
 import { getIntegrationHubStatus } from "../integrations/hub";
@@ -12,6 +16,8 @@ import {
   calendarWiringStatus,
   checkrWiringStatus,
   docusignWiringStatus,
+  isBlsConfigured,
+  isCensusConfigured,
   isResendConfigured,
   quickbooksWiringStatus,
   resendWiringStatus,
@@ -21,12 +27,14 @@ import {
 import { drugScreenProviderStatus } from "../drug-screens";
 import { getPublicContentPayload } from "../public-content/service";
 import { getStorageStatus } from "../storage";
-
-export type HealthCheck = {
-  title: string;
-  ok: boolean;
-  detail: string;
-};
+import {
+  formatIntegrationSummary,
+  healthCheck,
+  summarizeIntegrationStatuses,
+  type HealthCheck,
+  type HealthStatus,
+  type IntegrationHonestySummary,
+} from "./taxonomy";
 
 async function probe<T>(fn: () => Promise<T>) {
   try {
@@ -34,6 +42,23 @@ async function probe<T>(fn: () => Promise<T>) {
   } catch (error) {
     return { ok: false as const, error: error instanceof Error ? error.message : String(error) };
   }
+}
+
+function openaiStatus(input: {
+  liveConfigured: boolean;
+  classesConfigured: boolean;
+  lastLive: boolean;
+}): HealthStatus {
+  if (!input.liveConfigured) return "HEURISTIC";
+  if (!input.classesConfigured) return "DEGRADED";
+  if (!input.lastLive) return "CONFIGURED";
+  return "LIVE";
+}
+
+function geminiStatus(input: { configured: boolean; lastFallback: boolean }): HealthStatus {
+  if (!input.configured) return "NOT_CONFIGURED";
+  if (!input.lastFallback) return "CONFIGURED";
+  return "LIVE";
 }
 
 export async function getSystemHealth() {
@@ -71,41 +96,18 @@ export async function getSystemHealth() {
   const jobsOk = isInngestConfigured();
   const searchOk = extensions.ok && extensions.value.vector && extensions.value.trigram;
   const aiRuntime = describeAiRuntime(env);
-  let lastLiveAiCompletedAt: Date | null = null;
+  const classesConfigured = areBusinessCapabilityModelsConfigured(env);
+  let lastLive: Awaited<ReturnType<typeof loadLastLiveAiEvidence>> = null;
+  let lastFallback: Awaited<ReturnType<typeof loadLastAiFallbackEvidence>> = null;
   try {
-    const db = getDb();
-    const [lastLive] = await db
-      .select({ completedAt: agentRuns.completedAt })
-      .from(agentRuns)
-      .where(
-        and(
-          eq(agentRuns.status, "completed"),
-          ne(agentRuns.provider, "internal_heuristic"),
-        ),
-      )
-      .orderBy(desc(agentRuns.completedAt))
-      .limit(1);
-    lastLiveAiCompletedAt = lastLive?.completedAt ?? null;
+    lastLive = await loadLastLiveAiEvidence();
   } catch {
-    lastLiveAiCompletedAt = null;
+    lastLive = null;
   }
-  let lastAiFallbackAt: Date | null = null;
   try {
-    const db = getDb();
-    const [lastFallback] = await db
-      .select({ completedAt: agentRuns.completedAt })
-      .from(agentRuns)
-      .where(
-        and(
-          eq(agentRuns.status, "completed"),
-          or(eq(agentRuns.provider, "gemini"), gt(agentRuns.retryCount, 0)),
-        ),
-      )
-      .orderBy(desc(agentRuns.completedAt))
-      .limit(1);
-    lastAiFallbackAt = lastFallback?.completedAt ?? null;
+    lastFallback = await loadLastAiFallbackEvidence();
   } catch {
-    lastAiFallbackAt = null;
+    lastFallback = null;
   }
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
   let queueFailures = 0;
@@ -123,236 +125,325 @@ export async function getSystemHealth() {
   } catch {
     queueFailures = 0;
   }
+  let resendSent = false;
+  try {
+    const db = getDb();
+    const [row] = await db
+      .select({ value: count() })
+      .from(transactionalEmailEvents)
+      .where(and(eq(transactionalEmailEvents.provider, "resend"), eq(transactionalEmailEvents.status, "sent")));
+    resendSent = Number(row?.value ?? 0) > 0;
+  } catch {
+    resendSent = false;
+  }
+
+  const calendar = calendarWiringStatus();
+  const docusign = docusignWiringStatus();
+  const quickbooks = quickbooksWiringStatus();
+  const seekout = seekoutWiringStatus();
+  const apollo = apolloWiringStatus();
+  const checkr = checkrWiringStatus();
+  const sentry = sentryWiringStatus();
+  const resend = resendWiringStatus();
+
+  const openai = openaiStatus({
+    liveConfigured: aiRuntime.providerConfigured,
+    classesConfigured,
+    lastLive: Boolean(lastLive),
+  });
+  const gemini = geminiStatus({
+    configured: aiRuntime.fallbackConfigured,
+    lastFallback: Boolean(lastFallback && lastFallback.provider === "gemini"),
+  });
+  const resendStatus: HealthStatus = !resend.configured ? "NOT_CONFIGURED" : resendSent ? "LIVE" : "CONFIGURED";
+  const calendarStatus: HealthStatus = calendar.liveWired
+    ? "CONFIGURED"
+    : calendar.configured
+      ? "CONFIGURED"
+      : "MOCK";
+  const sentryStatus: HealthStatus = sentry.configured ? "CONFIGURED" : "NOT_CONFIGURED";
+  const laborStatus: HealthStatus = isBlsConfigured() || isCensusConfigured() ? "CONFIGURED" : "MOCK";
+  const seekoutStatus: HealthStatus = seekout.liveWired ? "LIVE" : seekout.configured ? "CONFIGURED" : "NOT_CONFIGURED";
+  const apolloStatus: HealthStatus = apollo.liveWired ? "LIVE" : apollo.configured ? "CONFIGURED" : "NOT_CONFIGURED";
+  const docusignStatus: HealthStatus = docusign.liveWired
+    ? "CONFIGURED"
+    : docusign.configured
+      ? "CONFIGURED"
+      : "NOT_CONFIGURED";
+  const quickbooksStatus: HealthStatus = quickbooks.liveWired
+    ? "CONFIGURED"
+    : quickbooks.configured
+      ? "CONFIGURED"
+      : "NOT_CONFIGURED";
+  const checkrStatus: HealthStatus = checkr.liveWired ? "CONFIGURED" : "MANUAL";
+  const drugStatus: HealthStatus = "MANUAL";
+  const embeddingsStatus: HealthStatus = "DEVELOPMENT";
+
+  const integrationSummary: IntegrationHonestySummary = summarizeIntegrationStatuses([
+    openai,
+    gemini,
+    sentryStatus,
+    laborStatus,
+    seekoutStatus,
+    apolloStatus,
+    docusignStatus,
+    quickbooksStatus,
+    calendarStatus,
+    checkrStatus,
+    drugStatus,
+    resendStatus,
+    embeddingsStatus,
+  ]);
+
+  const hubConfigured = integrations.filter((item) => item.configured).length;
+  const hubLive = integrations.filter((item) => item.liveWired).length;
 
   const checks: HealthCheck[] = [
-    {
-      title: "App version",
-      ok: true,
-      detail: env.APP_VERSION ?? "0.1.0",
-    },
-    {
-      title: "Deployment environment",
-      ok: true,
-      detail: `${env.NODE_ENV}${process.env.VERCEL_ENV ? ` / ${process.env.VERCEL_ENV}` : ""}${env.NEON_BRANCH ? ` / Neon ${env.NEON_BRANCH}` : ""}`,
-    },
-    {
-      title: "Database",
-      ok: database.ok,
-      detail: database.ok ? "Database is connected." : database.error,
-    },
-    {
-      title: "Migrations",
-      ok: migrations.ok,
-      detail: migrations.ok ? `${migrations.value.length} applied schema migrations.` : migrations.error,
-    },
-    {
-      title: "Extensions",
-      ok: searchOk,
-      detail: searchOk
+    healthCheck("App version", "OK", env.APP_VERSION ?? "0.1.0"),
+    healthCheck(
+      "Deployment environment",
+      "OK",
+      `${env.NODE_ENV}${process.env.VERCEL_ENV ? ` / ${process.env.VERCEL_ENV}` : ""}${env.NEON_BRANCH ? ` / Neon ${env.NEON_BRANCH}` : ""}`,
+    ),
+    healthCheck("Database", database.ok ? "LIVE" : "ERROR", database.ok ? "Neon PostgreSQL is connected." : database.error),
+    healthCheck(
+      "Migrations",
+      migrations.ok ? "LIVE" : "ERROR",
+      migrations.ok ? `${migrations.value.length} applied schema migrations.` : migrations.error,
+    ),
+    healthCheck(
+      "Extensions",
+      searchOk ? "LIVE" : "ERROR",
+      searchOk
         ? "Search extensions are available."
         : extensions.ok
           ? "One or more search extensions are missing."
           : extensions.error,
-    },
-    {
-      title: "Clerk",
-      ok: clerkProductionOk,
-      detail: !clerkOk
+    ),
+    healthCheck(
+      "Clerk",
+      !clerkOk ? "NOT_CONFIGURED" : productionRuntime && clerkIsTest ? "ERROR" : clerkProductionOk ? "LIVE" : "DEGRADED",
+      !clerkOk
         ? "Clerk keys are not set."
         : productionRuntime && clerkIsTest
           ? "NOT READY — production is using Clerk test keys. Signed-out /app fails until pk_live / sk_live are set. Live keys stay on Vercel production only."
           : "Sign-in is configured. WorkforceOS roles still control access.",
-    },
-    {
-      title: "Inngest",
-      ok: jobsOk,
-      detail: jobsOk ? "Inngest keys are present." : "Inngest is not configured. The app still runs without it.",
-    },
-    {
-      title: "Storage",
-      ok: storage.ready,
-      detail: storage.ready
-        ? `Ready (provider=${storage.adapter}, bucket=${storage.bucket ?? "n/a"}, endpoint=${storage.endpointConfigured ? "set" : "unset"}). Resume keys use applications/, military-talent/, and skillbridge/ prefixes.`
+    ),
+    healthCheck(
+      "Inngest",
+      jobsOk ? "CONFIGURED" : "NOT_CONFIGURED",
+      jobsOk ? "Inngest keys are present." : "Inngest is not configured. The app still runs without it.",
+    ),
+    healthCheck(
+      "Storage",
+      storage.ready ? "LIVE" : productionRuntime ? "ERROR" : "NOT_CONFIGURED",
+      storage.ready
+        ? `LIVE — R2/S3 ready (provider=${storage.adapter}, bucket=${storage.bucket ?? "n/a"}, endpoint=${storage.endpointConfigured ? "set" : "unset"}). Resume keys use applications/, military-talent/, and skillbridge/ prefixes.`
         : storage.adapter === "s3"
           ? `NOT READY — STORAGE_PROVIDER=s3 but bucket=${storage.bucket ? "set" : "unset"}, endpoint=${storage.endpointConfigured ? "set" : "unset"}. Credentials are not displayed. Uploads will fail.`
           : "NOT CONFIGURED — production uploads fail until STORAGE_PROVIDER=s3 plus S3_BUCKET, S3_ENDPOINT, S3_ACCESS_KEY_ID, and S3_SECRET_ACCESS_KEY.",
-    },
-    {
-      title: "Integrations",
-      ok: true,
-      detail: `${integrations.filter((item) => item.configured).length} of ${integrations.length} providers configured. Others stay disconnected until credentials are set.`,
-    },
-    {
-      title: "AI runtime",
-      ok: true,
-      detail: aiRuntime.mode === "live"
-        ? `LIVE — provider ${aiRuntime.providerName} is configured. Completions use capability-class models (FAST / STANDARD / REASONING), not hard-coded model brands.`
-        : "HEURISTIC — no live API key is configured (or AI_PROVIDER=internal_heuristic). Agents draft from stored PostgreSQL records. This is not a silent live-model fallback.",
-    },
-    {
-      title: "AI provider configured",
-      ok: aiRuntime.providerConfigured,
-      detail: aiRuntime.providerConfigured
-        ? `Yes — ${aiRuntime.providerName}. API key is set. The key is not displayed.`
-        : "No — AI_API_KEY / OPENAI_API_KEY is unset. Runtime is internal_heuristic.",
-    },
-    {
-      title: "AI fallback configured",
-      ok: true,
-      detail: aiRuntime.fallbackConfigured
-        ? "Yes — gemini via OpenAI-compatible HTTP. GEMINI_API_KEY is set. The key is not displayed. Failover is availability-only (timeout, 408/429/5xx, abort, empty body)."
-        : "No — AI_FALLBACK_PROVIDER / GEMINI_API_KEY unset. Gemini availability fallback is BLOCKED until those keys are set. Do not treat this as LIVE.",
-    },
-    {
-      title: "Last AI fallback",
-      ok: true,
-      detail: lastAiFallbackAt
-        ? lastAiFallbackAt.toISOString()
-        : "None recorded. Same-provider model fallback or Gemini has not completed a run in this database.",
-    },
-    {
-      title: "Embeddings",
-      ok: true,
-      detail: aiRuntime.embeddingPath,
-    },
-    {
-      title: "Sentry",
-      ok: true,
-      detail: `${sentryWiringStatus().liveLabel} — ${sentryWiringStatus().detail}`,
-    },
-    {
-      title: "Labor market (BLS / Census)",
-      ok: true,
-      detail: env.BLS_API_KEY || env.CENSUS_API_KEY
-        ? `Keys present: ${[env.BLS_API_KEY ? "BLS" : null, env.CENSUS_API_KEY ? "Census" : null].filter(Boolean).join(", ")}. Unconfigured providers stay labeled fixtures. Values are not displayed.`
-        : "NOT CONFIGURED — BLS_API_KEY and CENSUS_API_KEY are unset. Labor-market adapters stay labeled fixtures.",
-    },
-    {
-      title: "Talent sourcing (SeekOut / Apollo)",
-      ok: true,
-      detail: `${seekoutWiringStatus().liveLabel} SeekOut — ${seekoutWiringStatus().detail} ${apolloWiringStatus().liveLabel} Apollo — ${apolloWiringStatus().detail}`,
-    },
-    {
-      title: "DocuSign / QuickBooks",
-      ok: true,
-      detail: `${docusignWiringStatus().liveLabel} DocuSign — ${docusignWiringStatus().detail} ${quickbooksWiringStatus().liveLabel} QuickBooks — ${quickbooksWiringStatus().detail}`,
-    },
-    {
-      title: "Scout",
-      ok: true,
-      detail: aiRuntime.scoutLiveCompletions
-        ? "Scout is configured. Closed command registry only; the model never generates SQL. External send requires scout.external_actions, a confirmation token, and Resend. Live completions are available for agent tasks that use Scout's capability class."
-        : "Scout is configured. Closed command registry only; the model never generates SQL. External send requires scout.external_actions, a confirmation token, and Resend. Completions are heuristic until a live AI key is set.",
-    },
-    {
-      title: "Last successful live AI call",
-      ok: true,
-      detail: lastLiveAiCompletedAt
-        ? lastLiveAiCompletedAt.toISOString()
-        : "None recorded. Either this environment is heuristic, or no live completion has succeeded yet.",
-    },
-    {
-      title: "Queue failures (24h)",
-      ok: queueFailures === 0,
-      detail: queueFailures === 0 ? "No failed agent runs or integration events in the last 24 hours." : `${queueFailures} failures.`,
-    },
-    {
-      title: "Resend",
-      ok: env.NODE_ENV === "production" ? isResendConfigured() : true,
-      detail: `${resendWiringStatus().liveLabel} — ${resendWiringStatus().detail}`,
-    },
-    {
-      title: "Calendar provider",
-      ok: true,
-      detail: `${calendarWiringStatus().liveLabel} — ${calendarProviderStatus().detail}`,
-    },
-    {
-      title: "Background checks",
-      ok: true,
-      detail: `${checkrWiringStatus().liveLabel} — ${checkrWiringStatus().detail}`,
-    },
-    {
-      title: "Drug screens",
-      ok: true,
-      detail: drugScreenProviderStatus().detail,
-    },
-    {
-      title: "Public Jobs API",
-      ok: database.ok,
-      detail: database.ok
-        ? "GET /api/public/v1/jobs and /jobs/[slug]. Published jobs only. Confidential client identity is redacted."
+    ),
+    healthCheck(
+      "Integrations",
+      integrationSummary.live > 0 ? "LIVE" : integrationSummary.configured > 0 ? "CONFIGURED" : "NOT_CONFIGURED",
+      `${formatIntegrationSummary(integrationSummary)} Hub adapters: ${hubLive} live / ${hubConfigured} configured of ${integrations.length}. Mock providers are not counted as live.`,
+    ),
+    healthCheck(
+      "OpenAI",
+      openai,
+      openai === "LIVE"
+        ? "LIVE — OpenAI-compatible completions have succeeded in this database. Capability-class routing is in use. The API key is not displayed."
+        : openai === "CONFIGURED"
+          ? "CONFIGURED — OpenAI-compatible key and FAST/STANDARD/REASONING class ids are set. No successful live completion is recorded yet. Do not treat this as verified LIVE."
+          : openai === "DEGRADED"
+            ? "DEGRADED — an API key is present but FAST/STANDARD/REASONING class ids are unset or heuristic. Completions stay heuristic until class models are set."
+            : "HEURISTIC — no live API key is configured (or AI_PROVIDER=internal_heuristic). Agents draft from stored PostgreSQL records.",
+    ),
+    healthCheck(
+      "Gemini fallback",
+      gemini,
+      gemini === "LIVE"
+        ? "LIVE — Gemini availability fallback has completed a recorded hop. Failover is timeout / 408 / 429 / 5xx / abort / empty body / model unavailable only."
+        : gemini === "CONFIGURED"
+          ? "CONFIGURED — GEMINI_API_KEY and AI_FALLBACK_PROVIDER are set. No successful Gemini fallback is recorded yet. Style/tone never hops."
+          : "NOT CONFIGURED — AI_FALLBACK_PROVIDER / GEMINI_API_KEY unset. Do not treat this as LIVE.",
+    ),
+    healthCheck(
+      "Last AI fallback",
+      lastFallback ? "LIVE" : "OK",
+      formatAiEvidence(
+        lastFallback,
+        "None recorded. Same-provider model fallback or Gemini has not completed a run in this database.",
+      ),
+    ),
+    healthCheck(
+      "Embeddings",
+      embeddingsStatus,
+      `${aiRuntime.embeddingPath} Not production retrieval. Keep deferred until a model and dimension are chosen together (DEC-SEM-001).`,
+    ),
+    healthCheck(
+      "Sentry",
+      sentryStatus,
+      sentry.configured
+        ? "CONFIGURED — SENTRY_DSN is set. Official SDK can initialize. Events have not been independently verified here. The DSN is not displayed."
+        : "NOT CONFIGURED — SENTRY_DSN is unset. Official SDK stays idle.",
+    ),
+    healthCheck(
+      "Labor market (BLS / Census)",
+      laborStatus,
+      env.BLS_API_KEY || env.CENSUS_API_KEY
+        ? `CONFIGURED — keys present: ${[env.BLS_API_KEY ? "BLS" : null, env.CENSUS_API_KEY ? "Census" : null].filter(Boolean).join(", ")}. Unconfigured providers stay labeled fixtures. Values are not displayed.`
+        : "MOCK — BLS_API_KEY and CENSUS_API_KEY are unset. Labor-market adapters stay labeled fixtures.",
+    ),
+    healthCheck(
+      "SeekOut",
+      seekoutStatus,
+      `${seekout.liveLabel} — ${seekout.detail}`,
+    ),
+    healthCheck(
+      "Apollo",
+      apolloStatus,
+      `${apollo.liveLabel} — ${apollo.detail}`,
+    ),
+    healthCheck(
+      "DocuSign",
+      docusignStatus,
+      `${docusign.liveLabel} — ${docusign.detail}`,
+    ),
+    healthCheck(
+      "QuickBooks",
+      quickbooksStatus,
+      `${quickbooks.liveLabel} — ${quickbooks.detail}`,
+    ),
+    healthCheck(
+      "Scout",
+      "LIVE",
+      "LIVE — closed command registry. The model never generates SQL. Chat completions are not used on this path. External send still requires scout.external_actions, a confirmation token, and Resend.",
+    ),
+    healthCheck(
+      "Last successful live AI call",
+      lastLive ? "LIVE" : "OK",
+      formatAiEvidence(
+        lastLive,
+        "None recorded. Either this environment is heuristic, or no live completion has succeeded yet.",
+      ),
+    ),
+    healthCheck(
+      "Queue failures (24h)",
+      queueFailures === 0 ? "LIVE" : "DEGRADED",
+      queueFailures === 0 ? "No failed agent runs or integration events in the last 24 hours." : `${queueFailures} failures.`,
+    ),
+    healthCheck(
+      "Resend",
+      productionRuntime && !isResendConfigured() ? "ERROR" : resendStatus,
+      resendStatus === "LIVE"
+        ? `${resend.liveLabel} — transactional send is wired${resendSent ? " and at least one sent event is stored" : ""}. Scout send still requires scout.external_actions and human confirmation.`
+        : `${resend.liveLabel} — ${resend.detail}`,
+    ),
+    healthCheck(
+      "Google / Microsoft Calendar",
+      calendarStatus,
+      calendar.liveWired
+        ? "CONFIGURED — OAuth refresh tokens are present. Calendar is not LIVE until attendees are invited, freeBusy/schedule is real, and create/read/update/cancel is verified. Token values are not displayed."
+        : `${calendar.liveLabel} — ${calendarProviderStatus().detail}`,
+    ),
+    healthCheck(
+      "Background checks",
+      checkrStatus,
+      `${checkr.liveLabel} — ${checkr.detail}`,
+    ),
+    healthCheck(
+      "Drug screens",
+      drugStatus,
+      drugScreenProviderStatus().detail,
+    ),
+    healthCheck(
+      "Public Jobs API",
+      database.ok ? "LIVE" : "ERROR",
+      database.ok
+        ? "LIVE — GET /api/public/v1/jobs and /jobs/[slug]. Published jobs only. Confidential client identity is redacted."
         : "Public jobs cannot be served until the database is connected.",
-    },
-    {
-      title: "Public Content API",
-      ok: content.ok,
-      detail: content.ok
-        ? "GET /api/public/v1/content. Active-window items only. Closed jobs drop from featured payloads without a website deploy. Cached 60s."
+    ),
+    healthCheck(
+      "Public Content API",
+      content.ok ? "LIVE" : "ERROR",
+      content.ok
+        ? "LIVE — GET /api/public/v1/content. Active-window items only. Closed jobs drop from featured payloads without a website deploy. Cached 60s."
         : content.error.includes("public_content_items") || /does not exist|relation/i.test(content.error)
           ? "NOT READY — public_content_items is missing or unreadable. Apply migration 0012_wise_scourge on this database."
           : `NOT READY — GET /api/public/v1/content failed. ${content.error.slice(0, 180)}`,
-    },
-    {
-      title: "Public site HMAC",
-      ok: env.NODE_ENV === "production" ? Boolean(env.PUBLIC_SITE_INTEGRATION_SECRET) : true,
-      detail: env.PUBLIC_SITE_INTEGRATION_SECRET
-        ? "PUBLIC_SITE_INTEGRATION_SECRET is set. Unauthenticated public writes require a valid HMAC. Origin/Referer cannot skip signing. The secret is not displayed."
+    ),
+    healthCheck(
+      "Public site HMAC",
+      env.PUBLIC_SITE_INTEGRATION_SECRET ? "LIVE" : productionRuntime ? "ERROR" : "NOT_CONFIGURED",
+      env.PUBLIC_SITE_INTEGRATION_SECRET
+        ? "LIVE — PUBLIC_SITE_INTEGRATION_SECRET is set. Unauthenticated public writes require a valid HMAC. Origin/Referer cannot skip signing. The secret is not displayed."
         : env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production"
           ? "NOT CONFIGURED — production public writes are rejected until PUBLIC_SITE_INTEGRATION_SECRET is set."
           : "NOT CONFIGURED — development public writes may omit HMAC. Production requires the secret.",
-    },
-    {
-      title: "Public Applications API",
-      ok:
-        database.ok &&
-        storage.ready &&
-        (env.NODE_ENV === "production" ? Boolean(env.PUBLIC_SITE_INTEGRATION_SECRET) : true),
-      detail: !database.ok
+    ),
+    healthCheck(
+      "Public Applications API",
+      database.ok && storage.ready && (productionRuntime ? Boolean(env.PUBLIC_SITE_INTEGRATION_SECRET) : true)
+        ? "LIVE"
+        : productionRuntime
+          ? "ERROR"
+          : "NOT_CONFIGURED",
+      !database.ok
         ? "Applications cannot be stored until the database is connected."
         : !storage.ready
           ? "NOT READY — resume upload requires STORAGE_PROVIDER=s3 plus S3 credentials in production."
           : env.NODE_ENV === "production" && !env.PUBLIC_SITE_INTEGRATION_SECRET
             ? "NOT READY — production applications require HMAC signing."
-            : "POST /api/public/v1/applications. HMAC required in production. WorkforceOS /careers posts via /api/careers/applications. Resume binaries go to StorageProvider.",
-    },
-    {
-      title: "Public Inquiry API",
-      ok: database.ok && (env.NODE_ENV === "production" ? Boolean(env.PUBLIC_SITE_INTEGRATION_SECRET) : true),
-      detail: !database.ok
+            : "LIVE — POST /api/public/v1/applications. HMAC required in production. Resume binaries go to StorageProvider.",
+    ),
+    healthCheck(
+      "Public Inquiry API",
+      database.ok && (productionRuntime ? Boolean(env.PUBLIC_SITE_INTEGRATION_SECRET) : true)
+        ? "LIVE"
+        : productionRuntime
+          ? "ERROR"
+          : "NOT_CONFIGURED",
+      !database.ok
         ? "Inquiries cannot be stored until the database is connected."
         : env.NODE_ENV === "production" && !env.PUBLIC_SITE_INTEGRATION_SECRET
           ? "NOT READY — production inquiries require HMAC signing."
-          : "POST /api/public/v1/inquiries creates website_inquiries intake records. Opportunities are not auto-created.",
-    },
-    {
-      title: "Military Talent Intake API",
-      ok: database.ok && (env.NODE_ENV === "production" ? Boolean(env.PUBLIC_SITE_INTEGRATION_SECRET) : true),
-      detail: !database.ok
+          : "LIVE — POST /api/public/v1/inquiries creates website_inquiries intake records. Opportunities are not auto-created.",
+    ),
+    healthCheck(
+      "Military Talent Intake API",
+      database.ok && (productionRuntime ? Boolean(env.PUBLIC_SITE_INTEGRATION_SECRET) : true)
+        ? "LIVE"
+        : productionRuntime
+          ? "ERROR"
+          : "NOT_CONFIGURED",
+      !database.ok
         ? "Military talent intake cannot be stored until the database is connected."
         : env.NODE_ENV === "production" && !env.PUBLIC_SITE_INTEGRATION_SECRET
           ? "NOT READY — production military-talent intake requires HMAC signing."
-          : "POST /api/public/v1/military-talent reuses Candidate + Transition Talent Profile (skillbridge_profiles) records. A public job is not required.",
-    },
-    {
-      title: "Public careers URL",
-      ok: env.NODE_ENV === "production" ? Boolean(env.PUBLIC_CAREERS_URL) : true,
-      detail: env.PUBLIC_CAREERS_URL
-        ? `Public careers URL: ${env.PUBLIC_CAREERS_URL}`
+          : "LIVE — POST /api/public/v1/military-talent reuses Candidate + Transition Talent Profile records. A public job is not required.",
+    ),
+    healthCheck(
+      "Public careers URL",
+      env.PUBLIC_CAREERS_URL ? "LIVE" : productionRuntime ? "NOT_CONFIGURED" : "NOT_CONFIGURED",
+      env.PUBLIC_CAREERS_URL
+        ? `LIVE — Public careers URL: ${env.PUBLIC_CAREERS_URL}`
         : env.NODE_ENV === "production"
           ? "NOT CONFIGURED — set PUBLIC_CAREERS_URL to https://pieronepartners.com/careers when the public site is live."
           : "Set PUBLIC_CAREERS_URL when pieronepartners.com/careers is live.",
-    },
-    {
-      title: "Backup / checkpoint",
-      ok: true,
-      detail: "Neon PITR and branch checkpoints are managed in the Neon console. See the operating playbook. No backup secrets are shown here.",
-    },
+    ),
+    healthCheck(
+      "Backup / checkpoint",
+      "CONFIGURED",
+      "CONFIGURED — Neon PITR and branch checkpoints are managed in the Neon console. See the operating playbook. No backup secrets are shown here.",
+    ),
   ];
 
   return {
     seedVersion: SEED_VERSION,
     environment: env.NODE_ENV,
     version: env.APP_VERSION ?? "0.1.0",
+    integrationSummary,
     checks,
   };
 }

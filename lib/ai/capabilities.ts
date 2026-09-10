@@ -128,6 +128,21 @@ export function isEmbeddingModelConfigured(env: ServerEnv = getServerEnv()) {
   return Boolean(env.AI_MODEL_EMBEDDING ?? env.OPENAI_EMBEDDING_MODEL);
 }
 
+export function isBusinessCapabilityClassConfigured(
+  capability: Exclude<AiCapabilityClass, "EMBEDDING">,
+  env: ServerEnv = getServerEnv(),
+) {
+  return !isHeuristicModelName(resolveCapabilityModel(capability, env));
+}
+
+export function areBusinessCapabilityModelsConfigured(env: ServerEnv = getServerEnv()) {
+  return (
+    isBusinessCapabilityClassConfigured("FAST", env) &&
+    isBusinessCapabilityClassConfigured("STANDARD", env) &&
+    isBusinessCapabilityClassConfigured("REASONING", env)
+  );
+}
+
 export function getAiRuntimeMode(env: ServerEnv = getServerEnv()): AiRuntimeMode {
   return isLiveAiConfigured(env) ? "live" : "heuristic";
 }
@@ -149,6 +164,7 @@ export function describeAiRuntime(env: ServerEnv = getServerEnv()) {
     scoutLiveCompletions: live,
     fallbackConfigured: isGeminiFallbackConfigured(env),
     fallbackProviderName: isGeminiFallbackConfigured(env) ? "gemini" : null,
+    businessClassesConfigured: areBusinessCapabilityModelsConfigured(env),
     capabilityModels: {
       FAST: resolveCapabilityModel("FAST", env),
       STANDARD: resolveCapabilityModel("STANDARD", env),

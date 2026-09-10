@@ -2,16 +2,17 @@
 
 import { z } from "zod";
 
-import { requireAppPermission } from "@/lib/auth/guard";
+import { requireAppPermission, requirePlatformAdmin } from "@/lib/auth/guard";
 import { AuthorizationError } from "@/lib/rbac/permissions";
 import { AgentError } from "@/lib/ai/errors";
+import { runProductionAiVerification } from "@/lib/ai/health-probe";
 import { runAgentTask, retryAgentRun } from "@/lib/ai/runner";
 import { decideReviewItem } from "@/lib/ai/review";
 import { acceptHandoff, createAgentHandoff } from "@/lib/ai/handoffs";
 import { approveKnowledgeRecord, createKnowledgeRecord } from "@/lib/ai/knowledge";
 import { approvePromptVersion, createPromptVersion } from "@/lib/ai/prompts";
 
-export type ActionState = { error?: string };
+export type ActionState = { error?: string; message?: string };
 
 function fail(error: unknown): ActionState {
   if (error instanceof AuthorizationError || error instanceof AgentError) return { error: error.message };
@@ -226,6 +227,37 @@ export async function acceptHandoffAction(_prev: ActionState, formData: FormData
     const parsed = z.object({ handoffId: z.string().uuid() }).parse({ handoffId: formData.get("handoffId") });
     await acceptHandoff({ actor: actorFrom(principal), handoffId: parsed.handoffId });
     return {};
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+function summarizeProbe(label: string, probe: { provider: string; capabilityClass: string; usedFallback: boolean; ok: boolean; error: string | null; model: string; inputTokens: number | null; outputTokens: number | null }) {
+  const tokens =
+    probe.inputTokens != null || probe.outputTokens != null
+      ? ` tokens ${probe.inputTokens ?? 0}/${probe.outputTokens ?? 0}`
+      : "";
+  return `${label}: ${probe.ok ? "PASS" : "FAIL"} ${probe.provider} ${probe.capabilityClass} model=${probe.model} fallback=${probe.usedFallback ? "yes" : "no"}${tokens}${probe.error ? ` (${probe.error})` : ""}`;
+}
+
+export async function verifyProductionAiAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    const principal = await requirePlatformAdmin();
+    const includeGemini = formData.get("includeGemini") === "1";
+    const result = await runProductionAiVerification({
+      organizationId: principal.organizationId,
+      actorUserId: principal.id,
+      includeGeminiFailover: includeGemini,
+    });
+    const lines = [
+      summarizeProbe("FAST", result.fast),
+      summarizeProbe("STANDARD", result.standard),
+      summarizeProbe("REASONING", result.reasoning),
+      result.gemini ? summarizeProbe("GEMINI", result.gemini) : "GEMINI: skipped",
+      `Style/tone does not failover: ${result.styleDoesNotFailover ? "yes" : "no"}`,
+      `PII used: ${result.piiUsed ? "yes" : "no"}`,
+    ];
+    return { message: lines.join(" · ") };
   } catch (error) {
     return fail(error);
   }

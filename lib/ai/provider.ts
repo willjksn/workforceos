@@ -115,7 +115,14 @@ async function callOpenAiCompatible(input: {
       signal: controller.signal,
     });
     if (!response.ok) {
-      throw new AgentError(`Provider HTTP ${response.status}`, "provider");
+      const errJson = (await response.json().catch(() => ({}))) as {
+        error?: { code?: string; type?: string };
+      };
+      const errorCode = errJson.error?.code ?? errJson.error?.type ?? "";
+      throw new AgentError(
+        `Provider HTTP ${response.status}${errorCode ? ` ${errorCode}` : ""}`,
+        "provider",
+      );
     }
     const json = (await response.json()) as {
       choices?: Array<{ message?: { content?: string } }>;

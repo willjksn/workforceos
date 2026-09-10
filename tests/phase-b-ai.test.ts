@@ -112,6 +112,7 @@ describe("Phase B capability-class models", () => {
     expect(heuristic.providerName).toBe("internal_heuristic");
     expect(heuristic.scoutConfigured).toBe(true);
     expect(heuristic.fallbackConfigured).toBe(false);
+    expect(heuristic.businessClassesConfigured).toBe(false);
     expect(JSON.stringify(heuristic)).not.toContain("sk-");
   });
 
@@ -126,6 +127,7 @@ describe("Phase B capability-class models", () => {
     expect(shouldFailoverForAvailability(failoverReasonFromLabel("http_429"))).toBe(true);
     expect(shouldFailoverForAvailability(failoverReasonFromLabel("http_5xx"))).toBe(true);
     expect(shouldFailoverForAvailability(failoverReasonFromLabel("empty_body"))).toBe(true);
+    expect(shouldFailoverForAvailability(failoverReasonFromLabel("model_unavailable"))).toBe(true);
   });
 
   it("does not import Anthropic or hard-code GPT-5.6 Luna/Terra/Sol in app code", () => {
