@@ -60,6 +60,22 @@ export function resolveAiBaseUrl(env: ServerEnv = getServerEnv()) {
   return env.AI_BASE_URL ?? "https://api.openai.com/v1";
 }
 
+export function resolveAiBaseHost(env: ServerEnv = getServerEnv()) {
+  try {
+    return new URL(resolveAiBaseUrl(env)).host;
+  } catch {
+    return "unparseable";
+  }
+}
+
+export function resolveFallbackBaseHost(env: ServerEnv = getServerEnv()) {
+  try {
+    return new URL(resolveFallbackBaseUrl(env)).host;
+  } catch {
+    return "unparseable";
+  }
+}
+
 export function resolveCapabilityModel(
   capability: AiCapabilityClass,
   env: ServerEnv = getServerEnv(),
@@ -165,6 +181,8 @@ export function describeAiRuntime(env: ServerEnv = getServerEnv()) {
     fallbackConfigured: isGeminiFallbackConfigured(env),
     fallbackProviderName: isGeminiFallbackConfigured(env) ? "gemini" : null,
     businessClassesConfigured: areBusinessCapabilityModelsConfigured(env),
+    primaryHost: resolveAiBaseHost(env),
+    fallbackHost: isGeminiFallbackConfigured(env) ? resolveFallbackBaseHost(env) : null,
     capabilityModels: {
       FAST: resolveCapabilityModel("FAST", env),
       STANDARD: resolveCapabilityModel("STANDARD", env),

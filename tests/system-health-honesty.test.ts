@@ -154,4 +154,51 @@ describe("Gemini availability failover", () => {
     expect(primary.usedFallback).toBe(false);
     expect(primary.model).toBe("fast-class");
   });
+
+  it("requireLive throws the provider HTTP error instead of returning heuristic", async () => {
+    vi.stubEnv("AI_API_KEY", "sk-test");
+    vi.stubEnv("AI_PROVIDER", "openai_compatible");
+    vi.stubEnv("AI_MODEL_FAST", "fast-class");
+    resetServerEnvCache();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: false,
+        status: 401,
+        json: async () => ({ error: { code: "invalid_api_key", message: "Incorrect API key provided: sk-test" } }),
+      })),
+    );
+
+    await expect(
+      completePrompt({
+        taskType: "status_summary",
+        capabilityClass: "FAST",
+        requireLive: true,
+        messages: [{ role: "user", content: "Task: status_summary" }],
+      }),
+    ).rejects.toMatchObject({
+      message: expect.stringMatching(/http_401[\s\S]*invalid_api_key/),
+    });
+
+    try {
+      await completePrompt({
+        taskType: "status_summary",
+        capabilityClass: "FAST",
+        requireLive: true,
+        messages: [{ role: "user", content: "Task: status_summary" }],
+      });
+      throw new Error("expected live failure");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      expect(message).not.toMatch(/sk-test/);
+      expect(message).not.toMatch(/stayed on internal_heuristic/);
+    }
+
+    const heuristic = await completePrompt({
+      taskType: "status_summary",
+      capabilityClass: "FAST",
+      messages: [{ role: "user", content: "Task: status_summary" }],
+    });
+    expect(heuristic.provider).toBe("internal_heuristic");
+  });
 });

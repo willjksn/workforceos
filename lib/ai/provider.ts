@@ -32,6 +32,8 @@ export type CompletionRequest = {
   maxTokens?: number;
   fallbackProvider?: string;
   fallbackModel?: string;
+  /** When true, never return a heuristic draft. Throw the provider failure instead. */
+  requireLive?: boolean;
 };
 
 export type CompletionResult = {
@@ -116,11 +118,12 @@ async function callOpenAiCompatible(input: {
     });
     if (!response.ok) {
       const errJson = (await response.json().catch(() => ({}))) as {
-        error?: { code?: string; type?: string };
+        error?: { code?: string; type?: string; message?: string };
       };
       const errorCode = errJson.error?.code ?? errJson.error?.type ?? "";
+      const errorMessage = typeof errJson.error?.message === "string" ? sanitizeProviderMessage(errJson.error.message) : "";
       throw new AgentError(
-        `Provider HTTP ${response.status}${errorCode ? ` ${errorCode}` : ""}`,
+        `Provider HTTP ${response.status}${errorCode ? ` ${errorCode}` : ""}${errorMessage ? `: ${errorMessage}` : ""}`,
         "provider",
       );
     }
@@ -153,6 +156,32 @@ async function callOpenAiCompatible(input: {
   } finally {
     clearTimeout(timer);
   }
+}
+
+function sanitizeProviderMessage(message: string) {
+  return message
+    .replace(/Bearer\s+\S+/gi, "Bearer [redacted]")
+    .replace(/\bsk-[a-zA-Z0-9_-]+/gi, "[redacted]")
+    .replace(/\bAIza[a-zA-Z0-9_-]+/gi, "[redacted]")
+    .slice(0, 180);
+}
+
+function failoverLabel(reason: FailoverReason) {
+  if (reason.kind === "availability") return reason.type;
+  if (reason.kind === "unknown") return reason.detail ?? "unknown";
+  return reason.kind;
+}
+
+function throwLiveFailure(input: {
+  capabilityClass: AiCapabilityClass;
+  reason: FailoverReason;
+  error: unknown;
+}): never {
+  const message = input.error instanceof Error ? input.error.message : String(input.error);
+  throw new AgentError(
+    `Live ${input.capabilityClass} provider call failed (${failoverLabel(input.reason)}). ${sanitizeProviderMessage(message)} No heuristic fill-in.`,
+    "provider",
+  );
 }
 
 function estimateCost(inputTokens?: number, outputTokens?: number) {
@@ -221,6 +250,16 @@ export async function completePrompt(request: CompletionRequest): Promise<Comple
   const live = isLiveAiConfigured(env) && requestedProvider !== "internal_heuristic" && !isHeuristicModelName(model);
 
   if (!apiKey || !live) {
+    if (request.requireLive) {
+      throw new AgentError(
+        !apiKey
+          ? "Live AI is not configured. No API key at runtime."
+          : isHeuristicModelName(model)
+            ? `${capabilityClass} class model id is unset or heuristic; HTTP was not attempted.`
+            : "AI_PROVIDER is internal_heuristic. HTTP was not attempted.",
+        "config",
+      );
+    }
     const result = heuristicResult({
       capabilityClass,
       usedFallback: false,
@@ -290,6 +329,9 @@ export async function completePrompt(request: CompletionRequest): Promise<Comple
             reason: sameReason,
           });
           if (!shouldFailoverForAvailability(sameReason)) {
+            if (request.requireLive) {
+              throwLiveFailure({ capabilityClass, reason: sameReason, error: fallbackError });
+            }
             return finishHeuristicAfterFailure({
               started,
               capabilityClass,
@@ -335,6 +377,9 @@ export async function completePrompt(request: CompletionRequest): Promise<Comple
       }
     }
 
+    if (request.requireLive) {
+      throwLiveFailure({ capabilityClass, reason: primaryReason, error });
+    }
     return finishHeuristicAfterFailure({
       started,
       capabilityClass,

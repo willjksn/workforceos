@@ -5,6 +5,8 @@ import { requirePlatformAdmin } from "@/lib/auth/guard";
 import { ActionForm } from "../../_components/action-form";
 import { Card, PageHeader, PageShell, StatusBadge, ButtonLink, PrimaryButton } from "../../_components/ui";
 
+export const maxDuration = 60;
+
 export default async function SystemHealthPage() {
   await requirePlatformAdmin();
   const health = await getSystemHealth();

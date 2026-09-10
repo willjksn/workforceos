@@ -252,20 +252,20 @@ export async function getSystemHealth() {
       "OpenAI",
       openai,
       openai === "LIVE"
-        ? "LIVE — OpenAI-compatible completions have succeeded in this database. Capability-class routing is in use. The API key is not displayed."
+        ? `LIVE — OpenAI-compatible completions have succeeded in this database (host ${aiRuntime.primaryHost}). Capability-class routing is in use. The API key is not displayed.`
         : openai === "CONFIGURED"
-          ? "CONFIGURED — OpenAI-compatible key and FAST/STANDARD/REASONING class ids are set. No successful live completion is recorded yet. Do not treat this as verified LIVE."
+          ? `CONFIGURED — OpenAI-compatible key and FAST/STANDARD/REASONING class ids are set (host ${aiRuntime.primaryHost}). No successful live completion is recorded yet. Do not treat this as verified LIVE.`
           : openai === "DEGRADED"
-            ? "DEGRADED — an API key is present but FAST/STANDARD/REASONING class ids are unset or heuristic. Completions stay heuristic until class models are set."
+            ? `DEGRADED — an API key is present but FAST/STANDARD/REASONING class ids are unset or heuristic (host ${aiRuntime.primaryHost}). Completions stay heuristic until class models are set.`
             : "HEURISTIC — no live API key is configured (or AI_PROVIDER=internal_heuristic). Agents draft from stored PostgreSQL records.",
     ),
     healthCheck(
       "Gemini fallback",
       gemini,
       gemini === "LIVE"
-        ? "LIVE — Gemini availability fallback has completed a recorded hop. Failover is timeout / 408 / 429 / 5xx / abort / empty body / model unavailable only."
+        ? `LIVE — Gemini availability fallback has completed a recorded hop (host ${aiRuntime.fallbackHost ?? "n/a"}). Failover is timeout / 408 / 429 / 5xx / abort / empty body / model unavailable only.`
         : gemini === "CONFIGURED"
-          ? "CONFIGURED — GEMINI_API_KEY and AI_FALLBACK_PROVIDER are set. No successful Gemini fallback is recorded yet. Style/tone never hops."
+          ? `CONFIGURED — GEMINI_API_KEY and AI_FALLBACK_PROVIDER are set (host ${aiRuntime.fallbackHost ?? "n/a"}). No successful Gemini fallback is recorded yet. Style/tone never hops.`
           : "NOT CONFIGURED — AI_FALLBACK_PROVIDER / GEMINI_API_KEY unset. Do not treat this as LIVE.",
     ),
     healthCheck(

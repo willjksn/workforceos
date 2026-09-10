@@ -141,6 +141,12 @@ describe("leftover IA", () => {
     expect(existsSync(path.join(root, "app/(internal)/app/search-projects/[id]/page.tsx"))).toBe(true);
   });
 
+  it("redirects the removed Admin hub to Team & Access", () => {
+    expect(readFileSync(path.join(root, "app/(internal)/app/admin/page.tsx"), "utf8")).toMatch(
+      /redirect\("\/app\/admin\/users"\)/,
+    );
+  });
+
   it("publishes concept and finance-spine copy", () => {
     const concepts = getAcademyArticle("operating-concepts");
     expect(concepts?.stepByStep.join(" ")).toMatch(/Candidate vs application/);

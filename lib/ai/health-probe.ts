@@ -205,6 +205,7 @@ export async function runClassProbe(input: {
     taskType,
     capabilityClass: input.kind,
     maxTokens: 400,
+    requireLive: true,
     messages: probeMessages(input.kind),
   });
   failIfHeuristic(result, input.kind);
@@ -240,6 +241,7 @@ export async function runGeminiAvailabilityProbe(input: {
     model: UNAVAILABLE_PROBE_MODEL,
     fallbackModel: UNAVAILABLE_PROBE_MODEL,
     maxTokens: 400,
+    requireLive: true,
     messages: probeMessages("GEMINI_FAILOVER"),
   });
   failIfHeuristic(result, "GEMINI_FAILOVER");
