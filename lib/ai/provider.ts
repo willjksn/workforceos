@@ -83,6 +83,7 @@ function heuristicResult(input: {
 }
 
 type TokenField = "max_tokens" | "max_completion_tokens";
+type ChatRequestShape = { tokenField: TokenField; includeTemperature: boolean };
 
 function initialTokenField(provider: string): TokenField {
   return provider === "gemini" ? "max_tokens" : "max_completion_tokens";
@@ -110,10 +111,7 @@ function chatCompletionsBody(input: {
   return body;
 }
 
-function nextRequestShape(
-  current: { tokenField: TokenField; includeTemperature: boolean },
-  unsupported: string | null,
-): { tokenField: TokenField; includeTemperature: boolean } | null {
+function nextRequestShape(current: ChatRequestShape, unsupported: string | null): ChatRequestShape | null {
   if (unsupported === "max_tokens" && current.tokenField === "max_tokens") {
     return { ...current, tokenField: "max_completion_tokens" };
   }
@@ -155,7 +153,7 @@ async function callOpenAiCompatible(input: {
         throw new AgentError("Provider HTTP 400 unsupported_parameter: request shape retries exhausted", "provider");
       }
       attempted.add(shape);
-      const response = await fetch(`${input.baseUrl.replace(/\/$/, "")}/chat/completions`, {
+      const response: Response = await fetch(`${input.baseUrl.replace(/\/$/, "")}/chat/completions`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${input.apiKey}`,
@@ -181,7 +179,7 @@ async function callOpenAiCompatible(input: {
         const errorMessage =
           typeof errJson.error?.message === "string" ? sanitizeProviderMessage(errJson.error.message) : "";
         const combined = `Provider HTTP ${response.status}${errorCode ? ` ${errorCode}` : ""}${errorMessage ? `: ${errorMessage}` : ""}`;
-        const retry =
+        const retry: ChatRequestShape | null =
           response.status === 400
             ? nextRequestShape({ tokenField, includeTemperature }, unsupportedParameterName(combined))
             : null;
