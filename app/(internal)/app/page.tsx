@@ -9,7 +9,6 @@ import {
   RecordList,
   RecordRow,
   SectionHeader,
-  formatDate,
   formatLabel,
 } from "@/components/ui/page";
 import { requireCurrentPrincipal } from "@/lib/auth/session";
@@ -48,7 +47,7 @@ export default async function CommandCenterPage({
   const canCandidates = can(principal, "candidates.read");
   const canJobs = can(principal, "jobs.read");
   const canFinance = can(principal, "finance.read");
-  const canReviewQueue = can(principal, "agents.read");
+  const canMilitary = can(principal, "military.read");
   const accessLabel =
     principal.roleSlugs.map(labelForAccessBundle).join(", ") || "no access bundles";
   const canScout = can(principal, "scout.use");
@@ -71,7 +70,7 @@ export default async function CommandCenterPage({
         <PageHeader
           eyebrow="WorkforceOS / Weekly review"
           title="Workforce Command Center"
-          description="Weekly review from live stored records. Cards hide without the matching module permission. Access comes from PostgreSQL bundles, not job title."
+          description="Weekly review from live stored records. You only see boards your access bundle allows. Title is not access. AI costs and automation stay under Admin, not this page."
           metadata={`${accessLabel} · ${generatedAt.toLocaleString()}`}
           actions={
             <div className="flex flex-wrap items-center gap-2">
@@ -105,7 +104,7 @@ export default async function CommandCenterPage({
 
   const snapshot = await getExecutiveCommandCenter(principal.organizationId);
   const alerts = can(principal, "alerts.read") || can(principal, "reports.read")
-    ? await evaluateOperationalAlerts(principal.organizationId)
+    ? (await evaluateOperationalAlerts(principal.organizationId)).filter((alert) => alert.domain !== "ai")
     : [];
 
   return (
@@ -113,7 +112,7 @@ export default async function CommandCenterPage({
       <PageHeader
         eyebrow="WorkforceOS / Executive view"
         title="Workforce Command Center"
-        description="Live snapshot of your firm's operating records. Weekly reviews live on the Leadership, Operations, Talent, Military Talent, Finance, and GTM boards. Figures come from saved data, not projections."
+        description="Live snapshot of operating records you are allowed to see. Cards hide without the matching module permission. Access comes from PostgreSQL bundles, not job title. AI costs and automation stay under Admin, not this page."
         metadata={`${accessLabel} · ${snapshot.generatedAt.toLocaleString()}`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -204,7 +203,9 @@ export default async function CommandCenterPage({
             <MetricCard href="/app/talent/silver-medalists" label="Silver medalists" value={snapshot.talent.silverMedalists} />
             <MetricCard href="/app/talent/pools" label="Talent pools" value={snapshot.talent.talentPoolHealth} />
             <MetricCard href="/app/talent/rediscovery" label="Rediscovery candidates" value={snapshot.talent.rediscoveryCandidates} />
-            <MetricCard href="/app/military/candidates" label="Transitioning talent" value={snapshot.talent.militaryCandidates} />
+            {canMilitary ? (
+              <MetricCard href="/app/military/candidates" label="Transitioning talent" value={snapshot.talent.militaryCandidates} />
+            ) : null}
           </div>
         </section>
       ) : null}
@@ -217,7 +218,7 @@ export default async function CommandCenterPage({
             <MetricCard href="/app/workforce/gaps" label="Critical workforce gaps" value={snapshot.workforce.criticalGaps} />
             <MetricCard href="/app/workforce/pipelines" label="Pipelines at risk" value={snapshot.workforce.pipelineCapacity} />
             <MetricCard href="/app/workforce" label="Workforce risks" value={snapshot.workforce.workforceRisks} />
-            <MetricCard href="/app/ai-operations/review" label="Recommendations awaiting approval" value={snapshot.workforce.recommendationsAwaitingApproval} />
+            <MetricCard href="/app/workforce" label="Recommendations awaiting approval" value={snapshot.workforce.recommendationsAwaitingApproval} />
           </div>
         </section>
       ) : null}
@@ -234,24 +235,7 @@ export default async function CommandCenterPage({
         </section>
       ) : null}
 
-      {can(principal, "agents.read") || can(principal, "agents.manage") ? (
-        <section className="mt-8">
-          <SectionHeader title={can(principal, "agents.manage") ? "AI & Automation" : "Review Queue"} />
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {can(principal, "agents.read") ? (
-              <MetricCard href="/app/ai-operations/review" label="Pending reviews" value={snapshot.ai.pendingReviews} />
-            ) : null}
-            {can(principal, "agents.manage") ? (
-              <>
-                <MetricCard href="/app/ai-operations/failures" label="Failed runs" value={snapshot.ai.failedRuns} />
-                <MetricCard href="/app/ai-operations/costs" label="AI spend" value={money(snapshot.ai.usageCost)} />
-              </>
-            ) : null}
-          </div>
-        </section>
-      ) : null}
-
-      {can(principal, "skillbridge.read") || can(principal, "military.read") ? (
+      {can(principal, "skillbridge.read") || canMilitary ? (
         <section className="mt-8">
           <SectionHeader title="Military Talent" />
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -265,7 +249,7 @@ export default async function CommandCenterPage({
         </section>
       ) : null}
 
-      {can(principal, "integrations.read") || canFinance ? (
+      {can(principal, "integrations.read") ? (
         <section className="mt-8">
           <SectionHeader title="Integrations" />
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -298,7 +282,7 @@ export default async function CommandCenterPage({
 
         {alerts.length > 0 ? (
           <section>
-            <SectionHeader title="Operational alerts" description="Full list stays on Alerts — this is not a second inbox." />
+            <SectionHeader title="Operational alerts" description="Full list stays on Alerts — this is not a second inbox. AI cost and run exceptions stay under Admin." />
             <RecordList>
               {alerts.slice(0, 8).map((alert) => (
                 <RecordRow key={`${alert.code}-${alert.recordId}`} href={alert.href} title={alert.title} meta={`${formatLabel(alert.domain)} · ${alert.severity}`} />
@@ -309,24 +293,6 @@ export default async function CommandCenterPage({
                 Open Alerts
               </a>
             </p>
-          </section>
-        ) : canReviewQueue ? (
-          <section>
-            <SectionHeader title="Review Queue" description="Material AI drafts wait here. Humans approve. Agents cannot approve their own work." />
-            {snapshot.base.pendingApprovals.length === 0 ? (
-              <EmptyState title="No items waiting.">Material AI and client-facing outputs that require human review appear on the Review Queue.</EmptyState>
-            ) : (
-              <RecordList>
-                {snapshot.base.pendingApprovals.map((approval) => (
-                  <RecordRow
-                    key={approval.id}
-                    href="/app/ai-operations/review"
-                    title={formatLabel(approval.approvalType)}
-                    meta={`${approval.recordType} · ${formatDate(approval.createdAt)}`}
-                  />
-                ))}
-              </RecordList>
-            )}
           </section>
         ) : null}
       </div>

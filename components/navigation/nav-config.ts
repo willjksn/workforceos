@@ -142,7 +142,7 @@ const NAV: NavGroup[] = [
       { href: "/app/ai-operations/knowledge", label: "Knowledge Sources", icon: "folder", permission: "knowledge.read" },
       { href: "/app/integrations", label: "Connected tools", icon: "network", anyPermission: ["integrations.read", "admin.users", "admin.roles"] },
       { href: "/app/public-content", label: "Public content", icon: "eye", permission: "public_content.read" },
-      { href: "/app/admin/users", label: "People", icon: "users", permission: "admin.users" },
+      { href: "/app/admin/users", label: "Team & Access", icon: "users", permission: "admin.users" },
       { href: "/app/admin/roles", label: "Access bundles", icon: "shield", permission: "admin.roles" },
       { href: "/app/admin/integrations", label: "Integration Hub", icon: "network", adminOnly: true },
       { href: "/app/admin/system-health", label: "System status", icon: "dashboard", adminOnly: true },

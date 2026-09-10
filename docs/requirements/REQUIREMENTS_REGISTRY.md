@@ -126,6 +126,14 @@ Remaining work: `docs/operations/MASTER_COMPLETION_LEDGER.md`.
 - Status: approved
 - Acceptance: mutations check local permissions on the server; UI checks are not sufficient.
 
+### WFOS-SEC-004
+
+- Title: Title does not determine access; only administrators assign modules
+- Module: security
+- Priority: locked
+- Status: approved
+- Acceptance: Organizational title is never an authorization input. Any employee may hold multiple functional module bundles. Only `admin.roles` may assign modules, templates, or permission overrides. Recruiter Standard still lacks `opportunities.read`.
+
 ### WFOS-SEC-002
 
 - Title: Candidate data is Restricted PII

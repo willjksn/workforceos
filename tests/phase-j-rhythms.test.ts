@@ -148,7 +148,9 @@ describe("Phase J management operating rhythms", () => {
     expect(page).toMatch(/Talent pools/);
     expect(page).toMatch(/No employer\/host opportunity/);
     expect(page).toMatch(/SkillBridge pathway active/);
-    expect(page).toMatch(/href="\/app\/ai-operations\/review"/);
+    expect(page).not.toMatch(/AI & Automation/);
+    expect(page).not.toMatch(/\/app\/ai-operations/);
+    expect(page).toMatch(/alert\.domain !== "ai"/);
     expect(page).not.toMatch(/href="\/app\/admin\/approvals"/);
     expect(read("lib/hiring/service.ts")).toMatch(/isNull\(applications\.archivedAt\)/);
     expect(read("app/(internal)/app/admin/approvals/page.tsx")).toMatch(/requirePlatformAdmin/);

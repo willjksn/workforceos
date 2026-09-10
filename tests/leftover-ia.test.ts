@@ -121,6 +121,10 @@ describe("leftover IA", () => {
     expect(admin?.items.some((item) => item.label === "AI & Automation" && item.href === "/app/ai-operations")).toBe(
       true,
     );
+    const commandCenter = readFileSync(path.join(root, "app/(internal)/app/page.tsx"), "utf8");
+    expect(commandCenter).not.toMatch(/AI & Automation/);
+    expect(commandCenter).not.toMatch(/\/app\/ai-operations/);
+    expect(readFileSync(path.join(root, "lib/reporting/executive.ts"), "utf8")).not.toMatch(/usageSummary/);
   });
 
   it("redirects old requisition and search-project list URLs onto Jobs", () => {

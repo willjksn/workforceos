@@ -55,14 +55,14 @@ npm run db:bootstrap-admin -- --email you@company.com
 
 ## User onboarding
 
-1. A Managing Partner or Strategy & Technology Administrator invites from `/app/admin/users` (**Invite person**), sets an optional organizational title (display only), and chooses a starting access bundle. Clerk emails the invite; the local `users` row is recorded as invited with that bundle. Clerk metadata is not authorization.
-2. They accept the email and sign in at `/sign-in` (or complete `/sign-up` from the invite). Local sync attaches their Clerk id and activates the invited row; the bundle is already assigned.
-3. Open `/app/admin/users/[id]` to assign multiple access bundles, view effective permissions, set grant/deny overrides, copy access from another person, or reset overrides. Title ≠ Access (DEC-AUTH-002).
+1. A Managing Partner or Strategy & Technology Administrator invites from `/app/admin/users` (**Team & Access**), sets an optional organizational title (display only), and chooses a starting access **template**. Clerk emails the invite; the local `users` row is recorded as invited with that template. Clerk metadata is not authorization. Operations cannot invite or assign access (`admin.roles` required).
+2. They accept the email and sign in at `/sign-in` (or complete `/sign-up` from the invite). Local sync attaches their Clerk id and activates the invited row; the template is already assigned.
+3. Open `/app/admin/users/[id]` to check **module access** (Finance, Military Talent, Projects, and so on) for any employee regardless of title, keep or add templates, view effective permissions, set grant/deny overrides, or copy access. Title ≠ Access (DEC-AUTH-002, DEC-AUTH-003).
 4. To resend, submit **Invite person** again with the same email. Disabled local users are rejected even if a Clerk session still exists.
 
 ## Role changes
 
-Use `/app/admin/users` (People + person detail) and `/app/admin/roles` (access-bundle catalog). Bundle assignment is audited. The last Managing Partner cannot be removed. Review stale accounts on `/app/admin/access-review`. Training requirements are Phase E and do not grant access.
+Use `/app/admin/users` (Team & Access) and `/app/admin/roles` (module and template catalog). Only `admin.roles` assigns access. Assignment is audited. The last Managing Partner cannot be removed. Review stale accounts on `/app/admin/access-review`. Training requirements follow effective access and do not grant access.
 
 ## Integration reconnect
 

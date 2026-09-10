@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Phase 12 — Flexible module access, admin-only assignment — 2026-09-09
+
+- Accepted DEC-AUTH-003: title stays display-only. Any employee may hold any mix of functional module bundles (Finance, Military Talent, Projects, and so on). Job-shaped templates remain shortcuts.
+- Only `admin.roles` can assign modules, templates, or overrides (Administrator / Executive and Strategy & Technology). Operations cannot assign access. Recruiter Standard still has no `opportunities.read`.
+- Admin → Team & Access person detail: module checkboxes plus templates. Invite still picks one starting template; add modules on the person record.
+- `scripts/sync-role-permissions.ts` inserts missing module bundle rows per organization. Recruiter template contents are unchanged.
+
 ### AI Operating Model Stage 1 + Stage 2 — 2026-09-09
 
 - Accepted `docs/architecture/AI_OPERATING_MODEL.md` and DEC-AI-012: OpenAI primary, Gemini availability fallback only, no Anthropic now. DEC-AI-005 / DEC-AI-011 evolve; they are not replaced.

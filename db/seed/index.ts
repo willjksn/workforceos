@@ -42,7 +42,8 @@ import {
   userRoles,
   users,
 } from "../schema";
-import { PERMISSIONS, ROLE_PERMISSIONS, type RoleSlug } from "../../lib/rbac/permissions";
+import { PERMISSIONS, ROLE_PERMISSIONS, ROLE_SLUGS, type RoleSlug } from "../../lib/rbac/permissions";
+import { ACCESS_BUNDLE_LABELS, ROLE_GUIDE } from "../../lib/rbac/role-guide";
 import { seedPhase4Fixtures } from "./phase4";
 import { seedPhase5Fixtures } from "./phase5";
 import { seedPhase7Ai } from "./phase7";
@@ -110,56 +111,14 @@ export async function seedFoundation(
   const storedPermissions = await db.select().from(permissions);
   const permissionIdBySlug = Object.fromEntries(storedPermissions.map((row) => [row.slug, row.id]));
 
-  const roleSeed: Array<{ id: string; slug: RoleSlug; name: string; description: string }> = [
-    {
-      id: ROLE_IDS["managing-partner"],
-      slug: "managing-partner",
-      name: "Administrator / Executive",
-      description: "Full operational access. Access bundle slug remains managing-partner.",
-    },
-    {
-      id: ROLE_IDS["operations-administrator"],
-      slug: "operations-administrator",
-      name: "Operations",
-      description: "Operations and delivery administration",
-    },
-    {
-      id: ROLE_IDS["strategy-technology-administrator"],
-      slug: "strategy-technology-administrator",
-      name: "Strategy & Technology",
-      description: "Platform, agents, and role configuration",
-    },
-    {
-      id: ROLE_IDS["talent-partner"],
-      slug: "talent-partner",
-      name: "Senior Talent Partner",
-      description: "Talent, search, and solution planning",
-    },
-    {
-      id: ROLE_IDS.recruiter,
-      slug: "recruiter",
-      name: "Recruiter Standard",
-      description: "Recruiting and candidate operations. No commercial opportunity ownership.",
-    },
-    {
-      id: ROLE_IDS["workforce-consultant"],
-      slug: "workforce-consultant",
-      name: "Workforce Consultant",
-      description: "Workforce assessments and projects",
-    },
-    {
-      id: ROLE_IDS["military-talent-partner"],
-      slug: "military-talent-partner",
-      name: "Military Talent Partner",
-      description: "Military occupation translation and Transition Talent Profile work",
-    },
-    {
-      id: ROLE_IDS["read-only"],
-      slug: "read-only",
-      name: "Read only",
-      description: "Read access without mutation or restricted PII",
-    },
-  ];
+  const roleSeed: Array<{ id: string; slug: RoleSlug; name: string; description: string }> = ROLE_SLUGS.map(
+    (slug) => ({
+      id: ROLE_IDS[slug],
+      slug,
+      name: ACCESS_BUNDLE_LABELS[slug],
+      description: ROLE_GUIDE[slug].access,
+    }),
+  );
 
   for (const role of roleSeed) {
     await db

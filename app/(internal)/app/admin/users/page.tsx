@@ -4,6 +4,7 @@ import { AcademyHelp } from "@/components/academy/academy-help";
 import { inviteUserAction, setUserAccessStatusAction } from "@/lib/actions/admin";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { assignableRoleSlugs } from "@/lib/rbac/assign-role";
+import { isAccessTemplateSlug } from "@/lib/rbac/access-bundles";
 import { can, type RoleSlug } from "@/lib/rbac/permissions";
 import { listOrganizationRoles, listOrganizationUsers } from "@/lib/repositories/platform";
 import { ActionForm } from "../../_components/action-form";
@@ -30,13 +31,14 @@ export default async function AdminUsersPage() {
   ]);
   const allowedSlugs = assignableRoleSlugs(principal);
   const assignableRoles = roles.filter((role) => allowedSlugs.includes(role.slug as RoleSlug));
+  const startingTemplates = assignableRoles.filter((role) => isAccessTemplateSlug(role.slug));
 
   return (
     <PageShell>
       <PageHeader
         eyebrow="Admin"
-        title="People"
-        description="Organizational title is display-only. Access bundles grant permissions. Clerk authenticates; PostgreSQL authorizes. Open a person to assign multiple bundles, view effective permissions, or set overrides. Required Academy training follows effective access, not title."
+        title="Team & Access"
+        description="Organizational title is display-only. Only an Administrator with Access bundles permission (admin.roles) can assign modules or templates. Open a person to check any combination for any employee. Training follows effective access, not title."
         actions={<AcademyHelp articleSlug="module-admin-people" />}
       />
       {rows.length === 0 ? (
@@ -75,10 +77,10 @@ export default async function AdminUsersPage() {
           })}
         </DataTable>
       )}
-      {canAssign && assignableRoles.length > 0 ? (
+      {canAssign && startingTemplates.length > 0 ? (
         <CreatePanel
           title="Invite person"
-          description="Sends a Clerk invitation and records them as invited with one starting access bundle. Add more bundles on their People record. Title is not a permission."
+          description="Sends a Clerk invitation with one starting template. Add module checkboxes on their Team & Access record. Title is not a permission. Only admin.roles can invite and assign access."
         >
           <ActionForm action={inviteUserAction} className="max-w-xl space-y-3">
             <Field label="Work email" name="email">
@@ -96,12 +98,12 @@ export default async function AdminUsersPage() {
                 placeholder="Display only — not an access bundle"
               />
             </Field>
-            <Field label="Starting access bundle" name="roleSlug">
+            <Field label="Starting access template" name="roleSlug">
               <select className={inputClassName} id="roleSlug" name="roleSlug" required defaultValue="">
                 <option value="" disabled>
-                  Choose an access bundle
+                  Choose a starting template
                 </option>
-                {assignableRoles.map((role) => (
+                {startingTemplates.map((role) => (
                   <option key={role.id} value={role.slug}>
                     {role.name}
                   </option>

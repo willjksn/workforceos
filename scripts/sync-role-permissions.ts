@@ -1,5 +1,5 @@
 /**
- * Sync `role_permissions` from `ROLE_PERMISSIONS` in lib/rbac/permissions.ts.
+ * Sync `roles` and `role_permissions` from `ROLE_PERMISSIONS`.
  *
  * Usage:
  *   npx tsx scripts/sync-role-permissions.ts
@@ -7,20 +7,22 @@
  * DATABASE_URL must already be set for the target database. dotenv does not
  * override a pre-set DATABASE_URL. Do not run db:seed:dev against production.
  *
- * Locked bundle notes (DEC-AI-012):
+ * Locked bundle notes (DEC-AI-012 / DEC-RBAC-001 / DEC-AUTH-003):
  * - Recruiter / Talent Partner / Military Talent Partner receive agents.read
  *   (Review Queue) and never agents.manage (costs).
  * - Workforce Consultant receives agents.read + scout.draft.
- * - Recruiter does not receive opportunities.read (DEC-RBAC-001). Do not add it
- *   here without an accepted decision.
+ * - Recruiter Standard does not receive opportunities.read.
+ * - Functional module bundles may be assigned to any person by admin.roles only.
+ *   Title is not access. The Recruiter template still lacks opportunities.read.
  */
 import "./load-env";
 
 import { and, eq, notInArray } from "drizzle-orm";
 
 import { getDb } from "../db";
-import { permissions, rolePermissions, roles } from "../db/schema";
-import { PERMISSIONS, ROLE_PERMISSIONS, type RoleSlug } from "../lib/rbac/permissions";
+import { organizations, permissions, rolePermissions, roles } from "../db/schema";
+import { PERMISSIONS, ROLE_PERMISSIONS, ROLE_SLUGS, type RoleSlug } from "../lib/rbac/permissions";
+import { ACCESS_BUNDLE_LABELS, ROLE_GUIDE } from "../lib/rbac/role-guide";
 
 async function main() {
   const db = getDb();
@@ -36,6 +38,34 @@ async function main() {
 
   const storedPermissions = await db.select().from(permissions);
   const permissionIdBySlug = Object.fromEntries(storedPermissions.map((row) => [row.slug, row.id]));
+  const orgs = await db.select({ id: organizations.id }).from(organizations);
+
+  for (const org of orgs) {
+    const existing = await db
+      .select({ id: roles.id, slug: roles.slug })
+      .from(roles)
+      .where(eq(roles.organizationId, org.id));
+    const bySlug = new Map(existing.map((row) => [row.slug, row.id]));
+    for (const slug of ROLE_SLUGS) {
+      const name = ACCESS_BUNDLE_LABELS[slug];
+      const description = ROLE_GUIDE[slug].access;
+      const roleId = bySlug.get(slug);
+      if (roleId) {
+        await db
+          .update(roles)
+          .set({ name, description, updatedAt: new Date() })
+          .where(eq(roles.id, roleId));
+        continue;
+      }
+      await db.insert(roles).values({
+        organizationId: org.id,
+        slug,
+        name,
+        description,
+      });
+    }
+  }
+
   const storedRoles = await db.select({ id: roles.id, slug: roles.slug }).from(roles);
 
   for (const role of storedRoles) {
@@ -72,7 +102,7 @@ async function main() {
   }
   for (const [slug, set] of [...byRole.entries()].sort(([a], [b]) => a.localeCompare(b))) {
     console.log(
-      `${slug}: agents.read=${set.has("agents.read") ? "yes" : "no"} agents.manage=${set.has("agents.manage") ? "yes" : "no"}`,
+      `${slug}: agents.read=${set.has("agents.read") ? "yes" : "no"} agents.manage=${set.has("agents.manage") ? "yes" : "no"} opportunities.read=${set.has("opportunities.read") ? "yes" : "no"}`,
     );
   }
 }

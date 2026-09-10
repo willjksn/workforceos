@@ -97,7 +97,7 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 | Military mappings | WorkforceOS PostgreSQL; external occupation systems are references |
 | Files | Object storage metadata in PostgreSQL; binaries in the storage provider |
 | Identity credentials | Clerk for authentication only |
-| Application authorization | Local `users`, `roles`, and `user_roles` |
+| Application authorization | Local `users`, `roles`, and `user_roles`. Title is display-only. Functional modules plus templates. Only `admin.roles` assigns access (DEC-AUTH-003). |
 | AI recommendations | `agent_outputs` plus approvals; humans remain authoritative |
 
 ## Security baseline

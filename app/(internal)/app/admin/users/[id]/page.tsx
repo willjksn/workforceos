@@ -14,6 +14,7 @@ import { getAcademyArticle } from "@/lib/academy/catalog";
 import { academyArticleHref } from "@/lib/academy/types";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { assignableRoleSlugs } from "@/lib/rbac/assign-role";
+import { isAccessTemplateSlug, isFunctionalBundleSlug } from "@/lib/rbac/access-bundles";
 import { PERMISSIONS, can, type RoleSlug } from "@/lib/rbac/permissions";
 import { getOrganizationUser, listOrganizationRoles, listOrganizationUsers } from "@/lib/repositories/platform";
 import { STAFF_ONBOARDING_CADENCE_LABELS, STAFF_POLICY_LABELS } from "@/lib/staff-onboarding";
@@ -51,6 +52,8 @@ export default async function AdminUserDetailPage({
 
   const allowedSlugs = assignableRoleSlugs(principal);
   const assignableRoles = roles.filter((role) => allowedSlugs.includes(role.slug as RoleSlug));
+  const moduleRoles = assignableRoles.filter((role) => isFunctionalBundleSlug(role.slug));
+  const templateRoles = assignableRoles.filter((role) => isAccessTemplateSlug(role.slug));
   const assignedSlugs = new Set(detail.roles.map((role) => role.slug));
   const isSelf = detail.user.id === principal.id;
   const copySources = people.filter((person) => person.id !== detail.user.id);
@@ -58,16 +61,16 @@ export default async function AdminUserDetailPage({
   return (
     <PageShell>
       <PageHeader
-        eyebrow="Admin · People"
+        eyebrow="Admin · Team & Access"
         title={detail.user.fullName}
-        description="Title is display-only. Access bundles are permission templates. Effective permissions are computed server-side from all assigned bundles, then grant/deny overrides. Deny wins. Staff onboarding is separate from Talent → Onboarding (ATS)."
+        description="Title is display-only. Only an Administrator with Access bundles permission can change modules or templates. Check any combination for this person. Effective permissions are the union of assigned bundles, then grant/deny overrides. Deny wins."
         actions={
           <div className="flex flex-wrap gap-3">
             <Link className="text-sm text-navy underline decoration-border underline-offset-4 hover:decoration-teal" href={`/app/admin/users/${detail.user.id}/onboarding`}>
               Staff onboarding
             </Link>
             <Link className="text-sm text-navy underline decoration-border underline-offset-4 hover:decoration-teal" href="/app/admin/users">
-              Back to People
+              Back to Team & Access
             </Link>
           </div>
         }
@@ -144,14 +147,14 @@ export default async function AdminUserDetailPage({
 
       <section className="mt-10">
         <SectionHeader
-          title="Access bundles"
-          description="A person can hold zero or more bundles. Permissions are the union of every assigned bundle. Applying a bundle is applying an access template."
+          title="Module access"
+          description="Check any combination for this employee. Title does not grant these. Only admin.roles can save. Recruiter Standard still has no commercial opportunities unless you also check CRM & Business Development."
         />
-        {canAssign && assignableRoles.length > 0 ? (
-          <ActionForm action={setUserAccessBundlesAction} className="space-y-3">
+        {canAssign && moduleRoles.length > 0 ? (
+          <ActionForm action={setUserAccessBundlesAction} className="space-y-8">
             <input type="hidden" name="userId" value={detail.user.id} />
-            <ul className="space-y-2">
-              {assignableRoles.map((role) => (
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {moduleRoles.map((role) => (
                 <li key={role.id}>
                   <label className="flex items-start gap-2 text-sm">
                     <input
@@ -171,11 +174,39 @@ export default async function AdminUserDetailPage({
                 </li>
               ))}
             </ul>
-            <PrimaryButton>Save access bundles</PrimaryButton>
+            <div>
+              <SectionHeader
+                title="Access templates"
+                description="Shortcuts only. They do not lock module checkboxes. A person can hold templates and modules together."
+              />
+              <ul className="mt-3 space-y-2">
+                {templateRoles.map((role) => (
+                  <li key={role.id}>
+                    <label className="flex items-start gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        name="roleSlug"
+                        value={role.slug}
+                        defaultChecked={assignedSlugs.has(role.slug)}
+                        className="mt-1"
+                      />
+                      <span>
+                        <span className="font-medium text-navy">{role.name}</span>
+                        {role.description ? (
+                          <span className="mt-0.5 block text-xs text-muted-foreground">{role.description}</span>
+                        ) : null}
+                      </span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <PrimaryButton>Save access</PrimaryButton>
           </ActionForm>
         ) : (
           <p className="text-sm text-muted-foreground">
-            {detail.roles.map((role) => role.name).join(", ") || "No access bundles assigned."}
+            {detail.roles.map((role) => role.name).join(", ") || "No access assigned."}{" "}
+            {canAssign ? "" : "You can view this record. Assigning access requires admin.roles."}
           </p>
         )}
       </section>

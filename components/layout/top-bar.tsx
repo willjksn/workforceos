@@ -32,7 +32,7 @@ const LABELS: Record<string, string> = {
   finance: "Finance",
   "ai-operations": "AI & Automation",
   admin: "Admin",
-  users: "People",
+  users: "Team & Access",
   roles: "Access bundles",
   integrations: "Connected tools",
   "system-health": "System status",

@@ -2,8 +2,6 @@ import { and, count, eq, gte, inArray, isNull, lte, notInArray, or, sql } from "
 
 import { getDb } from "../../db";
 import {
-  agentRuns,
-  approvals,
   contracts,
   discoveries,
   integrationConnections,
@@ -17,7 +15,6 @@ import {
   proposals,
   submissions,
 } from "../../db/schema";
-import { usageSummary } from "../ai/cost";
 import { CLOSED_OPPORTUNITY_STAGES } from "../crm/stages";
 import { phase4CommandSnapshot } from "../delivery/engine";
 import { financeCommandSnapshot } from "../finance/engine";
@@ -51,7 +48,6 @@ export async function getExecutiveCommandCenter(organizationId: string) {
     workforce,
     recruiting,
     cycleTimes,
-    usage,
     failedSyncCount,
     submissionCount,
     interviewCount,
@@ -70,8 +66,6 @@ export async function getExecutiveCommandCenter(organizationId: string) {
     atRiskProjects,
     overdueDeliverables,
     upcomingMilestones,
-    pendingReviews,
-    failedRuns,
     unhealthyProviders,
     skillbridge,
     hiring,
@@ -82,7 +76,6 @@ export async function getExecutiveCommandCenter(organizationId: string) {
     getWorkforceCommandSnapshot(organizationId),
     recruitingAnalytics(organizationId),
     recruitingCycleTimes(organizationId),
-    usageSummary(organizationId, { includeEvents: false }),
     countFailedIntegrationEvents(organizationId),
     counted(
       db
@@ -219,18 +212,6 @@ export async function getExecutiveCommandCenter(organizationId: string) {
     counted(
       db
         .select({ value: count() })
-        .from(approvals)
-        .where(and(eq(approvals.organizationId, organizationId), eq(approvals.status, "pending"))),
-    ),
-    counted(
-      db
-        .select({ value: count() })
-        .from(agentRuns)
-        .where(and(eq(agentRuns.organizationId, organizationId), eq(agentRuns.status, "failed"))),
-    ),
-    counted(
-      db
-        .select({ value: count() })
         .from(integrationConnections)
         .where(
           and(
@@ -292,11 +273,6 @@ export async function getExecutiveCommandCenter(organizationId: string) {
       atRisk: atRiskProjects,
       overdueDeliverables,
       upcomingMilestones,
-    },
-    ai: {
-      pendingReviews,
-      failedRuns,
-      usageCost: usage.monthCostUsd,
     },
     integrations: {
       failedSyncs: failedSyncCount,

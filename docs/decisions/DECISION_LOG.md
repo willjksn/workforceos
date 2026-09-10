@@ -1,6 +1,6 @@
 # Decision Log
 
-Status: Binding architecture and product decisions (through DEC-AUTH-002)  
+Status: Binding architecture and product decisions (through DEC-AUTH-003)  
 Database mirror: `decision_log` table, seeded from this file.
 
 ## DEC-DB-001 — PostgreSQL over Firebase
@@ -752,6 +752,16 @@ Database mirror: `decision_log` table, seeded from this file.
 - Reason: Job titles and access templates were conflated in the People UI. Operators need multiple bundles and rare per-person exceptions without a second permission system.
 - Affected modules: RBAC, People, access review
 - Reconsideration: only if a later design adds a parallel template table; do not invent new permission slugs such as `candidate.read`.
+
+## DEC-AUTH-003 — Functional module bundles; admin-only assignment
+
+- Date: 2026-09-09
+- Owner: Product Build + Managing Partner
+- Status: accepted
+- Decision: Employee title remains organizational metadata and does not determine WorkforceOS access (DEC-AUTH-002). Users may hold multiple **functional module bundles** (CRM, Talent Network, Recruiting, Military Talent, Workforce Consulting, Projects, Proposals, Contracts, Finance, Hiring & Onboarding, Reports & Analytics, Scout, AI Review, AI Administration, Knowledge & Training, System Administration) at the same time, plus optional job-shaped **templates** as shortcuts. Only principals with `admin.roles` (Administrator / Executive and Strategy & Technology) may assign modules, templates, or overrides. Operations can administer people records but cannot assign access. Recruiter Standard still has no `opportunities.read` (DEC-RBAC-001). Checking CRM & Business Development on a person is an explicit admin grant of commercial pipeline access; it does not change the Recruiter template. Permission slugs stay `candidates.read` (not `candidate.read`). Deny-wins overrides are unchanged. Do not invent a Programs module.
+- Reason: Early employees combine functions. Operators needed module checkboxes independent of title, without letting managers or recruiters assign access.
+- Affected modules: RBAC, Team & Access, Academy
+- Reconsideration: save-as-template table, copy-confirmation default, and manager-owned grants are later stages. Do not grant `opportunities.read` on the Recruiter template without a new DEC-RBAC.
 
 ## DEC-RBAC-001 — Recruiter is not a commercial opportunity owner
 
