@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/page";
 import { requireCurrentPrincipal } from "@/lib/auth/session";
 import { moneyString } from "@/lib/finance/money";
-import { can, isPlatformAdmin } from "@/lib/rbac/permissions";
+import { can } from "@/lib/rbac/permissions";
+import { labelForAccessBundle } from "@/lib/rbac/role-guide";
 import { getExecutiveCommandCenter } from "@/lib/reporting/executive";
 import {
   CADENCE_LABELS,
@@ -47,7 +48,9 @@ export default async function CommandCenterPage({
   const canCandidates = can(principal, "candidates.read");
   const canJobs = can(principal, "jobs.read");
   const canFinance = can(principal, "finance.read");
-  const canReviewApprovals = isPlatformAdmin(principal) || can(principal, "agents.read");
+  const canReviewQueue = can(principal, "agents.read");
+  const accessLabel =
+    principal.roleSlugs.map(labelForAccessBundle).join(", ") || "no access bundles";
   const canScout = can(principal, "scout.use");
 
   const tabItems = [
@@ -68,8 +71,8 @@ export default async function CommandCenterPage({
         <PageHeader
           eyebrow="WorkforceOS / Weekly review"
           title="Workforce Command Center"
-          description="PierOne management cadence from live PostgreSQL aggregates. Cards hide when you lack the module permission. Recruiter Standard does not see the commercial opportunity pipeline or the 90-day GTM board."
-          metadata={`${principal.roleSlugs.join(", ") || "no roles"} · ${generatedAt.toLocaleString()}`}
+          description="Weekly review from live stored records. Cards hide without the matching module permission. Access comes from PostgreSQL bundles, not job title."
+          metadata={`${accessLabel} · ${generatedAt.toLocaleString()}`}
           actions={
             <div className="flex flex-wrap items-center gap-2">
               <AcademyHelp articleSlug={cadence === "gtm" ? "ninety-day-gtm-review" : "weekly-operating-review"} />
@@ -92,14 +95,8 @@ export default async function CommandCenterPage({
         {can(principal, "alerts.read") || can(principal, "reports.read") ? (
           <p className="mt-8 text-sm text-muted-foreground">
             Operational exceptions stay on{" "}
-            <a className="font-medium text-teal hover:underline" href="/app/alerts">
-              Alerts
-            </a>
-            . Linked reports:{" "}
-            <a className="font-medium text-teal hover:underline" href="/app/reports">
-              Reports
-            </a>
-            .
+            <a className="font-medium text-teal hover:underline" href="/app/alerts">Alerts</a>. Linked reports live on{" "}
+            <a className="font-medium text-teal hover:underline" href="/app/reports">Reports</a>.
           </p>
         ) : null}
       </PageShell>
@@ -117,7 +114,7 @@ export default async function CommandCenterPage({
         eyebrow="WorkforceOS / Executive view"
         title="Workforce Command Center"
         description="Live snapshot of your firm's operating records. Weekly reviews live on the Leadership, Operations, Talent, Military Talent, Finance, and GTM boards. Figures come from saved data, not projections."
-        metadata={`${principal.roleSlugs.join(", ") || "no roles"} · ${snapshot.generatedAt.toLocaleString()}`}
+        metadata={`${accessLabel} · ${snapshot.generatedAt.toLocaleString()}`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <AcademyHelp articleSlug="module-command-center" />
@@ -146,7 +143,7 @@ export default async function CommandCenterPage({
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard href="/app/reports/business" label="Contracted revenue" value={money(snapshot.business.contractedRevenue)} />
             <MetricCard href="/app/finance/invoices" label="Invoiced" value={money(snapshot.business.invoiced)} />
-            <MetricCard href="/app/finance/ar" label="Collected" value={money(snapshot.business.collected)} />
+            <MetricCard href="/app/finance/payments" label="Collected" value={money(snapshot.business.collected)} />
             <MetricCard href="/app/finance/schedules" label="MRR" value={money(snapshot.business.mrr)} />
             <MetricCard href="/app/finance/ar" label="AR" value={money(snapshot.business.ar)} />
             {canOpportunities ? (
@@ -185,7 +182,7 @@ export default async function CommandCenterPage({
             <MetricCard href="/app/placements" label="Placements" value={snapshot.recruiting.placements} />
             <MetricCard href="/app/guarantees" label="Guarantee risk" value={snapshot.recruiting.guaranteeRisk} />
             <MetricCard href="/app/jobs" label="Open jobs" value={snapshot.recruiting.hiring.openJobs} />
-            <MetricCard href="/app/recruiting/applications" label="New applications" value={snapshot.recruiting.hiring.newApplications} />
+            <MetricCard href="/app/recruiting/applications" label="New applications" value={snapshot.recruiting.hiring.newApplications} hint="Last 7 days" />
             <MetricCard href="/app/recruiting/applications" label="Awaiting review" value={snapshot.recruiting.hiring.awaitingReview} />
             <MetricCard href="/app/interviews" label="Interviews this week" value={snapshot.recruiting.hiring.interviewsThisWeek} />
             <MetricCard href="/app/recruiting/workbench" label="Background pending" value={snapshot.recruiting.hiring.backgroundPending} />
@@ -205,9 +202,9 @@ export default async function CommandCenterPage({
             <MetricCard href="/app/talent" label="Total candidates" value={snapshot.talent.totalCandidates} />
             <MetricCard href="/app/talent" label="Available now" value={snapshot.talent.availableNow} />
             <MetricCard href="/app/talent/silver-medalists" label="Silver medalists" value={snapshot.talent.silverMedalists} />
-            <MetricCard href="/app/talent/pools" label="Talent pool health" value={snapshot.talent.talentPoolHealth} />
+            <MetricCard href="/app/talent/pools" label="Talent pools" value={snapshot.talent.talentPoolHealth} />
             <MetricCard href="/app/talent/rediscovery" label="Rediscovery candidates" value={snapshot.talent.rediscoveryCandidates} />
-            <MetricCard href="/app/military/candidates" label="Military candidates" value={snapshot.talent.militaryCandidates} />
+            <MetricCard href="/app/military/candidates" label="Transitioning talent" value={snapshot.talent.militaryCandidates} />
           </div>
         </section>
       ) : null}
@@ -218,9 +215,9 @@ export default async function CommandCenterPage({
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard href="/app/workforce/assessments" label="Assessments in progress" value={snapshot.workforce.assessmentsInProgress} />
             <MetricCard href="/app/workforce/gaps" label="Critical workforce gaps" value={snapshot.workforce.criticalGaps} />
-            <MetricCard href="/app/workforce/pipelines" label="Pipeline capacity" value={snapshot.workforce.pipelineCapacity} hint="Pipelines currently at risk" />
+            <MetricCard href="/app/workforce/pipelines" label="Pipelines at risk" value={snapshot.workforce.pipelineCapacity} />
             <MetricCard href="/app/workforce" label="Workforce risks" value={snapshot.workforce.workforceRisks} />
-            <MetricCard href="/app/admin/approvals" label="Recommendations awaiting approval" value={snapshot.workforce.recommendationsAwaitingApproval} />
+            <MetricCard href="/app/ai-operations/review" label="Recommendations awaiting approval" value={snapshot.workforce.recommendationsAwaitingApproval} />
           </div>
         </section>
       ) : null}
@@ -259,10 +256,10 @@ export default async function CommandCenterPage({
           <SectionHeader title="Military Talent" />
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard href="/app/military/skillbridge?view=needs-action" label="Needs attention" value={snapshot.skillbridge.needsAttention} />
-            <MetricCard href="/app/military/skillbridge?view=windows" label="Windows opening soon" value={snapshot.skillbridge.windowsOpeningSoon} />
-            <MetricCard href="/app/military/skillbridge?view=without-opportunities" label="No opportunity" value={snapshot.skillbridge.noOpportunity} />
+            <MetricCard href="/app/military/skillbridge?view=windows" label="Pathway windows opening soon" value={snapshot.skillbridge.windowsOpeningSoon} />
+            <MetricCard href="/app/military/skillbridge?view=without-opportunities" label="No employer/host opportunity" value={snapshot.skillbridge.noOpportunity} />
             <MetricCard href="/app/military/skillbridge?view=employer-feedback" label="Employer feedback overdue" value={snapshot.skillbridge.employerFeedbackOverdue} />
-            <MetricCard href="/app/military/skillbridge?view=active" label="SkillBridge active" value={snapshot.skillbridge.skillbridgeActive} />
+            <MetricCard href="/app/military/skillbridge?view=active" label="SkillBridge pathway active" value={snapshot.skillbridge.skillbridgeActive} />
             <MetricCard href="/app/military/skillbridge?view=conversion" label="Conversion pending" value={snapshot.skillbridge.conversionPending} />
           </div>
         </section>
@@ -313,17 +310,17 @@ export default async function CommandCenterPage({
               </a>
             </p>
           </section>
-        ) : canReviewApprovals ? (
+        ) : canReviewQueue ? (
           <section>
-            <SectionHeader title="Pending approvals" />
+            <SectionHeader title="Review Queue" description="Material AI drafts wait here. Humans approve. Agents cannot approve their own work." />
             {snapshot.base.pendingApprovals.length === 0 ? (
-              <EmptyState title="No pending approvals.">Material AI and client-facing outputs that require human review will appear here.</EmptyState>
+              <EmptyState title="No items waiting.">Material AI and client-facing outputs that require human review appear on the Review Queue.</EmptyState>
             ) : (
               <RecordList>
                 {snapshot.base.pendingApprovals.map((approval) => (
                   <RecordRow
                     key={approval.id}
-                    href="/app/admin/approvals"
+                    href="/app/ai-operations/review"
                     title={formatLabel(approval.approvalType)}
                     meta={`${approval.recordType} · ${formatDate(approval.createdAt)}`}
                   />

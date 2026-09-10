@@ -1717,19 +1717,33 @@ export async function getHiringMetrics(organizationId: string) {
       db
         .select({ value: sql<number>`count(*)` })
         .from(jobs)
-        .where(and(eq(jobs.organizationId, organizationId), inArray(jobs.status, ["open", "search_active"]))),
+        .where(
+          and(eq(jobs.organizationId, organizationId), isNull(jobs.archivedAt), inArray(jobs.status, ["open", "search_active"])),
+        ),
     ),
     counted(
       db
         .select({ value: sql<number>`count(*)` })
         .from(applications)
-        .where(and(eq(applications.organizationId, organizationId), gte(applications.appliedAt, weekAgo))),
+        .where(
+          and(
+            eq(applications.organizationId, organizationId),
+            isNull(applications.archivedAt),
+            gte(applications.appliedAt, weekAgo),
+          ),
+        ),
     ),
     counted(
       db
         .select({ value: sql<number>`count(*)` })
         .from(applications)
-        .where(and(eq(applications.organizationId, organizationId), eq(applications.currentStage, "applied"))),
+        .where(
+          and(
+            eq(applications.organizationId, organizationId),
+            isNull(applications.archivedAt),
+            eq(applications.currentStage, "applied"),
+          ),
+        ),
     ),
     counted(
       db
@@ -1788,7 +1802,13 @@ export async function getHiringMetrics(organizationId: string) {
         .select({ value: sql<number>`count(*)` })
         .from(applications)
         .innerJoin(jobs, eq(jobs.id, applications.jobId))
-        .where(and(eq(applications.organizationId, organizationId), eq(jobs.jobContextType, "skillbridge"))),
+        .where(
+          and(
+            eq(applications.organizationId, organizationId),
+            isNull(applications.archivedAt),
+            eq(jobs.jobContextType, "skillbridge"),
+          ),
+        ),
     ),
     counted(
       db
@@ -1798,6 +1818,7 @@ export async function getHiringMetrics(organizationId: string) {
         .where(
           and(
             eq(applications.organizationId, organizationId),
+            isNull(applications.archivedAt),
             eq(jobs.jobContextType, "skillbridge"),
             inArray(applications.currentStage, ["applied", "opportunity_matching", "no_match_yet"]),
           ),

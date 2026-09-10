@@ -17,20 +17,24 @@ export const DEFAULT_SKILLBRIDGE_ALERT_RULES = [
 export async function ensureSkillBridgeAlertRules(organizationId: string) {
   const db = getDb();
   for (const rule of DEFAULT_SKILLBRIDGE_ALERT_RULES) {
-    await db
-      .insert(skillbridgeAlertRules)
-      .values({
-        organizationId,
-        code: rule.code,
-        enabled: true,
-        thresholdDays: rule.thresholdDays,
-      })
-      .onConflictDoNothing();
+    try {
+      await db
+        .insert(skillbridgeAlertRules)
+        .values({
+          organizationId,
+          code: rule.code,
+          enabled: true,
+          thresholdDays: rule.thresholdDays,
+        })
+        .onConflictDoNothing();
+    } catch {
+      // Missing enum values (migration not applied) must not abort the request.
+      continue;
+    }
   }
 }
 
 export async function getSkillBridgeAlertRules(organizationId: string) {
-  await ensureSkillBridgeAlertRules(organizationId);
   const db = getDb();
   const rows = await db
     .select()

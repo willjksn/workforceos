@@ -14,6 +14,7 @@ import {
   SKILLBRIDGE_WINDOW_DAYS,
   STALE_RECORD_DAYS,
   formatScoutExecutiveSummary,
+  rhythmCtaLabel,
   rhythmPayloadLooksLikePii,
   visibleCadenceIds,
   visibleRhythmWidgetDefs,
@@ -128,6 +129,32 @@ describe("Phase J management operating rhythms", () => {
     );
     expect(SKILLBRIDGE_WINDOW_DAYS).toBe(90);
     expect(STALE_RECORD_DAYS).toBe(14);
+  });
+
+  it("uses operator cadence copy and named screen CTAs", () => {
+    const hints = RHYTHM_WIDGET_DEFS.map((def) => `${def.question} ${def.windowHint ?? ""}`).join("\n");
+    expect(hints).not.toMatch(/DEC-[A-Z]+-\d+/);
+    expect(hints).not.toMatch(
+      /created_at|last_activity_at|updated_at|last_contacted_at|started_at|next_action_at|follow_up_at|window_approaching|conversion_pending/,
+    );
+    expect(hints).not.toMatch(/companies\.gtm_tier/);
+    expect(rhythmCtaLabel("/app/opportunities")).toBe("Open Opportunities");
+    expect(rhythmCtaLabel("/app/military/skillbridge?view=windows")).toBe("Open Pathway operations");
+    expect(rhythmCtaLabel("/app/projects/deliverables")).toBe("Open Deliverables");
+    expect(RHYTHM_WIDGET_DEFS.every((def) => rhythmCtaLabel(def.href) !== "Open linked screen")).toBe(true);
+
+    const page = read("app/(internal)/app/page.tsx");
+    expect(page).toMatch(/href="\/app\/finance\/payments"/);
+    expect(page).toMatch(/Talent pools/);
+    expect(page).toMatch(/No employer\/host opportunity/);
+    expect(page).toMatch(/SkillBridge pathway active/);
+    expect(page).toMatch(/href="\/app\/ai-operations\/review"/);
+    expect(page).not.toMatch(/href="\/app\/admin\/approvals"/);
+    expect(read("lib/hiring/service.ts")).toMatch(/isNull\(applications\.archivedAt\)/);
+    expect(read("app/(internal)/app/admin/approvals/page.tsx")).toMatch(/requirePlatformAdmin/);
+    expect(read("lib/skillbridge/rules.ts")).toMatch(/must not abort the request/);
+    expect(read("lib/skillbridge/rules.ts")).not.toMatch(/getSkillBridgeAlertRules[\s\S]{0,80}ensureSkillBridgeAlertRules/);
+    expect(can(principalFor("recruiter"), "opportunities.read")).toBe(false);
   });
 
   it("parses a Scout executive summary as SHOW_DASHBOARD command_center", () => {

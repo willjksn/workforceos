@@ -96,9 +96,42 @@ export type RhythmWidget = {
   value: string | number;
   href: string;
   windowHint?: string;
+  ctaLabel?: string;
   exceptions: RhythmException[];
   provenance: "live_aggregate";
 };
+
+const RHYTHM_CTA_LABELS: Array<[string, string]> = [
+  ["/app/projects/deliverables", "Open Deliverables"],
+  ["/app/military/skillbridge", "Open Pathway operations"],
+  ["/app/military/opportunities", "Open Employer Opportunities"],
+  ["/app/talent/rediscovery", "Open Rediscovery"],
+  ["/app/finance/invoices", "Open Invoices"],
+  ["/app/finance/payments", "Open Payments"],
+  ["/app/finance/ar", "Open AR"],
+  ["/app/crm/inquiries", "Open Website inquiries"],
+  ["/app/public-content", "Open Public Content"],
+  ["/app/admin/users", "Open People"],
+  ["/app/opportunities", "Open Opportunities"],
+  ["/app/proposals", "Open Proposals"],
+  ["/app/discovery", "Open Discovery"],
+  ["/app/companies", "Open Companies"],
+  ["/app/projects", "Open Projects"],
+  ["/app/contracts", "Open Contracts"],
+  ["/app/talent", "Open Talent Network"],
+  ["/app/submissions", "Open Submissions"],
+  ["/app/interviews", "Open Interviews"],
+  ["/app/placements", "Open Placements"],
+  ["/app/alerts", "Open Alerts"],
+  ["/app/jobs", "Open Jobs"],
+  ["/app/finance", "Open Finance"],
+];
+
+export function rhythmCtaLabel(href: string) {
+  const path = href.split("?")[0];
+  const match = RHYTHM_CTA_LABELS.find(([prefix]) => path === prefix || path.startsWith(`${prefix}/`));
+  return match?.[1] ?? "Open linked screen";
+}
 
 export type RhythmBoard = {
   id: CadenceId;
@@ -149,7 +182,7 @@ export const RHYTHM_WIDGET_DEFS: RhythmWidgetDef[] = [
     cadence: "leadership",
     question: "How many Transition Talent Profiles are in active Military Talent operations?",
     href: "/app/military/skillbridge",
-    windowHint: `SkillBridge pathway window uses the stored ${SKILLBRIDGE_WINDOW_DAYS}-day approaching rule.`,
+    windowHint: `SkillBridge pathway windows use the stored ${SKILLBRIDGE_WINDOW_DAYS}-day approaching threshold.`,
     anyPermission: ["military.read", "skillbridge.read"],
   },
   {
@@ -171,7 +204,7 @@ export const RHYTHM_WIDGET_DEFS: RhythmWidgetDef[] = [
     cadence: "leadership",
     question: "Which opportunities, deliverables, invoices, or integrations need attention?",
     href: "/app/alerts",
-    windowHint: `Stale opportunities and aging jobs use a ${STALE_RECORD_DAYS}-day stored-date window. Alerts stay on /app/alerts (DEC-OPS-002).`,
+    windowHint: `Stale opportunities and aging jobs use a ${STALE_RECORD_DAYS}-day stored-date window. Operational exceptions stay on Alerts.`,
     anyPermission: ["opportunities.read", "projects.read", "finance.read", "integrations.read", "alerts.read", "reports.read"],
   },
   {
@@ -193,7 +226,7 @@ export const RHYTHM_WIDGET_DEFS: RhythmWidgetDef[] = [
     cadence: "operations",
     question: "Which PierOne staff onboarding records are still open or past the Week 4 elapsed window?",
     href: "/app/admin/users",
-    windowHint: `Overdue uses Phase H elapsed Week 4 (≥ ${STAFF_WEEK4_ELAPSED_DAYS} days from started_at) when cadence is not complete. Not a temp-staffing product.`,
+    windowHint: `Open staff cadence, or past the ${STAFF_WEEK4_ELAPSED_DAYS}-day Week 4 window. Not a temp-staffing product.`,
     anyPermission: ["admin.users"],
   },
   {
@@ -243,7 +276,7 @@ export const RHYTHM_WIDGET_DEFS: RhythmWidgetDef[] = [
     cadence: "talent",
     question: "Which open jobs or candidates have gone quiet on stored dates?",
     href: "/app/talent/rediscovery",
-    windowHint: `Jobs: ${STALE_RECORD_DAYS} days since last_activity_at or updated_at. Candidates: ${CANDIDATE_AGING_DAYS}-day rediscovery window on last_contacted_at.`,
+    windowHint: `Jobs with no stored activity for ${STALE_RECORD_DAYS} days. Candidates past the ${CANDIDATE_AGING_DAYS}-day rediscovery window.`,
     anyPermission: ["jobs.read", "candidates.read"],
   },
   {
@@ -258,7 +291,7 @@ export const RHYTHM_WIDGET_DEFS: RhythmWidgetDef[] = [
     cadence: "military",
     question: "How many Transition Talent Profiles were added in the intake window?",
     href: "/app/military/skillbridge",
-    windowHint: `${NEW_PROFILE_DAYS}-day created_at lookback. Not a mapping metric.`,
+    windowHint: `${NEW_PROFILE_DAYS}-day intake lookback. Not a mapping metric.`,
     anyPermission: ["military.read", "skillbridge.read"],
   },
   {
@@ -266,7 +299,7 @@ export const RHYTHM_WIDGET_DEFS: RhythmWidgetDef[] = [
     cadence: "military",
     question: "Whose stored SkillBridge pathway window opens inside the approaching rule?",
     href: "/app/military/skillbridge?view=windows",
-    windowHint: `${SKILLBRIDGE_WINDOW_DAYS}-day SkillBridge alert constant (window_approaching).`,
+    windowHint: `SkillBridge pathway windows opening within ${SKILLBRIDGE_WINDOW_DAYS} days.`,
     anyPermission: ["military.read", "skillbridge.read"],
   },
   {
@@ -300,7 +333,7 @@ export const RHYTHM_WIDGET_DEFS: RhythmWidgetDef[] = [
   {
     id: "conversions",
     cadence: "military",
-    question: "How many profiles are in conversion_pending?",
+    question: "How many Transition Talent Profiles are conversion pending?",
     href: "/app/military/skillbridge?view=conversion",
     anyPermission: ["military.read", "skillbridge.read"],
   },
@@ -314,7 +347,7 @@ export const RHYTHM_WIDGET_DEFS: RhythmWidgetDef[] = [
   {
     id: "ar-aging",
     cadence: "finance",
-    question: "What open AR sits in each stored aging bucket?",
+    question: "What open AR is still unpaid, and how much is past due?",
     href: "/app/finance/ar",
     anyPermission: ["finance.read"],
   },
@@ -337,7 +370,7 @@ export const RHYTHM_WIDGET_DEFS: RhythmWidgetDef[] = [
     cadence: "gtm",
     question: "How many 90-day target accounts are tagged Tier 1 vs Tier 2?",
     href: "/app/companies",
-    windowHint: "Uses companies.gtm_tier. Industry remains the human label. Not a second accounts table.",
+    windowHint: "Tier 1 and Tier 2 tags on Companies. Industry stays the human label. Not a second accounts table.",
     anyPermission: ["companies.read", "opportunities.read"],
     commercial: true,
   },
@@ -346,7 +379,7 @@ export const RHYTHM_WIDGET_DEFS: RhythmWidgetDef[] = [
     cadence: "gtm",
     question: "Which commercial opportunities are open on GTM accounts or focus industries?",
     href: "/app/opportunities",
-    windowHint: "Joined to gtm_tier or a locked focus-industry label. Recruiter Standard cannot see this board.",
+    windowHint: "GTM-tiered accounts or locked focus industries. Recruiter Standard cannot see this board.",
     anyPermission: ["opportunities.read"],
     commercial: true,
   },
@@ -371,7 +404,7 @@ export const RHYTHM_WIDGET_DEFS: RhythmWidgetDef[] = [
     cadence: "gtm",
     question: "What share of closed GTM opportunities are stored as won?",
     href: "/app/opportunities",
-    windowHint: "won ÷ (won + lost + abandoned) on GTM-tiered or focus-industry companies. Not a forecast.",
+    windowHint: "Won share of closed GTM opportunities. Not a forecast.",
     anyPermission: ["opportunities.read"],
     commercial: true,
   },
@@ -389,7 +422,7 @@ export const RHYTHM_WIDGET_DEFS: RhythmWidgetDef[] = [
     cadence: "gtm",
     question: "How many website inquiries are still intake (not converted or closed)?",
     href: "/app/crm/inquiries",
-    windowHint: "Inquiries are intake, not auto-opportunities (DEC-WEB-004).",
+    windowHint: "Inquiries are intake, not auto-opportunities.",
     anyPermission: ["opportunities.read"],
     commercial: true,
   },
@@ -398,7 +431,7 @@ export const RHYTHM_WIDGET_DEFS: RhythmWidgetDef[] = [
     cadence: "gtm",
     question: "How many industry campaigns are active in Public Content?",
     href: "/app/public-content?type=featured_industry_campaign",
-    windowHint: "Existing Public Content — not a CMS rebuild (DEC-WEB-010).",
+    windowHint: "Existing Public Content — not a CMS rebuild.",
     anyPermission: ["opportunities.read", "public_content.read"],
     commercial: true,
   },
@@ -407,7 +440,7 @@ export const RHYTHM_WIDGET_DEFS: RhythmWidgetDef[] = [
     cadence: "gtm",
     question: "Which GTM target accounts have an overdue stored follow-up?",
     href: "/app/companies",
-    windowHint: "Derived from companies.next_action_at and activities.follow_up_at on GTM-tiered accounts. Not a sequencer product.",
+    windowHint: "Overdue next actions and follow-ups on GTM-tiered accounts. Not a sequencer product.",
     anyPermission: ["opportunities.read", "companies.read"],
     commercial: true,
   },
@@ -469,6 +502,7 @@ function emptyWidget(def: RhythmWidgetDef, value: string | number = 0, exception
     value,
     href: def.href,
     windowHint: def.windowHint,
+    ctaLabel: rhythmCtaLabel(def.href),
     exceptions,
     provenance: "live_aggregate",
   };
@@ -1422,16 +1456,11 @@ async function loadOperationsWidgets(principal: Principal, now: Date): Promise<R
           userId: users.id,
           title: users.fullName,
           cadence: staffOnboarding.cadence,
+          startedAt: staffOnboarding.startedAt,
         })
         .from(staffOnboarding)
         .innerJoin(users, eq(staffOnboarding.userId, users.id))
-        .where(
-          and(
-            eq(staffOnboarding.organizationId, org),
-            not(eq(staffOnboarding.cadence, "complete")),
-            lt(staffOnboarding.startedAt, week4Before),
-          ),
-        )
+        .where(and(eq(staffOnboarding.organizationId, org), not(eq(staffOnboarding.cadence, "complete"))))
         .orderBy(staffOnboarding.startedAt)
         .limit(RHYTHM_EXCEPTION_LIMIT),
     ]);
@@ -1442,7 +1471,12 @@ async function loadOperationsWidgets(principal: Principal, now: Date): Promise<R
         exceptions.map((row) => ({
           id: row.id,
           title: row.title,
-          meta: row.cadence.replaceAll("_", " "),
+          meta: [
+            row.cadence.replaceAll("_", " "),
+            row.startedAt && row.startedAt < week4Before ? "past Week 4 window" : null,
+          ]
+            .filter(Boolean)
+            .join(" · "),
           href: `/app/admin/users/${row.userId}/onboarding`,
         })),
       ),

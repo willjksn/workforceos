@@ -1,6 +1,6 @@
 import { updateSkillBridgeAlertRuleAction } from "@/lib/actions/skillbridge";
 import { requireAnyAppPermission } from "@/lib/auth/guard";
-import { getSkillBridgeAlertRules } from "@/lib/skillbridge/rules";
+import { ensureSkillBridgeAlertRules, getSkillBridgeAlertRules } from "@/lib/skillbridge/rules";
 import { ActionForm } from "../../../_components/action-form";
 import { Field, PageHeader, PageShell, PrimaryButton, inputClassName } from "../../../_components/ui";
 import { MilitarySubnav } from "../../_components/military-subnav";
@@ -18,6 +18,7 @@ const LABELS: Record<string, string> = {
 
 export default async function SkillBridgeAlertRulesPage() {
   const principal = await requireAnyAppPermission(["skillbridge.manage", "military.review"]);
+  await ensureSkillBridgeAlertRules(principal.organizationId);
   const rules = await getSkillBridgeAlertRules(principal.organizationId);
 
   return (

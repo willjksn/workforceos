@@ -11,12 +11,12 @@ function WidgetCard({ widget }: { widget: RhythmWidget }) {
       {widget.windowHint ? <p className="mt-2 text-xs text-muted-foreground">{widget.windowHint}</p> : null}
       <p className="mt-3">
         <a className="text-sm font-medium text-teal hover:underline" href={widget.href}>
-          Open operating screen
+          {widget.ctaLabel ?? "Open linked screen"}
         </a>
       </p>
       {widget.exceptions.length > 0 ? (
         <div className="mt-4">
-          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Exceptions</p>
+          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Needs attention</p>
           <RecordList>
             {widget.exceptions.map((item) => (
               <RecordRow key={item.id} href={item.href} title={item.title} meta={item.meta} />
@@ -24,7 +24,7 @@ function WidgetCard({ widget }: { widget: RhythmWidget }) {
           </RecordList>
         </div>
       ) : (
-        <p className="mt-4 text-sm text-muted-foreground">No exception list for this count — use the operating screen.</p>
+        <p className="mt-4 text-sm text-muted-foreground">None listed on this card. Use the linked screen for the working list.</p>
       )}
     </Card>
   );
