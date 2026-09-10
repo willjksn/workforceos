@@ -1,7 +1,6 @@
 import { requireAppPermission } from "@/lib/auth/guard";
-import { listReviewQueue } from "@/lib/ai/review";
+import { canDecideReview, listReviewQueue } from "@/lib/ai/review";
 import { decideReviewAction } from "@/lib/actions/ai";
-import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../_components/action-form";
 import {
   EmptyState,
@@ -23,7 +22,6 @@ export default async function ReviewQueuePage({
   const principal = await requireAppPermission("agents.read");
   const { category } = await searchParams;
   const rows = await listReviewQueue(principal.organizationId, category);
-  const canDecide = can(principal, "agents.read");
 
   return (
     <PageShell wide>
@@ -37,7 +35,7 @@ export default async function ReviewQueuePage({
         <EmptyState title="Nothing in the review queue.">Candidate submissions, mappings, proposals, and other material outputs appear when an agent requires a human.</EmptyState>
       ) : (
         <div className="mt-8 space-y-4">
-          {rows.map(({ output, agent, approval }) => (
+          {rows.map(({ output, agent, approval, usedFallback }) => (
             <article key={output.id} className="rounded-lg border border-border bg-card p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -47,6 +45,7 @@ export default async function ReviewQueuePage({
                   <h2 className="mt-1 text-base font-medium text-navy">{output.summary}</h2>
                   <p className="mt-2 text-sm text-muted-foreground">
                     Confidence {output.confidence ?? "not numeric"} · {output.provider ?? "heuristic"} / {output.model ?? "n/a"}
+                    {usedFallback ? " · fallback used" : ""}
                   </p>
                   <p className="mt-2 text-sm text-muted-foreground">
                     Citations: {formatCitations(output.sourceReferences) ?? "None recorded"}
@@ -55,7 +54,7 @@ export default async function ReviewQueuePage({
                 </div>
                 <StatusBadge tone="warning">{formatLabel(approval?.status ?? output.status)}</StatusBadge>
               </div>
-              {canDecide && approval?.status === "pending" ? (
+              {canDecideReview(principal, output.reviewCategory) && approval?.status === "pending" ? (
                 <ActionForm action={decideReviewAction} className="mt-4 flex flex-wrap items-end gap-2">
                   <input type="hidden" name="outputId" value={output.id} />
                   <select name="decision" className={`${inputClassName} max-w-xs`} defaultValue="approved">

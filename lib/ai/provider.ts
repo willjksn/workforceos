@@ -3,16 +3,21 @@ import { logServerEvent } from "../observability/monitor";
 import {
   HEURISTIC_MODEL,
   capabilityClassForTask,
+  isGeminiFallbackConfigured,
   isHeuristicModelName,
   isLiveAiConfigured,
   resolveAiApiKey,
   resolveAiBaseUrl,
   resolveAiProviderName,
   resolveCapabilityModel,
+  resolveClassFallbackModel,
+  resolveFallbackBaseUrl,
   resolveFallbackModel,
+  resolveGeminiApiKey,
   type AiCapabilityClass,
 } from "./capabilities";
 import { AgentError } from "./errors";
+import { classifyProviderError, shouldFailoverForAvailability, type FailoverReason } from "./failover";
 
 export type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
@@ -79,15 +84,21 @@ async function callOpenAiCompatible(input: {
   baseUrl: string;
   apiKey: string;
   model: string;
+  provider: string;
   messages: ChatMessage[];
   temperature?: number;
   maxTokens?: number;
   timeoutMs: number;
   capabilityClass: AiCapabilityClass;
+  usedFallback: boolean;
 }): Promise<CompletionResult> {
   const started = Date.now();
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), input.timeoutMs);
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, input.timeoutMs);
   try {
     const response = await fetch(`${input.baseUrl.replace(/\/$/, "")}/chat/completions`, {
       method: "POST",
@@ -117,16 +128,21 @@ async function callOpenAiCompatible(input: {
     const outputTokens = json.usage?.completion_tokens;
     return {
       text,
-      provider: "openai_compatible",
+      provider: input.provider,
       model: json.model ?? input.model,
       modelVersion: json.model ?? input.model,
       capabilityClass: input.capabilityClass,
       inputTokens,
       outputTokens,
       estimatedCostUsd: estimateCost(inputTokens, outputTokens),
-      usedFallback: false,
+      usedFallback: input.usedFallback,
       latencyMs: Date.now() - started,
     };
+  } catch (error) {
+    if (timedOut) {
+      throw new AgentError("Provider timed out", "provider");
+    }
+    throw error;
   } finally {
     clearTimeout(timer);
   }
@@ -144,6 +160,46 @@ function resolveRequestedModel(request: CompletionRequest, capabilityClass: AiCa
     return request.model;
   }
   return resolveCapabilityModel(capabilityClass);
+}
+
+function logCompletion(input: {
+  taskType: string;
+  capabilityClass: AiCapabilityClass;
+  result: CompletionResult;
+  live: boolean;
+  failureType?: string;
+}) {
+  logServerEvent("ai.completion", {
+    taskType: input.taskType,
+    capabilityClass: input.capabilityClass,
+    provider: input.result.provider,
+    model: input.result.model,
+    usedFallback: input.result.usedFallback,
+    latencyMs: input.result.latencyMs,
+    live: input.live,
+    failureType: input.failureType,
+    inputTokens: input.result.inputTokens,
+    outputTokens: input.result.outputTokens,
+    estimatedCostUsd: input.result.estimatedCostUsd,
+  });
+}
+
+function logAttemptFailure(input: {
+  taskType: string;
+  capabilityClass: AiCapabilityClass;
+  provider: string;
+  model: string;
+  usedFallback: boolean;
+  reason: FailoverReason;
+}) {
+  logServerEvent("ai.completion_failed", {
+    taskType: input.taskType,
+    capabilityClass: input.capabilityClass,
+    provider: input.provider,
+    model: input.model,
+    usedFallback: input.usedFallback,
+    failureType: input.reason.kind === "availability" ? input.reason.type : input.reason.kind,
+  });
 }
 
 export async function completePrompt(request: CompletionRequest): Promise<CompletionResult> {
@@ -165,101 +221,143 @@ export async function completePrompt(request: CompletionRequest): Promise<Comple
       latencyMs: Date.now() - started,
       messages: request.messages,
     });
-    logServerEvent("ai.completion", {
-      taskType: request.taskType,
-      capabilityClass,
-      provider: result.provider,
-      model: result.model,
-      usedFallback: false,
-      latencyMs: result.latencyMs,
-      live: false,
-    });
+    logCompletion({ taskType: request.taskType, capabilityClass, result, live: false });
     return result;
   }
 
   const baseUrl = resolveAiBaseUrl(env);
+  const callArgs = {
+    messages: request.messages,
+    temperature: request.temperature,
+    maxTokens: request.maxTokens,
+    timeoutMs,
+    capabilityClass,
+  };
+
   try {
     const result = await callOpenAiCompatible({
+      ...callArgs,
       baseUrl,
       apiKey,
       model,
-      messages: request.messages,
-      temperature: request.temperature,
-      maxTokens: request.maxTokens,
-      timeoutMs,
-      capabilityClass,
-    });
-    logServerEvent("ai.completion", {
-      taskType: request.taskType,
-      capabilityClass,
-      provider: result.provider,
-      model: result.model,
-      inputTokens: result.inputTokens,
-      outputTokens: result.outputTokens,
-      estimatedCostUsd: result.estimatedCostUsd,
+      provider: "openai_compatible",
       usedFallback: false,
-      latencyMs: result.latencyMs,
-      live: true,
     });
+    logCompletion({ taskType: request.taskType, capabilityClass, result, live: true });
     return result;
   } catch (error) {
-    const fallbackModel = request.fallbackModel ?? resolveFallbackModel(env);
-    logServerEvent("ai.completion_failed", {
+    const primaryReason = classifyProviderError(error);
+    logAttemptFailure({
       taskType: request.taskType,
       capabilityClass,
       provider: requestedProvider,
       model,
-      timeoutMs,
-      retry: Boolean(fallbackModel && fallbackModel !== model),
+      usedFallback: false,
+      reason: primaryReason,
     });
-    if (fallbackModel && fallbackModel !== model && !isHeuristicModelName(fallbackModel)) {
-      try {
-        const result = await callOpenAiCompatible({
-          baseUrl,
-          apiKey,
-          model: fallbackModel,
-          messages: request.messages,
-          temperature: request.temperature,
-          maxTokens: request.maxTokens,
-          timeoutMs,
-          capabilityClass,
-        });
-        const fallbackResult = { ...result, usedFallback: true };
-        logServerEvent("ai.completion", {
-          taskType: request.taskType,
-          capabilityClass,
-          provider: fallbackResult.provider,
-          model: fallbackResult.model,
-          inputTokens: fallbackResult.inputTokens,
-          outputTokens: fallbackResult.outputTokens,
-          estimatedCostUsd: fallbackResult.estimatedCostUsd,
-          usedFallback: true,
-          latencyMs: fallbackResult.latencyMs,
-          live: true,
-        });
-        return fallbackResult;
-      } catch {
-        /* fall through to heuristic */
+
+    // Same-provider spare, then Gemini class fallback — availability failures only (DEC-AI-012).
+    // Circuit breaker and cost caps are asserted in the runner before this hop; hopping cannot reopen them.
+    if (shouldFailoverForAvailability(primaryReason)) {
+      const sameProviderFallback = request.fallbackModel ?? resolveFallbackModel(env);
+      if (sameProviderFallback && sameProviderFallback !== model && !isHeuristicModelName(sameProviderFallback)) {
+        try {
+          const result = await callOpenAiCompatible({
+            ...callArgs,
+            baseUrl,
+            apiKey,
+            model: sameProviderFallback,
+            provider: "openai_compatible",
+            usedFallback: true,
+          });
+          logCompletion({ taskType: request.taskType, capabilityClass, result, live: true });
+          return result;
+        } catch (fallbackError) {
+          const sameReason = classifyProviderError(fallbackError);
+          logAttemptFailure({
+            taskType: request.taskType,
+            capabilityClass,
+            provider: "openai_compatible",
+            model: sameProviderFallback,
+            usedFallback: true,
+            reason: sameReason,
+          });
+          if (!shouldFailoverForAvailability(sameReason)) {
+            return finishHeuristicAfterFailure({
+              started,
+              capabilityClass,
+              request,
+              failureType: sameReason.kind === "availability" ? sameReason.type : sameReason.kind,
+            });
+          }
+        }
+      }
+
+      const geminiKey = resolveGeminiApiKey(env);
+      const classFallback = resolveClassFallbackModel(capabilityClass, env);
+      const requestWantsGemini = request.fallbackProvider?.trim().toLowerCase() === "gemini";
+      if (
+        capabilityClass !== "EMBEDDING" &&
+        (isGeminiFallbackConfigured(env) || (requestWantsGemini && Boolean(geminiKey))) &&
+        geminiKey &&
+        classFallback &&
+        !isHeuristicModelName(classFallback)
+      ) {
+        try {
+          const result = await callOpenAiCompatible({
+            ...callArgs,
+            baseUrl: resolveFallbackBaseUrl(env),
+            apiKey: geminiKey,
+            model: classFallback,
+            provider: "gemini",
+            usedFallback: true,
+          });
+          logCompletion({ taskType: request.taskType, capabilityClass, result, live: true });
+          return result;
+        } catch (geminiError) {
+          const geminiReason = classifyProviderError(geminiError);
+          logAttemptFailure({
+            taskType: request.taskType,
+            capabilityClass,
+            provider: "gemini",
+            model: classFallback,
+            usedFallback: true,
+            reason: geminiReason,
+          });
+        }
       }
     }
-    const result = heuristicResult({
+
+    return finishHeuristicAfterFailure({
+      started,
       capabilityClass,
-      usedFallback: true,
-      modelVersion: "fallback-after-error",
-      latencyMs: Date.now() - started,
-      messages: request.messages,
+      request,
+      failureType: primaryReason.kind === "availability" ? primaryReason.type : primaryReason.kind,
     });
-    logServerEvent("ai.completion", {
-      taskType: request.taskType,
-      capabilityClass,
-      provider: result.provider,
-      model: result.model,
-      usedFallback: true,
-      latencyMs: result.latencyMs,
-      live: false,
-    });
-    return result;
   }
+}
+
+function finishHeuristicAfterFailure(input: {
+  started: number;
+  capabilityClass: AiCapabilityClass;
+  request: CompletionRequest;
+  failureType: string;
+}): CompletionResult {
+  const result = heuristicResult({
+    capabilityClass: input.capabilityClass,
+    usedFallback: true,
+    modelVersion: "fallback-after-error",
+    latencyMs: Date.now() - input.started,
+    messages: input.request.messages,
+  });
+  logCompletion({
+    taskType: input.request.taskType,
+    capabilityClass: input.capabilityClass,
+    result,
+    live: false,
+    failureType: input.failureType,
+  });
+  return result;
 }
 
 export function parseModelJson(text: string): Record<string, unknown> {

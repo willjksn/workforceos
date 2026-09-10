@@ -113,6 +113,8 @@ describe("leftover IA", () => {
     );
     expect(recruiter).not.toContain("/app/ai-operations");
     expect(recruiter).not.toContain("/app/ai-operations/costs");
+    expect(recruiter).toContain("/app/ai-operations/review");
+    expect(ROLE_PERMISSIONS.recruiter).toContain("agents.read");
     expect(ROLE_PERMISSIONS.recruiter).not.toContain("agents.manage");
     expect(ROLE_PERMISSIONS.recruiter).not.toContain("opportunities.read");
     const admin = navGroupsForPrincipal(principalFor("managing-partner")).find((group) => group.label === "Admin");

@@ -108,7 +108,7 @@ Remaining work: `docs/operations/MASTER_COMPLETION_LEDGER.md`.
 - Module: ai
 - Priority: locked
 - Status: approved
-- Acceptance: client-facing material outputs cannot be marked approved by the originating agent.
+- Acceptance: client-facing material outputs cannot be marked approved by the originating agent. Review Queue decide (DEC-AI-012) also requires the domain approve permission for that output category in addition to `agents.read`.
 
 ### WFOS-AUD-001
 
@@ -292,7 +292,7 @@ Remaining work: `docs/operations/MASTER_COMPLETION_LEDGER.md`.
 - Module: ai
 - Priority: locked
 - Status: approved
-- Acceptance: agent runs load approved workflow context when a service is in scope. Effective permissions are the intersection of agent and caller permissions. Draft outputs store agent, model, sources, and review state. Originating agents cannot approve their own material output.
+- Acceptance: agent runs load approved workflow context when a service is in scope. Effective permissions are the intersection of agent and caller permissions. Draft outputs store agent, model, sources, and review state. Originating agents cannot approve their own material output. Recruiter / Talent Partner / Military Talent Partner have `agents.read` and never `agents.manage`. Workforce Consultant has `agents.read` + `scout.draft`.
 
 ### WFOS-AI-004
 

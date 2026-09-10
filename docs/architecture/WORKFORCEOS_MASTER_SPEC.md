@@ -36,7 +36,7 @@ In V1, WorkforceOS:
 | File storage | StorageProvider abstraction; Cloudflare R2 / S3-compatible in production; local adapter in development |
 | Search | pgvector semantic search; pg_trgm fuzzy search; PostgreSQL full-text where useful |
 | Background jobs | Inngest |
-| AI models | Provider abstraction; agents do not own data |
+| AI models | OpenAI-compatible primary (DEC-AI-012); Gemini availability fallback only; heuristic when no live key. Agents do not own data. No Anthropic. |
 | Monitoring | Sentry when `SENTRY_DSN` is set; redacted server logs otherwise |
 
 Firebase and Firestore are prohibited.
@@ -149,7 +149,7 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 - Execution path: prompt → intent parser → Zod DTO → authorize → existing query/service layer → PostgreSQL → structured result cards. Page context is the route (candidate/job/company/Transition Talent Profile ids), not conversational memory. Physical SkillBridge table names may appear in ids.
 - RBAC and Restricted PII stripping happen before any record is passed to a model. Without `candidate_pii.read`, email, phone, compensation, resume text, and other restricted fields are omitted.
 - Read actions may run immediately. Material internal writes require confirmation. External actions require `scout.external_actions` plus human approval. Destructive actions always confirm. Drafts follow Draft → Human Review → Send/Copy and never auto-send.
-- Permissions: `scout.use`, `scout.search`, `scout.draft`, `scout.internal_actions`, `scout.external_actions`. Scout cannot self-approve, send contracts, execute offers, reject candidates solely via AI, or bypass RBAC.
+- Permissions: `scout.use`, `scout.search`, `scout.draft`, `scout.internal_actions`, `scout.external_actions`. Do not add `scout.recruiting` or `scout.finance`. Scout remains a closed command registry; this pass does not add Scout-as-LLM assist. Scout cannot self-approve, send contracts, execute offers, reject candidates solely via AI, or bypass RBAC. Recruiter still has no `opportunities.read`. External send still needs `scout.external_actions` + confirmation + Resend.
 - `scout_sessions` / `scout_messages` / `scout_actions` are usability memory. PostgreSQL business tables remain the system of record.
 
 ## Military Talent operations (Phase 9)

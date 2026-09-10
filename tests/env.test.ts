@@ -60,6 +60,25 @@ describe("AI capability-class env", () => {
     expect(env.AI_MODEL_REASONING).toBe("reasoning-one");
     expect(env.AI_MODEL_EMBEDDING).toBe("embedding-one");
   });
+
+  it("accepts optional Gemini availability-fallback vars without Anthropic or NEXT_PUBLIC_AI", () => {
+    vi.stubEnv("AI_FALLBACK_PROVIDER", "gemini");
+    vi.stubEnv("GEMINI_API_KEY", "gemini-test-key");
+    vi.stubEnv("AI_FALLBACK_BASE_URL", "https://example.test/openai");
+    vi.stubEnv("AI_MODEL_FAST_FALLBACK", "fast-fallback");
+    vi.stubEnv("AI_MODEL_STANDARD_FALLBACK", "standard-fallback");
+    vi.stubEnv("AI_MODEL_REASONING_FALLBACK", "reasoning-fallback");
+    resetServerEnvCache();
+    const env = getServerEnv();
+    expect(env.AI_FALLBACK_PROVIDER).toBe("gemini");
+    expect(env.GEMINI_API_KEY).toBe("gemini-test-key");
+    expect(env.AI_FALLBACK_BASE_URL).toBe("https://example.test/openai");
+    expect(env.AI_MODEL_FAST_FALLBACK).toBe("fast-fallback");
+    expect(env.AI_MODEL_STANDARD_FALLBACK).toBe("standard-fallback");
+    expect(env.AI_MODEL_REASONING_FALLBACK).toBe("reasoning-fallback");
+    expect(env).not.toHaveProperty("ANTHROPIC_API_KEY");
+    expect(Object.keys(env).some((key) => key.startsWith("NEXT_PUBLIC_AI_"))).toBe(false);
+  });
 });
 
 describe("storage provider env", () => {

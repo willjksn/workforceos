@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### AI Operating Model Stage 1 + Stage 2 — 2026-09-09
+
+- Accepted `docs/architecture/AI_OPERATING_MODEL.md` and DEC-AI-012: OpenAI primary, Gemini availability fallback only, no Anthropic now. DEC-AI-005 / DEC-AI-011 evolve; they are not replaced.
+- Stage 1: Recruiter, Talent Partner, and Military Talent Partner get `agents.read` (Review Queue) and never `agents.manage`. Workforce Consultant gets `agents.read` + `scout.draft`. Review Queue decide requires the matching domain approve permission. Recruiter still has no `opportunities.read`.
+- Stage 2 code path: Gemini via the existing OpenAI-compatible HTTP client (`AI_FALLBACK_PROVIDER`, `GEMINI_API_KEY`, `AI_FALLBACK_BASE_URL`, `AI_MODEL_*_FALLBACK`). Failover is timeout / 408 / 429 / 5xx / abort / empty body only — never style or tone. Circuit breaker and cost caps are not bypassed by hopping. System Health shows primary LIVE/HEURISTIC and fallback configured yes/no without secrets.
+- Production Gemini is BLOCKED until `GEMINI_API_KEY` is set. Do not claim production AI is LIVE until System Health says so. Stage 3 embeddings/RAG is not started. No Scout-as-LLM assist. No `scout.recruiting` / `scout.finance`. Capability-class ids stay in env; GPT-5.6 Luna/Terra/Sol are not hard-coded in app code.
+
 ### Professional & Technical Search display name — 2026-09-09
 
 - Accepted DEC-SVC-005: canonical public and operator copy is **Professional & Technical Search**. Slug and workflow keys stay `professional-search`. Not a sixth service.
@@ -11,7 +18,7 @@
 ### Leftover IA — 2026-09-09
 
 - Commercial path is one primary CTA per stage: Company → Opportunity → Discovery → Solution / Service Plan → Build Proposal → Draft → Internal Approval → Send Client → Accepted → Contract / SOW → Project → Delivery. Build proposal stays hidden until the solution plan is approved and no proposal is in flight.
-- AI costs sit under Admin → AI & Automation (`agents.manage`). Review Queue stays reachable with `agents.read`. Recruiters still do not see cost/provider/prompt admin.
+- AI costs sit under Admin → AI & Automation (`agents.manage`). Review Queue is `agents.read`. Recruiters now have Review Queue access and still do not see cost/provider/prompt admin.
 - Reports titles and empty states are operating questions. Removed leftover “Stored records only” / “Stored jobs only” wording.
 - Legal templates use DRAFT — NOT APPROVED FOR USE vs ATTORNEY APPROVED. Remaining “Structural templates…” copy is gone.
 - Add company is the single create path on Companies. Command Center and Scout do not add company records.

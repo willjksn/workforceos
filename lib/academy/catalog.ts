@@ -1062,7 +1062,9 @@ export const ACADEMY_ARTICLES: AcademyArticle[] = [
     accessRequired: ["scout.draft"],
     screenOverview: [{ href: "/app/ai-operations/review", label: "Review Queue" }],
     stepByStep: [
-      "DEC-AI-001 / DEC-AI-008: material outputs need provenance and a human. Agents cannot approve themselves.",
+      "DEC-AI-001 / DEC-AI-008 / DEC-AI-012: material outputs need provenance and a human. Agents cannot approve themselves.",
+      "Recruiter, Talent Partner, Military Talent Partner, and Workforce Consultant can open the Review Queue (agents.read). They never receive agents.manage (costs).",
+      "Deciding a queue item also requires the domain approve permission for that category (submissions.approve, military.review, proposals.approve, and the other mapped approves).",
       "Draft → Human Review → Send/Copy. Never auto-send.",
       "This is not AI-cost training. Cost consoles stay behind agents.manage.",
     ],

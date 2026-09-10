@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, ne, sql } from "drizzle-orm";
+import { and, desc, eq, gt, gte, ne, or, sql } from "drizzle-orm";
 
 import { createDb, getDb } from "../../db";
 import { agentRuns, integrationEvents } from "../../db/schema";
@@ -89,6 +89,24 @@ export async function getSystemHealth() {
   } catch {
     lastLiveAiCompletedAt = null;
   }
+  let lastAiFallbackAt: Date | null = null;
+  try {
+    const db = getDb();
+    const [lastFallback] = await db
+      .select({ completedAt: agentRuns.completedAt })
+      .from(agentRuns)
+      .where(
+        and(
+          eq(agentRuns.status, "completed"),
+          or(eq(agentRuns.provider, "gemini"), gt(agentRuns.retryCount, 0)),
+        ),
+      )
+      .orderBy(desc(agentRuns.completedAt))
+      .limit(1);
+    lastAiFallbackAt = lastFallback?.completedAt ?? null;
+  } catch {
+    lastAiFallbackAt = null;
+  }
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
   let queueFailures = 0;
   try {
@@ -177,6 +195,20 @@ export async function getSystemHealth() {
       detail: aiRuntime.providerConfigured
         ? `Yes — ${aiRuntime.providerName}. API key is set. The key is not displayed.`
         : "No — AI_API_KEY / OPENAI_API_KEY is unset. Runtime is internal_heuristic.",
+    },
+    {
+      title: "AI fallback configured",
+      ok: true,
+      detail: aiRuntime.fallbackConfigured
+        ? "Yes — gemini via OpenAI-compatible HTTP. GEMINI_API_KEY is set. The key is not displayed. Failover is availability-only (timeout, 408/429/5xx, abort, empty body)."
+        : "No — AI_FALLBACK_PROVIDER / GEMINI_API_KEY unset. Gemini availability fallback is BLOCKED until those keys are set. Do not treat this as LIVE.",
+    },
+    {
+      title: "Last AI fallback",
+      ok: true,
+      detail: lastAiFallbackAt
+        ? lastAiFallbackAt.toISOString()
+        : "None recorded. Same-provider model fallback or Gemini has not completed a run in this database.",
     },
     {
       title: "Embeddings",

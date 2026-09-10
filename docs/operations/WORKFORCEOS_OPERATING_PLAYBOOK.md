@@ -84,6 +84,8 @@ Unsigned webhooks are rejected. Webhook intake is rate-limited.
 
 Material AI output lands on `/app/ai-operations/review` as `approvals` plus `agent_outputs`. Humans approve, reject, request changes, or edit. The originating agent cannot approve its own output. Client-facing drafts stay drafts until approved.
 
+`agents.read` opens the Review Queue. `agents.manage` is cost, prompt, run, and provider admin (Admin → AI & Automation). Recruiter, Talent Partner, and Military Talent Partner have `agents.read` only. Workforce Consultant has `agents.read` and `scout.draft`. Decide also requires the domain approve permission for that output category (DEC-AI-012). Do not add `scout.recruiting` or `scout.finance`.
+
 ## Scout
 
 Scout is the persistent in-app assistant (tooltip: Open Scout). It is a right-side drawer, not a new product surface.

@@ -8,9 +8,12 @@ import {
   resolveAiApiKey,
   resolveCapabilityModel,
 } from "../lib/ai/capabilities";
+import { classifyProviderError, failoverReasonFromLabel, shouldFailoverForAvailability } from "../lib/ai/failover";
 import { completePrompt } from "../lib/ai/provider";
 import { isForbiddenTask } from "../lib/ai/registry";
 import { resetServerEnvCache } from "../lib/env";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { ROLE_PERMISSIONS, can, type Principal } from "../lib/rbac/permissions";
 import { isRegisteredCommand, SCOUT_COMMAND_FAMILIES } from "../lib/scout/commands";
 import { assertScoutCannotSend, isScoutExternalSendEnabled, rejectScoutSend } from "../lib/scout/execute";
@@ -108,6 +111,39 @@ describe("Phase B capability-class models", () => {
     expect(heuristic.mode).toBe("heuristic");
     expect(heuristic.providerName).toBe("internal_heuristic");
     expect(heuristic.scoutConfigured).toBe(true);
+    expect(heuristic.fallbackConfigured).toBe(false);
+    expect(JSON.stringify(heuristic)).not.toContain("sk-");
+  });
+
+  it("does not fail over to Gemini for style, tone, or low confidence", () => {
+    expect(shouldFailoverForAvailability(failoverReasonFromLabel("style"))).toBe(false);
+    expect(shouldFailoverForAvailability(failoverReasonFromLabel("tone"))).toBe(false);
+    expect(shouldFailoverForAvailability(failoverReasonFromLabel("low_confidence"))).toBe(false);
+    expect(shouldFailoverForAvailability(failoverReasonFromLabel("structure"))).toBe(false);
+    expect(shouldFailoverForAvailability(classifyProviderError(new Error("operator rejected for style")))).toBe(false);
+    expect(shouldFailoverForAvailability(classifyProviderError(new Error("low confidence")))).toBe(false);
+    expect(shouldFailoverForAvailability(failoverReasonFromLabel("timeout"))).toBe(true);
+    expect(shouldFailoverForAvailability(failoverReasonFromLabel("http_429"))).toBe(true);
+    expect(shouldFailoverForAvailability(failoverReasonFromLabel("http_5xx"))).toBe(true);
+    expect(shouldFailoverForAvailability(failoverReasonFromLabel("empty_body"))).toBe(true);
+  });
+
+  it("does not import Anthropic or hard-code GPT-5.6 Luna/Terra/Sol in app code", () => {
+    const root = path.resolve(__dirname, "..");
+    const files = [
+      "lib/ai/provider.ts",
+      "lib/ai/capabilities.ts",
+      "lib/ai/failover.ts",
+      "lib/env.ts",
+    ];
+    for (const file of files) {
+      const text = readFileSync(path.join(root, file), "utf8");
+      expect(text, file).not.toMatch(/anthropic/i);
+      expect(text, file).not.toMatch(/GPT-5\.6/);
+      expect(text, file).not.toMatch(/\bLuna\b/);
+      expect(text, file).not.toMatch(/\bTerra\b/);
+      expect(text, file).not.toMatch(/\bSol\b/);
+    }
   });
 });
 
@@ -150,7 +186,9 @@ describe("Phase B Scout closed commands and domains", () => {
     const partner = principalFor("managing-partner");
     expect(can(recruiter, "scout.use")).toBe(true);
     expect(can(recruiter, "scout.search")).toBe(true);
+    expect(can(recruiter, "agents.read")).toBe(true);
     expect(can(recruiter, "agents.manage")).toBe(false);
+    expect(can(recruiter, "opportunities.read")).toBe(false);
     expect(can(reader, "scout.search")).toBe(true);
     expect(can(reader, "scout.internal_actions")).toBe(false);
     expect(can(reader, "candidate_pii.read")).toBe(false);

@@ -88,6 +88,7 @@ export async function decideReviewAction(_prev: ActionState, formData: FormData)
       decision: parsed.decision,
       notes: parsed.notes,
       actorType: "human",
+      reviewer: principal,
     });
     return {};
   } catch (error) {

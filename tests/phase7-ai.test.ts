@@ -4,8 +4,8 @@ import { canQueueExternalAction, canWriteDraftRecords, parseAutonomyLevel } from
 import { AgentError } from "../lib/ai/errors";
 import { assertPromptImmutable } from "../lib/ai/prompts";
 import { agentAllowsTask, isForbiddenTask } from "../lib/ai/registry";
-import { assertAgentCannotSelfApprove } from "../lib/ai/review";
-import { ROLE_PERMISSIONS, can } from "../lib/rbac/permissions";
+import { assertAgentCannotSelfApprove, assertCanDecideReview, reviewDecidePermission } from "../lib/ai/review";
+import { AuthorizationError, ROLE_PERMISSIONS, can } from "../lib/rbac/permissions";
 
 describe("phase 7 AI operations gates", () => {
   it("keeps autonomy level 4 from unsupervised external action helpers", () => {
@@ -37,6 +37,27 @@ describe("phase 7 AI operations gates", () => {
         decidingAgentId: "agent-1",
       }),
     ).toThrow();
+  });
+
+  it("requires a domain approve permission to decide a Review Queue item", () => {
+    const recruiter = {
+      id: "u",
+      status: "active" as const,
+      organizationId: "o",
+      roleSlugs: ["recruiter"],
+      permissions: new Set(ROLE_PERMISSIONS.recruiter),
+    };
+    expect(reviewDecidePermission("military_mapping")).toBe("military.review");
+    expect(reviewDecidePermission("proposal")).toBe("proposals.approve");
+    expect(reviewDecidePermission("candidate_submission")).toBe("submissions.approve");
+    expect(reviewDecidePermission(null)).toBeNull();
+    expect(() => assertCanDecideReview(recruiter, "military_mapping")).toThrow(AuthorizationError);
+    expect(() => assertCanDecideReview(recruiter, "proposal")).toThrow(AuthorizationError);
+    expect(() => assertCanDecideReview(recruiter, "candidate_submission")).not.toThrow();
+    expect(() => assertCanDecideReview(recruiter, null)).toThrow(AuthorizationError);
+    expect(() => assertCanDecideReview({ ...recruiter, permissions: new Set(["agents.read"]) }, "candidate_submission")).toThrow(
+      AuthorizationError,
+    );
   });
 
   it("does not grant candidate PII to AI operations readers", () => {

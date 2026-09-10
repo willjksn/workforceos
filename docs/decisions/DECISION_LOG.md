@@ -421,7 +421,7 @@ Database mirror: `decision_log` table, seeded from this file.
 - Decision: Business logic is not hardwired to one model provider. Runtime selects provider, model, task type, temperature, timeout, cost limits, and an approved fallback from `ai_model_configs`. When `AI_API_KEY` is unset, the `internal_heuristic` provider produces deterministic drafts from stored records. Neon AI Gateway / OpenAI-compatible endpoints are supported when configured. Estimated cost and token usage are recorded when available.
 - Reason: Phase 7 must run in development without live model credentials, and production must be able to change models without rewriting agents.
 - Affected modules: ai, deployment
-- Reconsideration: after a production embedding and chat model are selected, update DEC-SEM-001 and model configs together.
+- Reconsideration: after a production embedding and chat model are selected, update DEC-SEM-001 and model configs together. DEC-AI-012 evolves this: OpenAI remains the primary OpenAI-compatible provider; Gemini is an availability-only fallback. Anthropic is not added. This decision is not replaced.
 
 ## DEC-AI-006 — Knowledge is approved, versioned, and ACL-filtered before retrieval
 
@@ -531,7 +531,17 @@ Database mirror: `decision_log` table, seeded from this file.
 - Decision: Features select a capability class — FAST, STANDARD, REASONING, or EMBEDDING — instead of hard-coded provider model strings. Environment names are `AI_MODEL_FAST`, `AI_MODEL_STANDARD`, `AI_MODEL_REASONING`, and `AI_MODEL_EMBEDDING`, with aliases `OPENAI_MODEL_FAST`, `OPENAI_MODEL_BALANCED` / `AI_MODEL`, `OPENAI_MODEL_PRIMARY`, and `OPENAI_EMBEDDING_MODEL`. `AI_API_KEY` remains canonical; `OPENAI_API_KEY` is an OpenAI-compatible alias. `AI_BASE_URL` and `AI_FALLBACK_MODEL` stay. Supported runtime providers remain `internal_heuristic` and OpenAI-compatible chat completions. When no key is set, or `AI_PROVIDER=internal_heuristic`, output is an honest heuristic draft. System Health must label LIVE vs HEURISTIC. Embedding retrieval stays on the DEC-SEM-001 `vector(1536)` development-hash path until a production embedding model is selected.
 - Reason: Production AI must be intentional. Scattered `gpt-*` strings and a binary “configured” health check hid heuristic operation.
 - Affected modules: ai, scout, deployment, admin system health
-- Reconsideration: with DEC-SEM-001 when a live embedding model and dimension are chosen together.
+- Reconsideration: with DEC-SEM-001 when a live embedding model and dimension are chosen together. DEC-AI-012 keeps capability-class env names (`AI_MODEL_FAST` / `STANDARD` / `REASONING`) and adds optional `AI_MODEL_*_FALLBACK` for Gemini. Do not hard-code GPT-5.6 Luna/Terra/Sol in application code. This decision is not replaced.
+
+## DEC-AI-012 — OpenAI primary, Gemini availability fallback, no Anthropic now
+
+- Date: 2026-09-09
+- Owner: Product Build + Managing Partner + Strategy & Technology Administrator
+- Status: accepted
+- Decision: Production AI is OpenAI-primary via the existing `openai_compatible` HTTP client. Gemini is an **availability fallback only** (timeout, HTTP 408/429/5xx, abort, empty body) when `AI_FALLBACK_PROVIDER=gemini` and `GEMINI_API_KEY` are set. Never fail over for tone, style, structure, or low confidence. Do not add Anthropic in this program. Do not add a Gemini SDK. Capability-class model ids stay in `AI_MODEL_FAST` / `STANDARD` / `REASONING` (and `AI_MODEL_*_FALLBACK`); do not hard-code GPT-5.6 Luna/Terra/Sol strings in app code. Recruiter, Talent Partner, and Military Talent Partner receive `agents.read` (Review Queue) and never `agents.manage`. Workforce Consultant receives `agents.read` + `scout.draft`. Review Queue decide requires the matching domain approve permission (`submissions.approve`, `military.review`, `proposals.approve`, `pricing.approve`, `contracts.approve`, `finance.approve`, `workforce.approve`, `solutions.approve`, `deliverables.approve`) in addition to `agents.read`. Scout remains a closed command registry; this pass does not add Scout-as-LLM assist, `scout.recruiting`, or `scout.finance`. Embeddings stay DEC-SEM-001 development-hash `vector(1536)`. Recruiter still has no `opportunities.read` (DEC-RBAC-001).
+- Reason: Accepted AI Operating Model. Operators need a second live provider for outages without turning Gemini into a style tuner, and Review Queue access must match the people who work drafts without opening cost admin.
+- Affected modules: ai, rbac, review queue, deployment, system health, Academy
+- Reconsideration: Stage 3 embeddings/RAG requires a new DEC-SEM / DEC-AI. Anthropic requires a new DEC-AI if OpenAI+Gemini availability is insufficient.
 
 ## DEC-MIL-003 — SkillBridge people are Talent Network candidates
 

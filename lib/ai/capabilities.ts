@@ -83,7 +83,35 @@ export function resolveCapabilityModel(
 }
 
 export function resolveFallbackModel(env: ServerEnv = getServerEnv()) {
-  return env.AI_FALLBACK_MODEL ?? resolveCapabilityModel("FAST", env);
+  return env.AI_FALLBACK_MODEL;
+}
+
+export function resolveFallbackProviderName(env: ServerEnv = getServerEnv()) {
+  const named = env.AI_FALLBACK_PROVIDER?.trim().toLowerCase();
+  if (named === "gemini") return "gemini";
+  return null;
+}
+
+export function resolveGeminiApiKey(env: ServerEnv = getServerEnv()) {
+  return env.GEMINI_API_KEY;
+}
+
+export function resolveFallbackBaseUrl(env: ServerEnv = getServerEnv()) {
+  return env.AI_FALLBACK_BASE_URL ?? "https://generativelanguage.googleapis.com/v1beta/openai";
+}
+
+export function resolveClassFallbackModel(
+  capability: AiCapabilityClass,
+  env: ServerEnv = getServerEnv(),
+): string | undefined {
+  if (capability === "FAST") return env.AI_MODEL_FAST_FALLBACK;
+  if (capability === "STANDARD") return env.AI_MODEL_STANDARD_FALLBACK;
+  if (capability === "REASONING") return env.AI_MODEL_REASONING_FALLBACK;
+  return undefined;
+}
+
+export function isGeminiFallbackConfigured(env: ServerEnv = getServerEnv()) {
+  return resolveFallbackProviderName(env) === "gemini" && Boolean(resolveGeminiApiKey(env));
 }
 
 export function isHeuristicModelName(model: string | null | undefined) {
@@ -119,6 +147,8 @@ export function describeAiRuntime(env: ServerEnv = getServerEnv()) {
       : "Embeddings use development-hash vectors (DEC-SEM-001 temporary 1536). No live embedding model is configured.",
     scoutConfigured: true,
     scoutLiveCompletions: live,
+    fallbackConfigured: isGeminiFallbackConfigured(env),
+    fallbackProviderName: isGeminiFallbackConfigured(env) ? "gemini" : null,
     capabilityModels: {
       FAST: resolveCapabilityModel("FAST", env),
       STANDARD: resolveCapabilityModel("STANDARD", env),

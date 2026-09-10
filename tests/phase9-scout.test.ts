@@ -63,8 +63,9 @@ describe("Phase 9 Scout", () => {
     const reader = principalFor("read-only");
     expect(can(recruiter, "scout.use")).toBe(true);
     expect(can(recruiter, "skillbridge.write")).toBe(true);
-    expect(can(recruiter, "agents.read")).toBe(false);
+    expect(can(recruiter, "agents.read")).toBe(true);
     expect(can(recruiter, "agents.manage")).toBe(false);
+    expect(can(recruiter, "opportunities.read")).toBe(false);
     expect(can(reader, "scout.search")).toBe(true);
     expect(can(reader, "candidate_pii.read")).toBe(false);
     expect(can(reader, "scout.internal_actions")).toBe(false);

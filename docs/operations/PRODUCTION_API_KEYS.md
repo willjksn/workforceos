@@ -60,6 +60,12 @@ Do not rotate DNS or overwrite a live Encrypted Vercel variable without a defect
 | AI | `OPENAI_MODEL_BALANCED` | Alias → STANDARD | Optional | — | Any |
 | AI | `OPENAI_MODEL_FAST` | Alias → FAST | Optional | — | Any |
 | AI | `OPENAI_EMBEDDING_MODEL` | Alias → EMBEDDING | Optional | Embeddings | Any |
+| AI | `AI_FALLBACK_PROVIDER` | `gemini` or unset | Optional | AI fallback configured | Production when Gemini backup is intended |
+| AI | `GEMINI_API_KEY` | Gemini OpenAI-compatible key | Optional | AI fallback configured | Production Gemini BLOCKED until set |
+| AI | `AI_FALLBACK_BASE_URL` | Gemini OpenAI-compatible base | Optional | AI fallback configured | Same |
+| AI | `AI_MODEL_FAST_FALLBACK` | Gemini FAST class id | Optional | — | Same |
+| AI | `AI_MODEL_STANDARD_FALLBACK` | Gemini STANDARD class id | Optional | — | Same |
+| AI | `AI_MODEL_REASONING_FALLBACK` | Gemini REASONING class id | Optional | — | Same |
 | Search | `WEB_SEARCH_PRIMARY` | Web search provider name | Optional | — | Any |
 | Search | `WEB_SEARCH_FALLBACK` | Fallback search provider | Optional | — | Any |
 | Search | `TAVILY_API_KEY` | Tavily | Optional | — | Any |
