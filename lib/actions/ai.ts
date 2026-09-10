@@ -266,9 +266,16 @@ export async function verifyProductionAiFallbackAction(_prev: ActionState, _form
       organizationId: principal.organizationId,
       actorUserId: principal.id,
     });
+    const direct = result.direct;
     const probe = result.gemini;
     return {
-      message: `Gemini fallback CONTROLLED PROBE — ${probe.ok && probe.usedFallback && probe.provider === "gemini" ? "PASS" : "FAIL"} provider=${probe.provider} fallback=${probe.usedFallback ? "yes" : "no"}`,
+      message: [
+        `Gemini direct ${direct.ok && direct.provider === "gemini" && !direct.usedFallback ? "PASS" : "FAIL"} — ${direct.requestedModel}`,
+        `Fallback provider=gemini FAST=${result.resolvedFallbackModels.FAST ?? "unset"} STANDARD=${result.resolvedFallbackModels.STANDARD ?? "unset"} REASONING=${result.resolvedFallbackModels.REASONING ?? "unset"}`,
+        `Controlled failure type: ${result.failureType}`,
+        `Gemini fallback CONTROLLED PROBE — ${probe.ok && probe.usedFallback && probe.provider === "gemini" ? "PASS" : "FAIL"} provider=${probe.provider} model=${probe.model}`,
+        `PII used: ${result.piiUsed ? "yes" : "no"}`,
+      ].join(" · "),
     };
   } catch (error) {
     return fail(error);

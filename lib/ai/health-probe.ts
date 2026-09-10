@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, ne, or } from "drizzle-orm";
+import { and, desc, eq, gt, ne } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import { agentRuns, agents, aiUsageEvents, organizations } from "../../db/schema";
@@ -15,7 +15,7 @@ import {
   type AiCapabilityClass,
 } from "./capabilities";
 import { classifyProviderError, shouldFailoverForAvailability } from "./failover";
-import { completePrompt, type CompletionResult } from "./provider";
+import { completePrompt, parseModelJson, type CompletionResult } from "./provider";
 
 export const AI_HEALTH_PROBE_TASK = {
   FAST: "status_summary",
@@ -25,7 +25,7 @@ export const AI_HEALTH_PROBE_TASK = {
 
 export const UNAVAILABLE_PROBE_MODEL = "workforceos-probe-model-unavailable";
 
-export type AiProbeKind = "FAST" | "STANDARD" | "REASONING" | "GEMINI_FAILOVER";
+export type AiProbeKind = "FAST" | "STANDARD" | "REASONING" | "GEMINI_DIRECT" | "GEMINI_FAILOVER";
 
 export type AiProbeRecord = {
   kind: AiProbeKind;
@@ -119,12 +119,21 @@ async function persistProbe(input: {
         status: "completed",
         taskKey: input.taskType,
         inputSummary: `ai-health-probe:${input.kind}`,
-        inputs: { probe: true, kind: input.kind, pii: false },
+        inputs: {
+          probe: true,
+          kind: input.kind,
+          pii: false,
+          usedFallback: input.result.usedFallback,
+          failureType: input.kind === "GEMINI_FAILOVER" ? "http_429" : null,
+        },
         sources: [{ type: "system", label: "AI health probe" }],
         provider: input.result.provider,
         model: input.result.model,
         modelVersion: input.result.modelVersion,
-        outputSummary: `Controlled ${input.kind} health probe completed.`,
+        outputSummary:
+          input.kind === "GEMINI_FAILOVER"
+            ? "Controlled GEMINI_FAILOVER health probe completed after simulated OpenAI http_429."
+            : `Controlled ${input.kind} health probe completed.`,
         estimatedCostUsd: String(input.result.estimatedCostUsd),
         inputTokens: input.result.inputTokens,
         outputTokens: input.result.outputTokens,
@@ -163,7 +172,8 @@ function toRecord(
   persisted: { runId: string | null; usageId: string | null },
   extra?: { error?: string | null },
 ): AiProbeRecord {
-  const expectedClass = kind === "GEMINI_FAILOVER" ? capabilityClassForTask(taskType) : kind;
+  const expectedClass =
+    kind === "GEMINI_FAILOVER" || kind === "GEMINI_DIRECT" ? capabilityClassForTask(taskType) : kind;
   const configuredModel = resolveCapabilityModel(expectedClass);
   const requestedModel = result.requestedModel;
   return {
@@ -185,7 +195,9 @@ function toRecord(
     matchedConfiguredClass:
       kind === "GEMINI_FAILOVER"
         ? result.provider === "gemini" && result.usedFallback
-        : result.capabilityClass === expectedClass && !result.usedFallback && result.provider !== "internal_heuristic",
+        : kind === "GEMINI_DIRECT"
+          ? result.provider === "gemini" && !result.usedFallback
+          : result.capabilityClass === expectedClass && !result.usedFallback && result.provider !== "internal_heuristic",
   };
 }
 
@@ -232,6 +244,59 @@ export async function runClassProbe(input: {
   return toRecord(input.kind, taskType, result, persisted);
 }
 
+export async function runGeminiDirectProbe(input: {
+  organizationId: string;
+  actorUserId?: string | null;
+}): Promise<AiProbeRecord> {
+  if (!isGeminiFallbackConfigured()) {
+    throw new AgentError("Gemini fallback is not configured. Direct connectivity probe refused.", "config");
+  }
+  const fallbackModel = resolveClassFallbackModel("FAST");
+  if (!fallbackModel) {
+    throw new AgentError("AI_MODEL_FAST_FALLBACK is unset. Gemini direct probe cannot run.", "config");
+  }
+  const taskType = AI_HEALTH_PROBE_TASK.FAST;
+  const result = await completePrompt({
+    taskType,
+    capabilityClass: "FAST",
+    provider: "gemini",
+    model: fallbackModel,
+    maxTokens: 400,
+    requireLive: true,
+    liveFailureLabel: "Gemini direct connectivity",
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are a WorkforceOS internal health probe. Reply with JSON only. Do not mention people, emails, phones, compensation, or resumes.",
+      },
+      {
+        role: "user",
+        content: "Return JSON with status=ok and provider=gemini. No candidate or client records were supplied.",
+      },
+    ],
+  });
+  failIfHeuristic(result, "GEMINI_DIRECT");
+  if (result.provider !== "gemini" || result.usedFallback) {
+    throw new AgentError(
+      `Gemini direct probe did not complete on Gemini. Provider=${result.provider} usedFallback=${result.usedFallback}.`,
+      "provider",
+    );
+  }
+  const parsed = parseModelJson(result.text);
+  if (parsed.status !== "ok" || parsed.provider !== "gemini") {
+    throw new AgentError("Gemini direct probe JSON was not status=ok and provider=gemini.", "provider");
+  }
+  const persisted = await persistProbe({
+    organizationId: input.organizationId,
+    actorUserId: input.actorUserId,
+    kind: "GEMINI_DIRECT",
+    taskType,
+    result,
+  });
+  return toRecord("GEMINI_DIRECT", taskType, result, persisted);
+}
+
 export async function runGeminiAvailabilityProbe(input: {
   organizationId: string;
   actorUserId?: string | null;
@@ -245,10 +310,11 @@ export async function runGeminiAvailabilityProbe(input: {
   const taskType = AI_HEALTH_PROBE_TASK.FAST;
   const result = await completePrompt({
     taskType,
-    model: UNAVAILABLE_PROBE_MODEL,
-    fallbackModel: UNAVAILABLE_PROBE_MODEL,
+    capabilityClass: "FAST",
     maxTokens: 400,
     requireLive: true,
+    skipSameProviderRetry: true,
+    simulateAvailabilityFailure: "http_429",
     liveFailureLabel: "Controlled OpenAI fallback probe",
     messages: probeMessages("GEMINI_FAILOVER"),
   });
@@ -329,8 +395,22 @@ export async function runControlledFallbackVerification(input: {
     throw new AgentError("Live AI is not configured. Probe refused.", "config");
   }
   const organizationId = await resolveProbeOrganizationId(input.organizationId);
+  const resolvedFallbackModels = {
+    FAST: resolveClassFallbackModel("FAST") ?? null,
+    STANDARD: resolveClassFallbackModel("STANDARD") ?? null,
+    REASONING: resolveClassFallbackModel("REASONING") ?? null,
+  };
+  const direct = await runGeminiDirectProbe({ organizationId, actorUserId: input.actorUserId });
   const gemini = await runGeminiAvailabilityProbe({ organizationId, actorUserId: input.actorUserId });
-  return { organizationId, gemini, piiUsed: false };
+  return {
+    organizationId,
+    direct,
+    gemini,
+    failureType: "http_429" as const,
+    fallbackProvider: "gemini" as const,
+    resolvedFallbackModels,
+    piiUsed: false,
+  };
 }
 
 export async function loadLastLiveAiEvidence(): Promise<LastAiEvidence | null> {
@@ -398,7 +478,7 @@ export async function loadLastAiFallbackEvidence(): Promise<LastAiEvidence | nul
     .where(
       and(
         eq(agentRuns.status, "completed"),
-        or(eq(agentRuns.provider, "gemini"), gt(agentRuns.retryCount, 0)),
+        gt(agentRuns.retryCount, 0),
       ),
     )
     .orderBy(desc(agentRuns.completedAt))
@@ -411,7 +491,8 @@ export async function loadLastAiFallbackEvidence(): Promise<LastAiEvidence | nul
       modelTier: aiUsageEvents.modelTier,
     })
     .from(aiUsageEvents)
-    .where(eq(aiUsageEvents.provider, "gemini"))
+    .innerJoin(agentRuns, eq(aiUsageEvents.agentRunId, agentRuns.id))
+    .where(and(eq(aiUsageEvents.provider, "gemini"), gt(agentRuns.retryCount, 0)))
     .orderBy(desc(aiUsageEvents.createdAt))
     .limit(1);
   const runAt = run?.completedAt ?? null;

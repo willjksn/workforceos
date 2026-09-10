@@ -189,6 +189,11 @@ export function describeAiRuntime(env: ServerEnv = getServerEnv()) {
       REASONING: resolveCapabilityModel("REASONING", env),
       EMBEDDING: resolveCapabilityModel("EMBEDDING", env),
     },
+    fallbackModels: {
+      FAST: resolveClassFallbackModel("FAST", env) ?? null,
+      STANDARD: resolveClassFallbackModel("STANDARD", env) ?? null,
+      REASONING: resolveClassFallbackModel("REASONING", env) ?? null,
+    },
   };
 }
 

@@ -36,7 +36,11 @@ export default async function SystemHealthPage() {
       <Card className="mt-4">
         <p className="font-medium text-navy">Controlled fallback probe</p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Separate from the live model test. Intentionally requests a nonexistent model so OpenAI fails availability and Gemini may hop. Never treated as the production FAST model.
+          Separate from the live OpenAI test. First checks Gemini directly, then simulates an OpenAI HTTP 429 (not a fake model id) so Gemini may hop. A real unknown model id stays a configuration defect. API keys are not displayed.
+        </p>
+        <p className="mt-2 text-sm text-navy">
+          Fallback FAST={runtime.fallbackModels.FAST ?? "unset"} · STANDARD={runtime.fallbackModels.STANDARD ?? "unset"}{" "}
+          · REASONING={runtime.fallbackModels.REASONING ?? "unset"}
         </p>
         <ActionForm action={verifyProductionAiFallbackAction} className="mt-4">
           <PrimaryButton>Run controlled fallback probe</PrimaryButton>

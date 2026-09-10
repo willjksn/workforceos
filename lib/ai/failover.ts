@@ -10,7 +10,6 @@ export const AVAILABILITY_FAILURE_TYPES = [
   "http_5xx",
   "abort",
   "empty_body",
-  "model_unavailable",
 ] as const;
 
 export type AvailabilityFailureType = (typeof AVAILABILITY_FAILURE_TYPES)[number];
@@ -27,7 +26,7 @@ export function isAvailabilityFailure(reason: FailoverReason): boolean {
   return reason.kind === "availability";
 }
 
-/** True only for timeout, 408/429/5xx, abort, empty body, or model unavailable. Style/tone/confidence never hop. */
+/** True only for timeout, 408/429/5xx, abort, or empty body. Style/tone/confidence and unknown model ids never hop. */
 export function shouldFailoverForAvailability(reason: FailoverReason): boolean {
   return isAvailabilityFailure(reason);
 }
@@ -50,19 +49,10 @@ export function classifyProviderError(error: unknown): FailoverReason {
   if (lower.includes("empty completion") || lower.includes("empty body") || lower.includes("empty response")) {
     return { kind: "availability", type: "empty_body" };
   }
-  if (
-    lower.includes("model_not_found") ||
-    lower.includes("model is not available") ||
-    lower.includes("does not exist") ||
-    lower.includes("model_unavailable")
-  ) {
-    return { kind: "availability", type: "model_unavailable" };
-  }
 
   const http = /(?:provider\s+)?http\s+(\d{3})/i.exec(message) ?? /\b(\d{3})\b/.exec(message);
   if (http) {
     const status = Number(http[1]);
-    if (status === 404) return { kind: "availability", type: "model_unavailable" };
     if (status === 408) return { kind: "availability", type: "http_408" };
     if (status === 429) return { kind: "availability", type: "http_429" };
     if (status >= 500 && status <= 599) return { kind: "availability", type: "http_5xx" };

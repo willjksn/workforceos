@@ -67,6 +67,8 @@ describe("System status honesty", () => {
     expect(page).toMatch(/Run controlled fallback probe/);
     expect(page).not.toMatch(/defaultChecked/);
     expect(page).not.toMatch(/includeGemini/);
+    expect(page).toMatch(/HTTP 429/);
+    expect(page).toMatch(/runtime\.fallbackModels/);
   });
 });
 
@@ -102,12 +104,32 @@ describe("AI capability class configuration", () => {
       REASONING: "gpt-5.6-sol",
     });
   });
+
+  it("resolves Gemini class fallback model ids without exposing keys", () => {
+    vi.stubEnv("AI_FALLBACK_PROVIDER", "gemini");
+    vi.stubEnv("GEMINI_API_KEY", "gemini-test-key");
+    vi.stubEnv("AI_MODEL_FAST_FALLBACK", "gemini-fast-id");
+    vi.stubEnv("AI_MODEL_STANDARD_FALLBACK", "gemini-standard-id");
+    vi.stubEnv("AI_MODEL_REASONING_FALLBACK", "gemini-reasoning-id");
+    resetServerEnvCache();
+    const runtime = describeAiRuntime();
+    expect(runtime.fallbackConfigured).toBe(true);
+    expect(runtime.fallbackProviderName).toBe("gemini");
+    expect(runtime.fallbackModels).toEqual({
+      FAST: "gemini-fast-id",
+      STANDARD: "gemini-standard-id",
+      REASONING: "gemini-reasoning-id",
+    });
+    expect(JSON.stringify(runtime)).not.toContain("gemini-test-key");
+  });
 });
 
 describe("Gemini availability failover", () => {
-  it("treats model unavailable as availability and never hops for style", () => {
-    expect(shouldFailoverForAvailability(classifyProviderError(new Error("Provider HTTP 404 model_not_found")))).toBe(true);
-    expect(shouldFailoverForAvailability(classifyProviderError(new Error("The model does not exist")))).toBe(true);
+  it("does not treat unknown model ids as availability failover", () => {
+    expect(shouldFailoverForAvailability(classifyProviderError(new Error("Provider HTTP 404 model_not_found")))).toBe(false);
+    expect(shouldFailoverForAvailability(classifyProviderError(new Error("The model does not exist")))).toBe(false);
+    expect(shouldFailoverForAvailability(classifyProviderError(new Error("Provider HTTP 429")))).toBe(true);
+    expect(shouldFailoverForAvailability(classifyProviderError(new Error("Provider HTTP 503")))).toBe(true);
     const style = styleDoesNotFailover();
     expect(style.style).toBe(false);
     expect(style.tone).toBe(false);
@@ -115,39 +137,65 @@ describe("Gemini availability failover", () => {
     expect(style.lowConfidence).toBe(false);
   });
 
-  it("hops to Gemini after OpenAI model unavailable and not after a successful primary call", async () => {
+  it("completes a direct Gemini connectivity check without treating it as a hop", async () => {
     vi.stubEnv("AI_API_KEY", "sk-test");
     vi.stubEnv("AI_PROVIDER", "openai_compatible");
-    vi.stubEnv("AI_MODEL_FAST", "fast-class");
+    vi.stubEnv("AI_FALLBACK_PROVIDER", "gemini");
+    vi.stubEnv("GEMINI_API_KEY", "gemini-test-key");
+    vi.stubEnv("AI_MODEL_FAST_FALLBACK", "fast-fallback");
+    resetServerEnvCache();
+    const fetchMock = vi.fn(async (url: string) => {
+      expect(String(url)).toContain("generativelanguage.googleapis.com");
+      return {
+        ok: true,
+        json: async () => ({
+          choices: [{ message: { content: '{"status":"ok","provider":"gemini"}' } }],
+          model: "fast-fallback",
+          usage: { prompt_tokens: 5, completion_tokens: 4 },
+        }),
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const result = await completePrompt({
+      taskType: "status_summary",
+      capabilityClass: "FAST",
+      provider: "gemini",
+      model: "fast-fallback",
+      requireLive: true,
+      liveFailureLabel: "Gemini direct connectivity",
+      messages: [{ role: "user", content: "Return JSON with status=ok and provider=gemini." }],
+    });
+    expect(result.provider).toBe("gemini");
+    expect(result.usedFallback).toBe(false);
+    expect(result.requestedModel).toBe("fast-fallback");
+    expect(fetchMock.mock.calls.every((call) => String(call[0]).includes("api.openai.com"))).toBe(false);
+  });
+
+  it("hops to Gemini after a simulated OpenAI 429 and not after a successful primary call", async () => {
+    vi.stubEnv("AI_API_KEY", "sk-test");
+    vi.stubEnv("AI_PROVIDER", "openai_compatible");
+    vi.stubEnv("AI_MODEL_FAST", "gpt-5.6-luna");
     vi.stubEnv("AI_FALLBACK_PROVIDER", "gemini");
     vi.stubEnv("GEMINI_API_KEY", "gemini-test-key");
     vi.stubEnv("AI_MODEL_FAST_FALLBACK", "fast-fallback");
     resetServerEnvCache();
 
-    const fetchMock = vi.fn(async (url: string, init?: { body?: BodyInit | null }) => {
+    const fetchMock = vi.fn(async (url: string) => {
       if (String(url).includes("generativelanguage.googleapis.com")) {
         return {
           ok: true,
           json: async () => ({
-            choices: [{ message: { content: '{"summary":"gemini probe"}' } }],
+            choices: [{ message: { content: '{"status":"ok","provider":"gemini"}' } }],
             model: "fast-fallback",
             usage: { prompt_tokens: 11, completion_tokens: 7 },
           }),
-        };
-      }
-      const body = typeof init?.body === "string" ? init.body : "";
-      if (body.includes("workforceos-probe-model-unavailable")) {
-        return {
-          ok: false,
-          status: 404,
-          json: async () => ({ error: { code: "model_not_found" } }),
         };
       }
       return {
         ok: true,
         json: async () => ({
           choices: [{ message: { content: '{"summary":"openai probe"}' } }],
-          model: "fast-class",
+          model: "gpt-5.6-luna",
           usage: { prompt_tokens: 9, completion_tokens: 4 },
         }),
       };
@@ -156,13 +204,18 @@ describe("Gemini availability failover", () => {
 
     const fallback = await completePrompt({
       taskType: "status_summary",
-      model: "workforceos-probe-model-unavailable",
-      fallbackModel: "workforceos-probe-model-unavailable",
-      messages: [{ role: "user", content: "Task: status_summary" }],
+      capabilityClass: "FAST",
+      skipSameProviderRetry: true,
+      simulateAvailabilityFailure: "http_429",
+      requireLive: true,
+      liveFailureLabel: "Controlled OpenAI fallback probe",
+      messages: [{ role: "user", content: "Return JSON with status=ok and capability=FAST." }],
     });
     expect(fallback.provider).toBe("gemini");
     expect(fallback.usedFallback).toBe(true);
     expect(fallback.capabilityClass).toBe("FAST");
+    expect(fallback.requestedModel).toBe("fast-fallback");
+    expect(fetchMock.mock.calls.every((call) => String(call[0]).includes("generativelanguage"))).toBe(true);
 
     const primary = await completePrompt({
       taskType: "status_summary",
@@ -171,7 +224,33 @@ describe("Gemini availability failover", () => {
     });
     expect(primary.provider).toBe("openai_compatible");
     expect(primary.usedFallback).toBe(false);
-    expect(primary.model).toBe("fast-class");
+  });
+
+  it("does not hop to Gemini for a 404 unknown model id", async () => {
+    vi.stubEnv("AI_API_KEY", "sk-test");
+    vi.stubEnv("AI_PROVIDER", "openai_compatible");
+    vi.stubEnv("AI_MODEL_FAST", "gpt-5.6-luna");
+    vi.stubEnv("AI_FALLBACK_PROVIDER", "gemini");
+    vi.stubEnv("GEMINI_API_KEY", "gemini-test-key");
+    vi.stubEnv("AI_MODEL_FAST_FALLBACK", "fast-fallback");
+    resetServerEnvCache();
+    const fetchMock = vi.fn(async (_url: string) => ({
+      ok: false,
+      status: 404,
+      json: async () => ({ error: { code: "model_not_found", message: "The model does not exist" } }),
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(
+      completePrompt({
+        taskType: "status_summary",
+        capabilityClass: "FAST",
+        requireLive: true,
+        messages: [{ role: "user", content: "live" }],
+      }),
+    ).rejects.toMatchObject({
+      message: expect.stringMatching(/http_404|model_not_found/),
+    });
+    expect(fetchMock.mock.calls.some((call) => String(call[0]).includes("generativelanguage"))).toBe(false);
   });
 
   it("requireLive throws the provider HTTP error instead of returning heuristic", async () => {
@@ -376,33 +455,21 @@ describe("Gemini availability failover", () => {
       "fetch",
       vi.fn(async () => ({
         ok: false,
-        status: 404,
-        json: async () => ({ error: { code: "model_not_found", message: `${UNAVAILABLE_PROBE_MODEL} not found` } }),
+        status: 503,
+        json: async () => ({ error: { code: "server_error", message: "unavailable" } }),
       })),
     );
     await expect(
       completePrompt({
         taskType: "status_summary",
-        model: UNAVAILABLE_PROBE_MODEL,
-        fallbackModel: UNAVAILABLE_PROBE_MODEL,
+        capabilityClass: "FAST",
         requireLive: true,
+        skipSameProviderRetry: true,
         liveFailureLabel: "Controlled OpenAI fallback probe",
         messages: [{ role: "user", content: "fallback" }],
       }),
     ).rejects.toMatchObject({
       message: expect.stringMatching(/^Controlled OpenAI fallback probe/),
-    });
-    await expect(
-      completePrompt({
-        taskType: "status_summary",
-        model: UNAVAILABLE_PROBE_MODEL,
-        fallbackModel: UNAVAILABLE_PROBE_MODEL,
-        requireLive: true,
-        liveFailureLabel: "Controlled OpenAI fallback probe",
-        messages: [{ role: "user", content: "fallback" }],
-      }),
-    ).rejects.not.toMatchObject({
-      message: expect.stringMatching(/^Live FAST provider call failed/),
     });
   });
 });

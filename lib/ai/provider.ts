@@ -17,7 +17,7 @@ import {
   type AiCapabilityClass,
 } from "./capabilities";
 import { AgentError } from "./errors";
-import { classifyProviderError, shouldFailoverForAvailability, type FailoverReason } from "./failover";
+import { classifyProviderError, shouldFailoverForAvailability, type AvailabilityFailureType, type FailoverReason } from "./failover";
 import {
   buildChatCompletionsBody,
   chatParameterProfile,
@@ -44,6 +44,10 @@ export type CompletionRequest = {
   requireLive?: boolean;
   /** Overrides the requireLive error prefix. Use for controlled fallback probes. */
   liveFailureLabel?: string;
+  /** Controlled probe only: treat the primary OpenAI attempt as this availability failure without a fake model id. */
+  simulateAvailabilityFailure?: AvailabilityFailureType;
+  /** Controlled probe only: skip the same-provider spare and hop to Gemini. */
+  skipSameProviderRetry?: boolean;
 };
 
 export type CompletionResult = {
@@ -297,6 +301,31 @@ export async function completePrompt(request: CompletionRequest): Promise<Comple
   const timeoutMs = request.timeoutMs ?? 30000;
   const live = isLiveAiConfigured(env) && requestedProvider !== "internal_heuristic" && !isHeuristicModelName(model);
 
+  if (requestedProvider === "gemini") {
+    const geminiKey = resolveGeminiApiKey(env);
+    const geminiModel =
+      request.model && !isHeuristicModelName(request.model)
+        ? request.model
+        : resolveClassFallbackModel(capabilityClass, env);
+    if (!geminiKey || !geminiModel) {
+      throw new AgentError("Gemini is not configured for a direct completion.", "config");
+    }
+    const result = await callOpenAiCompatible({
+      messages: request.messages,
+      temperature: request.temperature,
+      maxTokens: request.maxTokens,
+      timeoutMs,
+      capabilityClass,
+      baseUrl: resolveFallbackBaseUrl(env),
+      apiKey: geminiKey,
+      model: geminiModel,
+      provider: "gemini",
+      usedFallback: false,
+    });
+    logCompletion({ taskType: request.taskType, capabilityClass, result, live: true });
+    return result;
+  }
+
   if (!apiKey || !live) {
     if (request.requireLive) {
       throw new AgentError(
@@ -328,6 +357,125 @@ export async function completePrompt(request: CompletionRequest): Promise<Comple
     capabilityClass,
   };
 
+  async function hopGemini(): Promise<CompletionResult | null> {
+    const geminiKey = resolveGeminiApiKey(env);
+    const classFallback = resolveClassFallbackModel(capabilityClass, env);
+    const requestWantsGemini = request.fallbackProvider?.trim().toLowerCase() === "gemini";
+    if (
+      capabilityClass === "EMBEDDING" ||
+      !(isGeminiFallbackConfigured(env) || (requestWantsGemini && Boolean(geminiKey))) ||
+      !geminiKey ||
+      !classFallback ||
+      isHeuristicModelName(classFallback)
+    ) {
+      return null;
+    }
+    try {
+      const result = await callOpenAiCompatible({
+        ...callArgs,
+        baseUrl: resolveFallbackBaseUrl(env),
+        apiKey: geminiKey,
+        model: classFallback,
+        provider: "gemini",
+        usedFallback: true,
+      });
+      logCompletion({ taskType: request.taskType, capabilityClass, result, live: true });
+      return result;
+    } catch (geminiError) {
+      const geminiReason = classifyProviderError(geminiError);
+      logAttemptFailure({
+        taskType: request.taskType,
+        capabilityClass,
+        provider: "gemini",
+        model: classFallback,
+        usedFallback: true,
+        reason: geminiReason,
+      });
+      if (request.requireLive) {
+        throwLiveFailure({
+          capabilityClass,
+          reason: geminiReason,
+          error: geminiError,
+          label: request.liveFailureLabel,
+        });
+      }
+      return null;
+    }
+  }
+
+  if (request.simulateAvailabilityFailure) {
+    const reason = { kind: "availability" as const, type: request.simulateAvailabilityFailure };
+    logAttemptFailure({
+      taskType: request.taskType,
+      capabilityClass,
+      provider: "openai_compatible",
+      model,
+      usedFallback: false,
+      reason,
+    });
+    logServerEvent("ai.request", {
+      provider: "openai_compatible",
+      capabilityClass,
+      model,
+      simulatedAvailabilityFailure: reason.type,
+      controlledProbe: true,
+    });
+    const sameProviderFallback = request.fallbackModel ?? resolveFallbackModel(env);
+    if (
+      !request.skipSameProviderRetry &&
+      sameProviderFallback &&
+      sameProviderFallback !== model &&
+      !isHeuristicModelName(sameProviderFallback)
+    ) {
+      try {
+        const result = await callOpenAiCompatible({
+          ...callArgs,
+          baseUrl,
+          apiKey,
+          model: sameProviderFallback,
+          provider: "openai_compatible",
+          usedFallback: true,
+        });
+        logCompletion({ taskType: request.taskType, capabilityClass, result, live: true });
+        return result;
+      } catch (fallbackError) {
+        const sameReason = classifyProviderError(fallbackError);
+        logAttemptFailure({
+          taskType: request.taskType,
+          capabilityClass,
+          provider: "openai_compatible",
+          model: sameProviderFallback,
+          usedFallback: true,
+          reason: sameReason,
+        });
+        if (!shouldFailoverForAvailability(sameReason) && request.requireLive) {
+          throwLiveFailure({
+            capabilityClass,
+            reason: sameReason,
+            error: fallbackError,
+            label: request.liveFailureLabel,
+          });
+        }
+      }
+    }
+    const hopped = await hopGemini();
+    if (hopped) return hopped;
+    if (request.requireLive) {
+      throwLiveFailure({
+        capabilityClass,
+        reason,
+        error: new AgentError(`Controlled availability failure ${reason.type} did not hop to Gemini.`, "provider"),
+        label: request.liveFailureLabel,
+      });
+    }
+    return finishHeuristicAfterFailure({
+      started,
+      capabilityClass,
+      request,
+      failureType: reason.type,
+    });
+  }
+
   try {
     const result = await callOpenAiCompatible({
       ...callArgs,
@@ -354,7 +502,12 @@ export async function completePrompt(request: CompletionRequest): Promise<Comple
     // Circuit breaker and cost caps are asserted in the runner before this hop; hopping cannot reopen them.
     if (shouldFailoverForAvailability(primaryReason)) {
       const sameProviderFallback = request.fallbackModel ?? resolveFallbackModel(env);
-      if (sameProviderFallback && sameProviderFallback !== model && !isHeuristicModelName(sameProviderFallback)) {
+      if (
+        !request.skipSameProviderRetry &&
+        sameProviderFallback &&
+        sameProviderFallback !== model &&
+        !isHeuristicModelName(sameProviderFallback)
+      ) {
         try {
           const result = await callOpenAiCompatible({
             ...callArgs,
@@ -395,39 +548,8 @@ export async function completePrompt(request: CompletionRequest): Promise<Comple
         }
       }
 
-      const geminiKey = resolveGeminiApiKey(env);
-      const classFallback = resolveClassFallbackModel(capabilityClass, env);
-      const requestWantsGemini = request.fallbackProvider?.trim().toLowerCase() === "gemini";
-      if (
-        capabilityClass !== "EMBEDDING" &&
-        (isGeminiFallbackConfigured(env) || (requestWantsGemini && Boolean(geminiKey))) &&
-        geminiKey &&
-        classFallback &&
-        !isHeuristicModelName(classFallback)
-      ) {
-        try {
-          const result = await callOpenAiCompatible({
-            ...callArgs,
-            baseUrl: resolveFallbackBaseUrl(env),
-            apiKey: geminiKey,
-            model: classFallback,
-            provider: "gemini",
-            usedFallback: true,
-          });
-          logCompletion({ taskType: request.taskType, capabilityClass, result, live: true });
-          return result;
-        } catch (geminiError) {
-          const geminiReason = classifyProviderError(geminiError);
-          logAttemptFailure({
-            taskType: request.taskType,
-            capabilityClass,
-            provider: "gemini",
-            model: classFallback,
-            usedFallback: true,
-            reason: geminiReason,
-          });
-        }
-      }
+      const hopped = await hopGemini();
+      if (hopped) return hopped;
     }
 
     if (request.requireLive) {

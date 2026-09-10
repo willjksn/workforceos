@@ -127,7 +127,9 @@ describe("Phase B capability-class models", () => {
     expect(shouldFailoverForAvailability(failoverReasonFromLabel("http_429"))).toBe(true);
     expect(shouldFailoverForAvailability(failoverReasonFromLabel("http_5xx"))).toBe(true);
     expect(shouldFailoverForAvailability(failoverReasonFromLabel("empty_body"))).toBe(true);
-    expect(shouldFailoverForAvailability(failoverReasonFromLabel("model_unavailable"))).toBe(true);
+    expect(shouldFailoverForAvailability(classifyProviderError(new Error("Provider HTTP 404 model_not_found")))).toBe(
+      false,
+    );
   });
 
   it("does not import Anthropic or hard-code GPT-5.6 Luna/Terra/Sol in app code", () => {

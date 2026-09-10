@@ -263,7 +263,7 @@ export async function getSystemHealth() {
       "Gemini fallback",
       gemini,
       gemini === "LIVE"
-        ? `LIVE — Gemini availability fallback has completed a recorded hop (host ${aiRuntime.fallbackHost ?? "n/a"}). Failover is timeout / 408 / 429 / 5xx / abort / empty body / model unavailable only.`
+        ? `LIVE — Gemini availability fallback has completed a recorded hop (host ${aiRuntime.fallbackHost ?? "n/a"}). Failover is timeout / 408 / 429 / 5xx / abort / empty body only. Unknown model ids are configuration defects, not hops.`
         : gemini === "CONFIGURED"
           ? `CONFIGURED — GEMINI_API_KEY and AI_FALLBACK_PROVIDER are set (host ${aiRuntime.fallbackHost ?? "n/a"}). No successful Gemini fallback is recorded yet. Style/tone never hops.`
           : "NOT CONFIGURED — AI_FALLBACK_PROVIDER / GEMINI_API_KEY unset. Do not treat this as LIVE.",
