@@ -1,6 +1,6 @@
 # Decision Log
 
-Status: Binding architecture and product decisions (through DEC-AUTH-003, accepted DEC-PROD-001, DEC-PROD-002, DEC-PROD-003, DEC-PROD-004, and DEC-PROD-005). DEC-PROD-001 authorized M1, which is merged. DEC-PROD-002 records M2 field ownership, which is merged. DEC-PROD-003 records M3 capability translation, which is merged. DEC-PROD-004 records M4 public discovery, which is merged. DEC-PROD-005 records M5 opportunity matching, which is merged. DEC-PROD-006 records M6 routing and outreach and is awaiting founder merge. M7–M10 are not started.  
+Status: Binding architecture and product decisions (through DEC-AUTH-003, accepted DEC-PROD-001, DEC-PROD-002, DEC-PROD-003, DEC-PROD-004, and DEC-PROD-005). DEC-PROD-001 authorized M1, which is merged. DEC-PROD-002 records M2 field ownership, which is merged. DEC-PROD-003 records M3 capability translation, which is merged. DEC-PROD-004 records M4 public discovery, which is merged. DEC-PROD-005 records M5 opportunity matching, which is merged. DEC-PROD-006 records M6 routing and outreach, which is merged. M7–M10 are not started.  
 Database mirror: `decision_log` table, seeded from this file.
 
 ## DEC-DB-001 — PostgreSQL over Firebase
@@ -827,7 +827,7 @@ Database mirror: `decision_log` table, seeded from this file.
 
 - Date: 2026-10-22
 - Owner: Product Build
-- Status: accepted for the M6 branch. Merge waits on founder approval. M7–M10 stay not started.
+- Status: accepted. M6 is merged to `main` at `85c10eeb0bf007709496f7a4de505c50697618ee`. M7–M10 stay not started.
 - Decision: A reviewed match becomes one `opportunity_engagements` row. That row is the operational record for the candidate, job, employer, owner, and current route or outreach state. `candidate_job_matches.match_category` stays the analytical result and is not rewritten when an employer responds. `candidate_engagements` stays a touchpoint log. `submissions` stays a formal client packet and is not used for public outreach. `skillbridge_opportunities` stays readable and is not the write path. `candidate_pipeline_status` stays the older recruiting pipeline. Authorized routing is allowed for `client`, `internal`, and `skillbridge` jobs, and for `monitored_public` or `exploratory` jobs only when a person has set `jobs.authorized_employer_route`. A company record, client-status flag, or hiring-manager contact is not that authorization. External email, a talent review, and employer outreach require an explicit human confirmation. A missing email provider stays manual. Candidate sharing requires `consent_status = granted`. Referral adds a route and keeps the earlier one. Follow-up defaults are examples (3 business days after contact, 5 while reviewing) and are not an employer promise. The weekday scan creates an in-app alert only. No new permission is added. Recruiter still lacks `opportunities.read`. Outcomes are stored and do not change match weights.
 - Reason: `candidate_engagements` has no organization, no match, and no routing history. Calling public outreach a submission would claim an authorized client packet. The pipeline enum cannot say both "Strong match" and "Not a fit" without mixing analysis and operations.
 - Affected modules: recruiting, CRM contacts, jobs, in-app notifications, documentation
