@@ -1,6 +1,6 @@
 # Decision Log
 
-Status: Binding architecture and product decisions (through DEC-AUTH-003, accepted DEC-PROD-001, DEC-PROD-002, and DEC-PROD-003). DEC-PROD-001 authorized M1, which is merged. DEC-PROD-002 records M2 field ownership, which is merged. DEC-PROD-003 records M3 capability translation, which is merged. DEC-PROD-004 records M4 public discovery, which is merged. DEC-PROD-005 records M5 opportunity matching, which is tested and awaiting founder merge. M6–M10 are not started.  
+Status: Binding architecture and product decisions (through DEC-AUTH-003, accepted DEC-PROD-001, DEC-PROD-002, and DEC-PROD-003). DEC-PROD-001 authorized M1, which is merged. DEC-PROD-002 records M2 field ownership, which is merged. DEC-PROD-003 records M3 capability translation, which is merged. DEC-PROD-004 records M4 public discovery, which is merged. DEC-PROD-005 records M5 opportunity matching, which is merged. M6–M10 are not started.  
 Database mirror: `decision_log` table, seeded from this file.
 
 ## DEC-DB-001 — PostgreSQL over Firebase
@@ -817,7 +817,7 @@ Database mirror: `decision_log` table, seeded from this file.
 
 - Date: 2026-10-22
 - Owner: Product Build
-- Status: accepted for the founder-requested M5 build. The M5 pull request awaits founder merge. M6–M10 stay not started.
+- Status: accepted. M5 is merged to `main` at `e42a662d399171089a38e8e742637bf7163213ff`. M6–M10 stay not started.
 - Decision: One matcher, `evaluateOpportunityMatch`, compares approved candidate capabilities with reviewed job requirements. Military translation feeds that capability layer. There is no separate military matcher. `candidate_job_matches` remains the persisted recommendation and gains category, freshness, input hash, and recruiter disposition. Capability requirements stay on `job_skills`. Other requirements are `job_requirements` with source text. Explainability lines are `candidate_job_match_factors`. The legacy `scoreCandidateJobMatch` function remains for its existing component tests and is not the score internal search writes. Categories are Strong (at least 75% of approved required capabilities and no unresolved hard constraint), Possible (at least 40%, or two required capabilities, or job-family overlap plus one capability), Developmental, and No Current Match. Hard constraints are a required license or credential the record does not show, an explicit clearance the record does not meet, and an on-site location with no remote path and no recorded willingness to relocate. They prevent Strong. They do not hide or reject the person. Pending, needs-review, and rejected translation capabilities do not increase a match. Explicit skills that are not rejected still count. SkillBridge timing is ignored unless the job is SkillBridge-eligible. The internal score is deterministic and is not displayed as a percentage. Recruiter disposition (`viable`, `not_viable`, `needs_information`) does not change the calculated result and does not submit, contact, or reject anyone. No new permission is added. Recruiter still lacks `opportunities.read`.
 - Reason: Military talent and the rest of the Talent Network need the same explainable comparison, and title similarity cannot carry a Navy rating into a civilian posting.
 - Affected modules: recruiting, talent, military profile, job detail, documentation
