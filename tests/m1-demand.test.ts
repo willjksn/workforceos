@@ -118,4 +118,19 @@ describe("M1 employer demand model", () => {
     expect(sql).not.toMatch(/opportunities/i);
     expect(sql).not.toMatch(/credential|api_key|password/i);
   });
+
+  it("keeps a career source company inside the same organization", () => {
+    const sql = readFileSync(path.join(root, "drizzle", "0019_m1_career_source_company_fk.sql"), "utf8");
+    const uniqueAt = sql.indexOf("companies_id_organization_uq");
+    const sourceFkAt = sql.indexOf("career_sources_company_organization_fk");
+    const jobFkAt = sql.indexOf("jobs_career_source_company_fk");
+    expect(uniqueAt).toBeGreaterThan(-1);
+    expect(sourceFkAt).toBeGreaterThan(uniqueAt);
+    expect(sql).toContain(
+      'FOREIGN KEY ("company_id","organization_id") REFERENCES "public"."companies"("id","organization_id")',
+    );
+    expect(sql).toContain("jobs_sourced_job_has_company");
+    expect(jobFkAt).toBeGreaterThan(sql.indexOf("career_sources_id_organization_company_uq"));
+    expect(sql).not.toMatch(/DROP TABLE/i);
+  });
 });

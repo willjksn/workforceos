@@ -1,6 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   date,
   foreignKey,
   index,
@@ -60,6 +61,16 @@ export const careerSources = pgTable("career_sources", {
   ...timestamps(),
 }, (table) => [
   unique("career_sources_id_organization_uq").on(table.id, table.organizationId),
+  unique("career_sources_id_organization_company_uq").on(
+    table.id,
+    table.organizationId,
+    table.companyId,
+  ),
+  foreignKey({
+    columns: [table.companyId, table.organizationId],
+    foreignColumns: [companies.id, companies.organizationId],
+    name: "career_sources_company_organization_fk",
+  }).onDelete("restrict"),
   index("career_sources_organization_id_idx").on(table.organizationId),
   index("career_sources_company_id_idx").on(table.companyId),
   index("career_sources_org_active_idx").on(table.organizationId, table.active),
@@ -147,6 +158,15 @@ export const jobs = pgTable("jobs", {
     foreignColumns: [careerSources.id, careerSources.organizationId],
     name: "jobs_career_source_organization_fk",
   }).onDelete("restrict"),
+  foreignKey({
+    columns: [table.careerSourceId, table.organizationId, table.companyId],
+    foreignColumns: [careerSources.id, careerSources.organizationId, careerSources.companyId],
+    name: "jobs_career_source_company_fk",
+  }).onDelete("restrict"),
+  check(
+    "jobs_sourced_job_has_company",
+    sql`${table.careerSourceId} is null or ${table.companyId} is not null`,
+  ),
 ]);
 
 export const jobSkills = pgTable("job_skills", {

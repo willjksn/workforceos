@@ -134,6 +134,13 @@
       "when": 1792631310572,
       "tag": "0018_m1_employer_demand",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792636687625,
+      "tag": "0019_m1_career_source_company_fk",
+      "breakpoints": true
     }
   ]
 }

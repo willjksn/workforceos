@@ -40,6 +40,7 @@ async function main() {
   const orgB = randomUUID();
   const userA = randomUUID();
   const companyA = randomUUID();
+  const companyA2 = randomUUID();
   const companyB = randomUUID();
   const candidateId = randomUUID();
   const createdJobIds: string[] = [];
@@ -66,6 +67,7 @@ async function main() {
     });
     await db.insert(companies).values([
       { id: companyA, organizationId: orgA, name: "M1 Employer A" },
+      { id: companyA2, organizationId: orgA, name: "M1 Employer A2" },
       { id: companyB, organizationId: orgB, name: "M1 Employer B" },
     ]);
 
@@ -230,6 +232,78 @@ async function main() {
     }
     assert(fkRejected, "database foreign key rejects a cross-organization career source");
 
+    let appCompanyRejected = false;
+    try {
+      await createCareerSource({
+        organizationId: orgB,
+        actorUserId: userA,
+        companyId: companyA,
+        sourceType: "manual_url",
+        name: "Cross company source",
+      });
+    } catch (error) {
+      appCompanyRejected = error instanceof EmployerDemandError;
+    }
+    assert(appCompanyRejected, "application rejects a career source for another organization's company");
+    let companyFkRejected = false;
+    try {
+      await db.insert(careerSources).values({
+        organizationId: orgB,
+        companyId: companyA,
+        sourceType: "manual_url",
+        name: "Raw cross company source",
+      });
+    } catch {
+      companyFkRejected = true;
+    }
+    assert(companyFkRejected, "database rejects a career source that references another organization's company");
+
+    let mismatchRejected = false;
+    try {
+      await createEmployerDemandJob({
+        organizationId: orgA,
+        actorUserId: userA,
+        title: "Wrong employer",
+        companyId: companyA2,
+        jobContextType: "monitored_public",
+        careerSourceId: source.id,
+        externalKey: "REQ-MISMATCH",
+        sourceUrl: "https://jobs.example.test/careers/REQ-MISMATCH",
+      });
+    } catch (error) {
+      mismatchRejected = error instanceof EmployerDemandError;
+    }
+    assert(mismatchRejected, "monitored public job cannot use a different employer than its career source");
+    let jobCompanyFkRejected = false;
+    try {
+      await db.insert(jobs).values({
+        organizationId: orgA,
+        companyId: companyA2,
+        title: "Raw employer mismatch",
+        jobContextType: "monitored_public",
+        careerSourceId: source.id,
+        externalKey: "REQ-MISMATCH-RAW",
+        sourceUrl: "https://jobs.example.test/careers/REQ-MISMATCH-RAW",
+      });
+    } catch {
+      jobCompanyFkRejected = true;
+    }
+    assert(jobCompanyFkRejected, "database rejects a sourced job whose company differs from the career source");
+    let sourcedWithoutCompanyRejected = false;
+    try {
+      await db.insert(jobs).values({
+        organizationId: orgA,
+        title: "Sourced without company",
+        jobContextType: "monitored_public",
+        careerSourceId: source.id,
+        externalKey: "REQ-NO-COMPANY",
+        sourceUrl: "https://jobs.example.test/careers/REQ-NO-COMPANY",
+      });
+    } catch {
+      sourcedWithoutCompanyRejected = true;
+    }
+    assert(sourcedWithoutCompanyRejected, "a job with a career source must name that source's company");
+
     console.log("J — description versions still increment on the job");
     const first = await saveJobDescriptionVersion({
       principal,
@@ -261,6 +335,7 @@ async function main() {
     await db.delete(skillbridgeProfiles).where(eq(skillbridgeProfiles.organizationId, orgA));
     await db.delete(candidates).where(eq(candidates.id, candidateId));
     await db.delete(careerSources).where(eq(careerSources.organizationId, orgA));
+    await db.delete(careerSources).where(eq(careerSources.organizationId, orgB));
     await db.delete(companies).where(eq(companies.organizationId, orgA));
     await db.delete(companies).where(eq(companies.organizationId, orgB));
     await db.delete(auditEvents).where(eq(auditEvents.organizationId, orgA));
