@@ -56,6 +56,7 @@ export const jobRequisitions = pgTable("job_requisitions", {
   index("job_requisitions_created_by_user_id_idx").on(table.createdByUserId),
 ]);
 
+/** Description history for every job, including future sourced employer demand. Do not add a second history table. */
 export const jobDescriptionVersions = pgTable("job_description_versions", {
   id: uuid("id").defaultRandom().primaryKey(),
   jobId: uuid("job_id").notNull().references(() => jobs.id, { onDelete: "restrict" }),

@@ -11,6 +11,7 @@ import {
   candidates,
   companies,
   contacts,
+  careerSources,
   jobSkills,
   jobs,
   militaryOccupationSkills,
@@ -345,11 +346,13 @@ export async function getJobWorkspace(jobId: string, organizationId: string) {
       companyName: companies.name,
       ownerName: users.fullName,
       hiringManagerName: contacts.fullName,
+      careerSourceName: careerSources.name,
     })
     .from(jobs)
     .leftJoin(companies, eq(jobs.companyId, companies.id))
     .leftJoin(users, eq(jobs.searchOwnerUserId, users.id))
     .leftJoin(contacts, eq(jobs.hiringManagerContactId, contacts.id))
+    .leftJoin(careerSources, eq(careerSources.id, jobs.careerSourceId))
     .where(and(eq(jobs.id, jobId), eq(jobs.organizationId, organizationId), isNull(jobs.archivedAt)))
     .limit(1);
   if (!row) return null;

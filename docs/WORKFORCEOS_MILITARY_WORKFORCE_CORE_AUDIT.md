@@ -746,3 +746,5 @@ Founder decisions, accepted 2026-10-21 (`DEC-PROD-001`):
 4. The PierOne to Pier 24 Partners rename waits for M10.
 
 M1 is the only milestone authorized by that acceptance.
+
+M1 implementation, awaiting founder merge: `jobs` remains the demand record. `job_context_type` gained `monitored_public` and `exploratory` and kept `internal`, `client`, and `skillbridge`. Evergreen and future demand use `jobs.demand_horizon` (`current`, `evergreen`, `future`) so a monitored posting can also be evergreen. Direct-hire demand stays `skillbridge_eligible = false`. `career_sources` is a tenant-scoped registry with no credentials and no crawler. External identity is unique on `(career_source_id, external_key)`; manual jobs leave both empty. Description history stays `job_description_versions`. `skillbridge_profiles` was not renamed. Migration `drizzle/0018_m1_employer_demand.sql`. M2–M10 and parked research are not started.

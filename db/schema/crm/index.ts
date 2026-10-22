@@ -50,6 +50,7 @@ export const companies = pgTable("companies", {
   index("companies_gtm_tier_idx").on(table.organizationId, table.gtmTier),
   index("companies_gtm_region_idx").on(table.organizationId, table.gtmRegion),
   index("companies_name_trgm_idx").using("gin", sql`${table.name} gin_trgm_ops`),
+  unique("companies_id_organization_uq").on(table.id, table.organizationId),
 ]);
 
 export const companyLocations = pgTable("company_locations", {

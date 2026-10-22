@@ -74,11 +74,13 @@ export const ALLOWED_DISPOSITION_REASONS = [
 const DISALLOWED_REASON_PATTERN =
   /\b(race|color|religion|sex|gender|national origin|age|disability|pregnancy|genetic|veteran status except as job related)\b/i;
 
-export type JobContextType = "internal" | "client" | "skillbridge";
+export type JobContextType = "internal" | "client" | "skillbridge" | "monitored_public" | "exploratory";
 
 export function pipelineFor(context: JobContextType) {
   if (context === "internal") return INTERNAL_PIPELINE;
   if (context === "skillbridge") return SKILLBRIDGE_PIPELINE;
+  // Monitored and exploratory demand are not applications. If a later milestone
+  // opens an application on one of these jobs, it uses the client stage list.
   return CLIENT_PIPELINE;
 }
 

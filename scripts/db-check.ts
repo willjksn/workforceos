@@ -30,6 +30,7 @@ const KEY_TABLES = [
   "companies",
   "candidates",
   "jobs",
+  "career_sources",
   "military_occupations",
   "services",
   "workforce_assessments",

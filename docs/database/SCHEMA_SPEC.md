@@ -157,6 +157,18 @@ Hiring tables are in `db/schema/hiring/` and `drizzle/0010_*`. Do not edit `0000
 - These columns classify the existing Companies list. Do not add a parallel accounts table.
 - `industry` remains the human label. Focus industries are a documented GTM list, not new services.
 
+## Military + Workforce Core M1 employer demand
+
+- Migration `drizzle/0018_m1_employer_demand.sql` is additive. It does not rewrite `0000`–`0017`.
+- `drizzle/0019_m1_career_source_company_fk.sql` adds the tenant/company invariant. `0018` is unchanged because it is already applied on the development branch.
+- `companies` has `UNIQUE (id, organization_id)`. `career_sources (company_id, organization_id)` references `companies (id, organization_id)` with `ON DELETE restrict`. A career source cannot name a company from another organization. The existing single-column company foreign key and the application check both remain.
+- `career_sources` is organization-scoped. It stores source category, URLs, and sync timestamps. It does not store credentials.
+- `jobs (career_source_id, organization_id)` references `career_sources (id, organization_id)`, so a job cannot attach another tenant's source. When `career_source_id` is set, `company_id` is required and `(career_source_id, organization_id, company_id)` must match that source. PostgreSQL skips that composite check when `career_source_id` is null, so a manual job stays valid with or without a company. `career_source_id` is indexed.
+- Unique `(career_source_id, external_key)` rejects a duplicate external posting. Null pairs stay distinct, so manual jobs are unchanged.
+- `jobs.demand_horizon` defaults to `current`. `evergreen` and `future` are horizons, not context types. Existing `internal`, `client`, and `skillbridge` context values remain valid. `monitored_public` and `exploratory` were added.
+- `job_description_versions` remains the only description history.
+- `skillbridge_profiles` stays the one-to-one Transition Talent Profile table. M1 does not rename it or add profile columns.
+
 ## Phase L scale tables
 
 - Migration `drizzle/0017_quiet_scale.sql` adds `skillbridge_profiles.ets_date` / `eaos_date`, `public_access_tokens`, `report_export_schedules`, and `report_export_jobs`. Organization FKs use `ON DELETE restrict`.

@@ -1,7 +1,9 @@
 import { relations, sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   date,
+  foreignKey,
   index,
   integer,
   numeric,
@@ -20,7 +22,9 @@ import {
   clientVisibilityEnum,
   guaranteeStatusEnum,
   interviewStatusEnum,
+  careerSourceTypeEnum,
   jobContextTypeEnum,
+  jobDemandHorizonEnum,
   jobStatusEnum,
   mappingReviewStatusEnum,
   offerStatusEnum,
@@ -33,6 +37,44 @@ import {
 import { services } from "../services";
 import { candidates } from "../talent";
 import { skills } from "../workforce";
+
+/**
+ * Where an external employer-demand record came from.
+ * This registry does not crawl, store credentials, or configure adapters.
+ * Workday, iCIMS, Greenhouse, Lever, SuccessFactors, and Oracle are future
+ * adapter keys, not rows in this table by themselves.
+ */
+export const careerSources = pgTable("career_sources", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  companyId: uuid("company_id").notNull().references(() => companies.id, { onDelete: "restrict" }),
+  sourceType: careerSourceTypeEnum("source_type").notNull(),
+  name: text("name").notNull(),
+  baseUrl: text("base_url"),
+  careersUrl: text("careers_url"),
+  active: boolean("active").notNull().default(true),
+  lastSuccessfulSyncAt: timestamp("last_successful_sync_at", { withTimezone: true, mode: "date" }),
+  lastAttemptAt: timestamp("last_attempt_at", { withTimezone: true, mode: "date" }),
+  lastError: text("last_error"),
+  ...timestamps(),
+}, (table) => [
+  unique("career_sources_id_organization_uq").on(table.id, table.organizationId),
+  unique("career_sources_id_organization_company_uq").on(
+    table.id,
+    table.organizationId,
+    table.companyId,
+  ),
+  foreignKey({
+    columns: [table.companyId, table.organizationId],
+    foreignColumns: [companies.id, companies.organizationId],
+    name: "career_sources_company_organization_fk",
+  }).onDelete("restrict"),
+  index("career_sources_organization_id_idx").on(table.organizationId),
+  index("career_sources_company_id_idx").on(table.companyId),
+  index("career_sources_org_active_idx").on(table.organizationId, table.active),
+]);
 
 export const jobs = pgTable("jobs", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -76,6 +118,13 @@ export const jobs = pgTable("jobs", {
   urgency: text("urgency").notNull().default("normal"),
   militaryCompatibility: text("military_compatibility"),
   jobContextType: jobContextTypeEnum("job_context_type").notNull().default("client"),
+  /** current | evergreen | future. Existing rows stay current. */
+  demandHorizon: jobDemandHorizonEnum("demand_horizon").notNull().default("current"),
+  careerSourceId: uuid("career_source_id"),
+  externalKey: text("external_key"),
+  sourceUrl: text("source_url"),
+  contentHash: text("content_hash"),
+  closedAt: timestamp("closed_at", { withTimezone: true, mode: "date" }),
   department: text("department"),
   postingVisibility: postingVisibilityEnum("posting_visibility").notNull().default("internal_only"),
   clientVisibility: clientVisibilityEnum("client_visibility").notNull().default("internal_only"),
@@ -102,6 +151,22 @@ export const jobs = pgTable("jobs", {
   index("jobs_org_status_idx").on(table.organizationId, table.status),
   unique("jobs_org_public_slug_uq").on(table.organizationId, table.publicSlug),
   index("jobs_title_trgm_idx").using("gin", sql`${table.title} gin_trgm_ops`),
+  index("jobs_career_source_id_idx").on(table.careerSourceId),
+  unique("jobs_career_source_external_key_uq").on(table.careerSourceId, table.externalKey),
+  foreignKey({
+    columns: [table.careerSourceId, table.organizationId],
+    foreignColumns: [careerSources.id, careerSources.organizationId],
+    name: "jobs_career_source_organization_fk",
+  }).onDelete("restrict"),
+  foreignKey({
+    columns: [table.careerSourceId, table.organizationId, table.companyId],
+    foreignColumns: [careerSources.id, careerSources.organizationId, careerSources.companyId],
+    name: "jobs_career_source_company_fk",
+  }).onDelete("restrict"),
+  check(
+    "jobs_sourced_job_has_company",
+    sql`${table.careerSourceId} is null or ${table.companyId} is not null`,
+  ),
 ]);
 
 export const jobSkills = pgTable("job_skills", {
@@ -386,11 +451,24 @@ export const placementGuarantees = pgTable("placement_guarantees", {
   index("placement_guarantees_search_project_id_idx").on(table.searchProjectId),
 ]);
 
+export const careerSourcesRelations = relations(careerSources, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [careerSources.organizationId],
+    references: [organizations.id],
+  }),
+  company: one(companies, { fields: [careerSources.companyId], references: [companies.id] }),
+  jobs: many(jobs),
+}));
+
 export const jobsRelations = relations(jobs, ({ many, one }) => ({
   skills: many(jobSkills),
   matches: many(candidateJobMatches),
   searchProjects: many(searchProjects),
   company: one(companies, { fields: [jobs.companyId], references: [companies.id] }),
+  careerSource: one(careerSources, {
+    fields: [jobs.careerSourceId],
+    references: [careerSources.id],
+  }),
   hiringManager: one(contacts, {
     fields: [jobs.hiringManagerContactId],
     references: [contacts.id],

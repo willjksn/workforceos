@@ -89,6 +89,7 @@ export default async function JobsPage({
                 >
                   {formatLabel(row.job.status)}
                 </StatusBadge>
+                <p className="mt-1 text-xs text-muted-foreground">{formatLabel(row.job.jobContextType)}</p>
               </td>
               <td>{formatLabel(row.job.priority)}</td>
               <td>

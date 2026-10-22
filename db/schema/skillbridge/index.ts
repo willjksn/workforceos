@@ -33,6 +33,12 @@ import { files } from "../system";
 import { candidates } from "../talent";
 import { civilianOccupations } from "../workforce";
 
+/**
+ * Physical persistence for the Transition Talent Profile.
+ * One row per Talent Network candidate. SkillBridge dates, windows, and
+ * approval status are pathway attributes on this overlay. Do not add another
+ * military person table. The physical table name stays for M1.
+ */
 export const skillbridgeProfiles = pgTable("skillbridge_profiles", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
