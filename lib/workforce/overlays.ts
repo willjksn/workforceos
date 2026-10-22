@@ -1,4 +1,4 @@
-import { and, countDistinct, eq, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, countDistinct, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
@@ -13,6 +13,7 @@ import {
   militaryOccupationInstallations,
   militaryOccupations,
 } from "../../db/schema";
+import { CAPABILITY_TRANSLATION_SOURCE } from "../military/capability-translation";
 import { workforceRoles } from "../../db/schema/workforce/planning";
 
 export type MilitaryOverlay = {
@@ -153,7 +154,13 @@ export async function talentNetworkOverlayForRole(input: {
   const [matching] = await db
     .select({ value: countDistinct(candidates.id) })
     .from(candidates)
-    .leftJoin(candidateSkills, eq(candidateSkills.candidateId, candidates.id))
+    .leftJoin(
+      candidateSkills,
+      and(
+        eq(candidateSkills.candidateId, candidates.id),
+        or(isNull(candidateSkills.source), ne(candidateSkills.source, CAPABILITY_TRANSLATION_SOURCE)),
+      ),
+    )
     .where(and(candidateScope, skillFilter));
 
   const [silver] = await db

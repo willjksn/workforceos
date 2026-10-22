@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull, ne, or } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
@@ -13,6 +13,7 @@ import {
   skillbridgeTargetRoles,
   skills,
 } from "../../db/schema";
+import { CAPABILITY_TRANSLATION_SOURCE } from "../military/capability-translation";
 import { scoreCandidateJobMatch } from "../recruiting/matching";
 
 export async function findSkillBridgeMatches(input: {
@@ -112,7 +113,12 @@ async function matchCandidateToOpenJobs(input: {
     .select({ name: skills.name })
     .from(candidateSkills)
     .innerJoin(skills, eq(skills.id, candidateSkills.skillId))
-    .where(eq(candidateSkills.candidateId, input.candidate.id));
+    .where(
+      and(
+        eq(candidateSkills.candidateId, input.candidate.id),
+        or(isNull(candidateSkills.source), ne(candidateSkills.source, CAPABILITY_TRANSLATION_SOURCE)),
+      ),
+    );
   const experiences = await db
     .select()
     .from(candidateExperiences)

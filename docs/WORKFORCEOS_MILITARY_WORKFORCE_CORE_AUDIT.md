@@ -183,6 +183,14 @@ The translation is deterministic once a mapping is stored. Drafting a new mappin
 
 `lib/workforce/overlays.ts` joins approved mappings back onto workforce roles that share a civilian occupation. That is the only current bridge from military translation into workforce planning.
 
+### M3 translation architecture
+
+M3, implemented and awaiting founder merge, keeps the chain:
+
+Military Evidence → Capability (`skills`) → Civilian Occupation / Job Family
+
+Reference occupation knowledge stays on `military_occupation_skills`. It is not copied onto every person who held that occupation. A person capability is a `candidate_skills` row plus `candidate_skill_evidence`. Explicit evidence, an approved occupation mapping that the person's evidence supports, and an inferred draft are different `capability_basis` values. Human review stays `mapping_review_status`. Only `approved` rows are employer-facing. Pending and rejected rows are excluded. Rows with `source = capability_translation` do not change M2 match scores, Scout skill search, or workforce overlay counts. `job_families` is the employer-neutral vocabulary. Free-text `job_family` columns on workforce roles, transition target roles, and requisitions are not replaced. M4–M10 are not started. M1 and M2 remain merged and complete.
+
 ## 4. Current Workforce Development Architecture
 
 Workforce Pipeline Assessment is a launch service with database workflows, not a hardcoded prompt. The planning schema in `db/schema/workforce/planning.ts` already implements the consulting model:
@@ -747,8 +755,10 @@ Founder decisions, accepted 2026-10-21 (`DEC-PROD-001`):
 
 M1 is the only milestone authorized by that acceptance.
 
-Update after the M1 merge: M1 is on `main` at `4004af7f365f10e56795991d951b0dc71c0175a9`. The founder then requested M2. M2 is merged to `main` at `ea9c37ece8488b6f64f91b254cb7d78b9e812f08`. M3–M10 are not started. Parked research at `1a356d3` stays unmerged.
+Update after the M1 merge: M1 is on `main` at `4004af7f365f10e56795991d951b0dc71c0175a9`. The founder then requested M2. M2 is merged to `main` at `ea9c37ece8488b6f64f91b254cb7d78b9e812f08`. M3 is implemented on `feature/military-workforce-m3-capability-translation` and awaits founder merge. M4–M10 are not started. Parked research at `1a356d3` stays unmerged.
 
 M1 implementation, merged: `jobs` remains the demand record. `job_context_type` gained `monitored_public` and `exploratory` and kept `internal`, `client`, and `skillbridge`. Evergreen and future demand use `jobs.demand_horizon` (`current`, `evergreen`, `future`) so a monitored posting can also be evergreen. Direct-hire demand stays `skillbridge_eligible = false`. `career_sources` is a tenant-scoped registry with no credentials and no crawler. External identity is unique on `(career_source_id, external_key)`; manual jobs leave both empty. Description history stays `job_description_versions`. `skillbridge_profiles` was not renamed. Migrations `drizzle/0018_m1_employer_demand.sql` and `drizzle/0019_m1_career_source_company_fk.sql`.
 
-M2 implementation, merged: the Transition Talent Profile remains the one-to-one `skillbridge_profiles` row. SkillBridge dates, eligibility, approval, and the window stay pathway fields. Structured evidence is additive: `candidate_military_duties`, `candidate_military_equipment`, and `candidate_military_training` hang off a tour; `candidate_education`, `candidate_credentials`, and `candidate_clearances` hang off the candidate. Legacy narrative columns are preserved and were not parsed into structure. Current clearance is the candidate row (`DEC-PROD-002`). Compensation stays on `candidates.compensation_expectations`. Completeness is informational and does not change match, rank, or rejection. Migration `drizzle/0020_m2_transition_profile.sql`. M3–M10 and parked research are not started.
+M2 implementation, merged: the Transition Talent Profile remains the one-to-one `skillbridge_profiles` row. SkillBridge dates, eligibility, approval, and the window stay pathway fields. Structured evidence is additive: `candidate_military_duties`, `candidate_military_equipment`, and `candidate_military_training` hang off a tour; `candidate_education`, `candidate_credentials`, and `candidate_clearances` hang off the candidate. Legacy narrative columns are preserved and were not parsed into structure. Current clearance is the candidate row (`DEC-PROD-002`). Compensation stays on `candidates.compensation_expectations`. Completeness is informational and does not change match, rank, or rejection. Migration `drizzle/0020_m2_transition_profile.sql`. M1 and M2 remain complete. M4–M10 and parked research are not started.
+
+M3 implementation, awaiting founder merge: capability translation reads M2 evidence and writes `candidate_skills` plus `candidate_skill_evidence`. `skills` stays the civilian capability. `competency_clusters` groups skills. `military_occupation_skills` carries source, evidence reference, confidence, review, origin, and version. Civilian occupations are suggested from overlapping `occupation_skills`, with gaps and citations. `job_families` is shared and employer-neutral (`DEC-PROD-003`). Migration `drizzle/0021_m3_capability_translation.sql` is applied on Neon `development` only. The translator page still shows approved occupation-to-title mappings. Person-specific review is on the Transition Talent Profile and the existing Mapping Review queue. No new sidebar section. Matching is not redesigned. M4–M10 are not started.

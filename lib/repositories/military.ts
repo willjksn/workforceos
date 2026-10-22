@@ -46,7 +46,7 @@ async function loadOccupationBundle(occupationId: string) {
   if (!occupation) return null;
 
   const linkedSkills = await db
-    .select({ skill: skills })
+    .select({ skill: skills, reviewStatus: militaryOccupationSkills.reviewStatus })
     .from(militaryOccupationSkills)
     .innerJoin(skills, eq(militaryOccupationSkills.skillId, skills.id))
     .where(eq(militaryOccupationSkills.militaryOccupationId, occupation.id));
@@ -95,7 +95,7 @@ async function loadOccupationBundle(occupationId: string) {
 
   return {
     occupation,
-    skills: linkedSkills.map((row) => row.skill),
+    skills: linkedSkills.map((row) => ({ ...row.skill, reviewStatus: row.reviewStatus })),
     civilianRoles,
     installations,
     talent,
@@ -426,7 +426,9 @@ export async function translatorView(occupationId: string) {
       branch: bundle.occupation.branch,
       occupationCode: bundle.occupation.code,
       occupationTitle: bundle.occupation.title,
-      transferableSkillNames: bundle.skills.map((skill) => skill.name),
+      transferableSkillNames: bundle.skills
+        .filter((skill) => skill.reviewStatus === "approved")
+        .map((skill) => skill.name),
       civilianRoles: bundle.civilianRoles.map(({ mapping, occupation }) => ({
         title: occupation.title,
         explanation: mapping.explanation,

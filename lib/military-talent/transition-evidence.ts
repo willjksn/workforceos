@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull, ne, or } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
@@ -17,6 +17,7 @@ import {
   skillbridgeTargetRoles,
 } from "../../db/schema";
 import { recordAuditEvent } from "../audit/record-audit-event";
+import { CAPABILITY_TRANSLATION_SOURCE } from "../military/capability-translation";
 import { assessTransitionProfile, type CompletenessInput } from "./profile-completeness";
 
 export class TransitionEvidenceError extends Error {
@@ -179,7 +180,12 @@ export async function loadTransitionEvidence(organizationId: string, candidateId
     db
       .select({ id: candidateSkills.id })
       .from(candidateSkills)
-      .where(eq(candidateSkills.candidateId, candidateId)),
+      .where(
+        and(
+          eq(candidateSkills.candidateId, candidateId),
+          or(isNull(candidateSkills.source), ne(candidateSkills.source, CAPABILITY_TRANSLATION_SOURCE)),
+        ),
+      ),
     db
       .select()
       .from(skillbridgeProfiles)

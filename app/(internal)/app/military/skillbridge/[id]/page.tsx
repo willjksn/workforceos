@@ -20,7 +20,9 @@ import { PrimaryButton } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/display";
 import { PageHeader, PageShell, formatDate, formatLabel } from "../../../_components/ui";
 import { MilitarySubnav } from "../../_components/military-subnav";
+import { CapabilityTranslationSection } from "./capability-translation-section";
 import { TransitionProfileSections } from "./transition-profile-sections";
+import { loadCapabilityProfile } from "@/lib/military-talent/capability-profile";
 import { completenessFromEvidence, loadTransitionEvidence } from "@/lib/military-talent/transition-evidence";
 
 const STAGES = [
@@ -52,6 +54,7 @@ export default async function SkillBridgeDetailPage({
   const detail = await getSkillBridgeDetail(id, principal.organizationId, canReadPii);
   if (!detail) notFound();
   const evidence = await loadTransitionEvidence(principal.organizationId, detail.card.candidate.id);
+  const translation = await loadCapabilityProfile(principal.organizationId, detail.card.candidate.id);
   const completeness = completenessFromEvidence(evidence, detail.card.profile, {
     preferredLocationCount: detail.card.preferredLocations.length,
     targetRoleCount: detail.card.targetRoles.length,
@@ -109,6 +112,16 @@ export default async function SkillBridgeDetailPage({
         canWriteEvidence={canWriteEvidence}
         canApplyResume={can(principal, "candidates.write")}
       />
+      <div className="mt-10">
+        <CapabilityTranslationSection
+          profileId={id}
+          candidateId={detail.card.candidate.id}
+          evidence={evidence}
+          translation={translation}
+          canDraft={canWriteEvidence || can(principal, "military.review")}
+          canReview={canWriteEvidence || can(principal, "military.review")}
+        />
+      </div>
 
       <section className="mt-10">
         <h2 className="section-title">Employer / host-company opportunities</h2>

@@ -1,6 +1,6 @@
 # Decision Log
 
-Status: Binding architecture and product decisions (through DEC-AUTH-003, accepted DEC-PROD-001, and DEC-PROD-002). DEC-PROD-001 authorized M1, which is merged. DEC-PROD-002 records M2 field ownership. M2 awaits founder merge. M3–M10 are not started.  
+Status: Binding architecture and product decisions (through DEC-AUTH-003, accepted DEC-PROD-001, DEC-PROD-002, and DEC-PROD-003). DEC-PROD-001 authorized M1, which is merged. DEC-PROD-002 records M2 field ownership, which is merged. DEC-PROD-003 records M3 capability translation, which is tested and awaiting founder merge. M4–M10 are not started.  
 Database mirror: `decision_log` table, seeded from this file.
 
 ## DEC-DB-001 — PostgreSQL over Firebase
@@ -787,9 +787,19 @@ Database mirror: `decision_log` table, seeded from this file.
 
 - Date: 2026-10-21
 - Owner: Product Build
-- Status: accepted for the founder-requested M2 build. The M2 pull request still awaits founder merge.
+- Status: accepted. M2 is merged to `main` at `ea9c37ece8488b6f64f91b254cb7d78b9e812f08`.
 - Decision: Current clearance lives on `candidate_clearances`, one row per Talent Network candidate. Historical clearance text stays on `candidate_military_experiences.clearance`. Compensation expectations stay on `candidates.compensation_expectations` and are not copied onto the transition profile. `skillbridge_profiles` branch, rank, pay grade, and occupation display remain a current snapshot. Tour history stays on `candidate_military_experiences`. Equipment, duties, and training are child rows of a tour, not global skills and not a learning system. Education and credentials are candidate-scoped and are not `education_partners`. Target roles stay free text plus an optional civilian occupation id and an optional job-family string. Profile completeness is derived and informational. No new permission slug is added. Recruiter still lacks `opportunities.read`.
 - Reason: The founder brief required one source of truth for clearance and compensation, structured evidence for later matching, and no second person record.
 - Affected modules: talent, military, skillbridge profile, documentation
 - Reconsideration: M3 may read this evidence. It does not move current clearance back onto the latest tour or turn equipment into the global skills catalog unless a later decision says so.
+
+## DEC-PROD-003 — Capability translation grain
+
+- Date: 2026-10-21
+- Owner: Product Build
+- Status: accepted for the founder-requested M3 build. The M3 pull request awaits founder merge. M4–M10 stay not started.
+- Decision: Civilian capabilities stay on `skills`. `skill_family` is the category. `competency_clusters` is a lookup on skills, and `skill_aliases` holds alternate labels. There is no second capability table. `military_occupation_skills` is reference knowledge and gains source, evidence reference, confidence, review, origin, and version. Existing occupation-skill rows are backfilled as pending `development_fixture` data, not approved production mappings. A person capability extends `candidate_skills` with organization, `capability_basis` (`explicit`, `reference_supported`, `inferred`), and the existing `mapping_review_status`. Human reviewed means `approved`. Needs evidence is stored as `needs_review`. `candidate_skill_evidence` holds the citations for one skill. No evidence means no person-specific capability. An approved occupation mapping alone is not copied onto a person. Employer-facing translation uses approved rows only. `job_families` is a new employer-neutral vocabulary because `workforce_roles.job_family`, `skillbridge_target_roles.job_family`, and `job_requisitions.job_family` are free text at different grains and `jobs` has no job-family column. Those free-text columns are not replaced. M3 rows use `source = capability_translation` and are excluded from M2 match scoring, Scout skill search, and workforce overlay counts. The match formula is unchanged. No new permission slug is added. Recruiter still lacks `opportunities.read`. Recruiters review a person's capabilities with `candidates.write`. Global occupation-capability review stays `military.review`. The originating agent cannot approve.
+- Reason: The audit's occupation-to-title grain could not explain a Navy LS as several civilian capabilities, and a shared family list was not the same thing as the existing free-text labels.
+- Affected modules: military, talent, workforce catalog, documentation
+- Reconsideration: M5 may opt approved capabilities into match scoring. M7 may connect employer roles to `job_families`. Replacing the free-text job-family columns requires a later decision.
 

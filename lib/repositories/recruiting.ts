@@ -1,4 +1,4 @@
-import { and, count, desc, eq, ilike, inArray, isNull, sql } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, isNull, ne, or, sql } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
@@ -22,6 +22,7 @@ import {
   users,
 } from "../../db/schema";
 import { recordAuditEvent } from "../audit/record-audit-event";
+import { CAPABILITY_TRANSLATION_SOURCE } from "../military/capability-translation";
 import { scoreCandidateJobMatch } from "../recruiting/matching";
 import {
   buildInternalSearchProjectName,
@@ -463,7 +464,12 @@ export async function runInternalTalentSearch(input: {
         .select({ candidateId: candidateSkills.candidateId, name: skills.name })
         .from(candidateSkills)
         .innerJoin(skills, eq(candidateSkills.skillId, skills.id))
-        .where(inArray(candidateSkills.candidateId, candidateIds))
+        .where(
+          and(
+            inArray(candidateSkills.candidateId, candidateIds),
+            or(isNull(candidateSkills.source), ne(candidateSkills.source, CAPABILITY_TRANSLATION_SOURCE)),
+          ),
+        )
     : [];
   const designations = candidateIds.length
     ? await db
