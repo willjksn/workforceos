@@ -38,7 +38,7 @@ export default async function TranslatorPage({
       <PageHeader
         eyebrow="Military talent"
         title="Skills translator"
-        description="Military → civilian and civilian → military both read stored mappings. Unreviewed drafts are not hiring-manager copy."
+        description="Approved occupation-to-title mappings stay here. Person-specific capabilities are reviewed on the Transition Talent Profile. Unreviewed drafts are not hiring-manager copy. Navigation is unchanged."
       />
       <MilitarySubnav active="/app/military/translator" />
       <div className="mt-8">

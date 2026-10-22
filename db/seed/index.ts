@@ -1,5 +1,7 @@
 import { and, eq, notInArray } from "drizzle-orm";
 
+import { seedM3CapabilityFixtures } from "./m3-capability";
+
 import { getDb } from "../index";
 import {
   activities,
@@ -623,7 +625,7 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
   for (const slug of candidateSkillSlugs) {
     await db
       .insert(candidateSkills)
-      .values({ candidateId: CANDIDATE_ID, skillId: skillIds[slug] })
+      .values({ organizationId: INTERNAL_ORG_ID, candidateId: CANDIDATE_ID, skillId: skillIds[slug] })
       .onConflictDoNothing();
   }
 
@@ -782,6 +784,7 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
   await seedPhase5Fixtures(db);
   await seedPhase9Fixtures(db);
   await seedPhase10Fixtures(db);
+  await seedM3CapabilityFixtures(db);
 }
 
 async function seedAdditionalOperatingFixtures(
@@ -1000,7 +1003,11 @@ async function seedAdditionalOperatingFixtures(
       .onConflictDoNothing();
     await db
       .insert(candidateSkills)
-      .values({ candidateId: id, skillId: skillIds["electrical-troubleshooting"] })
+      .values({
+        organizationId: INTERNAL_ORG_ID,
+        candidateId: id,
+        skillId: skillIds["electrical-troubleshooting"],
+      })
       .onConflictDoNothing();
     if (index === 0) {
       await db

@@ -1,6 +1,8 @@
+import { reviewOccupationCapabilityAction, reviewCandidateCapabilityAction } from "@/lib/actions/capability-translation";
 import { reviewMilitaryMappingAction } from "@/lib/actions/military";
 import { buttonClassName } from "@/components/ui/button";
 import { requireAppPermission } from "@/lib/auth/guard";
+import { listPendingCapabilityReviews } from "@/lib/military-talent/capability-profile";
 import { listMappingReviewQueue } from "@/lib/repositories/military";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../_components/action-form";
@@ -10,6 +12,7 @@ import { MilitarySubnav } from "../_components/military-subnav";
 export default async function MilitaryReviewPage() {
   const principal = await requireAppPermission("military.read");
   const queue = await listMappingReviewQueue();
+  const capabilities = await listPendingCapabilityReviews(principal.organizationId);
   const canReview = can(principal, "military.review");
 
   return (
@@ -20,7 +23,63 @@ export default async function MilitaryReviewPage() {
         description="Agent-created mappings start pending and cannot self-approve. Human review is audited."
       />
       <MilitarySubnav active="/app/military/review" />
-      <h2 className="mt-8 section-title">Military → civilian</h2>
+      <h2 className="mt-8 section-title">Occupation capabilities</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Reference knowledge for an occupation. Approving one does not give that capability to every person who held the occupation.
+      </p>
+      {capabilities.occupationSkills.length === 0 ? (
+        <EmptyState title="No pending occupation capabilities.">
+          AI and unreviewed fixture links wait here. The originating agent cannot approve them.
+        </EmptyState>
+      ) : (
+        <div className="mt-4 space-y-3">
+          {capabilities.occupationSkills.map((row) => (
+            <Card key={row.link.id}>
+              <p className="font-medium text-navy">
+                {row.occupation.code} · {row.skill.name}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {formatLabel(row.link.reviewStatus)} · {row.link.mappingQuality}
+                {row.link.evidenceReference ? ` · ${row.link.evidenceReference}` : ""}
+              </p>
+              {canReview ? (
+                <ActionForm action={reviewOccupationCapabilityAction} className="mt-4 flex flex-wrap gap-2">
+                  <input type="hidden" name="occupationSkillId" value={row.link.id} />
+                  <button name="status" value="approved" className={buttonClassName("primary")} type="submit">Approve</button>
+                  <button name="status" value="rejected" className={buttonClassName("secondary")} type="submit">Reject</button>
+                  <button name="status" value="needs_review" className={buttonClassName("secondary")} type="submit">Mark needs evidence</button>
+                </ActionForm>
+              ) : null}
+            </Card>
+          ))}
+        </div>
+      )}
+      <h2 className="mt-8 section-title">Candidate capabilities</h2>
+      {capabilities.candidateRows.length === 0 ? (
+        <EmptyState title="No pending candidate capabilities in this organization.">
+          Person-specific drafts stay pending until a recruiter or reviewer approves them.
+        </EmptyState>
+      ) : (
+        <div className="mt-4 space-y-3">
+          {capabilities.candidateRows.map((row) => (
+            <Card key={row.link.id}>
+              <p className="font-medium text-navy">{row.candidate.fullName} · {row.skill.name}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {formatLabel(row.link.capabilityBasis)} · {row.link.evidenceSummary}
+              </p>
+              {canReview ? (
+                <ActionForm action={reviewCandidateCapabilityAction} className="mt-4 flex flex-wrap gap-2">
+                  <input type="hidden" name="candidateSkillId" value={row.link.id} />
+                  <button name="status" value="approved" className={buttonClassName("primary")} type="submit">Approve</button>
+                  <button name="status" value="rejected" className={buttonClassName("secondary")} type="submit">Reject</button>
+                  <button name="status" value="needs_review" className={buttonClassName("secondary")} type="submit">Mark needs evidence</button>
+                </ActionForm>
+              ) : null}
+            </Card>
+          ))}
+        </div>
+      )}
+      <h2 className="mt-8 section-title">Military → civilian titles</h2>
       {queue.mappings.length === 0 ? (
         <EmptyState title="No pending civilian mappings.">
           Agent-created mappings wait here. They cannot approve themselves.

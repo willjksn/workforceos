@@ -190,9 +190,21 @@ Field ownership for M2 (`DEC-PROD-002`). One candidate. One `skillbridge_profile
 - `candidates UNIQUE (id, organization_id)` is the tenant target for profile, education, credential, clearance, and military-experience composite foreign keys.
 - `candidate_military_experiences.organization_id` is backfilled from the candidate, then required. `UNIQUE (id, organization_id)` exists before duty, equipment, and training composite foreign keys. Those children cannot point at another organization's tour. Organization deletes stay `ON DELETE restrict`.
 - Existing `platforms`, `training`, `certifications`, `clearance`, and `notes` text stays. M2 does not split ambiguous sentences into child rows.
-- `skillbridge_target_roles.job_family` is optional text beside the existing free-text title and optional `civilian_occupation_id`. There is no job-family entity and no matcher in M2.
+- `skillbridge_target_roles.job_family` is optional text beside the existing free-text title and optional `civilian_occupation_id`. M2 did not add a job-family entity or a matcher. M3 adds `job_families` and does not replace this text.
 - `skillbridge_profiles.career_priorities` is the current transition priority. `candidates.career_interests` stays the broad person interest.
 - Resume apply still fills empty scalar fields only. Structured suggestions insert as `source = resume` and `human_verified = false`. Human-reviewed rows are not updated.
+
+## Military + Workforce Core M3 capability translation
+
+Canonical chain (`DEC-PROD-003`): military evidence → `skills` capability → civilian occupation and employer-neutral job family. Reference knowledge is not person evidence.
+
+- Migration `drizzle/0021_m3_capability_translation.sql` is additive. It does not rewrite `0000`–`0020`. `candidate_skills.organization_id` is backfilled from the candidate before it is required. `UNIQUE (id, organization_id)` is created before `candidate_skill_evidence` references that pair.
+- `capability_basis` classifies explicit, reference-supported, and inferred capabilities. Review state remains `mapping_review_status`. Human reviewed means `approved`. Needs evidence is stored as `needs_review`.
+- `candidate_skill_evidence` requires a non-empty citation. Duty, equipment, training, credential, clearance, and leadership pointers use the parent `(id, organization_id)` unique keys. Occupation-mapping pointers reference global `military_occupation_skills`.
+- `skills.skill_family` remains the category. `competency_clusters` is a lookup, not a second skill table. `skill_aliases` holds alternate labels.
+- `job_families` and `civilian_occupation_job_families` are employer-neutral. `workforce_roles.job_family`, `skillbridge_target_roles.job_family`, and `job_requisitions.job_family` stay free text. `jobs` has no job-family column.
+- Employer-facing translation reads `review_status = approved` only. `source = capability_translation` is omitted from match scoring, Scout skill search, and workforce overlay counts so M3 does not change M2 ranking.
+- The originating agent cannot approve. Material translation is audited on draft and review, not on read.
 
 ## Phase L scale tables
 

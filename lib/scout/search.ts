@@ -1,4 +1,4 @@
-import { and, eq, ilike, inArray, isNull, or } from "drizzle-orm";
+import { and, eq, ilike, inArray, isNull, ne, or } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
@@ -8,6 +8,7 @@ import {
   jobs,
   skills,
 } from "../../db/schema";
+import { CAPABILITY_TRANSLATION_SOURCE } from "../military/capability-translation";
 import { presentCandidate } from "../privacy/present-candidate";
 import type { ScoutCommandDto } from "./parse-intent";
 import { stripScoutPii } from "./pii";
@@ -264,7 +265,12 @@ async function searchCandidates(input: {
       .select({ candidateId: candidateSkills.candidateId, name: skills.name })
       .from(candidateSkills)
       .innerJoin(skills, eq(skills.id, candidateSkills.skillId))
-      .where(ilike(skills.name, `%${filters.skill}%`));
+      .where(
+        and(
+          ilike(skills.name, `%${filters.skill}%`),
+          or(isNull(candidateSkills.source), ne(candidateSkills.source, CAPABILITY_TRANSLATION_SOURCE)),
+        ),
+      );
     const ids = new Set(skillMatches.map((row) => row.candidateId));
     rows = rows.filter(
       (row) => ids.has(row.id) || (row.currentTitle ?? "").toLowerCase().includes(filters.skill!.toLowerCase()),

@@ -204,6 +204,31 @@ export const profileEvidenceSourceEnum = pgEnum("profile_evidence_source", [
   "military_occupation_mapping",
 ]);
 
+/**
+ * Why a person-level capability exists. Review state stays on mapping_review_status.
+ * explicit: documented on the person's evidence.
+ * reference_supported: an approved occupation mapping plus supporting evidence.
+ * inferred: suggestion that is not yet a reviewed fact.
+ */
+export const capabilityBasisEnum = pgEnum("capability_basis", [
+  "explicit",
+  "reference_supported",
+  "inferred",
+]);
+
+/** What a candidate capability cites. Not a second skills taxonomy. */
+export const capabilityEvidenceTypeEnum = pgEnum("capability_evidence_type", [
+  "resume_skill",
+  "military_duty",
+  "military_equipment",
+  "military_training",
+  "credential",
+  "occupation_mapping",
+  "recruiter_entered",
+  "clearance",
+  "leadership",
+]);
+
 export const clearanceLevelEnum = pgEnum("clearance_level", [
   "unknown",
   "none",

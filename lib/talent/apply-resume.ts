@@ -122,11 +122,14 @@ export async function applyResumeToCandidate(input: {
   if (toAdd.length) {
     await db.insert(candidateSkills).values(
       toAdd.map((skill) => ({
+        organizationId: candidate.organizationId,
         candidateId: candidate.id,
         skillId: skill.id,
         source: "resume",
         confidence: 50,
         humanVerified: false,
+        capabilityBasis: "explicit" as const,
+        reviewStatus: "pending" as const,
       })),
     );
     filled.push("skills");

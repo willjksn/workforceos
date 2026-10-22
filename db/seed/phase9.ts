@@ -710,7 +710,12 @@ export async function seedPhase9Fixtures(db: ReturnType<typeof getDb>) {
     for (const person of people) {
       await db
         .insert(candidateSkills)
-        .values({ candidateId: person.id, skillId: electrical.id, yearsExperience: 5 })
+        .values({
+          organizationId: INTERNAL_ORG_ID,
+          candidateId: person.id,
+          skillId: electrical.id,
+          yearsExperience: 5,
+        })
         .onConflictDoNothing();
     }
   }

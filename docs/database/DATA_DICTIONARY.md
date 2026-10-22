@@ -87,8 +87,12 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 
 | Table | Purpose |
 | --- | --- |
-| `skills` | Canonical skills. `skill_family` classifies technical, leadership, business, digital, and safety/compliance skills. There is no second taxonomy. |
+| `skills` | Canonical civilian capabilities. `skill_family` is the category. Optional `competency_cluster_id`, `description`, `source`, and `source_version`. O\*NET fields stay `onet_source` / `onet_version`. The same skill can be a candidate capability, a workforce role requirement, a gap, and later a match input. There is no second taxonomy. |
+| `competency_clusters` | Lightweight skill grouping: Electrical/Electronics, Maintenance & Reliability, Operations, Supply Chain & Logistics, Cyber/IT, Leadership & Supervision, Program/Project Management, Safety/Compliance. Not a skill list. |
+| `skill_aliases` | Alternate labels for one skill. |
+| `job_families` | Employer-neutral families such as Supply Chain, Logistics, and Electrical Maintenance. Not an employer mapping. Does not replace free-text `job_family` columns. |
 | `civilian_occupations` | Civilian occupation records with O\*NET source fields. |
+| `civilian_occupation_job_families` | Occupation-to-job-family links. |
 | `occupation_skills` | Occupation-to-skill links. |
 
 ## Talent
@@ -97,7 +101,7 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | --- | --- |
 | `candidates` | Permanent Talent CRM people. Restricted PII. Not requisition-specific duplicates. `privacy_deleted_at` marks anonymization (not ordinary archive). Compensation expectations, career interests, relocation, remote preference, military status, and the resume file stay here. `UNIQUE (id, organization_id)` is the tenant target for person-scoped evidence. |
 | `candidate_experiences` | Civilian or general work history. |
-| `candidate_skills` | Candidate skill links with optional proficiency, source, and human verification. Not the equipment catalog. |
+| `candidate_skills` | One row per candidate and skill. Proficiency, source, confidence, `human_verified`, `capability_basis` (`explicit`, `reference_supported`, `inferred`), and `mapping_review_status`. `source = capability_translation` is an M3 draft and is excluded from M2 matching. Organization matches the candidate. |
 | `candidate_education` | Person-level institution, degree or credential, field of study, completion, source, and human verification. Military and non-military candidates. Not `education_partners`. |
 | `candidate_credentials` | Person-level name, issuer, credential id, dates, and status. Recruiter-visible. No verification service in M2. |
 | `candidate_clearances` | Current clearance level, reported status, last known active date, source, and human verification. One row per candidate. Not an independent Pier 24 verification. |
@@ -140,8 +144,9 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | `candidate_military_duties` | Structured duty evidence for one tour. Source and `human_verified` separate recruiter-entered evidence from resume or AI suggestions. Composite foreign key shares `organization_id` with the tour. |
 | `candidate_military_equipment` | Structured platform, system, equipment, or tool evidence for one tour. Not a global skill. Tenant-safe composite foreign key. |
 | `candidate_military_training` | Schools and training categories for one tour. The legacy `training` text on the tour remains. Not a learning system. |
-| `candidate_military_translations` | Candidate-specific translations pending human review. Material military-to-civilian interpretation is M3, not M2. |
-| `military_occupation_skills` | Occupation skill links through the canonical skills taxonomy. |
+| `candidate_military_translations` | Candidate-specific narrative translations pending human review. Not the capability library. |
+| `candidate_skill_evidence` | Why a candidate skill exists: duty, equipment, training, credential, clearance, leadership, resume skill, recruiter entry, or an occupation mapping. Composite foreign keys keep person evidence in one organization. A citation is required. |
+| `military_occupation_skills` | Reference occupation-to-skill links through `skills`. Source, evidence reference, confidence, review status, reviewer, origin, agent, and mapping quality. Not person-specific evidence. Existing rows were backfilled pending and `development_fixture`, not auto-approved. |
 | `military_installations` | Bases/installations with optional sourced coordinates and `coordinate_source`. |
 | `military_occupation_installations` | Likely presence mappings with why/confidence/review/provenance. |
 | `military_civilian_mappings` | Military-to-civilian translations, including reverse search, provenance, and review status. |

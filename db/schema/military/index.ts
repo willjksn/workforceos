@@ -1,6 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   foreignKey,
   index,
   integer,
@@ -9,13 +10,15 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
 import { timestamps } from "../_common";
 import { agents, organizations, users } from "../core";
-import { candidates } from "../talent";
+import { candidateClearances, candidateCredentials, candidateSkills, candidates } from "../talent";
 import {
+  capabilityEvidenceTypeEnum,
   mappingOriginEnum,
   mappingReviewStatusEnum,
   militaryBranchEnum,
@@ -180,11 +183,119 @@ export const militaryOccupationSkills = pgTable("military_occupation_skills", {
     .notNull()
     .references(() => militaryOccupations.id, { onDelete: "cascade" }),
   skillId: uuid("skill_id").notNull().references(() => skills.id, { onDelete: "restrict" }),
+  /** Why the reference occupation is associated with this capability. Not person-specific evidence. */
+  evidenceReference: text("evidence_reference"),
+  source: text("source"),
+  sourceVersion: text("source_version"),
+  confidence: integer("confidence"),
+  reviewStatus: mappingReviewStatusEnum("review_status").notNull().default("pending"),
+  reviewedByUserId: uuid("reviewed_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true, mode: "date" }),
+  origin: mappingOriginEnum("origin").notNull().default("reference_data"),
+  originatingAgentId: uuid("originating_agent_id").references(() => agents.id, {
+    onDelete: "set null",
+  }),
+  mappingQuality: text("mapping_quality").notNull().default("development_fixture"),
   ...timestamps(),
 }, (table) => [
   index("military_occupation_skills_occupation_id_idx").on(table.militaryOccupationId),
   index("military_occupation_skills_skill_id_idx").on(table.skillId),
+  index("military_occupation_skills_reviewed_by_user_id_idx").on(table.reviewedByUserId),
+  index("military_occupation_skills_originating_agent_id_idx").on(table.originatingAgentId),
   unique("military_occupation_skills_uq").on(table.militaryOccupationId, table.skillId),
+]);
+
+/**
+ * One candidate skill, many evidence rows. Reference occupation mappings are global;
+ * person evidence stays inside the candidate organization.
+ */
+export const candidateSkillEvidence = pgTable("candidate_skill_evidence", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  candidateSkillId: uuid("candidate_skill_id").notNull(),
+  evidenceType: capabilityEvidenceTypeEnum("evidence_type").notNull(),
+  citation: text("citation").notNull(),
+  source: profileEvidenceSourceEnum("source").notNull().default("recruiter"),
+  confidence: integer("confidence"),
+  dutyId: uuid("duty_id"),
+  equipmentId: uuid("equipment_id"),
+  trainingId: uuid("training_id"),
+  credentialId: uuid("credential_id"),
+  clearanceId: uuid("clearance_id"),
+  experienceId: uuid("experience_id"),
+  militaryOccupationSkillId: uuid("military_occupation_skill_id").references(
+    () => militaryOccupationSkills.id,
+    { onDelete: "set null" },
+  ),
+  ...timestamps(),
+}, (table) => [
+  unique("candidate_skill_evidence_id_organization_uq").on(table.id, table.organizationId),
+  foreignKey({
+    columns: [table.candidateSkillId, table.organizationId],
+    foreignColumns: [candidateSkills.id, candidateSkills.organizationId],
+    name: "candidate_skill_evidence_skill_org_fk",
+  }).onDelete("cascade"),
+  foreignKey({
+    columns: [table.dutyId, table.organizationId],
+    foreignColumns: [candidateMilitaryDuties.id, candidateMilitaryDuties.organizationId],
+    name: "candidate_skill_evidence_duty_org_fk",
+  }).onDelete("cascade"),
+  foreignKey({
+    columns: [table.equipmentId, table.organizationId],
+    foreignColumns: [candidateMilitaryEquipment.id, candidateMilitaryEquipment.organizationId],
+    name: "candidate_skill_evidence_equipment_org_fk",
+  }).onDelete("cascade"),
+  foreignKey({
+    columns: [table.trainingId, table.organizationId],
+    foreignColumns: [candidateMilitaryTraining.id, candidateMilitaryTraining.organizationId],
+    name: "candidate_skill_evidence_training_org_fk",
+  }).onDelete("cascade"),
+  foreignKey({
+    columns: [table.credentialId, table.organizationId],
+    foreignColumns: [candidateCredentials.id, candidateCredentials.organizationId],
+    name: "candidate_skill_evidence_credential_org_fk",
+  }).onDelete("cascade"),
+  foreignKey({
+    columns: [table.clearanceId, table.organizationId],
+    foreignColumns: [candidateClearances.id, candidateClearances.organizationId],
+    name: "candidate_skill_evidence_clearance_org_fk",
+  }).onDelete("cascade"),
+  foreignKey({
+    columns: [table.experienceId, table.organizationId],
+    foreignColumns: [candidateMilitaryExperiences.id, candidateMilitaryExperiences.organizationId],
+    name: "candidate_skill_evidence_experience_org_fk",
+  }).onDelete("cascade"),
+  index("candidate_skill_evidence_organization_id_idx").on(table.organizationId),
+  index("candidate_skill_evidence_candidate_skill_id_idx").on(table.candidateSkillId),
+  index("candidate_skill_evidence_duty_id_idx").on(table.dutyId),
+  index("candidate_skill_evidence_equipment_id_idx").on(table.equipmentId),
+  index("candidate_skill_evidence_training_id_idx").on(table.trainingId),
+  index("candidate_skill_evidence_credential_id_idx").on(table.credentialId),
+  index("candidate_skill_evidence_clearance_id_idx").on(table.clearanceId),
+  index("candidate_skill_evidence_experience_id_idx").on(table.experienceId),
+  index("candidate_skill_evidence_occupation_skill_id_idx").on(table.militaryOccupationSkillId),
+  uniqueIndex("candidate_skill_evidence_duty_uq").on(table.candidateSkillId, table.dutyId).where(sql`${table.dutyId} is not null`),
+  uniqueIndex("candidate_skill_evidence_equipment_uq").on(table.candidateSkillId, table.equipmentId).where(sql`${table.equipmentId} is not null`),
+  uniqueIndex("candidate_skill_evidence_training_uq").on(table.candidateSkillId, table.trainingId).where(sql`${table.trainingId} is not null`),
+  uniqueIndex("candidate_skill_evidence_credential_uq").on(table.candidateSkillId, table.credentialId).where(sql`${table.credentialId} is not null`),
+  uniqueIndex("candidate_skill_evidence_clearance_uq").on(table.candidateSkillId, table.clearanceId).where(sql`${table.clearanceId} is not null`),
+  uniqueIndex("candidate_skill_evidence_experience_uq").on(table.candidateSkillId, table.experienceId).where(sql`${table.experienceId} is not null`),
+  uniqueIndex("candidate_skill_evidence_occupation_skill_uq").on(table.candidateSkillId, table.militaryOccupationSkillId).where(sql`${table.militaryOccupationSkillId} is not null`),
+  check("candidate_skill_evidence_citation_chk", sql`length(trim(${table.citation})) > 0`),
+  check(
+    "candidate_skill_evidence_pointer_chk",
+    sql`(
+      (${table.evidenceType} <> 'military_duty' or ${table.dutyId} is not null)
+      and (${table.evidenceType} <> 'military_equipment' or ${table.equipmentId} is not null)
+      and (${table.evidenceType} <> 'military_training' or ${table.trainingId} is not null)
+      and (${table.evidenceType} <> 'credential' or ${table.credentialId} is not null)
+      and (${table.evidenceType} <> 'clearance' or ${table.clearanceId} is not null)
+      and (${table.evidenceType} <> 'leadership' or ${table.experienceId} is not null)
+      and (${table.evidenceType} <> 'occupation_mapping' or ${table.militaryOccupationSkillId} is not null)
+    )`,
+  ),
 ]);
 
 export const militaryInstallations = pgTable("military_installations", {
@@ -412,6 +523,29 @@ export const militaryOccupationSkillsRelations = relations(militaryOccupationSki
   skill: one(skills, {
     fields: [militaryOccupationSkills.skillId],
     references: [skills.id],
+  }),
+}));
+
+export const candidateSkillEvidenceRelations = relations(candidateSkillEvidence, ({ one }) => ({
+  candidateSkill: one(candidateSkills, {
+    fields: [candidateSkillEvidence.candidateSkillId],
+    references: [candidateSkills.id],
+  }),
+  duty: one(candidateMilitaryDuties, {
+    fields: [candidateSkillEvidence.dutyId],
+    references: [candidateMilitaryDuties.id],
+  }),
+  equipment: one(candidateMilitaryEquipment, {
+    fields: [candidateSkillEvidence.equipmentId],
+    references: [candidateMilitaryEquipment.id],
+  }),
+  training: one(candidateMilitaryTraining, {
+    fields: [candidateSkillEvidence.trainingId],
+    references: [candidateMilitaryTraining.id],
+  }),
+  occupationSkill: one(militaryOccupationSkills, {
+    fields: [candidateSkillEvidence.militaryOccupationSkillId],
+    references: [militaryOccupationSkills.id],
   }),
 }));
 

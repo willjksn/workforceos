@@ -2,15 +2,17 @@ import { relations, sql } from "drizzle-orm";
 import { boolean, foreignKey, index, integer, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 
 import { timestamps } from "../_common";
-import { organizations, users } from "../core";
+import { agents, organizations, users } from "../core";
 import { files } from "../system";
 import {
   candidateAvailabilityEnum,
+  capabilityBasisEnum,
   clearanceLevelEnum,
   clearanceStatusEnum,
   consentStatusEnum,
   credentialStatusEnum,
   educationCompletionStatusEnum,
+  mappingReviewStatusEnum,
   militaryStatusEnum,
   poolMembershipSourceEnum,
   privacyClassEnum,
@@ -78,19 +80,37 @@ export const candidateExperiences = pgTable("candidate_experiences", {
 
 export const candidateSkills = pgTable("candidate_skills", {
   id: uuid("id").defaultRandom().primaryKey(),
-  candidateId: uuid("candidate_id").notNull().references(() => candidates.id, {
-    onDelete: "cascade",
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
   }),
+  candidateId: uuid("candidate_id").notNull(),
   skillId: uuid("skill_id").notNull().references(() => skills.id, { onDelete: "restrict" }),
   yearsExperience: integer("years_experience"),
   proficiency: text("proficiency"),
   source: text("source"),
   confidence: integer("confidence"),
   humanVerified: boolean("human_verified").notNull().default(false),
+  /** Classification. Human review is mapping_review_status, not a second status. */
+  capabilityBasis: capabilityBasisEnum("capability_basis").notNull().default("explicit"),
+  reviewStatus: mappingReviewStatusEnum("review_status").notNull().default("pending"),
+  reviewedByUserId: uuid("reviewed_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true, mode: "date" }),
+  originatingAgentId: uuid("originating_agent_id").references(() => agents.id, { onDelete: "set null" }),
+  /** Short why. Supporting rows live on candidate_skill_evidence. */
+  evidenceSummary: text("evidence_summary"),
   ...timestamps(),
 }, (table) => [
+  unique("candidate_skills_id_organization_uq").on(table.id, table.organizationId),
+  foreignKey({
+    columns: [table.candidateId, table.organizationId],
+    foreignColumns: [candidates.id, candidates.organizationId],
+    name: "candidate_skills_candidate_org_fk",
+  }).onDelete("cascade"),
+  index("candidate_skills_organization_id_idx").on(table.organizationId),
   index("candidate_skills_candidate_id_idx").on(table.candidateId),
   index("candidate_skills_skill_id_idx").on(table.skillId),
+  index("candidate_skills_reviewed_by_user_id_idx").on(table.reviewedByUserId),
+  index("candidate_skills_originating_agent_id_idx").on(table.originatingAgentId),
   unique("candidate_skills_candidate_skill_uq").on(table.candidateId, table.skillId),
 ]);
 
