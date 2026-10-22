@@ -116,7 +116,8 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 
 | Table | Purpose |
 | --- | --- |
-| `jobs` | Requisitions/search assignments with operational intake fields, internal-search timestamps, and activity. |
+| `jobs` | Employer demand. A client search, monitored public posting, exploratory need, evergreen role (`demand_horizon`), or future workforce need. `job_context_type` is `internal`, `client`, `skillbridge`, `monitored_public`, or `exploratory`. SkillBridge-eligible and direct-hire demand use `skillbridge_eligible`, not extra context values. Optional `career_source_id`, `external_key`, `source_url`, `content_hash`, and `closed_at` identify externally sourced demand. Manual jobs leave those empty. Unique `(career_source_id, external_key)` allows multiple rows with nulls. This is not a CRM pursuit. |
+| `career_sources` | Tenant-scoped registry of where an employer's public or external demand originates (`public_careers_page`, `feed`, `employer_api`, `manual_url`, `csv`). Name, base URL, careers URL, active flag, and sync health only. No credentials and no crawler. |
 | `job_skills` | Canonical skill requirements (`required`, `preferred`, `nice_to_have`) with years, weight, and human verification. |
 | `candidate_job_matches` | Job-specific component scores, strengths/gaps, provenance, pipeline stage, and human review. Unique on `(candidate_id, job_id)`. |
 | `candidate_screenings` | Structured, job-related screening notes for a match. |

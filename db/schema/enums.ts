@@ -972,7 +972,34 @@ export const inAppNotificationKindEnum = pgEnum("in_app_notification_kind", [
   "military_talent_received",
 ]);
 
-export const jobContextTypeEnum = pgEnum("job_context_type", ["internal", "client", "skillbridge"]);
+export const jobContextTypeEnum = pgEnum("job_context_type", [
+  "internal",
+  "client",
+  "skillbridge",
+  "monitored_public",
+  "exploratory",
+]);
+
+/**
+ * Demand timing, orthogonal to job_context_type.
+ * Evergreen and future workforce demand stay here so a monitored public job
+ * can also be evergreen without a new context value.
+ * Direct-hire demand stays skillbridge_eligible = false on the job.
+ */
+export const jobDemandHorizonEnum = pgEnum("job_demand_horizon", [
+  "current",
+  "evergreen",
+  "future",
+]);
+
+/** Source category only. Vendor names and credentials are not stored here. */
+export const careerSourceTypeEnum = pgEnum("career_source_type", [
+  "public_careers_page",
+  "feed",
+  "employer_api",
+  "manual_url",
+  "csv",
+]);
 
 export const postingVisibilityEnum = pgEnum("posting_visibility", [
   "public",

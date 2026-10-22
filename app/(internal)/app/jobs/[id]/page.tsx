@@ -62,8 +62,20 @@ export default async function JobDetailPage({
       <JobsSubnav active="/app/jobs" />
       <div className="mt-4 flex flex-wrap gap-2">
         <StatusBadge tone="navy">{formatLabel(workspace.job.status)}</StatusBadge>
+        <StatusBadge>{formatLabel(workspace.job.jobContextType)}</StatusBadge>
+        {workspace.job.demandHorizon !== "current" ? (
+          <StatusBadge>{formatLabel(workspace.job.demandHorizon)}</StatusBadge>
+        ) : null}
         {workspace.job.priority ? <StatusBadge>{workspace.job.priority}</StatusBadge> : null}
         {workspace.hiringManagerName ? <span className="text-sm text-muted-foreground">HM {workspace.hiringManagerName}</span> : null}
+        {workspace.careerSourceName ? (
+          <span className="text-sm text-muted-foreground">Source {workspace.careerSourceName}</span>
+        ) : null}
+        {httpUrl(workspace.job.sourceUrl) ? (
+          <a className="text-sm text-navy underline" href={httpUrl(workspace.job.sourceUrl) ?? undefined} rel="noreferrer">
+            Source URL
+          </a>
+        ) : null}
       </div>
       {workspace.job.description ? <p className="mt-4 text-sm text-muted-foreground">{workspace.job.description}</p> : null}
 
@@ -273,4 +285,15 @@ export default async function JobDetailPage({
       </section>
     </PageShell>
   );
+}
+
+function httpUrl(value: string | null) {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+    return url.href;
+  } catch {
+    return null;
+  }
 }
