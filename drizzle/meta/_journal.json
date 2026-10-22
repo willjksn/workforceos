@@ -169,6 +169,13 @@
       "when": 1792679700734,
       "tag": "0023_m5_opportunity_matching",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1792694784943,
+      "tag": "0024_m6_routing_outreach",
+      "breakpoints": true
     }
   ]
 }

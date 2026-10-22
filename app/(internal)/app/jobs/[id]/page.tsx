@@ -24,6 +24,9 @@ import { ButtonLink } from "@/components/ui/button";
 import { JobsSubnav } from "../_components/jobs-subnav";
 import { draftJobRequirementsAction, recalculateJobMatchesAction, reviewJobRequirementAction } from "@/lib/actions/opportunity-matching";
 import { listJobRequirementProfile, listJobTalentMatches } from "@/lib/recruiting/opportunity-matching";
+import { listJobEngagements } from "@/lib/recruiting/opportunity-engagement";
+import { setAuthorizedRouteAction } from "@/lib/actions/opportunity-engagement";
+import { EngagementWorkflowList } from "../../_components/engagement-workflows";
 
 export default async function JobDetailPage({
   params,
@@ -39,6 +42,8 @@ export default async function JobDetailPage({
   const canReadPii = can(principal, "candidate_pii.read");
   const skillCatalog = canWrite ? await listCanonicalSkills() : [];
   const talentMatches = await listJobTalentMatches(principal.organizationId, workspace.job.id);
+  const workflows = await listJobEngagements(principal.organizationId, workspace.job.id);
+  const engagementsByMatchId = Object.fromEntries(workflows.map((row) => [row.matchId, { id: row.id, status: row.status }]));
   const requirementProfile = await listJobRequirementProfile(principal.organizationId, workspace.job.id);
   const searchProject = workspace.searchProjects[0] ?? null;
   const internalComplete = Boolean(
@@ -67,6 +72,8 @@ export default async function JobDetailPage({
       <JobsSubnav active="/app/jobs" />
       <div className="mt-4 flex flex-wrap gap-2">
         <StatusBadge tone="navy">{formatLabel(workspace.job.status)}</StatusBadge>
+        {workspace.job.jobContextType === "monitored_public" ? <StatusBadge>Public opportunity</StatusBadge> : null}
+        {workspace.job.jobContextType === "exploratory" ? <StatusBadge>Exploratory demand</StatusBadge> : null}
         <StatusBadge>{formatLabel(workspace.job.jobContextType)}</StatusBadge>
         {workspace.job.demandHorizon !== "current" ? (
           <StatusBadge>{formatLabel(workspace.job.demandHorizon)}</StatusBadge>
@@ -82,6 +89,27 @@ export default async function JobDetailPage({
           </a>
         ) : null}
       </div>
+      {canWrite ? (
+        <ActionForm action={setAuthorizedRouteAction} className="mt-4 max-w-xl space-y-2 rounded-[8px] border border-card-border p-4 text-sm">
+          <h2 className="font-medium text-navy">Authorized employer route</h2>
+          <p className="text-muted-foreground">
+            {workspace.job.authorizedEmployerRoute
+              ? "A person recorded that Pier24 may route talent to a reviewer for this job."
+              : "No authorized route is recorded. A company, a client flag, or a hiring-manager contact does not create one."}
+            {" "}
+            Public and exploratory jobs stay on employer outreach until this is recorded.
+          </p>
+          <input type="hidden" name="jobId" value={workspace.job.id} />
+          <input type="hidden" name="authorized" value={workspace.job.authorizedEmployerRoute ? "no" : "yes"} />
+          <PrimaryButton>
+            {workspace.job.authorizedEmployerRoute ? "Remove authorized route" : "Record authorized route"}
+          </PrimaryButton>
+        </ActionForm>
+      ) : (
+        <p className="mt-4 text-sm text-muted-foreground">
+          {workspace.job.authorizedEmployerRoute ? "Authorized employer route recorded." : "No authorized employer route."}
+        </p>
+      )}
       {workspace.job.jobContextType === "monitored_public" ? (
         <p className="mt-2 text-xs text-muted-foreground">
           Public opportunity from a monitored career source. This is not a client relationship and it is not employer interest.
@@ -172,8 +200,10 @@ export default async function JobDetailPage({
           canReview={canWrite}
           returnPath={`/app/jobs/${workspace.job.id}`}
           showCandidate
+          engagementsByMatchId={engagementsByMatchId}
           empty={workspace.job.status === "closed" ? "Closed jobs stay readable. Calculate again after the job is reopened." : "No current talent matches yet."}
         />
+        <EngagementWorkflowList rows={workflows} />
       </section>
 
       <section className="mt-10">

@@ -14,7 +14,9 @@ export type TransactionalEmailTemplate =
   | "onboarding_reminder"
   | "start_date_reminder"
   | "inquiry_acknowledgement"
-  | "military_talent_acknowledgement";
+  | "military_talent_acknowledgement"
+  | "talent_review"
+  | "employer_outreach";
 
 export type SendTransactionalInput = {
   organizationId: string;

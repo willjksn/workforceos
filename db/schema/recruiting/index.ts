@@ -135,6 +135,11 @@ export const jobs = pgTable("jobs", {
   hiringManagerContactId: uuid("hiring_manager_contact_id").references(() => contacts.id, {
     onDelete: "set null",
   }),
+  /**
+   * Human confirmation that Pier 24 may route a person to an employer reviewer.
+   * A company row or a hiring-manager contact does not turn a public posting into a client route.
+   */
+  authorizedEmployerRoute: boolean("authorized_employer_route").notNull().default(false),
   searchOwnerUserId: uuid("search_owner_user_id").references(() => users.id, {
     onDelete: "set null",
   }),
@@ -636,6 +641,247 @@ export const placementGuarantees = pgTable("placement_guarantees", {
   index("placement_guarantees_search_project_id_idx").on(table.searchProjectId),
 ]);
 
+/**
+ * One operational record for a reviewed match.
+ * Match category stays on candidate_job_matches. This row is the routing and outreach state.
+ * skillbridge_opportunities stays readable and is not written here.
+ * submissions stays a formal client packet and is linked only when a person records one.
+ */
+export const opportunityEngagements = pgTable("opportunity_engagements", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  matchId: uuid("match_id").notNull(),
+  candidateId: uuid("candidate_id").notNull(),
+  jobId: uuid("job_id").notNull(),
+  companyId: uuid("company_id"),
+  mode: text("mode"),
+  status: text("status").notNull().default("ready_for_review"),
+  ownerUserId: uuid("owner_user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  currentContactId: uuid("current_contact_id"),
+  /** Points at a route inserted for this engagement. The route row carries the tenant key. */
+  currentRouteId: uuid("current_route_id"),
+  employerResponse: text("employer_response"),
+  candidateResponse: text("candidate_response"),
+  waitingOn: text("waiting_on").notNull().default("recruiter"),
+  nextAction: text("next_action"),
+  nextFollowUpAt: timestamp("next_follow_up_at", { withTimezone: true, mode: "date" }),
+  lastActivityAt: timestamp("last_activity_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  interviewStatus: text("interview_status"),
+  interviewId: uuid("interview_id").references(() => interviews.id, { onDelete: "set null" }),
+  submissionId: uuid("submission_id").references(() => submissions.id, { onDelete: "set null" }),
+  placementId: uuid("placement_id").references(() => placements.id, { onDelete: "set null" }),
+  closeReason: text("close_reason"),
+  openedAt: timestamp("opened_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  closedAt: timestamp("closed_at", { withTimezone: true, mode: "date" }),
+  ...timestamps(),
+}, (table) => [
+  unique("opportunity_engagements_id_organization_uq").on(table.id, table.organizationId),
+  unique("opportunity_engagements_match_id_uq").on(table.matchId),
+  foreignKey({
+    columns: [table.matchId, table.organizationId],
+    foreignColumns: [candidateJobMatches.id, candidateJobMatches.organizationId],
+    name: "opportunity_engagements_match_org_fk",
+  }).onDelete("restrict"),
+  foreignKey({
+    columns: [table.candidateId, table.organizationId],
+    foreignColumns: [candidates.id, candidates.organizationId],
+    name: "opportunity_engagements_candidate_org_fk",
+  }).onDelete("restrict"),
+  foreignKey({
+    columns: [table.jobId, table.organizationId],
+    foreignColumns: [jobs.id, jobs.organizationId],
+    name: "opportunity_engagements_job_org_fk",
+  }).onDelete("restrict"),
+  foreignKey({
+    columns: [table.companyId, table.organizationId],
+    foreignColumns: [companies.id, companies.organizationId],
+    name: "opportunity_engagements_company_org_fk",
+  }).onDelete("restrict"),
+  foreignKey({
+    columns: [table.currentContactId, table.organizationId],
+    foreignColumns: [contacts.id, contacts.organizationId],
+    name: "opportunity_engagements_contact_org_fk",
+  }).onDelete("set null"),
+  index("opportunity_engagements_organization_id_idx").on(table.organizationId),
+  index("opportunity_engagements_match_id_idx").on(table.matchId),
+  index("opportunity_engagements_candidate_id_idx").on(table.candidateId),
+  index("opportunity_engagements_job_id_idx").on(table.jobId),
+  index("opportunity_engagements_company_id_idx").on(table.companyId),
+  index("opportunity_engagements_owner_user_id_idx").on(table.ownerUserId),
+  index("opportunity_engagements_current_contact_id_idx").on(table.currentContactId),
+  index("opportunity_engagements_current_route_id_idx").on(table.currentRouteId),
+  index("opportunity_engagements_interview_id_idx").on(table.interviewId),
+  index("opportunity_engagements_submission_id_idx").on(table.submissionId),
+  index("opportunity_engagements_placement_id_idx").on(table.placementId),
+  index("opportunity_engagements_queue_idx").on(
+    table.organizationId,
+    table.status,
+    table.ownerUserId,
+    table.nextFollowUpAt,
+  ),
+  check(
+    "opportunity_engagements_mode_chk",
+    sql`${table.mode} is null or ${table.mode} in ('authorized_routing', 'public_outreach')`,
+  ),
+  check(
+    "opportunity_engagements_status_chk",
+    sql`${table.status} in ('ready_for_review', 'ready_for_outreach', 'routed', 'contacted', 'acknowledged', 'reviewing', 'interested', 'referred', 'interview', 'needs_follow_up', 'needs_information', 'no_fit', 'withdrawn', 'placed', 'closed')`,
+  ),
+  check(
+    "opportunity_engagements_employer_response_chk",
+    sql`${table.employerResponse} is null or ${table.employerResponse} in ('interested', 'possible_future_fit', 'not_a_fit', 'refer_to_another_manager', 'needs_more_information', 'no_response')`,
+  ),
+  check(
+    "opportunity_engagements_candidate_response_chk",
+    sql`${table.candidateResponse} is null or ${table.candidateResponse} in ('informed', 'interested', 'declined', 'needs_information')`,
+  ),
+  check(
+    "opportunity_engagements_waiting_on_chk",
+    sql`${table.waitingOn} in ('recruiter', 'employer', 'candidate')`,
+  ),
+  check(
+    "opportunity_engagements_interview_status_chk",
+    sql`${table.interviewStatus} is null or ${table.interviewStatus} in ('requested', 'scheduled', 'completed', 'cancelled')`,
+  ),
+]);
+
+/** One routing or outreach attempt. A referral adds a row and leaves the earlier row in place. */
+export const opportunityEngagementRoutes = pgTable("opportunity_engagement_routes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  engagementId: uuid("engagement_id").notNull(),
+  priorRouteId: uuid("prior_route_id"),
+  sequence: integer("sequence").notNull(),
+  kind: text("kind").notNull(),
+  contactId: uuid("contact_id"),
+  responseStatus: text("response_status"),
+  responseNote: text("response_note"),
+  respondedAt: timestamp("responded_at", { withTimezone: true, mode: "date" }),
+  respondedByLabel: text("responded_by_label"),
+  sentAt: timestamp("sent_at", { withTimezone: true, mode: "date" }),
+  followUpAt: timestamp("follow_up_at", { withTimezone: true, mode: "date" }),
+  openedAt: timestamp("opened_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  closedAt: timestamp("closed_at", { withTimezone: true, mode: "date" }),
+  ...timestamps(),
+}, (table) => [
+  unique("opportunity_engagement_routes_id_organization_uq").on(table.id, table.organizationId),
+  unique("opportunity_engagement_routes_engagement_sequence_uq").on(table.engagementId, table.sequence),
+  foreignKey({
+    columns: [table.engagementId, table.organizationId],
+    foreignColumns: [opportunityEngagements.id, opportunityEngagements.organizationId],
+    name: "opportunity_engagement_routes_engagement_org_fk",
+  }).onDelete("restrict"),
+  foreignKey({
+    columns: [table.contactId, table.organizationId],
+    foreignColumns: [contacts.id, contacts.organizationId],
+    name: "opportunity_engagement_routes_contact_org_fk",
+  }).onDelete("restrict"),
+  foreignKey({
+    columns: [table.priorRouteId, table.organizationId],
+    foreignColumns: [table.id, table.organizationId],
+    name: "opportunity_engagement_routes_prior_org_fk",
+  }).onDelete("restrict"),
+  index("opportunity_engagement_routes_organization_id_idx").on(table.organizationId),
+  index("opportunity_engagement_routes_engagement_id_idx").on(table.engagementId),
+  index("opportunity_engagement_routes_contact_id_idx").on(table.contactId),
+  index("opportunity_engagement_routes_prior_route_id_idx").on(table.priorRouteId),
+  check(
+    "opportunity_engagement_routes_kind_chk",
+    sql`${table.kind} in ('talent_review', 'employer_outreach', 'referral')`,
+  ),
+  check(
+    "opportunity_engagement_routes_response_chk",
+    sql`${table.responseStatus} is null or ${table.responseStatus} in ('interested', 'possible_future_fit', 'not_a_fit', 'refer_to_another_manager', 'needs_more_information', 'no_response')`,
+  ),
+]);
+
+/** Draft or delivery record. The body is stored once. A provider event does not copy it again. */
+export const opportunityEngagementMessages = pgTable("opportunity_engagement_messages", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  engagementId: uuid("engagement_id").notNull(),
+  routeId: uuid("route_id"),
+  channel: text("channel").notNull(),
+  contactId: uuid("contact_id"),
+  recipientLabel: text("recipient_label").notNull(),
+  subject: text("subject"),
+  template: text("template"),
+  body: text("body"),
+  deliveryState: text("delivery_state").notNull(),
+  provider: text("provider"),
+  providerMessageId: text("provider_message_id"),
+  actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
+  draftedAt: timestamp("drafted_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  sentAt: timestamp("sent_at", { withTimezone: true, mode: "date" }),
+  ...timestamps(),
+}, (table) => [
+  foreignKey({
+    columns: [table.engagementId, table.organizationId],
+    foreignColumns: [opportunityEngagements.id, opportunityEngagements.organizationId],
+    name: "opportunity_engagement_messages_engagement_org_fk",
+  }).onDelete("restrict"),
+  foreignKey({
+    columns: [table.routeId, table.organizationId],
+    foreignColumns: [opportunityEngagementRoutes.id, opportunityEngagementRoutes.organizationId],
+    name: "opportunity_engagement_messages_route_org_fk",
+  }).onDelete("restrict"),
+  foreignKey({
+    columns: [table.contactId, table.organizationId],
+    foreignColumns: [contacts.id, contacts.organizationId],
+    name: "opportunity_engagement_messages_contact_org_fk",
+  }).onDelete("restrict"),
+  index("opportunity_engagement_messages_organization_id_idx").on(table.organizationId),
+  index("opportunity_engagement_messages_engagement_id_idx").on(table.engagementId),
+  index("opportunity_engagement_messages_route_id_idx").on(table.routeId),
+  index("opportunity_engagement_messages_contact_id_idx").on(table.contactId),
+  index("opportunity_engagement_messages_actor_user_id_idx").on(table.actorUserId),
+  check(
+    "opportunity_engagement_messages_channel_chk",
+    sql`${table.channel} in ('email', 'phone', 'meeting', 'manual')`,
+  ),
+  check(
+    "opportunity_engagement_messages_delivery_chk",
+    sql`${table.deliveryState} in ('draft', 'copied', 'manual_sent', 'sent', 'failed', 'not_configured')`,
+  ),
+]);
+
+export const opportunityEngagementEvents = pgTable("opportunity_engagement_events", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  engagementId: uuid("engagement_id").notNull(),
+  routeId: uuid("route_id"),
+  eventType: text("event_type").notNull(),
+  fromStatus: text("from_status"),
+  toStatus: text("to_status"),
+  note: text("note"),
+  actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
+  occurredAt: timestamp("occurred_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [
+  foreignKey({
+    columns: [table.engagementId, table.organizationId],
+    foreignColumns: [opportunityEngagements.id, opportunityEngagements.organizationId],
+    name: "opportunity_engagement_events_engagement_org_fk",
+  }).onDelete("restrict"),
+  foreignKey({
+    columns: [table.routeId, table.organizationId],
+    foreignColumns: [opportunityEngagementRoutes.id, opportunityEngagementRoutes.organizationId],
+    name: "opportunity_engagement_events_route_org_fk",
+  }).onDelete("restrict"),
+  index("opportunity_engagement_events_organization_id_idx").on(table.organizationId),
+  index("opportunity_engagement_events_engagement_id_idx").on(table.engagementId),
+  index("opportunity_engagement_events_route_id_idx").on(table.routeId),
+  index("opportunity_engagement_events_actor_user_id_idx").on(table.actorUserId),
+  index("opportunity_engagement_events_occurred_at_idx").on(table.occurredAt),
+]);
+
 export const careerSourcesRelations = relations(careerSources, ({ one, many }) => ({
   organization: one(organizations, {
     fields: [careerSources.organizationId],
@@ -770,5 +1016,68 @@ export const placementGuaranteesRelations = relations(placementGuarantees, ({ on
   placement: one(placements, {
     fields: [placementGuarantees.placementId],
     references: [placements.id],
+  }),
+}));
+
+export const opportunityEngagementsRelations = relations(opportunityEngagements, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [opportunityEngagements.organizationId],
+    references: [organizations.id],
+  }),
+  match: one(candidateJobMatches, {
+    fields: [opportunityEngagements.matchId],
+    references: [candidateJobMatches.id],
+  }),
+  candidate: one(candidates, {
+    fields: [opportunityEngagements.candidateId],
+    references: [candidates.id],
+  }),
+  job: one(jobs, {
+    fields: [opportunityEngagements.jobId],
+    references: [jobs.id],
+  }),
+  company: one(companies, {
+    fields: [opportunityEngagements.companyId],
+    references: [companies.id],
+  }),
+  owner: one(users, {
+    fields: [opportunityEngagements.ownerUserId],
+    references: [users.id],
+  }),
+  contact: one(contacts, {
+    fields: [opportunityEngagements.currentContactId],
+    references: [contacts.id],
+  }),
+  routes: many(opportunityEngagementRoutes),
+  messages: many(opportunityEngagementMessages),
+  events: many(opportunityEngagementEvents),
+}));
+
+export const opportunityEngagementRoutesRelations = relations(opportunityEngagementRoutes, ({ one }) => ({
+  engagement: one(opportunityEngagements, {
+    fields: [opportunityEngagementRoutes.engagementId],
+    references: [opportunityEngagements.id],
+  }),
+  contact: one(contacts, {
+    fields: [opportunityEngagementRoutes.contactId],
+    references: [contacts.id],
+  }),
+}));
+
+export const opportunityEngagementMessagesRelations = relations(opportunityEngagementMessages, ({ one }) => ({
+  engagement: one(opportunityEngagements, {
+    fields: [opportunityEngagementMessages.engagementId],
+    references: [opportunityEngagements.id],
+  }),
+  route: one(opportunityEngagementRoutes, {
+    fields: [opportunityEngagementMessages.routeId],
+    references: [opportunityEngagementRoutes.id],
+  }),
+}));
+
+export const opportunityEngagementEventsRelations = relations(opportunityEngagementEvents, ({ one }) => ({
+  engagement: one(opportunityEngagements, {
+    fields: [opportunityEngagementEvents.engagementId],
+    references: [opportunityEngagements.id],
   }),
 }));
