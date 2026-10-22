@@ -242,6 +242,16 @@ Canonical flow: match → human review → engagement → route or outreach → 
 - `opportunity_engagement_routes` keeps every attempt. `opportunity_engagement_messages` records draft, manual, and provider delivery. `opportunity_engagement_events` records material transitions. A scheduled follow-up scan may create an in-app alert. It does not send email.
 - `client`, `internal`, and `skillbridge` jobs may use authorized routing. `monitored_public` and `exploratory` jobs may not, unless `authorized_employer_route` is true. Sharing a candidate externally requires `candidates.consent_status = granted`.
 
+## Military + Workforce Core M7 workforce pipeline
+
+Canonical flow: employer need → workforce role → capability demand → talent supply → gap → pipeline strategy. Military talent is one supply channel (`DEC-PROD-007`).
+
+- Migration `drizzle/0025_m7_workforce_pipeline.sql` is additive. It does not rewrite `0000`–`0024`. `workforce_roles UNIQUE (id, organization_id)` is created before `workforce_role_jobs` references it, so a link cannot pair a role and a job from different organizations.
+- `workforce_roles` gains `job_family_id`, `demand_quantity` (default 0), `demand_horizon` (default `future`, reusing M1 `current` / `evergreen` / `future`), `planning_horizon` (`0_90_days`, `3_6_months`, `6_12_months`, `12_24_months`), `demand_source` (`current_jobs`, `workforce_plan`, `manual_employer_need`, `aggregated_role`), and `required_clearance_level`. Existing rows stay future planning demand at quantity 0. Free-text `job_family` is preserved.
+- `workforce_role_skills.quantity_affected` is optional. Null means the role quantity applies. `workforce_role_capability_texts` holds unmapped wording at `pending` until a person links a `skills` row. `workforce_strategy_notes` records a channel and a note. Channels are `military_talent_network`, `talent_network`, `targeted_campaign`, `skillbridge_pathway`, `education_partner`, `training_pathway`, `evergreen_pool`, `increase_sourcing`, and `review_requirements`.
+- Known supply is computed on read. A person counts once. A translation capability counts only when `review_status = approved`. An explicit skill counts unless rejected. Archived, privacy-deleted, and do-not-contact people are excluded from known supply. Availability uses stored candidate availability and stored transition dates. Location uses city, region, preferred locations, and recorded relocation willingness. Credentials count only when `status = active` and the name overlaps the role text. Clearance uses the candidate-reported row and is labeled as not independently verified.
+- Health is `critical` when demand is greater than zero, known supply is under 25 percent of that demand, and the active pipeline is empty. Otherwise a quantity gap is `gap`, a timing, location, credential, or clearance constraint is `watch`, and a covered role is `healthy`. There is no supply cache. `calculated_at` is the read time.
+
 ## Phase L scale tables
 
 - Migration `drizzle/0017_quiet_scale.sql` adds `skillbridge_profiles.ets_date` / `eaos_date`, `public_access_tokens`, `report_export_schedules`, and `report_export_jobs`. Organization FKs use `ON DELETE restrict`.

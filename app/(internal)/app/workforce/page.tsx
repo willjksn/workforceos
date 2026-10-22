@@ -2,15 +2,17 @@ import Link from "next/link";
 
 import { requireAppPermission } from "@/lib/auth/guard";
 import { getWorkforceCommandSnapshot, listWorkforceAssessments } from "@/lib/repositories/workforce";
+import { loadWorkforcePortfolio } from "@/lib/workforce/pipeline-supply";
 import { MetricCard } from "@/components/ui/display";
 import { PageHeader, PageShell, RecordList, RecordRow, SectionHeader, formatLabel } from "../_components/ui";
 import { WorkforceSubnav } from "./_components/workforce-subnav";
 
 export default async function WorkforceHubPage() {
   const principal = await requireAppPermission("workforce.read");
-  const [command, assessments] = await Promise.all([
+  const [command, assessments, portfolio] = await Promise.all([
     getWorkforceCommandSnapshot(principal.organizationId),
     listWorkforceAssessments(principal.organizationId),
+    loadWorkforcePortfolio(principal.organizationId),
   ]);
 
   return (
@@ -55,6 +57,30 @@ export default async function WorkforceHubPage() {
           </RecordList>
         </section>
       </div>
+      <section className="mt-10">
+        <SectionHeader title="Job family portfolio" />
+        <p className="mb-3 text-sm text-muted-foreground">
+          Calculated {portfolio.calculatedAt}. Supply is distinct people already in this organization. Military talent is one channel inside that supply. Roles without a job family stay listed separately.
+        </p>
+        <RecordList>
+          {portfolio.families.map((family) => (
+            <RecordRow
+              key={family.jobFamilyId}
+              href="/app/workforce/roles"
+              title={family.jobFamilyName}
+              meta={`Demand ${family.demand} · Supply ${family.knownSupply} · Gap ${family.quantityGap} · Pipeline ${family.activePipeline} · Placements ${family.placements} · ${formatLabel(family.health)}`}
+            />
+          ))}
+          {portfolio.unlinkedRoles.map((role) => (
+            <RecordRow
+              key={role.roleId}
+              href={`/app/workforce/roles/${role.roleId}`}
+              title={role.title}
+              meta={`Job family not linked. ${role.freeTextJobFamily ? `Free text: ${role.freeTextJobFamily}. ` : ""}Demand ${role.demandQuantity} · Supply ${role.knownSupply} · ${formatLabel(role.health)}`}
+            />
+          ))}
+        </RecordList>
+      </section>
       <p className="mt-8 text-sm text-muted-foreground">
         Installation interactive maps remain deferred. List/region geography is used here. Labor-market APIs are adapters only until configured.
       </p>

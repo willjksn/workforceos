@@ -22,23 +22,28 @@ import {
   laborMarketProviderEnum,
   partnershipStatusEnum,
   riskStatusEnum,
+  clearanceLevelEnum,
+  jobDemandHorizonEnum,
+  mappingReviewStatusEnum,
   skillRequirementTypeEnum,
   skillsGapScopeEnum,
   talentScarcityClassEnum,
   workforceAssessmentStatusEnum,
   workforceCriticalityEnum,
   workforceDataQualityEnum,
+  workforceDemandSourceEnum,
   workforceImportSourceEnum,
   workforcePipelineStatusEnum,
   workforceRecommendationStatusEnum,
   workforceRiskCategoryEnum,
   workforceRoadmapPeriodEnum,
+  workforceStrategyChannelEnum,
   workforceSupplySourceTypeEnum,
 } from "../enums";
 import { projectDeliverables, projectTasks, projects } from "../projects";
 import { services, solutionPlans } from "../services";
 import { approvals } from "../system";
-import { civilianOccupations, skills } from "./catalog";
+import { civilianOccupations, jobFamilies, skills } from "./catalog";
 
 function provenance() {
   return {
@@ -156,7 +161,22 @@ export const workforceRoles = pgTable("workforce_roles", {
   civilianOccupationId: uuid("civilian_occupation_id").references(() => civilianOccupations.id, {
     onDelete: "set null",
   }),
+  /** Free-text family preserved from earlier plans. Normalization is job_family_id. */
   jobFamily: text("job_family"),
+  jobFamilyId: uuid("job_family_id").references(() => jobFamilies.id, { onDelete: "set null" }),
+  /**
+   * Modeled hiring need for this planning role.
+   * Distinct from current_headcount and from live jobs.
+   * Existing rows stay 0 until a person sets a quantity.
+   */
+  demandQuantity: integer("demand_quantity").notNull().default(0),
+  /** Reuses M1 current / evergreen / future. Default future so old rows are not open jobs. */
+  demandHorizon: jobDemandHorizonEnum("demand_horizon").notNull().default("future"),
+  /** 0_90_days is the 0–3 month bucket. Null means the role has no timing bucket yet. */
+  planningHorizon: workforceRoadmapPeriodEnum("planning_horizon"),
+  demandSource: workforceDemandSourceEnum("demand_source").notNull().default("workforce_plan"),
+  /** Null means clearance is not a modeled requirement. Candidate-reported values are not verified. */
+  requiredClearanceLevel: clearanceLevelEnum("required_clearance_level"),
   companyLocationId: uuid("company_location_id").references(() => companyLocations.id, {
     onDelete: "set null",
   }),
@@ -179,7 +199,9 @@ export const workforceRoles = pgTable("workforce_roles", {
   index("workforce_roles_company_id_idx").on(table.companyId),
   index("workforce_roles_assessment_id_idx").on(table.assessmentId),
   index("workforce_roles_civilian_occupation_id_idx").on(table.civilianOccupationId),
+  index("workforce_roles_job_family_id_idx").on(table.jobFamilyId),
   index("workforce_roles_company_location_id_idx").on(table.companyLocationId),
+  unique("workforce_roles_id_organization_uq").on(table.id, table.organizationId),
 ]);
 
 export const workforceRoleSkills = pgTable("workforce_role_skills", {
@@ -189,11 +211,32 @@ export const workforceRoleSkills = pgTable("workforce_role_skills", {
   requirementType: skillRequirementTypeEnum("requirement_type").notNull().default("required"),
   targetProficiency: text("target_proficiency"),
   yearsExperience: integer("years_experience"),
+  /** Null means the role demand_quantity applies, not a separate skill headcount. */
+  quantityAffected: integer("quantity_affected"),
   ...timestamps(),
 }, (table) => [
   index("workforce_role_skills_role_id_idx").on(table.roleId),
   index("workforce_role_skills_skill_id_idx").on(table.skillId),
   unique("workforce_role_skills_role_skill_uq").on(table.roleId, table.skillId),
+]);
+
+/**
+ * Free-text capability demand that is not yet a skill.
+ * Pending and rejected rows do not count as capability demand.
+ */
+export const workforceRoleCapabilityTexts = pgTable("workforce_role_capability_texts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  roleId: uuid("role_id").notNull().references(() => workforceRoles.id, { onDelete: "cascade" }),
+  sourceText: text("source_text").notNull(),
+  skillId: uuid("skill_id").references(() => skills.id, { onDelete: "restrict" }),
+  reviewStatus: mappingReviewStatusEnum("review_status").notNull().default("pending"),
+  reviewedByUserId: uuid("reviewed_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true, mode: "date" }),
+  ...timestamps(),
+}, (table) => [
+  index("workforce_role_capability_texts_role_id_idx").on(table.roleId),
+  index("workforce_role_capability_texts_skill_id_idx").on(table.skillId),
+  index("workforce_role_capability_texts_reviewer_idx").on(table.reviewedByUserId),
 ]);
 
 export const workforceImports = pgTable("workforce_imports", {
@@ -460,6 +503,29 @@ export const educationPartners = pgTable("education_partners", {
 }, (table) => [
   index("education_partners_organization_id_idx").on(table.organizationId),
   index("education_partners_company_id_idx").on(table.companyId),
+]);
+
+/** A person's pipeline choice for a role. Inserting a note does not create a program. */
+export const workforceStrategyNotes = pgTable("workforce_strategy_notes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  roleId: uuid("role_id").notNull().references(() => workforceRoles.id, { onDelete: "cascade" }),
+  assessmentId: uuid("assessment_id").references(() => workforceAssessments.id, { onDelete: "set null" }),
+  channel: workforceStrategyChannelEnum("channel").notNull(),
+  note: text("note").notNull(),
+  educationPartnerId: uuid("education_partner_id").references(() => educationPartners.id, {
+    onDelete: "set null",
+  }),
+  createdByUserId: uuid("created_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  ...timestamps(),
+}, (table) => [
+  index("workforce_strategy_notes_organization_id_idx").on(table.organizationId),
+  index("workforce_strategy_notes_role_id_idx").on(table.roleId),
+  index("workforce_strategy_notes_assessment_id_idx").on(table.assessmentId),
+  index("workforce_strategy_notes_partner_id_idx").on(table.educationPartnerId),
+  index("workforce_strategy_notes_created_by_idx").on(table.createdByUserId),
 ]);
 
 export const educationPartnerLocations = pgTable("education_partner_locations", {
@@ -1020,5 +1086,11 @@ export const workforceRolesRelations = relations(workforceRoles, ({ one, many })
     fields: [workforceRoles.companyLocationId],
     references: [companyLocations.id],
   }),
+  jobFamily: one(jobFamilies, {
+    fields: [workforceRoles.jobFamilyId],
+    references: [jobFamilies.id],
+  }),
   skills: many(workforceRoleSkills),
+  capabilityTexts: many(workforceRoleCapabilityTexts),
+  strategyNotes: many(workforceStrategyNotes),
 }));
