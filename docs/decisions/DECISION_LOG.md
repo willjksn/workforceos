@@ -1,6 +1,6 @@
 # Decision Log
 
-Status: Binding architecture and product decisions (through DEC-AUTH-003)  
+Status: Binding architecture and product decisions (through DEC-AUTH-003 and accepted DEC-PROD-001). DEC-PROD-001 authorizes Military + Workforce Core M1 only.  
 Database mirror: `decision_log` table, seeded from this file.
 
 ## DEC-DB-001 — PostgreSQL over Firebase
@@ -772,4 +772,14 @@ Database mirror: `decision_log` table, seeded from this file.
 - Reason: The operating-model audit found Recruiter missing `opportunities.read`. That is intentional, not drift. Expanding Recruiter into inquiry and opportunity ownership would mix search execution with commercial ownership.
 - Affected modules: RBAC, navigation, CRM
 - Reconsideration: only if recruiters are explicitly assigned commercial opportunity ownership.
+
+## DEC-PROD-001 — Military + Workforce Core decisions accepted; M1 authorized
+
+- Date: 2026-10-21
+- Owner: Product Build
+- Status: accepted
+- Decision: The founder accepted the four decisions in section 18 of `docs/WORKFORCEOS_MILITARY_WORKFORCE_CORE_AUDIT.md`. (1) `jobs` is the canonical employer-demand record. It may represent client jobs, monitored public jobs, exploratory employer demand, evergreen demand, future workforce demand, SkillBridge-eligible demand, and direct-hire demand. CRM `opportunities` remain Pier 24 sales pursuits and must not be merged with jobs. (2) The existing one-to-one `skillbridge_profiles` row is the Transition Talent Profile. SkillBridge dates and eligibility stay pathway attributes on that profile. Do not create another military person or profile table. Do not rename the physical table in M1. (3) `follow-on/parked-working-tree` at `1a356d3` stays deferred and unmerged. Do not cherry-pick or revive it. (4) PierOne to Pier 24 Partners is a separate brand migration and is not part of M1. This decision authorizes M1 only. M2–M10 stay not started. Build Phases 1–10 are unchanged. This is not Phase 11. `DEC-RBAC-001`, `DEC-MIL-005`, and `DEC-SEC-001` remain in force. A job does not require an employer ATS connection, a requisition, or a candidate. `DEC-HIRE-001` still covers Pier 24-run pre-hire work and does not make an employer system connection mandatory.
+- Reason: The audit showed the schema can carry independent employer demand without a new person table or a new opportunity table. Founder approval is the gate that was waiting.
+- Affected modules: recruiting, military, talent, workforce, documentation
+- Reconsideration: M2 and later milestones each need their own acceptance. Reopening parked research or starting the brand migration requires a separate decision.
 
