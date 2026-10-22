@@ -17,10 +17,13 @@ import { getJobWorkspace, listCanonicalSkills } from "@/lib/repositories/recruit
 import { getServiceBundle } from "@/lib/repositories/services";
 import { can } from "@/lib/rbac/permissions";
 import { ActionForm } from "../../_components/action-form";
+import { MatchRecommendationList } from "../../_components/match-recommendations";
 import { Field, PageHeader, PageShell, PrimaryButton, formatLabel, inputClassName } from "../../_components/ui";
 import { Card, StatusBadge } from "@/components/ui/display";
 import { ButtonLink } from "@/components/ui/button";
 import { JobsSubnav } from "../_components/jobs-subnav";
+import { draftJobRequirementsAction, recalculateJobMatchesAction, reviewJobRequirementAction } from "@/lib/actions/opportunity-matching";
+import { listJobRequirementProfile, listJobTalentMatches } from "@/lib/recruiting/opportunity-matching";
 
 export default async function JobDetailPage({
   params,
@@ -35,6 +38,8 @@ export default async function JobDetailPage({
   const canWrite = can(principal, "jobs.write");
   const canReadPii = can(principal, "candidate_pii.read");
   const skillCatalog = canWrite ? await listCanonicalSkills() : [];
+  const talentMatches = await listJobTalentMatches(principal.organizationId, workspace.job.id);
+  const requirementProfile = await listJobRequirementProfile(principal.organizationId, workspace.job.id);
   const searchProject = workspace.searchProjects[0] ?? null;
   const internalComplete = Boolean(
     workspace.job.internalTalentSearchCompletedAt ?? searchProject?.internalSearchCompletedAt,
@@ -79,7 +84,7 @@ export default async function JobDetailPage({
       </div>
       {workspace.job.jobContextType === "monitored_public" ? (
         <p className="mt-2 text-xs text-muted-foreground">
-          Public employer demand from a career source. Matching is available after M5. Discovery does not contact the employer.
+          Public opportunity from a monitored career source. This is not a client relationship and it is not employer interest.
         </p>
       ) : null}
       {workspace.job.description ? <p className="mt-4 text-sm text-muted-foreground">{workspace.job.description}</p> : null}
@@ -106,6 +111,69 @@ export default async function JobDetailPage({
             {workspace.job.internalCandidatesReviewedCount ?? "—"} / {workspace.job.internalCandidatesRecommendedCount ?? "—"}
           </p>
         </Card>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="section-title">Job requirements</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Approved rows drive talent matches. Pending drafts do not. Each row keeps the text it came from.
+        </p>
+        {canWrite ? (
+          <ActionForm action={draftJobRequirementsAction} className="mt-3">
+            <input type="hidden" name="jobId" value={workspace.job.id} />
+            <PrimaryButton>Draft requirements from the description</PrimaryButton>
+          </ActionForm>
+        ) : null}
+        <ul className="mt-3 space-y-2 text-sm">
+          {(requirementProfile?.skills ?? []).map((row) => (
+            <li key={row.id}>
+              {row.name} · {formatLabel(row.requirementType)} · {formatLabel(row.reviewStatus)}
+              {row.sourceText ? ` · “${row.sourceText}”` : ""}
+              {canWrite && row.reviewStatus !== "approved" ? (
+                <ActionForm action={reviewJobRequirementAction} className="mt-1">
+                  <input type="hidden" name="jobId" value={workspace.job.id} />
+                  <input type="hidden" name="jobSkillId" value={row.id} />
+                  <input type="hidden" name="reviewStatus" value="approved" />
+                  <button className="text-xs underline" type="submit">Approve</button>
+                </ActionForm>
+              ) : null}
+            </li>
+          ))}
+          {(requirementProfile?.requirements ?? []).map((row) => (
+            <li key={row.id}>
+              {formatLabel(row.kind)} · {row.label} · {formatLabel(row.requirementType)} · {formatLabel(row.reviewStatus)}
+              {row.sourceText ? ` · “${row.sourceText}”` : ""}
+              {canWrite && row.reviewStatus !== "approved" ? (
+                <ActionForm action={reviewJobRequirementAction} className="mt-1">
+                  <input type="hidden" name="jobId" value={workspace.job.id} />
+                  <input type="hidden" name="requirementId" value={row.id} />
+                  <input type="hidden" name="reviewStatus" value="approved" />
+                  <button className="text-xs underline" type="submit">Approve</button>
+                </ActionForm>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="section-title">Talent matches</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Recommendations for people in this organization. A recruiter confirms the next step. Nothing is submitted or rejected automatically.
+        </p>
+        {canWrite ? (
+          <ActionForm action={recalculateJobMatchesAction} className="mt-3">
+            <input type="hidden" name="jobId" value={workspace.job.id} />
+            <PrimaryButton>Calculate talent matches</PrimaryButton>
+          </ActionForm>
+        ) : null}
+        <MatchRecommendationList
+          cards={talentMatches}
+          canReview={canWrite}
+          returnPath={`/app/jobs/${workspace.job.id}`}
+          showCandidate
+          empty={workspace.job.status === "closed" ? "Closed jobs stay readable. Calculate again after the job is reopened." : "No current talent matches yet."}
+        />
       </section>
 
       <section className="mt-10">
@@ -233,8 +301,8 @@ export default async function JobDetailPage({
       </section>
 
       <section className="mt-10">
-        <h2 className="section-title">Job-specific matches</h2>
-        <p className="mt-2 text-sm text-muted-foreground">Scores are for this job only. There is no universal candidate quality score.</p>
+        <h2 className="section-title">Pipeline</h2>
+        <p className="mt-2 text-sm text-muted-foreground">Stage changes stay with the recruiter. The match category is separate from pipeline status.</p>
         {workspace.matches.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">No internal matches yet. Run Talent Network search.</p>
         ) : (
@@ -242,7 +310,7 @@ export default async function JobDetailPage({
             <thead>
               <tr>
                 <th className="py-2">Candidate</th>
-                <th>Overall</th>
+                <th>Category</th>
                 <th>Skills / exp / mil</th>
                 <th>Why</th>
                 <th>Stage</th>
@@ -258,7 +326,7 @@ export default async function JobDetailPage({
                         {presented.fullName}
                       </Link>
                     </td>
-                    <td>{match.score}</td>
+                    <td>{match.matchCategory ? formatLabel(match.matchCategory) : "Not calculated"}</td>
                     <td>{[match.skillsScore, match.experienceScore, match.militaryScore].filter(Boolean).join(" / ") || "—"}</td>
                     <td className="max-w-sm">{match.explanation}</td>
                     <td>

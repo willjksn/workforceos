@@ -158,6 +158,7 @@ async function main() {
 
     console.log("P — match score fixture");
     const [match] = await db.insert(candidateJobMatches).values({
+      organizationId: orgA,
       candidateId: candidateA,
       jobId: manual.id,
       score: "12.50",
