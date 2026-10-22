@@ -55,6 +55,11 @@ function parseCompensation(value?: string | null) {
   return Number.isFinite(amount) ? amount : null;
 }
 
+/**
+ * Legacy component scorer. Official opportunity recommendations use
+ * evaluateOpportunityMatch. This function remains for existing component tests
+ * and is not the score written by internal search.
+ */
 export function scoreCandidateJobMatch(input: MatchScoreInput): MatchComponentScores {
   const required = input.jobSkillNames.map((name) => name.toLowerCase());
   const preferred = (input.preferredSkillNames ?? []).map((name) => name.toLowerCase());

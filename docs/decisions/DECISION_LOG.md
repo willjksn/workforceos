@@ -1,6 +1,6 @@
 # Decision Log
 
-Status: Binding architecture and product decisions (through DEC-AUTH-003, accepted DEC-PROD-001, DEC-PROD-002, and DEC-PROD-003). DEC-PROD-001 authorized M1, which is merged. DEC-PROD-002 records M2 field ownership, which is merged. DEC-PROD-003 records M3 capability translation, which is merged. DEC-PROD-004 records M4 public discovery, which is tested and awaiting founder merge. M5–M10 are not started.  
+Status: Binding architecture and product decisions (through DEC-AUTH-003, accepted DEC-PROD-001, DEC-PROD-002, and DEC-PROD-003). DEC-PROD-001 authorized M1, which is merged. DEC-PROD-002 records M2 field ownership, which is merged. DEC-PROD-003 records M3 capability translation, which is merged. DEC-PROD-004 records M4 public discovery, which is merged. DEC-PROD-005 records M5 opportunity matching, which is tested and awaiting founder merge. M6–M10 are not started.  
 Database mirror: `decision_log` table, seeded from this file.
 
 ## DEC-DB-001 — PostgreSQL over Firebase
@@ -807,9 +807,19 @@ Database mirror: `decision_log` table, seeded from this file.
 
 - Date: 2026-10-22
 - Owner: Product Build
-- Status: accepted for the founder-requested M4 build. The M4 pull request awaits founder merge. M5–M10 stay not started.
+- Status: accepted. M4 is merged to `main` at `246b3a2575af3a902afebd883bdcd4ab9f1c7d61`. Matching is DEC-PROD-005.
 - Decision: Public employer demand is discovered onto canonical `jobs` through `career_sources`. There is no EmployerOpportunity, ExternalOpportunity, ScrapedJob, or ResearchOpportunity table. CRM `opportunities` remain sales pursuits. The only automated adapter in M4 is the Greenhouse public job board API, adapter key `greenhouse_public_board`. Manual URL import and CSV import are the other two source paths. An operator cannot paste an arbitrary URL and start a crawler. Login-wall and unsupported hosts are blocked and are not fetched. A failed sync does not close jobs. A complete successful Greenhouse listing may close absent open postings without deleting them. Content identity is a normalized hash that ignores whitespace, trivial markup, and tracking query parameters. The safe fetcher rejects private, loopback, link-local, and metadata destinations, including redirects, and binds each connection to the public addresses that passed that check. A later DNS answer cannot replace the pin. TLS keeps the original hostname and certificate verification. Discovery does not send candidate records and does not change `candidate_job_matches`. No new permission slug is added. Recruiter still lacks `opportunities.read`. M4 does not call a model to invent qualifications, salary, or location.
 - Reason: Pier 24 needs employer demand from public sources without employer credentials. Greenhouse publishes a structured JSON board that does not require OAuth. HTML scraping of Workday-style sites is not an acceptable first adapter.
 - Affected modules: recruiting, integrations, company career sources, documentation
 - Reconsideration: a second public adapter, or sending page text to a model for extraction, requires a later decision. M5 may match these jobs. It does not change this discovery contract.
+
+## DEC-PROD-005 — Bidirectional opportunity matching
+
+- Date: 2026-10-22
+- Owner: Product Build
+- Status: accepted for the founder-requested M5 build. The M5 pull request awaits founder merge. M6–M10 stay not started.
+- Decision: One matcher, `evaluateOpportunityMatch`, compares approved candidate capabilities with reviewed job requirements. Military translation feeds that capability layer. There is no separate military matcher. `candidate_job_matches` remains the persisted recommendation and gains category, freshness, input hash, and recruiter disposition. Capability requirements stay on `job_skills`. Other requirements are `job_requirements` with source text. Explainability lines are `candidate_job_match_factors`. The legacy `scoreCandidateJobMatch` function remains for its existing component tests and is not the score internal search writes. Categories are Strong (at least 75% of approved required capabilities and no unresolved hard constraint), Possible (at least 40%, or two required capabilities, or job-family overlap plus one capability), Developmental, and No Current Match. Hard constraints are a required license or credential the record does not show, an explicit clearance the record does not meet, and an on-site location with no remote path and no recorded willingness to relocate. They prevent Strong. They do not hide or reject the person. Pending, needs-review, and rejected translation capabilities do not increase a match. Explicit skills that are not rejected still count. SkillBridge timing is ignored unless the job is SkillBridge-eligible. The internal score is deterministic and is not displayed as a percentage. Recruiter disposition (`viable`, `not_viable`, `needs_information`) does not change the calculated result and does not submit, contact, or reject anyone. No new permission is added. Recruiter still lacks `opportunities.read`.
+- Reason: Military talent and the rest of the Talent Network need the same explainable comparison, and title similarity cannot carry a Navy rating into a civilian posting.
+- Affected modules: recruiting, talent, military profile, job detail, documentation
+- Reconsideration: M6 may route a reviewed match. M7 may read the same skills for workforce supply. M8 may call the matcher from Scout. M9 may learn from dispositions. None of those change this result by themselves.
 

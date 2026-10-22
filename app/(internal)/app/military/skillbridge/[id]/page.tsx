@@ -11,7 +11,6 @@ import {
 import { requireAnyAppPermission } from "@/lib/auth/guard";
 import { can } from "@/lib/rbac/permissions";
 import { getSkillBridgeDetail } from "@/lib/skillbridge/service";
-import { findSkillBridgeMatches } from "@/lib/skillbridge/matching";
 import { draftEmployerBrief, draftSkillBridgeMessage } from "@/lib/skillbridge/drafts";
 import { getDb } from "@/db";
 import { companies } from "@/db/schema";
@@ -24,6 +23,9 @@ import { CapabilityTranslationSection } from "./capability-translation-section";
 import { TransitionProfileSections } from "./transition-profile-sections";
 import { loadCapabilityProfile } from "@/lib/military-talent/capability-profile";
 import { completenessFromEvidence, loadTransitionEvidence } from "@/lib/military-talent/transition-evidence";
+import { recalculateCandidateMatchesAction } from "@/lib/actions/opportunity-matching";
+import { listCandidateOpportunityMatches } from "@/lib/recruiting/opportunity-matching";
+import { MatchRecommendationList } from "../../../_components/match-recommendations";
 
 const STAGES = [
   "candidate_identified",
@@ -60,10 +62,10 @@ export default async function SkillBridgeDetailPage({
     targetRoleCount: detail.card.targetRoles.length,
     hasResumeFile: Boolean(detail.resumeFile),
   });
-  const matches = await findSkillBridgeMatches({
-    organizationId: principal.organizationId,
-    profileId: id,
-  });
+  const opportunityMatches = await listCandidateOpportunityMatches(
+    principal.organizationId,
+    detail.card.candidate.id,
+  );
   const db = getDb();
   const companyRows = await db
     .select({ id: companies.id, name: companies.name })
@@ -166,18 +168,22 @@ export default async function SkillBridgeDetailPage({
       </section>
 
       <section className="mt-10">
-        <h2 className="section-title">Employer opportunity matches</h2>
+        <h2 className="section-title">Opportunity matches</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Transition Talent Profile compared to employer opportunities using skills, occupation, translated role, location, and timing. Humans connect or submit. A public posting is not required to keep this person in the network.
+          Strong, possible, and developmental matches against active employer demand. A public posting is a potential opportunity, not employer interest. Nothing is submitted automatically.
         </p>
-        <ul className="mt-3 space-y-2">
-          {matches.map((match) => (
-            <li key={match.jobId}>
-              <Link href={match.href} className="text-navy underline">{match.jobTitle}</Link>
-              <span className="text-sm text-muted-foreground"> · {match.companyName} · {match.overall}</span>
-            </li>
-          ))}
-        </ul>
+        {canWriteEvidence ? (
+          <ActionForm action={recalculateCandidateMatchesAction} className="mt-3">
+            <input type="hidden" name="candidateId" value={detail.card.candidate.id} />
+            <PrimaryButton>Calculate opportunity matches</PrimaryButton>
+          </ActionForm>
+        ) : null}
+        <MatchRecommendationList
+          cards={opportunityMatches}
+          canReview={canWriteEvidence}
+          returnPath={`/app/military/skillbridge/${id}`}
+          empty="No current opportunity matches yet."
+        />
       </section>
 
       <section className="mt-10 grid gap-8 lg:grid-cols-2">

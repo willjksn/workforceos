@@ -15,7 +15,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { timestamps } from "../_common";
-import { organizations, users } from "../core";
+import { agents, organizations, users } from "../core";
 import { companies, companyLocations, contacts, opportunities } from "../crm";
 import {
   candidatePipelineStatusEnum,
@@ -215,6 +215,7 @@ export const jobs = pgTable("jobs", {
     "jobs_sourced_job_has_company",
     sql`${table.careerSourceId} is null or ${table.companyId} is not null`,
   ),
+  unique("jobs_id_organization_uq").on(table.id, table.organizationId),
 ]);
 
 export const jobSkills = pgTable("job_skills", {
@@ -225,11 +226,78 @@ export const jobSkills = pgTable("job_skills", {
   minimumYears: integer("minimum_years"),
   importanceWeight: integer("importance_weight").notNull().default(1),
   humanVerified: boolean("human_verified").notNull().default(false),
+  /** Where the capability requirement came from. Existing rows are recruiter entry. */
+  requirementSource: text("requirement_source").notNull().default("recruiter_entry"),
+  sourceText: text("source_text"),
+  reviewStatus: mappingReviewStatusEnum("review_status").notNull().default("approved"),
+  confidence: integer("confidence"),
+  originatingAgentId: uuid("originating_agent_id").references(() => agents.id, { onDelete: "set null" }),
+  reviewedByUserId: uuid("reviewed_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true, mode: "date" }),
   ...timestamps(),
 }, (table) => [
   index("job_skills_job_id_idx").on(table.jobId),
   index("job_skills_skill_id_idx").on(table.skillId),
+  index("job_skills_originating_agent_id_idx").on(table.originatingAgentId),
+  index("job_skills_reviewed_by_user_id_idx").on(table.reviewedByUserId),
   unique("job_skills_job_skill_uq").on(table.jobId, table.skillId),
+  check(
+    "job_skills_requirement_source_chk",
+    sql`${table.requirementSource} in ('public_job_description', 'structured_employer_feed', 'recruiter_entry', 'employer_provided', 'ai_extraction', 'reviewed_ai_extraction')`,
+  ),
+  check(
+    "job_skills_confidence_chk",
+    sql`${table.confidence} is null or (${table.confidence} >= 0 and ${table.confidence} <= 100)`,
+  ),
+]);
+
+/**
+ * Non-skill requirements for one job. Capability requirements stay on job_skills
+ * and use the shared skills vocabulary. Each row cites the text it came from.
+ */
+export const jobRequirements = pgTable("job_requirements", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  jobId: uuid("job_id").notNull(),
+  kind: text("kind").notNull(),
+  requirementType: skillRequirementTypeEnum("requirement_type").notNull().default("required"),
+  label: text("label").notNull(),
+  valueText: text("value_text"),
+  requirementSource: text("requirement_source").notNull(),
+  sourceText: text("source_text"),
+  reviewStatus: mappingReviewStatusEnum("review_status").notNull().default("pending"),
+  confidence: integer("confidence"),
+  originatingAgentId: uuid("originating_agent_id").references(() => agents.id, { onDelete: "set null" }),
+  reviewedByUserId: uuid("reviewed_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true, mode: "date" }),
+  ...timestamps(),
+}, (table) => [
+  unique("job_requirements_id_organization_uq").on(table.id, table.organizationId),
+  foreignKey({
+    columns: [table.jobId, table.organizationId],
+    foreignColumns: [jobs.id, jobs.organizationId],
+    name: "job_requirements_job_org_fk",
+  }).onDelete("cascade"),
+  index("job_requirements_organization_id_idx").on(table.organizationId),
+  index("job_requirements_job_id_idx").on(table.jobId),
+  index("job_requirements_job_review_idx").on(table.jobId, table.reviewStatus),
+  index("job_requirements_originating_agent_id_idx").on(table.originatingAgentId),
+  index("job_requirements_reviewed_by_user_id_idx").on(table.reviewedByUserId),
+  unique("job_requirements_job_kind_label_uq").on(table.jobId, table.kind, table.label),
+  check(
+    "job_requirements_kind_chk",
+    sql`${table.kind} in ('credential', 'education', 'clearance', 'experience', 'location', 'workplace', 'travel', 'license', 'job_family', 'occupation')`,
+  ),
+  check(
+    "job_requirements_source_chk",
+    sql`${table.requirementSource} in ('public_job_description', 'structured_employer_feed', 'recruiter_entry', 'employer_provided', 'ai_extraction', 'reviewed_ai_extraction')`,
+  ),
+  check(
+    "job_requirements_confidence_chk",
+    sql`${table.confidence} is null or (${table.confidence} >= 0 and ${table.confidence} <= 100)`,
+  ),
 ]);
 
 export const searchProjects = pgTable("search_projects", {
@@ -285,10 +353,11 @@ export const searchProjects = pgTable("search_projects", {
 
 export const candidateJobMatches = pgTable("candidate_job_matches", {
   id: uuid("id").defaultRandom().primaryKey(),
-  candidateId: uuid("candidate_id").notNull().references(() => candidates.id, {
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
     onDelete: "restrict",
   }),
-  jobId: uuid("job_id").notNull().references(() => jobs.id, { onDelete: "restrict" }),
+  candidateId: uuid("candidate_id").notNull(),
+  jobId: uuid("job_id").notNull(),
   score: numeric("score", { precision: 5, scale: 2 }).notNull(),
   skillsScore: numeric("skills_score", { precision: 5, scale: 2 }),
   experienceScore: numeric("experience_score", { precision: 5, scale: 2 }),
@@ -312,12 +381,80 @@ export const candidateJobMatches = pgTable("candidate_job_matches", {
   }),
   lastCalculatedAt: timestamp("last_calculated_at", { withTimezone: true, mode: "date" }),
   pipelineStatus: candidatePipelineStatusEnum("pipeline_status").notNull().default("sourced"),
+  /** strong_match | possible_match | developmental_match | no_current_match. Null on rows from before M5. */
+  matchCategory: text("match_category"),
+  /** current | stale | queued | error. Existing rows start stale until recalculated. */
+  freshness: text("freshness").notNull().default("stale"),
+  inputHash: text("input_hash"),
+  /** viable | not_viable | needs_information. Does not change the calculated category. */
+  recruiterDisposition: text("recruiter_disposition"),
+  dispositionNote: text("disposition_note"),
+  dispositionByUserId: uuid("disposition_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  dispositionAt: timestamp("disposition_at", { withTimezone: true, mode: "date" }),
   ...timestamps(),
 }, (table) => [
+  unique("candidate_job_matches_id_organization_uq").on(table.id, table.organizationId),
+  foreignKey({
+    columns: [table.candidateId, table.organizationId],
+    foreignColumns: [candidates.id, candidates.organizationId],
+    name: "candidate_job_matches_candidate_org_fk",
+  }).onDelete("restrict"),
+  foreignKey({
+    columns: [table.jobId, table.organizationId],
+    foreignColumns: [jobs.id, jobs.organizationId],
+    name: "candidate_job_matches_job_org_fk",
+  }).onDelete("restrict"),
+  index("candidate_job_matches_organization_id_idx").on(table.organizationId),
   index("candidate_job_matches_candidate_id_idx").on(table.candidateId),
   index("candidate_job_matches_job_id_idx").on(table.jobId),
   index("candidate_job_matches_human_reviewed_by_user_id_idx").on(table.humanReviewedByUserId),
+  index("candidate_job_matches_disposition_by_user_id_idx").on(table.dispositionByUserId),
+  index("candidate_job_matches_org_candidate_freshness_idx").on(table.organizationId, table.candidateId, table.freshness),
+  index("candidate_job_matches_org_job_category_idx").on(table.organizationId, table.jobId, table.matchCategory),
   unique("candidate_job_matches_candidate_job_uq").on(table.candidateId, table.jobId),
+  check(
+    "candidate_job_matches_category_chk",
+    sql`${table.matchCategory} is null or ${table.matchCategory} in ('strong_match', 'possible_match', 'developmental_match', 'no_current_match')`,
+  ),
+  check(
+    "candidate_job_matches_freshness_chk",
+    sql`${table.freshness} in ('current', 'stale', 'queued', 'error')`,
+  ),
+  check(
+    "candidate_job_matches_disposition_chk",
+    sql`${table.recruiterDisposition} is null or ${table.recruiterDisposition} in ('viable', 'not_viable', 'needs_information')`,
+  ),
+]);
+
+/** Explainability lines for one match. Replaced when that match is recalculated. */
+export const candidateJobMatchFactors = pgTable("candidate_job_match_factors", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  matchId: uuid("match_id").notNull(),
+  factorGroup: text("factor_group").notNull(),
+  dimension: text("dimension").notNull(),
+  label: text("label").notNull(),
+  detail: text("detail"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  ...timestamps(),
+}, (table) => [
+  foreignKey({
+    columns: [table.matchId, table.organizationId],
+    foreignColumns: [candidateJobMatches.id, candidateJobMatches.organizationId],
+    name: "candidate_job_match_factors_match_org_fk",
+  }).onDelete("cascade"),
+  index("candidate_job_match_factors_organization_id_idx").on(table.organizationId),
+  index("candidate_job_match_factors_match_id_idx").on(table.matchId),
+  check(
+    "candidate_job_match_factors_group_chk",
+    sql`${table.factorGroup} in ('aligned', 'documented_gap', 'unknown', 'preferred_gap', 'evidence')`,
+  ),
+  check(
+    "candidate_job_match_factors_dimension_chk",
+    sql`${table.dimension} in ('capability', 'credential', 'education', 'clearance', 'experience', 'location', 'timing', 'job_family', 'compensation', 'workplace')`,
+  ),
 ]);
 
 export const candidateScreenings = pgTable("candidate_screenings", {
@@ -526,6 +663,7 @@ export const careerSourceSyncRunsRelations = relations(careerSourceSyncRuns, ({ 
 
 export const jobsRelations = relations(jobs, ({ many, one }) => ({
   skills: many(jobSkills),
+  requirements: many(jobRequirements),
   matches: many(candidateJobMatches),
   searchProjects: many(searchProjects),
   company: one(companies, { fields: [jobs.companyId], references: [companies.id] }),
@@ -550,6 +688,17 @@ export const jobSkillsRelations = relations(jobSkills, ({ one }) => ({
   }),
 }));
 
+export const jobRequirementsRelations = relations(jobRequirements, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [jobRequirements.organizationId],
+    references: [organizations.id],
+  }),
+  job: one(jobs, {
+    fields: [jobRequirements.jobId],
+    references: [jobs.id],
+  }),
+}));
+
 export const searchProjectsRelations = relations(searchProjects, ({ one }) => ({
   job: one(jobs, { fields: [searchProjects.jobId], references: [jobs.id] }),
   company: one(companies, { fields: [searchProjects.companyId], references: [companies.id] }),
@@ -557,6 +706,10 @@ export const searchProjectsRelations = relations(searchProjects, ({ one }) => ({
 }));
 
 export const candidateJobMatchesRelations = relations(candidateJobMatches, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [candidateJobMatches.organizationId],
+    references: [organizations.id],
+  }),
   candidate: one(candidates, {
     fields: [candidateJobMatches.candidateId],
     references: [candidates.id],
@@ -565,7 +718,19 @@ export const candidateJobMatchesRelations = relations(candidateJobMatches, ({ on
     fields: [candidateJobMatches.jobId],
     references: [jobs.id],
   }),
+  factors: many(candidateJobMatchFactors),
   screenings: many(candidateScreenings),
+}));
+
+export const candidateJobMatchFactorsRelations = relations(candidateJobMatchFactors, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [candidateJobMatchFactors.organizationId],
+    references: [organizations.id],
+  }),
+  match: one(candidateJobMatches, {
+    fields: [candidateJobMatchFactors.matchId],
+    references: [candidateJobMatches.id],
+  }),
 }));
 
 export const candidateScreeningsRelations = relations(candidateScreenings, ({ one }) => ({

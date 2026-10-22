@@ -109,6 +109,7 @@ export const candidateSkills = pgTable("candidate_skills", {
   index("candidate_skills_organization_id_idx").on(table.organizationId),
   index("candidate_skills_candidate_id_idx").on(table.candidateId),
   index("candidate_skills_skill_id_idx").on(table.skillId),
+  index("candidate_skills_org_skill_idx").on(table.organizationId, table.skillId),
   index("candidate_skills_reviewed_by_user_id_idx").on(table.reviewedByUserId),
   index("candidate_skills_originating_agent_id_idx").on(table.originatingAgentId),
   unique("candidate_skills_candidate_skill_uq").on(table.candidateId, table.skillId),

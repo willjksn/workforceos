@@ -725,6 +725,7 @@ async function executeAuthorizedCommand(input: {
         await db
           .insert(candidateJobMatches)
           .values({
+            organizationId: input.principal.organizationId,
             candidateId,
             jobId,
             score: "0",

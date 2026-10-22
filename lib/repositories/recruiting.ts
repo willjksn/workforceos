@@ -1,29 +1,22 @@
-import { and, count, desc, eq, ilike, inArray, isNull, ne, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, isNull } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
-  candidateDesignations,
-  candidateExperiences,
   candidateJobMatches,
-  candidateMilitaryExperiences,
   candidateScreenings,
-  candidateSkills,
   candidates,
   companies,
   contacts,
   careerSources,
   jobSkills,
   jobs,
-  militaryOccupationSkills,
-  militaryOccupations,
   searchProjects,
   services,
   skills,
   users,
 } from "../../db/schema";
 import { recordAuditEvent } from "../audit/record-audit-event";
-import { CAPABILITY_TRANSLATION_SOURCE } from "../military/capability-translation";
-import { scoreCandidateJobMatch } from "../recruiting/matching";
+import { listJobTalentMatches, recalculateJobTalent } from "../recruiting/opportunity-matching";
 import {
   buildInternalSearchProjectName,
 } from "../recruiting/internal-search";
@@ -444,163 +437,18 @@ export async function runInternalTalentSearch(input: {
     .set({ internalSearchStartedAt: startedAt, updatedAt: startedAt })
     .where(eq(searchProjects.jobId, input.jobId));
 
-  const activeCandidates = await db
-    .select()
-    .from(candidates)
-    .where(
-      and(
-        eq(candidates.organizationId, input.organizationId),
-        isNull(candidates.archivedAt),
-        eq(candidates.doNotContact, false),
-      ),
-    );
-
-  const candidateIds = activeCandidates.map((candidate) => candidate.id);
-  const experiences = candidateIds.length
-    ? await db.select().from(candidateExperiences).where(inArray(candidateExperiences.candidateId, candidateIds))
-    : [];
-  const skillRows = candidateIds.length
-    ? await db
-        .select({ candidateId: candidateSkills.candidateId, name: skills.name })
-        .from(candidateSkills)
-        .innerJoin(skills, eq(candidateSkills.skillId, skills.id))
-        .where(
-          and(
-            inArray(candidateSkills.candidateId, candidateIds),
-            or(isNull(candidateSkills.source), ne(candidateSkills.source, CAPABILITY_TRANSLATION_SOURCE)),
-          ),
-        )
-    : [];
-  const designations = candidateIds.length
-    ? await db
-        .select()
-        .from(candidateDesignations)
-        .where(and(inArray(candidateDesignations.candidateId, candidateIds), eq(candidateDesignations.active, true)))
-    : [];
-  const military = candidateIds.length
-    ? await db
-        .select({
-          candidateId: candidateMilitaryExperiences.candidateId,
-          occupationTitle: militaryOccupations.title,
-          skillId: militaryOccupationSkills.skillId,
-        })
-        .from(candidateMilitaryExperiences)
-        .leftJoin(
-          militaryOccupations,
-          eq(militaryOccupations.id, candidateMilitaryExperiences.militaryOccupationId),
-        )
-        .leftJoin(
-          militaryOccupationSkills,
-          eq(militaryOccupationSkills.militaryOccupationId, candidateMilitaryExperiences.militaryOccupationId),
-        )
-        .where(inArray(candidateMilitaryExperiences.candidateId, candidateIds))
-    : [];
-  const militarySkillIds = [
-    ...new Set(military.map((row) => row.skillId).filter((id): id is string => Boolean(id))),
-  ];
-  const militarySkillNames = militarySkillIds.length
-    ? await db
-        .select({ id: skills.id, name: skills.name })
-        .from(skills)
-        .where(inArray(skills.id, militarySkillIds))
-    : [];
-  const skillNameById = Object.fromEntries(militarySkillNames.map((skill) => [skill.id, skill.name]));
-
-  const required = workspace.skills.filter((row) => row.link.requirementType === "required").map((row) => row.skill.name);
-  const preferred = workspace.skills.filter((row) => row.link.requirementType !== "required").map((row) => row.skill.name);
-  const scored = [];
-  for (const candidate of activeCandidates) {
-    const result = scoreCandidateJobMatch({
-      jobTitle: workspace.job.title,
-      jobDescription: workspace.job.description,
-      jobSkillNames: required,
-      preferredSkillNames: preferred,
-      requiredExperienceYears: workspace.job.requiredExperienceYears,
-      locationLabel: workspace.job.locationLabel,
-      compensationMin: workspace.job.compensationMin ? Number(workspace.job.compensationMin) : null,
-      compensationMax: workspace.job.compensationMax ? Number(workspace.job.compensationMax) : null,
-      certifications: workspace.job.certifications,
-      candidateName: candidate.fullName,
-      candidateTitle: candidate.currentTitle,
-      candidateCompany: candidate.currentCompany,
-      candidateCity: candidate.city,
-      candidateRegion: candidate.region,
-      candidateYearsExperience: candidate.yearsExperience,
-      candidateCompensation: candidate.compensationExpectations,
-      candidateCareerInterests: candidate.careerInterests,
-      relocationWillingness: candidate.relocationWillingness,
-      experienceTitles: experiences
-        .filter((experience) => experience.candidateId === candidate.id)
-        .map((experience) => `${experience.title} ${experience.employer}`),
-      candidateSkillNames: skillRows.filter((row) => row.candidateId === candidate.id).map((row) => row.name),
-      militaryOccupationTitle: military.find((row) => row.candidateId === candidate.id)?.occupationTitle,
-      militarySkillNames: military
-        .filter((row) => row.candidateId === candidate.id)
-        .map((row) => skillNameById[row.skillId ?? ""])
-        .filter(Boolean),
-      silverMedalist: designations.some(
-        (row) => row.candidateId === candidate.id && row.designationType === "silver_medalist",
-      ),
-    });
-    if (result.overall < 1) continue;
-    scored.push({ candidate, ...result });
-  }
-
-  for (const row of scored) {
-    await db
-      .insert(candidateJobMatches)
-      .values({
-        candidateId: row.candidate.id,
-        jobId: input.jobId,
-        score: numeric(row.overall),
-        skillsScore: numeric(row.skills),
-        experienceScore: numeric(row.experience),
-        industryScore: numeric(row.industry),
-        locationScore: numeric(row.location),
-        compensationScore: numeric(row.compensation),
-        certificationScore: numeric(row.certification),
-        militaryScore: numeric(row.military),
-        careerAlignmentScore: numeric(row.careerAlignment),
-        priorFeedbackScore: numeric(row.priorFeedback),
-        explanation: row.explanation,
-        strengths: row.strengths.join("; "),
-        gaps: row.gaps.join("; "),
-        modelName: "workforceos-deterministic-match",
-        modelVersion: "phase3-v1",
-        source: "internal_talent_network",
-        lastCalculatedAt: startedAt,
-        pipelineStatus: "identified",
-      })
-      .onConflictDoUpdate({
-        target: [candidateJobMatches.candidateId, candidateJobMatches.jobId],
-        set: {
-          score: sql`excluded.score`,
-          skillsScore: sql`excluded.skills_score`,
-          experienceScore: sql`excluded.experience_score`,
-          industryScore: sql`excluded.industry_score`,
-          locationScore: sql`excluded.location_score`,
-          compensationScore: sql`excluded.compensation_score`,
-          certificationScore: sql`excluded.certification_score`,
-          militaryScore: sql`excluded.military_score`,
-          careerAlignmentScore: sql`excluded.career_alignment_score`,
-          priorFeedbackScore: sql`excluded.prior_feedback_score`,
-          explanation: sql`excluded.explanation`,
-          strengths: sql`excluded.strengths`,
-          gaps: sql`excluded.gaps`,
-          modelName: sql`excluded.model_name`,
-          modelVersion: sql`excluded.model_version`,
-          source: sql`excluded.source`,
-          lastCalculatedAt: sql`excluded.last_calculated_at`,
-          updatedAt: new Date(),
-        },
-      });
-  }
-
-  const recommended = scored.filter((row) => row.overall >= 50).length;
+  const scored = await recalculateJobTalent({
+    organizationId: input.organizationId,
+    actorUserId: input.actorUserId,
+    jobId: input.jobId,
+    source: "internal_talent_network",
+  });
+  const talent = await listJobTalentMatches(input.organizationId, input.jobId);
+  const recommended = talent.filter((row) => row.category === "strong_match" || row.category === "possible_match").length;
   await db
     .update(jobs)
     .set({
-      internalCandidatesReviewedCount: activeCandidates.length,
+      internalCandidatesReviewedCount: scored.evaluated,
       internalCandidatesRecommendedCount: recommended,
       updatedAt: new Date(),
     })
@@ -612,10 +460,10 @@ export async function runInternalTalentSearch(input: {
     action: "internal_search.ran",
     recordType: "job",
     recordId: input.jobId,
-    after: { matchCount: scored.length, reviewedCount: activeCandidates.length, recommendedCount: recommended },
+    after: { matchCount: scored.persisted, reviewedCount: scored.evaluated, recommendedCount: recommended },
   });
 
-  return { matchCount: scored.length, reviewedCount: activeCandidates.length, recommendedCount: recommended };
+  return { matchCount: scored.persisted, reviewedCount: scored.evaluated, recommendedCount: recommended };
 }
 
 export async function completeInternalSearch(input: {

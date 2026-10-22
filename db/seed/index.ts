@@ -672,6 +672,7 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
     await db
       .insert(candidateJobMatches)
       .values({
+        organizationId: INTERNAL_ORG_ID,
         candidateId: CANDIDATE_ID,
         jobId: id,
         score: String(80 + index),
