@@ -1,6 +1,6 @@
 # Decision Log
 
-Status: Binding architecture and product decisions (through DEC-AUTH-003, accepted DEC-PROD-001, DEC-PROD-002, and DEC-PROD-003). DEC-PROD-001 authorized M1, which is merged. DEC-PROD-002 records M2 field ownership, which is merged. DEC-PROD-003 records M3 capability translation, which is tested and awaiting founder merge. M4–M10 are not started.  
+Status: Binding architecture and product decisions (through DEC-AUTH-003, accepted DEC-PROD-001, DEC-PROD-002, and DEC-PROD-003). DEC-PROD-001 authorized M1, which is merged. DEC-PROD-002 records M2 field ownership, which is merged. DEC-PROD-003 records M3 capability translation, which is merged. DEC-PROD-004 records M4 public discovery, which is tested and awaiting founder merge. M5–M10 are not started.  
 Database mirror: `decision_log` table, seeded from this file.
 
 ## DEC-DB-001 — PostgreSQL over Firebase
@@ -797,9 +797,19 @@ Database mirror: `decision_log` table, seeded from this file.
 
 - Date: 2026-10-21
 - Owner: Product Build
-- Status: accepted for the founder-requested M3 build. The M3 pull request awaits founder merge. M4–M10 stay not started.
+- Status: accepted. M3 is merged to `main` at `2c19418e95b42169b6423f070bea202b00ece364`. M5–M10 stay not started.
 - Decision: Civilian capabilities stay on `skills`. `skill_family` is the category. `competency_clusters` is a lookup on skills, and `skill_aliases` holds alternate labels. There is no second capability table. `military_occupation_skills` is reference knowledge and gains source, evidence reference, confidence, review, origin, and version. Existing occupation-skill rows are backfilled as pending `development_fixture` data, not approved production mappings. A person capability extends `candidate_skills` with organization, `capability_basis` (`explicit`, `reference_supported`, `inferred`), and the existing `mapping_review_status`. Human reviewed means `approved`. Needs evidence is stored as `needs_review`. `candidate_skill_evidence` holds the citations for one skill. No evidence means no person-specific capability. An approved occupation mapping alone is not copied onto a person. Employer-facing translation uses approved rows only. `job_families` is a new employer-neutral vocabulary because `workforce_roles.job_family`, `skillbridge_target_roles.job_family`, and `job_requisitions.job_family` are free text at different grains and `jobs` has no job-family column. Those free-text columns are not replaced. M3 rows use `source = capability_translation` and are excluded from M2 match scoring, Scout skill search, and workforce overlay counts. The match formula is unchanged. No new permission slug is added. Recruiter still lacks `opportunities.read`. Recruiters review a person's capabilities with `candidates.write`. Global occupation-capability review stays `military.review`. The originating agent cannot approve.
 - Reason: The audit's occupation-to-title grain could not explain a Navy LS as several civilian capabilities, and a shared family list was not the same thing as the existing free-text labels.
 - Affected modules: military, talent, workforce catalog, documentation
 - Reconsideration: M5 may opt approved capabilities into match scoring. M7 may connect employer roles to `job_families`. Replacing the free-text job-family columns requires a later decision.
+
+## DEC-PROD-004 — Public employer discovery uses career sources and one structured adapter
+
+- Date: 2026-10-22
+- Owner: Product Build
+- Status: accepted for the founder-requested M4 build. The M4 pull request awaits founder merge. M5–M10 stay not started.
+- Decision: Public employer demand is discovered onto canonical `jobs` through `career_sources`. There is no EmployerOpportunity, ExternalOpportunity, ScrapedJob, or ResearchOpportunity table. CRM `opportunities` remain sales pursuits. The only automated adapter in M4 is the Greenhouse public job board API, adapter key `greenhouse_public_board`. Manual URL import and CSV import are the other two source paths. An operator cannot paste an arbitrary URL and start a crawler. Login-wall and unsupported hosts are blocked and are not fetched. A failed sync does not close jobs. A complete successful Greenhouse listing may close absent open postings without deleting them. Content identity is a normalized hash that ignores whitespace, trivial markup, and tracking query parameters. The safe fetcher rejects private, loopback, link-local, and metadata destinations, including redirects. Discovery does not send candidate records and does not change `candidate_job_matches`. No new permission slug is added. Recruiter still lacks `opportunities.read`. M4 does not call a model to invent qualifications, salary, or location.
+- Reason: Pier 24 needs employer demand from public sources without employer credentials. Greenhouse publishes a structured JSON board that does not require OAuth. HTML scraping of Workday-style sites is not an acceptable first adapter.
+- Affected modules: recruiting, integrations, company career sources, documentation
+- Reconsideration: a second public adapter, or sending page text to a model for extraction, requires a later decision. M5 may match these jobs. It does not change this discovery contract.
 

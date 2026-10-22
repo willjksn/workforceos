@@ -162,7 +162,7 @@ Hiring tables are in `db/schema/hiring/` and `drizzle/0010_*`. Do not edit `0000
 - Migration `drizzle/0018_m1_employer_demand.sql` is additive. It does not rewrite `0000`–`0017`.
 - `drizzle/0019_m1_career_source_company_fk.sql` adds the tenant/company invariant. `0018` is unchanged because it is already applied on the development branch.
 - `companies` has `UNIQUE (id, organization_id)`. `career_sources (company_id, organization_id)` references `companies (id, organization_id)` with `ON DELETE restrict`. A career source cannot name a company from another organization. The existing single-column company foreign key and the application check both remain.
-- `career_sources` is organization-scoped. It stores source category, URLs, and sync timestamps. It does not store credentials.
+- `career_sources` is organization-scoped. It stores source category, URLs, and sync timestamps. It does not store credentials. M4 adds the public adapter key, honest health, and sync runs described below.
 - `jobs (career_source_id, organization_id)` references `career_sources (id, organization_id)`, so a job cannot attach another tenant's source. When `career_source_id` is set, `company_id` is required and `(career_source_id, organization_id, company_id)` must match that source. PostgreSQL skips that composite check when `career_source_id` is null, so a manual job stays valid with or without a company. `career_source_id` is indexed.
 - Unique `(career_source_id, external_key)` rejects a duplicate external posting. Null pairs stay distinct, so manual jobs are unchanged.
 - `jobs.demand_horizon` defaults to `current`. `evergreen` and `future` are horizons, not context types. Existing `internal`, `client`, and `skillbridge` context values remain valid. `monitored_public` and `exploratory` were added.
@@ -205,6 +205,19 @@ Canonical chain (`DEC-PROD-003`): military evidence → `skills` capability → 
 - `job_families` and `civilian_occupation_job_families` are employer-neutral. `workforce_roles.job_family`, `skillbridge_target_roles.job_family`, and `job_requisitions.job_family` stay free text. `jobs` has no job-family column.
 - Employer-facing translation reads `review_status = approved` only. `source = capability_translation` is omitted from match scoring, Scout skill search, and workforce overlay counts so M3 does not change M2 ranking.
 - The originating agent cannot approve. Material translation is audited on draft and review, not on read.
+
+## Military + Workforce Core M4 opportunity discovery
+
+Public flow: public employer source → `career_sources` → normalized `jobs` → `job_description_versions`. No employer ATS, CRM, HRIS, or SSO connection is required. CRM `opportunities` stay sales pursuits.
+
+- Migration `drizzle/0022_m4_opportunity_discovery.sql` is additive. It does not rewrite `0000`–`0021`. It adds `career_source_health`, source operating columns, `jobs.last_observed_at`, `jobs.public_compensation_text`, description-version source metadata, and `career_source_sync_runs`. The composite foreign key is created after `career_sources (id, organization_id)` already exists.
+- The only automated adapter is the Greenhouse public job board API (`greenhouse_public_board`, `DEC-PROD-004`). Manual URL and CSV are operator-confirmed imports. Feed and generic careers URLs are not crawled.
+- Source access states are `supported_structured`, `supported_public`, `manual_only`, `blocked`, and `error`. The runner refuses anything that is not an allowlisted Greenhouse board, one public job page, or an uploaded CSV. Login-wall hosts such as Workday are `blocked` and are not fetched.
+- Content hash is SHA-256 of the folded title, location, description, department, employment type, workplace, public salary text, qualifications, certifications, education, experience, and canonical source URL. Folding strips tags, decodes entities, and collapses whitespace. Tracking query parameters (`utm_*`, `gclid`, `fbclid`, and the other listed campaign parameters) are removed. Letter-case and added words stay material. The same hash does not insert another `job_description_versions` row.
+- A new external key inserts a `monitored_public` job. The same key and hash only refreshes `last_observed_at`. A changed hash updates the job and appends a version. A successful complete Greenhouse listing closes previously `open` or `search_active` keys that are absent, by setting `status = closed` and `closed_at`. The row is not deleted. CSV and manual imports do not close jobs that were simply absent. A failed sync closes nothing.
+- The safe fetcher allows http and https only, prefers the public Greenhouse API over HTML, resolves DNS, rejects private, loopback, link-local, and metadata addresses, and validates every redirect before following it. Redirects are limited to three. Discovery requests do not include candidate records.
+- `health_status = live` only after a complete Greenhouse sync with no current failure. Manual imports stay `manual`. Never-run sources stay `not_yet_synced`.
+- M4 does not score, rank, recommend, email, or contact anyone. It does not call a model. If a public page cannot be parsed safely, the operator types the fields and confirms. Matching waits for M5.
 
 ## Phase L scale tables
 
