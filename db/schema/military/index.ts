@@ -1,5 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import {
+  boolean,
+  foreignKey,
   index,
   integer,
   numeric,
@@ -11,14 +13,17 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { timestamps } from "../_common";
-import { agents, users } from "../core";
+import { agents, organizations, users } from "../core";
 import { candidates } from "../talent";
 import {
   mappingOriginEnum,
   mappingReviewStatusEnum,
   militaryBranchEnum,
   militaryClassificationTypeEnum,
+  militaryEquipmentKindEnum,
   militaryPresenceLevelEnum,
+  militaryTrainingCategoryEnum,
+  profileEvidenceSourceEnum,
 } from "../enums";
 import { civilianOccupations, skills } from "../workforce";
 
@@ -45,6 +50,9 @@ export const militaryOccupations = pgTable("military_occupations", {
 
 export const candidateMilitaryExperiences = pgTable("candidate_military_experiences", {
   id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
   candidateId: uuid("candidate_id").notNull().references(() => candidates.id, {
     onDelete: "cascade",
   }),
@@ -56,17 +64,114 @@ export const candidateMilitaryExperiences = pgTable("candidate_military_experien
   yearsService: integer("years_service"),
   yearsInOccupation: integer("years_in_occupation"),
   leadershipLevel: text("leadership_level"),
+  directReportsCount: integer("direct_reports_count"),
+  indirectReportsCount: integer("indirect_reports_count"),
+  teamSize: integer("team_size"),
+  resourceScope: text("resource_scope"),
+  shiftWatchLeadership: text("shift_watch_leadership"),
+  programResponsibility: text("program_responsibility"),
+  leadershipSource: profileEvidenceSourceEnum("leadership_source"),
+  leadershipHumanVerified: boolean("leadership_human_verified").notNull().default(false),
   dutyStations: text("duty_stations"),
+  /** Free-text unit. Not parsed out of duty station text. */
+  unit: text("unit"),
+  /** Legacy platform narrative. Structured rows live on candidate_military_equipment. */
   platforms: text("platforms"),
+  /** Legacy training narrative. Structured rows live on candidate_military_training. */
   training: text("training"),
+  /** Legacy certification narrative. Person credentials live on candidate_credentials. */
   certifications: text("certifications"),
+  /** Historical clearance narrative for this tour. Current clearance is candidate_clearances. */
   clearance: text("clearance"),
   transitionDate: timestamp("transition_date", { withTimezone: true, mode: "date" }),
+  /** Legacy duty narrative. Structured rows live on candidate_military_duties. */
   notes: text("notes"),
   ...timestamps(),
 }, (table) => [
+  unique("candidate_military_experiences_id_organization_uq").on(table.id, table.organizationId),
+  foreignKey({
+    columns: [table.candidateId, table.organizationId],
+    foreignColumns: [candidates.id, candidates.organizationId],
+    name: "candidate_military_experiences_candidate_org_fk",
+  }).onDelete("cascade"),
+  index("candidate_military_experiences_organization_id_idx").on(table.organizationId),
   index("candidate_military_experiences_candidate_id_idx").on(table.candidateId),
   index("candidate_military_experiences_occupation_id_idx").on(table.militaryOccupationId),
+]);
+
+export const candidateMilitaryDuties = pgTable("candidate_military_duties", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  candidateMilitaryExperienceId: uuid("candidate_military_experience_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  source: profileEvidenceSourceEnum("source").notNull().default("recruiter"),
+  sourceReference: text("source_reference"),
+  humanVerified: boolean("human_verified").notNull().default(false),
+  confidence: integer("confidence"),
+  ...timestamps(),
+}, (table) => [
+  unique("candidate_military_duties_id_organization_uq").on(table.id, table.organizationId),
+  foreignKey({
+    columns: [table.candidateMilitaryExperienceId, table.organizationId],
+    foreignColumns: [candidateMilitaryExperiences.id, candidateMilitaryExperiences.organizationId],
+    name: "candidate_military_duties_experience_org_fk",
+  }).onDelete("cascade"),
+  index("candidate_military_duties_organization_id_idx").on(table.organizationId),
+  index("candidate_military_duties_experience_id_idx").on(table.candidateMilitaryExperienceId),
+]);
+
+export const candidateMilitaryEquipment = pgTable("candidate_military_equipment", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  candidateMilitaryExperienceId: uuid("candidate_military_experience_id").notNull(),
+  name: text("name").notNull(),
+  kind: militaryEquipmentKindEnum("kind").notNull().default("equipment"),
+  description: text("description"),
+  source: profileEvidenceSourceEnum("source").notNull().default("recruiter"),
+  sourceReference: text("source_reference"),
+  humanVerified: boolean("human_verified").notNull().default(false),
+  confidence: integer("confidence"),
+  ...timestamps(),
+}, (table) => [
+  unique("candidate_military_equipment_id_organization_uq").on(table.id, table.organizationId),
+  foreignKey({
+    columns: [table.candidateMilitaryExperienceId, table.organizationId],
+    foreignColumns: [candidateMilitaryExperiences.id, candidateMilitaryExperiences.organizationId],
+    name: "candidate_military_equipment_experience_org_fk",
+  }).onDelete("cascade"),
+  index("candidate_military_equipment_organization_id_idx").on(table.organizationId),
+  index("candidate_military_equipment_experience_id_idx").on(table.candidateMilitaryExperienceId),
+]);
+
+export const candidateMilitaryTraining = pgTable("candidate_military_training", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  candidateMilitaryExperienceId: uuid("candidate_military_experience_id").notNull(),
+  schoolName: text("school_name").notNull(),
+  category: militaryTrainingCategoryEnum("category").notNull().default("other"),
+  description: text("description"),
+  completionYear: integer("completion_year"),
+  source: profileEvidenceSourceEnum("source").notNull().default("recruiter"),
+  sourceReference: text("source_reference"),
+  humanVerified: boolean("human_verified").notNull().default(false),
+  confidence: integer("confidence"),
+  ...timestamps(),
+}, (table) => [
+  unique("candidate_military_training_id_organization_uq").on(table.id, table.organizationId),
+  foreignKey({
+    columns: [table.candidateMilitaryExperienceId, table.organizationId],
+    foreignColumns: [candidateMilitaryExperiences.id, candidateMilitaryExperiences.organizationId],
+    name: "candidate_military_training_experience_org_fk",
+  }).onDelete("cascade"),
+  index("candidate_military_training_organization_id_idx").on(table.organizationId),
+  index("candidate_military_training_experience_id_idx").on(table.candidateMilitaryExperienceId),
 ]);
 
 export const militaryOccupationSkills = pgTable("military_occupation_skills", {
@@ -259,6 +364,44 @@ export const militaryOccupationsRelations = relations(militaryOccupations, ({ ma
   installations: many(militaryOccupationInstallations),
   civilianMappings: many(militaryCivilianMappings),
   bridgeTraining: many(bridgeTrainingRecommendations),
+}));
+
+export const candidateMilitaryExperiencesRelations = relations(
+  candidateMilitaryExperiences,
+  ({ one, many }) => ({
+    candidate: one(candidates, {
+      fields: [candidateMilitaryExperiences.candidateId],
+      references: [candidates.id],
+    }),
+    occupation: one(militaryOccupations, {
+      fields: [candidateMilitaryExperiences.militaryOccupationId],
+      references: [militaryOccupations.id],
+    }),
+    duties: many(candidateMilitaryDuties),
+    equipment: many(candidateMilitaryEquipment),
+    trainingRecords: many(candidateMilitaryTraining),
+  }),
+);
+
+export const candidateMilitaryDutiesRelations = relations(candidateMilitaryDuties, ({ one }) => ({
+  experience: one(candidateMilitaryExperiences, {
+    fields: [candidateMilitaryDuties.candidateMilitaryExperienceId],
+    references: [candidateMilitaryExperiences.id],
+  }),
+}));
+
+export const candidateMilitaryEquipmentRelations = relations(candidateMilitaryEquipment, ({ one }) => ({
+  experience: one(candidateMilitaryExperiences, {
+    fields: [candidateMilitaryEquipment.candidateMilitaryExperienceId],
+    references: [candidateMilitaryExperiences.id],
+  }),
+}));
+
+export const candidateMilitaryTrainingRelations = relations(candidateMilitaryTraining, ({ one }) => ({
+  experience: one(candidateMilitaryExperiences, {
+    fields: [candidateMilitaryTraining.candidateMilitaryExperienceId],
+    references: [candidateMilitaryExperiences.id],
+  }),
 }));
 
 export const militaryOccupationSkillsRelations = relations(militaryOccupationSkills, ({ one }) => ({

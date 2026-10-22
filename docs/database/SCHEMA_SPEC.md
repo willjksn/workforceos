@@ -169,6 +169,31 @@ Hiring tables are in `db/schema/hiring/` and `drizzle/0010_*`. Do not edit `0000
 - `job_description_versions` remains the only description history.
 - `skillbridge_profiles` stays the one-to-one Transition Talent Profile table. M1 does not rename it or add profile columns.
 
+## Military + Workforce Core M2 Transition Talent Profile evidence
+
+Field ownership for M2 (`DEC-PROD-002`). One candidate. One `skillbridge_profiles` row. Several `candidate_military_experiences` tours. No second person table. `education_partners` stay workforce-planning institutions.
+
+| Field | Class |
+| --- | --- |
+| Name, contact, current city/region, person relocation, person remote preference, compensation expectations, broad career interests, resume file, consent/privacy, military status, last profile review | CANONICAL ON CANDIDATE |
+| Current clearance (`candidate_clearances`) | CANONICAL ON CANDIDATE |
+| Education (`candidate_education`) and credentials (`candidate_credentials`) | CANONICAL ON CANDIDATE |
+| Tour branch and occupation via `military_occupations`, rank, pay grade, years, leadership scope, duty station, unit, historical clearance text, legacy duty/platform/training/certification narratives | CANONICAL ON MILITARY EXPERIENCE |
+| Profile branch, rank, pay grade, and occupation display | CANONICAL ON TRANSITION PROFILE as the current snapshot. Tours win for history. |
+| Separation, ETS, EAOS, end of service, retirement, availability, SkillBridge eligibility/approval/window, terminal leave, transition relocation, transition remote preference, target industry, target employer, career priorities, owner, status, next follow-up | CANONICAL ON TRANSITION PROFILE |
+| Preferred locations, target roles, duties, equipment, training schools | CHILD TABLE |
+| Profile completeness | DERIVED. Not stored. Not a score. |
+| Match, rank, and rejection outcomes | DO NOT STORE on the profile. |
+| Workforce `education_partners` as a person's school | DO NOT STORE |
+
+- Migration `drizzle/0020_m2_transition_profile.sql` is additive. It does not rewrite `0000`–`0019`.
+- `candidates UNIQUE (id, organization_id)` is the tenant target for profile, education, credential, clearance, and military-experience composite foreign keys.
+- `candidate_military_experiences.organization_id` is backfilled from the candidate, then required. `UNIQUE (id, organization_id)` exists before duty, equipment, and training composite foreign keys. Those children cannot point at another organization's tour. Organization deletes stay `ON DELETE restrict`.
+- Existing `platforms`, `training`, `certifications`, `clearance`, and `notes` text stays. M2 does not split ambiguous sentences into child rows.
+- `skillbridge_target_roles.job_family` is optional text beside the existing free-text title and optional `civilian_occupation_id`. There is no job-family entity and no matcher in M2.
+- `skillbridge_profiles.career_priorities` is the current transition priority. `candidates.career_interests` stays the broad person interest.
+- Resume apply still fills empty scalar fields only. Structured suggestions insert as `source = resume` and `human_verified = false`. Human-reviewed rows are not updated.
+
 ## Phase L scale tables
 
 - Migration `drizzle/0017_quiet_scale.sql` adds `skillbridge_profiles.ets_date` / `eaos_date`, `public_access_tokens`, `report_export_schedules`, and `report_export_jobs`. Organization FKs use `ON DELETE restrict`.

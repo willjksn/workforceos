@@ -2,14 +2,12 @@ import { and, eq, isNull } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import { candidateExperiences, candidateSkills, candidates, skillbridgeProfiles, skills } from "../../db/schema";
+import { applyResumeEvidenceSuggestions } from "./apply-resume-evidence";
+import { emptyFieldFill } from "./resume-suggestions";
 import { recordAuditEvent, type AuditActor } from "../audit/record-audit-event";
 import { parseResumeText } from "../hiring/resume-parse";
 import { extractResumeText } from "../hiring/resume-text";
 import { captureException } from "../observability/monitor";
-
-function blank(value: string | null | undefined) {
-  return value == null || value.trim() === "";
-}
 
 function skillMatches(skillName: string, tokens: Set<string>, fullText: string) {
   const lower = skillName.toLowerCase().trim();
@@ -48,40 +46,48 @@ export async function applyResumeToCandidate(input: {
 
   const filled: string[] = [];
   const patch: Partial<typeof candidates.$inferInsert> = { updatedAt: new Date() };
-  if (blank(candidate.phone) && parsed.phone) {
-    patch.phone = parsed.phone;
+  const phone = emptyFieldFill(candidate.phone, parsed.phone);
+  const linkedinUrl = emptyFieldFill(candidate.linkedinUrl, parsed.linkedinUrl);
+  const city = emptyFieldFill(candidate.city, parsed.city);
+  const region = emptyFieldFill(candidate.region, parsed.region);
+  const currentTitle = emptyFieldFill(candidate.currentTitle, parsed.currentTitle);
+  const currentCompany = emptyFieldFill(candidate.currentCompany, parsed.currentCompany);
+  const careerInterests = emptyFieldFill(candidate.careerInterests, parsed.careerInterests);
+  const email = emptyFieldFill(candidate.email, parsed.email);
+  if (phone) {
+    patch.phone = phone;
     filled.push("phone");
   }
-  if (blank(candidate.linkedinUrl) && parsed.linkedinUrl) {
-    patch.linkedinUrl = parsed.linkedinUrl;
+  if (linkedinUrl) {
+    patch.linkedinUrl = linkedinUrl;
     filled.push("linkedinUrl");
   }
-  if (blank(candidate.city) && parsed.city) {
-    patch.city = parsed.city;
+  if (city) {
+    patch.city = city;
     filled.push("city");
   }
-  if (blank(candidate.region) && parsed.region) {
-    patch.region = parsed.region;
+  if (region) {
+    patch.region = region;
     filled.push("region");
   }
-  if (blank(candidate.currentTitle) && parsed.currentTitle) {
-    patch.currentTitle = parsed.currentTitle;
+  if (currentTitle) {
+    patch.currentTitle = currentTitle;
     filled.push("currentTitle");
   }
-  if (blank(candidate.currentCompany) && parsed.currentCompany) {
-    patch.currentCompany = parsed.currentCompany;
+  if (currentCompany) {
+    patch.currentCompany = currentCompany;
     filled.push("currentCompany");
   }
   if (candidate.yearsExperience == null && parsed.yearsExperience != null) {
     patch.yearsExperience = parsed.yearsExperience;
     filled.push("yearsExperience");
   }
-  if (blank(candidate.careerInterests) && parsed.careerInterests) {
-    patch.careerInterests = parsed.careerInterests;
+  if (careerInterests) {
+    patch.careerInterests = careerInterests;
     filled.push("careerInterests");
   }
-  if (blank(candidate.email) && parsed.email) {
-    patch.email = parsed.email;
+  if (email) {
+    patch.email = email;
     filled.push("email");
   }
 
@@ -140,12 +146,14 @@ export async function applyResumeToCandidate(input: {
   if (profile) {
     const location = [parsed.city, parsed.region].filter(Boolean).join(", ");
     const profilePatch: Partial<typeof skillbridgeProfiles.$inferInsert> = { updatedAt: new Date() };
-    if (blank(profile.currentDutyLocation) && location) {
-      profilePatch.currentDutyLocation = location;
+    const dutyLocation = emptyFieldFill(profile.currentDutyLocation, location);
+    const preferredLocation = emptyFieldFill(profile.preferredLocationPrimary, location);
+    if (dutyLocation) {
+      profilePatch.currentDutyLocation = dutyLocation;
       filled.push("skillbridge.currentDutyLocation");
     }
-    if (blank(profile.preferredLocationPrimary) && location) {
-      profilePatch.preferredLocationPrimary = location;
+    if (preferredLocation) {
+      profilePatch.preferredLocationPrimary = preferredLocation;
       filled.push("skillbridge.preferredLocationPrimary");
     }
     if (Object.keys(profilePatch).length > 1) {
@@ -153,13 +161,21 @@ export async function applyResumeToCandidate(input: {
     }
   }
 
+  const evidence = await applyResumeEvidenceSuggestions({
+    organizationId: input.organizationId,
+    candidateId: candidate.id,
+    text,
+    sourceReference: input.fileId,
+  });
+  filled.push(...evidence.added.map((item) => `suggestion.${item}`));
+
   await recordAuditEvent({
     organizationId: input.organizationId,
     actor: input.actor,
     action: "candidate.resume_applied",
     recordType: "candidate",
     recordId: candidate.id,
-    after: { fileId: input.fileId, filename: input.filename, filled },
+    after: { fileId: input.fileId, filename: input.filename, filled, preservedHumanReviewed: evidence.preservedHumanReviewed },
     reason: "Filled empty Talent Network fields from uploaded resume. Existing values were not overwritten.",
   });
 

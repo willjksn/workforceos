@@ -59,12 +59,13 @@ function approvalStatus(value?: string | null) {
   return "unknown" as const;
 }
 
-export async function submitMilitaryTalentProfile(input: MilitaryTalentPayload & {
+export async function persistMilitaryTalentIntake(input: MilitaryTalentPayload & {
+  organizationId: string;
+  ownerUserId: string | null;
   resume?: { filename: string; mimeType: string; body: Uint8Array } | null;
 }) {
-  if (input.honeypot) throw new MilitaryTalentError("Submission rejected.");
-  const organizationId = await resolvePublicOrganizationId();
-  const ownerUserId = await resolveMilitaryTalentOwner(organizationId);
+  const organizationId = input.organizationId;
+  const ownerUserId = input.ownerUserId;
   const email = normalizeEmail(input.email);
   if (!email) throw new MilitaryTalentError("A valid email is required.");
   const firstName = stripHtml(input.firstName);
@@ -257,31 +258,54 @@ export async function submitMilitaryTalentProfile(input: MilitaryTalentPayload &
     after: { source: "pierone_public_website", candidateId },
   });
 
-  if (ownerUserId) {
+  return {
+    candidateId,
+    profileId,
+    reusedCandidate: match.kind === "matched",
+    email,
+    firstName,
+    fullName,
+    ownerUserId,
+  };
+}
+
+export async function submitMilitaryTalentProfile(input: MilitaryTalentPayload & {
+  resume?: { filename: string; mimeType: string; body: Uint8Array } | null;
+}) {
+  if (input.honeypot) throw new MilitaryTalentError("Submission rejected.");
+  const organizationId = await resolvePublicOrganizationId();
+  const ownerUserId = await resolveMilitaryTalentOwner(organizationId);
+  const saved = await persistMilitaryTalentIntake({ ...input, organizationId, ownerUserId });
+
+  if (saved.ownerUserId) {
     await createInAppNotification({
       organizationId,
-      userId: ownerUserId,
+      userId: saved.ownerUserId,
       kind: "military_talent_received",
       title: "Military Talent Network submission",
-      body: fullName,
-      href: `/app/military/skillbridge/${profileId}`,
+      body: saved.fullName,
+      href: `/app/military/skillbridge/${saved.profileId}`,
       recordType: "skillbridge_profile",
-      recordId: profileId,
+      recordId: saved.profileId,
     });
   }
 
-  const mail = militaryTalentAcknowledgementEmail({ firstName });
+  const mail = militaryTalentAcknowledgementEmail({ firstName: saved.firstName });
   await getEmailProvider().sendTransactional({
     organizationId,
-    to: email,
+    to: saved.email,
     template: "military_talent_acknowledgement",
     subject: mail.subject,
     html: mail.html,
     text: mail.text,
     entityType: "skillbridge_profile",
-    entityId: profileId,
+    entityId: saved.profileId,
   });
 
-  return { candidateId, profileId, reusedCandidate: match.kind === "matched" };
+  return {
+    candidateId: saved.candidateId,
+    profileId: saved.profileId,
+    reusedCandidate: saved.reusedCandidate,
+  };
 }
 

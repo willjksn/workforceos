@@ -95,9 +95,12 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 
 | Table | Purpose |
 | --- | --- |
-| `candidates` | Permanent Talent CRM people. Restricted PII. Not requisition-specific duplicates. `privacy_deleted_at` marks anonymization (not ordinary archive). |
-| `candidate_experiences` | Work history. |
-| `candidate_skills` | Candidate skill links with optional proficiency and verification. |
+| `candidates` | Permanent Talent CRM people. Restricted PII. Not requisition-specific duplicates. `privacy_deleted_at` marks anonymization (not ordinary archive). Compensation expectations, career interests, relocation, remote preference, military status, and the resume file stay here. `UNIQUE (id, organization_id)` is the tenant target for person-scoped evidence. |
+| `candidate_experiences` | Civilian or general work history. |
+| `candidate_skills` | Candidate skill links with optional proficiency, source, and human verification. Not the equipment catalog. |
+| `candidate_education` | Person-level institution, degree or credential, field of study, completion, source, and human verification. Military and non-military candidates. Not `education_partners`. |
+| `candidate_credentials` | Person-level name, issuer, credential id, dates, and status. Recruiter-visible. No verification service in M2. |
+| `candidate_clearances` | Current clearance level, reported status, last known active date, source, and human verification. One row per candidate. Not an independent Pier 24 verification. |
 | `talent_pools` | Static or dynamic pools, including user-scoped watchlists. |
 | `talent_pool_rules` | Rules for dynamic pools. |
 | `candidate_talent_pools` | Many-to-many membership. |
@@ -133,17 +136,20 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | Table | Purpose |
 | --- | --- |
 | `military_occupations` | MOS, ratings, AFSC, and related classifications with source/version. |
-| `candidate_military_experiences` | Candidate military history linked to a Talent Network candidate. |
-| `candidate_military_translations` | Candidate-specific translations pending human review. |
+| `candidate_military_experiences` | Tour history for one Talent Network candidate: occupation, rank, pay grade, unit, leadership scope, and legacy narrative text for duties, platforms, training, certifications, and historical clearance. `organization_id` matches the candidate. |
+| `candidate_military_duties` | Structured duty evidence for one tour. Source and `human_verified` separate recruiter-entered evidence from resume or AI suggestions. Composite foreign key shares `organization_id` with the tour. |
+| `candidate_military_equipment` | Structured platform, system, equipment, or tool evidence for one tour. Not a global skill. Tenant-safe composite foreign key. |
+| `candidate_military_training` | Schools and training categories for one tour. The legacy `training` text on the tour remains. Not a learning system. |
+| `candidate_military_translations` | Candidate-specific translations pending human review. Material military-to-civilian interpretation is M3, not M2. |
 | `military_occupation_skills` | Occupation skill links through the canonical skills taxonomy. |
 | `military_installations` | Bases/installations with optional sourced coordinates and `coordinate_source`. |
 | `military_occupation_installations` | Likely presence mappings with why/confidence/review/provenance. |
 | `military_civilian_mappings` | Military-to-civilian translations, including reverse search, provenance, and review status. |
 | `bridge_training_recommendations` | Skill-gap and credential recommendations. Do not promise employment. |
 | `occupation_data_imports` | Repeatable importer run log. Approved mappings are not silently deleted. |
-| `skillbridge_profiles` | Transition Talent Profile overlay on a Talent Network candidate (unique `candidate_id`). Physical table name retained. Window, EOS, ETS (Army/USMC), EAOS (Navy), separation, retirement, occupation, location, resume status, owner. Not a PierOne SkillBridge program roster and not a second person table. |
-| `skillbridge_preferred_locations` | Junction of preferred locations for filtering. |
-| `skillbridge_target_roles` | Junction of civilian target roles. |
+| `skillbridge_profiles` | Transition Talent Profile overlay on a Talent Network candidate (unique `candidate_id`). Physical table name retained. Separation, ETS, EAOS, availability, SkillBridge pathway dates and approval, transition location and relocation, target industry and employer, career priorities, owner, and follow-up. Rank and occupation columns are the current display snapshot. Not a second person table. `(candidate_id, organization_id)` references `candidates (id, organization_id)`. |
+| `skillbridge_preferred_locations` | Transition Profile preferred locations. Physical table name retained. |
+| `skillbridge_target_roles` | Transition Profile target roles. Free-text title, optional `civilian_occupation_id`, and optional `job_family` text. Not a matcher. |
 | `skillbridge_opportunities` | Employer / host-company opportunities: many-to-many candidate–employer pipeline rows with stage. SkillBridge-eligible is an opportunity type, not PierOne program ownership. |
 | `skillbridge_opportunity_stage_history` | Prior stages retained; current stage lives on the opportunity. |
 | `skillbridge_notes` | Operating notes on a profile/opportunity. Timeline also reuses `activities`. |

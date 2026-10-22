@@ -6,6 +6,8 @@ import {
   addExperienceAction,
   applyResumeToCandidateAction,
 } from "@/lib/actions/talent";
+import { addCredentialAction, addEducationAction } from "@/lib/actions/transition-profile";
+import { evidenceReviewLabel } from "@/lib/military-talent/evidence-labels";
 import { requestPrivacyDeletionAction } from "@/lib/actions/privacy";
 import { ProfileSnapshot, StatusBadge, TabNav } from "@/components/ui/display";
 import { requireAppPermission } from "@/lib/auth/guard";
@@ -187,6 +189,52 @@ export default async function CandidateDetailPage({
               <PrimaryButton>Add experience</PrimaryButton>
             </ActionForm>
           ) : null}
+          <div className="mt-8 max-w-xl space-y-3">
+            <h2 className="section-title">Education</h2>
+            <p className="text-sm text-muted-foreground">Person-level education for military and non-military candidates. This is not a workforce education partner.</p>
+            <ul className="space-y-1 text-sm">
+              {record.education.map((row) => (
+                <li key={row.id}>
+                  {row.degreeOrCredential}{row.fieldOfStudy ? `, ${row.fieldOfStudy}` : ""} · {row.institution} · {evidenceReviewLabel(row)}
+                </li>
+              ))}
+              {record.education.length === 0 ? <li className="text-muted-foreground">No education recorded.</li> : null}
+            </ul>
+            {canWrite ? (
+              <ActionForm action={addEducationAction} className="space-y-3">
+                <input type="hidden" name="candidateId" value={candidate.id} />
+                <Field label="Institution" name="institution">
+                  <input className={inputClassName} id="institution" name="institution" required />
+                </Field>
+                <Field label="Degree or credential" name="degreeOrCredential">
+                  <input className={inputClassName} id="degreeOrCredential" name="degreeOrCredential" required />
+                </Field>
+                <PrimaryButton>Add education</PrimaryButton>
+              </ActionForm>
+            ) : null}
+            <h2 className="section-title">Credentials</h2>
+            <ul className="space-y-1 text-sm">
+              {record.credentials.map((row) => (
+                <li key={row.id}>{row.name}{row.issuer ? ` · ${row.issuer}` : ""} · {evidenceReviewLabel(row)}</li>
+              ))}
+              {record.credentials.length === 0 ? <li className="text-muted-foreground">No credentials recorded.</li> : null}
+            </ul>
+            {record.clearance ? (
+              <p className="text-sm">Current clearance: {formatLabel(record.clearance.clearanceLevel)} · {evidenceReviewLabel(record.clearance)}. Not an independent verification.</p>
+            ) : null}
+            {canWrite ? (
+              <ActionForm action={addCredentialAction} className="space-y-3">
+                <input type="hidden" name="candidateId" value={candidate.id} />
+                <Field label="Credential" name="name">
+                  <input className={inputClassName} id="credentialName" name="name" required />
+                </Field>
+                <Field label="Issuer" name="issuer">
+                  <input className={inputClassName} id="issuer" name="issuer" />
+                </Field>
+                <PrimaryButton>Add credential</PrimaryButton>
+              </ActionForm>
+            ) : null}
+          </div>
         </section>
       ) : null}
 

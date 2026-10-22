@@ -11,6 +11,9 @@ import {
   candidateSkills,
   candidateTalentPools,
   candidateDesignations,
+  candidateClearances,
+  candidateCredentials,
+  candidateEducation,
   candidates,
   files,
   jobs,
@@ -89,7 +92,46 @@ export async function getCandidateWithRelationships(candidateId: string, organiz
     resumeFile = file ?? null;
   }
 
-  return { candidate, experiences, skills: skillRows, pools, matches, military, resumeFile };
+  const [education, credentials, clearanceRows] = await Promise.all([
+    db
+      .select()
+      .from(candidateEducation)
+      .where(
+        and(eq(candidateEducation.candidateId, candidateId), eq(candidateEducation.organizationId, candidate.organizationId)),
+      ),
+    db
+      .select()
+      .from(candidateCredentials)
+      .where(
+        and(
+          eq(candidateCredentials.candidateId, candidateId),
+          eq(candidateCredentials.organizationId, candidate.organizationId),
+        ),
+      ),
+    db
+      .select()
+      .from(candidateClearances)
+      .where(
+        and(
+          eq(candidateClearances.candidateId, candidateId),
+          eq(candidateClearances.organizationId, candidate.organizationId),
+        ),
+      )
+      .limit(1),
+  ]);
+
+  return {
+    candidate,
+    experiences,
+    skills: skillRows,
+    pools,
+    matches,
+    military,
+    resumeFile,
+    education,
+    credentials,
+    clearance: clearanceRows[0] ?? null,
+  };
 }
 
 export async function listCandidateEngagementHistory(candidateId: string, organizationId: string) {
