@@ -1,6 +1,6 @@
 # Decision Log
 
-Status: Binding architecture and product decisions (through DEC-AUTH-003)  
+Status: Binding architecture and product decisions (through DEC-AUTH-003). DEC-PROD-001 is proposed only and does not change binding decisions.  
 Database mirror: `decision_log` table, seeded from this file.
 
 ## DEC-DB-001 — PostgreSQL over Firebase
@@ -772,4 +772,14 @@ Database mirror: `decision_log` table, seeded from this file.
 - Reason: The operating-model audit found Recruiter missing `opportunities.read`. That is intentional, not drift. Expanding Recruiter into inquiry and opportunity ownership would mix search execution with commercial ownership.
 - Affected modules: RBAC, navigation, CRM
 - Reconsideration: only if recruiters are explicitly assigned commercial opportunity ownership.
+
+## DEC-PROD-001 — Military + Workforce Core audit recorded; implementation not approved
+
+- Date: 2026-10-21
+- Owner: Product Build
+- Status: proposed
+- Decision: Record the Military + Workforce Core audit at `docs/WORKFORCEOS_MILITARY_WORKFORCE_CORE_AUDIT.md` on branch `audit/military-workforce-core`, based on `main` `1450f998e393e7bc4ab56d81d61d7f40c9841934`. The audit recommends a smaller operating model centered on Military Talent and Workforce Development, with `candidates` remaining the person, `skillbridge_profiles` generalized as the Transition Talent Profile, `jobs` expanded as employer demand, and CRM `opportunities` remaining sales pursuits. Career-source discovery, capability-level translation, match bands, navigation collapse, and the Pier 24 Partners brand migration are proposed milestones only. No schema, navigation, crawler, Scout command, or brand change is authorized by this entry. Parked research `follow-on/parked-working-tree` at `1a356d3` stays unmerged. Build Phases 1–10 are unchanged. This is not Phase 11.
+- Reason: Pier 24 needs a written product direction before implementation. The current application can support most of the model, and the audit is the review artifact.
+- Affected modules: military, talent, recruiting, workforce, navigation, Scout, public site, brand
+- Reconsideration: founder acceptance or rejection of the four M1 decisions listed in section 18 of the audit. Acceptance requires a new decision with status accepted. Until then, `DEC-HIRE-001`, `DEC-MIL-005`, `DEC-RBAC-001`, and `DEC-SEC-001` remain in force.
 
