@@ -1,13 +1,13 @@
 # WorkforceOS Military + Workforce Core Audit
 
 Date: 2026-10-21
-Status: audit complete. Implementation is not approved.
+Status: founder approved 2026-10-21. `DEC-PROD-001` is accepted. M1 is authorized. M2–M10 are not started.
 Branch: `audit/military-workforce-core`
 Base: `main` at `1450f998e393e7bc4ab56d81d61d7f40c9841934`
 Working tree at audit start: clean, tracking `origin/main`
 Parked research: `follow-on/parked-working-tree` at `1a356d3` was inspected by diff only and was not merged, checked out, or revived.
 
-This document records a product audit. It does not authorize schema changes, navigation changes, crawlers, brand renames, or Scout command changes. Founder approval is required before any milestone in section 17 is built.
+This document records a product audit. Founder approval on 2026-10-21 accepts section 18 decisions 1–4 and authorizes M1 only. It does not authorize navigation changes, crawlers, brand renames, Scout command changes, or M2–M10.
 
 Product direction locked for this audit: Pier 24 Partners operates WorkforceOS as its own system. Military Talent and Workforce Development are the two signature pillars. Employer ATS, CRM, HRIS, and SSO connections are optional. SkillBridge is one transition pathway. Pier 24 is generally not the SkillBridge host.
 
@@ -738,11 +738,11 @@ Do not start with discovery, brand, or a navigation rewrite. Discovery without t
 
 After M1 is accepted and in production, the next build is M2 (the profile operators actually fill) and then M3 (capability translation). M4 waits on counsel for public-source retention. M5 can follow M2 if the founder wants matching improved before new sources exist, using jobs staff enter by hand.
 
-Founder decision needed before any of that code is written:
+Founder decisions, accepted 2026-10-21 (`DEC-PROD-001`):
 
-1. Accept `jobs` as the employer-demand record, including public and exploratory demand, and keep CRM `opportunities` as sales pursuits.
-2. Accept generalizing `skillbridge_profiles` as the Transition Talent Profile, with SkillBridge fields retained as a pathway.
-3. Leave `follow-on/parked-working-tree` at `1a356d3` unmerged.
-4. Leave the PierOne to Pier 24 Partners rename for M10.
+1. `jobs` is the employer-demand record, including public and exploratory demand. CRM `opportunities` stay sales pursuits.
+2. `skillbridge_profiles` is the Transition Talent Profile. SkillBridge fields stay a pathway. The physical table is not renamed in M1.
+3. `follow-on/parked-working-tree` at `1a356d3` stays unmerged.
+4. The PierOne to Pier 24 Partners rename waits for M10.
 
-Until those are accepted, this file is the record of the audit and nothing in the application should change to match it.
+M1 is the only milestone authorized by that acceptance.

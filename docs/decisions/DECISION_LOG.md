@@ -1,6 +1,6 @@
 # Decision Log
 
-Status: Binding architecture and product decisions (through DEC-AUTH-003). DEC-PROD-001 is proposed only and does not change binding decisions.  
+Status: Binding architecture and product decisions (through DEC-AUTH-003 and accepted DEC-PROD-001). DEC-PROD-001 authorizes Military + Workforce Core M1 only.  
 Database mirror: `decision_log` table, seeded from this file.
 
 ## DEC-DB-001 — PostgreSQL over Firebase
@@ -773,13 +773,13 @@ Database mirror: `decision_log` table, seeded from this file.
 - Affected modules: RBAC, navigation, CRM
 - Reconsideration: only if recruiters are explicitly assigned commercial opportunity ownership.
 
-## DEC-PROD-001 — Military + Workforce Core audit recorded; implementation not approved
+## DEC-PROD-001 — Military + Workforce Core decisions accepted; M1 authorized
 
 - Date: 2026-10-21
 - Owner: Product Build
-- Status: proposed
-- Decision: Record the Military + Workforce Core audit at `docs/WORKFORCEOS_MILITARY_WORKFORCE_CORE_AUDIT.md` on branch `audit/military-workforce-core`, based on `main` `1450f998e393e7bc4ab56d81d61d7f40c9841934`. The audit recommends a smaller operating model centered on Military Talent and Workforce Development, with `candidates` remaining the person, `skillbridge_profiles` generalized as the Transition Talent Profile, `jobs` expanded as employer demand, and CRM `opportunities` remaining sales pursuits. Career-source discovery, capability-level translation, match bands, navigation collapse, and the Pier 24 Partners brand migration are proposed milestones only. No schema, navigation, crawler, Scout command, or brand change is authorized by this entry. Parked research `follow-on/parked-working-tree` at `1a356d3` stays unmerged. Build Phases 1–10 are unchanged. This is not Phase 11.
-- Reason: Pier 24 needs a written product direction before implementation. The current application can support most of the model, and the audit is the review artifact.
-- Affected modules: military, talent, recruiting, workforce, navigation, Scout, public site, brand
-- Reconsideration: founder acceptance or rejection of the four M1 decisions listed in section 18 of the audit. Acceptance requires a new decision with status accepted. Until then, `DEC-HIRE-001`, `DEC-MIL-005`, `DEC-RBAC-001`, and `DEC-SEC-001` remain in force.
+- Status: accepted
+- Decision: The founder accepted the four decisions in section 18 of `docs/WORKFORCEOS_MILITARY_WORKFORCE_CORE_AUDIT.md`. (1) `jobs` is the canonical employer-demand record. It may represent client jobs, monitored public jobs, exploratory employer demand, evergreen demand, future workforce demand, SkillBridge-eligible demand, and direct-hire demand. CRM `opportunities` remain Pier 24 sales pursuits and must not be merged with jobs. (2) The existing one-to-one `skillbridge_profiles` row is the Transition Talent Profile. SkillBridge dates and eligibility stay pathway attributes on that profile. Do not create another military person or profile table. Do not rename the physical table in M1. (3) `follow-on/parked-working-tree` at `1a356d3` stays deferred and unmerged. Do not cherry-pick or revive it. (4) PierOne to Pier 24 Partners is a separate brand migration and is not part of M1. This decision authorizes M1 only. M2–M10 stay not started. Build Phases 1–10 are unchanged. This is not Phase 11. `DEC-RBAC-001`, `DEC-MIL-005`, and `DEC-SEC-001` remain in force. A job does not require an employer ATS connection, a requisition, or a candidate. `DEC-HIRE-001` still covers Pier 24-run pre-hire work and does not make an employer system connection mandatory.
+- Reason: The audit showed the schema can carry independent employer demand without a new person table or a new opportunity table. Founder approval is the gate that was waiting.
+- Affected modules: recruiting, military, talent, workforce, documentation
+- Reconsideration: M2 and later milestones each need their own acceptance. Reopening parked research or starting the brand migration requires a separate decision.
 
