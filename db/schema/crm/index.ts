@@ -88,6 +88,7 @@ export const contacts = pgTable("contacts", {
   communicationPreferences: text("communication_preferences"),
   ...timestamps(),
 }, (table) => [
+  unique("contacts_id_organization_uq").on(table.id, table.organizationId),
   index("contacts_organization_id_idx").on(table.organizationId),
   index("contacts_owner_user_id_idx").on(table.ownerUserId),
   index("contacts_org_last_contacted_idx").on(table.organizationId, table.lastContactedAt),

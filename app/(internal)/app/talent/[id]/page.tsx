@@ -14,7 +14,9 @@ import { requireAppPermission } from "@/lib/auth/guard";
 import { presentCandidate } from "@/lib/privacy/present-candidate";
 import { getCandidateWithRelationships, listCandidateEngagementHistory, listTalentPools } from "@/lib/repositories/talent";
 import { can } from "@/lib/rbac/permissions";
+import { listCandidateEngagements } from "@/lib/recruiting/opportunity-engagement";
 import { ActionForm } from "../../_components/action-form";
+import { EngagementWorkflowList } from "../../_components/engagement-workflows";
 import { ResumeViewer } from "../../_components/resume-viewer";
 import { Field, PageHeader, PageShell, PrimaryButton, formatDate, formatLabel, inputClassName } from "../../_components/ui";
 
@@ -42,6 +44,7 @@ export default async function CandidateDetailPage({
   const tab = TABS.includes(tabParam as (typeof TABS)[number]) ? tabParam! : "overview";
   const record = await getCandidateWithRelationships(id, principal.organizationId);
   if (!record) notFound();
+  const workflows = await listCandidateEngagements(principal.organizationId, id);
   const history = tab === "engagement"
     ? await listCandidateEngagementHistory(id, principal.organizationId)
     : null;
@@ -345,7 +348,8 @@ export default async function CandidateDetailPage({
 
       {tab === "matches" ? (
         <section className="mt-6">
-          <p className="text-sm text-muted-foreground">Scores belong to a job. There is no universal candidate score.</p>
+          <p className="text-sm text-muted-foreground">Scores belong to a job. There is no universal candidate score. Match category and workflow status stay separate.</p>
+          <EngagementWorkflowList rows={workflows} />
           <table className="mt-3 w-full text-left text-sm">
             <thead>
               <tr>

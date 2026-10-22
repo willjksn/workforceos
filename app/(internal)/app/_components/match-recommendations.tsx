@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { startEngagementAction } from "@/lib/actions/opportunity-engagement";
 import {
   setMatchDispositionAction,
 } from "@/lib/actions/opportunity-matching";
@@ -20,12 +21,14 @@ export function MatchRecommendationList({
   returnPath,
   empty,
   showCandidate,
+  engagementsByMatchId,
 }: {
   cards: MatchCard[];
   canReview: boolean;
   returnPath: string;
   empty: string;
   showCandidate?: boolean;
+  engagementsByMatchId?: Record<string, { id: string; status: string }>;
 }) {
   if (!cards.length) return <p className="mt-3 text-sm text-muted-foreground">{empty}</p>;
   return (
@@ -81,8 +84,19 @@ export function MatchRecommendationList({
             {card.lastEvaluatedAt ? ` · Last evaluated ${card.lastEvaluatedAt.slice(0, 10)}` : ""}
             {card.disposition ? ` · ${dispositionLabel(card.disposition)}` : ""}
           </p>
-          {canReview ? (
+          {canReview && card.freshness === "current" && card.category !== "no_current_match" && card.disposition !== "not_viable" ? (
             <div className="mt-3 flex flex-wrap gap-2">
+              {engagementsByMatchId?.[card.matchId] ? (
+                <Link className="rounded-[6px] border border-border px-2 py-1 text-xs" href={`/app/jobs/engagements/${engagementsByMatchId[card.matchId].id}`}>
+                  Engagement · {formatLabel(engagementsByMatchId[card.matchId].status)}
+                </Link>
+              ) : (
+                <ActionForm action={startEngagementAction}>
+                  <input type="hidden" name="matchId" value={card.matchId} />
+                  <input type="hidden" name="returnPath" value={returnPath} />
+                  <button className="rounded-[6px] border border-border px-2 py-1 text-xs" type="submit">Start engagement</button>
+                </ActionForm>
+              )}
               {([
                 ["viable", "Confirm as viable"],
                 ["not_viable", "Mark not viable"],

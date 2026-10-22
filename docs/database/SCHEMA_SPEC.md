@@ -27,7 +27,7 @@ Migrations: `drizzle/`
 | `db/schema/system/` | audit, approvals, files, privacy deletion requests, rate-limit buckets, requirements, decision log, semantic documents |
 | `db/schema/crm/` | companies through opportunities and opportunity_scores |
 | `db/schema/talent/` | candidates and pools |
-| `db/schema/recruiting/` | jobs, job_skills, matches, screenings, search_projects, submissions, interviews, offers, placements, placement_guarantees |
+| `db/schema/recruiting/` | jobs, job_skills, matches, screenings, search_projects, submissions, interviews, offers, placements, placement_guarantees, opportunity engagements |
 | `db/schema/military/` | occupations, installations, mappings, bridge training, translations, occupation data imports |
 | `db/schema/workforce/` | canonical `skills` / `civilian_occupations` / `occupation_skills`, plus Phase 5 planning tables |
 | `db/schema/services/` | services, versions, workflow definitions, workflows, discoveries, solution plans, proposals |
@@ -231,6 +231,16 @@ Canonical flow: Transition Talent Profile → approved capabilities → match en
 - Current recommendations are `open` or `search_active` jobs. Closed jobs remain readable and drop out of the candidate's current list. A content hash, requirement, capability, or preference change changes `input_hash`, and the next read marks the row stale. Candidate → jobs evaluates up to 2,000 open jobs in the organization. Job → candidates loads at most 500 people who already share an approved skill or a reviewed job family, using `candidate_skills (organization_id, skill_id)`.
 - Deterministic extraction drafts clearance, years, education, named credentials, and workplace from the description. A model may propose additional requirements, and any proposal whose source text is not an excerpt is discarded. Drafts stay pending and do not affect matches until a person approves them. Prompts contain job text only.
 - No new permission is added. Recruiter still lacks `opportunities.read`. Material audits are requirement review, match recalculation, and recruiter disposition. Passive reads are not audited.
+
+## Military + Workforce Core M6 routing and outreach
+
+Canonical flow: match → human review → engagement → route or outreach → response → follow-up → interview, referral, or no fit → placement or closed. Public opportunity outreach is not client routing (`DEC-PROD-006`).
+
+- Migration `drizzle/0024_m6_routing_outreach.sql` is additive. It does not rewrite `0000`–`0023`. It adds `jobs.authorized_employer_route` (default false) and `contacts UNIQUE (id, organization_id)` so a route can reference a contact in the same organization.
+- `opportunity_engagements` is the one current operational record for a match. `candidate_engagements` stays the touchpoint log. `submissions` stays the formal client packet and is linked only when a person records one. `skillbridge_opportunities` stays readable and is not written by this workflow. `candidate_job_matches.pipeline_status` stays the older recruiting pipeline and is not a second copy of this status list.
+- Mode is `authorized_routing` or `public_outreach`. Status is `ready_for_review`, `ready_for_outreach`, `routed`, `contacted`, `acknowledged`, `reviewing`, `interested`, `referred`, `interview`, `needs_follow_up`, `needs_information`, `no_fit`, `withdrawn`, `placed`, or `closed`. Employer response and candidate response are separate columns.
+- `opportunity_engagement_routes` keeps every attempt. `opportunity_engagement_messages` records draft, manual, and provider delivery. `opportunity_engagement_events` records material transitions. A scheduled follow-up scan may create an in-app alert. It does not send email.
+- `client`, `internal`, and `skillbridge` jobs may use authorized routing. `monitored_public` and `exploratory` jobs may not, unless `authorized_employer_route` is true. Sharing a candidate externally requires `candidates.consent_status = granted`.
 
 ## Phase L scale tables
 

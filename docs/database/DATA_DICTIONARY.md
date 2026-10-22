@@ -77,7 +77,7 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | --- | --- |
 | `companies` | Prospect/client companies. Operating size fields (`employee_count`, `annual_revenue`) are not ownership data. Optional `gtm_tier` (`tier_1` / `tier_2`) and `gtm_region` (`southeast` / `national`) mark the 90-day target-account list. Not a second accounts table. |
 | `company_locations` | Company sites. |
-| `contacts` | People at companies. First-class records, not nested-only. |
+| `contacts` | People at companies. First-class records, not nested-only. `UNIQUE (id, organization_id)` lets recruiting routes reference a contact inside the same organization. Relationship strength and owner stay on this row. A manually entered public business contact is still a CRM contact. |
 | `company_contacts` | Company/contact relationships. |
 | `opportunity_signals` | Workforce or commercial signals with review status and optional resulting opportunity. |
 | `opportunities` | Commercial opportunities with stage, service, and stored score/band. |
@@ -109,7 +109,7 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | `talent_pool_rules` | Rules for dynamic pools. |
 | `candidate_talent_pools` | Many-to-many membership. |
 | `candidate_designations` | Job-agnostic designations such as silver medalist. |
-| `candidate_engagements` | Outreach/engagement history. |
+| `candidate_engagements` | Touchpoint log for a candidate: channel, direction, summary, and follow-up. It is not the current routing state. M6 writes a note here when a person records a send or a response, and keeps the operational state on `opportunity_engagements`. |
 
 ## Operating
 
@@ -123,7 +123,7 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 
 | Table | Purpose |
 | --- | --- |
-| `jobs` | Employer demand. A client search, monitored public posting, exploratory need, evergreen role (`demand_horizon`), or future workforce need. `job_context_type` is `internal`, `client`, `skillbridge`, `monitored_public`, or `exploratory`. SkillBridge-eligible and direct-hire demand use `skillbridge_eligible`, not extra context values. Optional `career_source_id`, `external_key`, `source_url`, `content_hash`, `closed_at`, `last_observed_at`, and `public_compensation_text` identify externally sourced demand. Manual jobs leave the source fields empty. Unique `(career_source_id, external_key)` allows multiple rows with nulls. A sourced job must use the same company as its career source. Closing a missing posting sets `status` and `closed_at`. The row stays readable. This is not a CRM pursuit. |
+| `jobs` | Employer demand. A client search, monitored public posting, exploratory need, evergreen role (`demand_horizon`), or future workforce need. `job_context_type` is `internal`, `client`, `skillbridge`, `monitored_public`, or `exploratory`. SkillBridge-eligible and direct-hire demand use `skillbridge_eligible`, not extra context values. `authorized_employer_route` is a human record that Pier24 may route talent to a reviewer. It defaults false. A company row or a hiring-manager contact does not set it. Public and exploratory jobs cannot use authorized routing until it is true. Optional `career_source_id`, `external_key`, `source_url`, `content_hash`, `closed_at`, `last_observed_at`, and `public_compensation_text` identify externally sourced demand. Manual jobs leave the source fields empty. Unique `(career_source_id, external_key)` allows multiple rows with nulls. A sourced job must use the same company as its career source. Closing a missing posting sets `status` and `closed_at`. The row stays readable. This is not a CRM pursuit. |
 | `career_sources` | Tenant-scoped registry of where an employer's public demand originates (`public_careers_page`, `feed`, `employer_api`, `manual_url`, `csv`). Name, URLs, active flag, optional public `adapter_key`, `health_status` (`not_yet_synced`, `live`, `manual`, `error`, `blocked`), last attempt, last success, last error, and last discovered count. No credentials. `(company_id, organization_id)` references `companies (id, organization_id)`. `live` is only a complete Greenhouse sync. A source that has never succeeded stays `not_yet_synced`. |
 | `career_source_sync_runs` | One discovery attempt for a career source. Counts new, changed, unchanged, closed, and error rows. `listing_complete` is false for CSV, manual URL, truncated listings, and failed runs. A failed run does not mean the jobs were closed. `(career_source_id, organization_id)` references `career_sources (id, organization_id)`. |
 | `job_skills` | Canonical skill requirements (`required`, `preferred`, `nice_to_have`) on `skills`. Source, source text, review, confidence, and reviewer record where the requirement came from. Existing rows are approved recruiter entry. Pending drafts do not affect matches. |
@@ -132,11 +132,15 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | `candidate_job_match_factors` | Aligned capabilities, documented gaps, unknowns, preferred gaps, and evidence for one match. Replaced when that match is recalculated. |
 | `candidate_screenings` | Structured, job-related screening notes for a match. |
 | `search_projects` | Internal-first search containers with strategy, fee, and guarantee terms from the search agreement. |
-| `submissions` | Recruiter-prepared client packets. Human approval required before client submission. |
+| `submissions` | Formal candidate submission against a client job. Human approval is required before that packet is treated as submitted. A talent review and public employer outreach are not submissions. |
 | `interviews` | Interview history. Multiple interviews per candidate/job are retained. |
 | `offers` | Recorded offers. The system does not send or auto-negotiate offers. |
 | `placements` | Placement records with fee/guarantee copied from search-agreement terms. Billing is a queued hook only. |
 | `placement_guarantees` | Guarantee windows calculated from agreement days. |
+| `opportunity_engagements` | One operational record for a reviewed match: candidate, job, employer, owner, mode (`authorized_routing` or `public_outreach`), and workflow status. Unique on `match_id`. Match category stays on `candidate_job_matches`. Composite foreign keys keep the match, candidate, job, company, and current contact in the same organization. Queue reads use `(organization_id, status, owner_user_id, next_follow_up_at)`. |
+| `opportunity_engagement_routes` | One routing or outreach attempt. A referral inserts the next row and leaves the earlier response in place. Kinds are `talent_review`, `employer_outreach`, and `referral`. |
+| `opportunity_engagement_messages` | Draft or delivery record for one route: channel, recipient label, subject, template, delivery state, actor, and timestamps. Delivery states are `draft`, `copied`, `manual_sent`, `sent`, `failed`, and `not_configured`. |
+| `opportunity_engagement_events` | Append-only workflow history for one engagement. Passive reads are not written here. |
 
 ## Military
 

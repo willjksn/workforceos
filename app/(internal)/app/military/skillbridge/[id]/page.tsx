@@ -25,7 +25,9 @@ import { loadCapabilityProfile } from "@/lib/military-talent/capability-profile"
 import { completenessFromEvidence, loadTransitionEvidence } from "@/lib/military-talent/transition-evidence";
 import { recalculateCandidateMatchesAction } from "@/lib/actions/opportunity-matching";
 import { listCandidateOpportunityMatches } from "@/lib/recruiting/opportunity-matching";
+import { listCandidateEngagements } from "@/lib/recruiting/opportunity-engagement";
 import { MatchRecommendationList } from "../../../_components/match-recommendations";
+import { EngagementWorkflowList } from "../../../_components/engagement-workflows";
 
 const STAGES = [
   "candidate_identified",
@@ -66,6 +68,8 @@ export default async function SkillBridgeDetailPage({
     principal.organizationId,
     detail.card.candidate.id,
   );
+  const workflows = await listCandidateEngagements(principal.organizationId, detail.card.candidate.id);
+  const engagementsByMatchId = Object.fromEntries(workflows.map((row) => [row.matchId, { id: row.id, status: row.status }]));
   const db = getDb();
   const companyRows = await db
     .select({ id: companies.id, name: companies.name })
@@ -182,8 +186,10 @@ export default async function SkillBridgeDetailPage({
           cards={opportunityMatches}
           canReview={canWriteEvidence}
           returnPath={`/app/military/skillbridge/${id}`}
+          engagementsByMatchId={engagementsByMatchId}
           empty="No current opportunity matches yet."
         />
+        <EngagementWorkflowList rows={workflows} />
       </section>
 
       <section className="mt-10 grid gap-8 lg:grid-cols-2">
