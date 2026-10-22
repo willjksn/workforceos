@@ -789,7 +789,7 @@ Workflow audit for M6:
 
 Client jobs can route to an authorized reviewer. Public and exploratory jobs show employer outreach unless a person records `jobs.authorized_employer_route`. Drafts use approved capabilities, explicit non-rejected skills, recorded credentials, and candidate-reported clearance wording. External send requires confirmation and `consent_status = granted`. A missing Resend configuration stays `NOT CONFIGURED` and offers copy or mark-sent. The weekday Inngest scan creates alerts only.
 
-M7 implementation, in review (`DEC-PROD-007`): employer need → workforce role → capability demand → talent supply → gap → pipeline strategy. Military talent is one supply channel. The flow does not replace live `jobs`, and it does not start M8, M9, or M10.
+M7 implementation, in review (`DEC-PROD-007`): employer need → workforce role → capability demand → talent supply → gap → pipeline strategy. Military talent is one supply channel. The flow does not replace live `jobs`, and it does not start M8, M9, or M10. A strategy note's role, assessment, and education partner share its organization in the database. Capability text is owned by its role. User references stay service-checked, matching earlier milestones.
 
 Workforce model audit:
 

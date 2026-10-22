@@ -188,8 +188,8 @@ Workforce roles are planning-level. They do not duplicate recruiting `jobs`. For
 | `workforce_roles` | Planning-level demand for a client. Quantity, horizon, source, clearance, and optional `job_family_id`. Not a live `jobs` row. Free-text `job_family` stays until a person normalizes it. |
 | `workforce_role_skills` | Role capability demand through canonical `skills`. `quantity_affected` is optional. |
 | `workforce_role_jobs` | Links one workforce role to zero or more canonical jobs inside the same organization. A closed job stays linked and is not a current opening. |
-| `workforce_role_capability_texts` | Free-text capability demand. Pending until a person links a skill. It does not count as supply. |
-| `workforce_strategy_notes` | Human pipeline-strategy notes. Saving a note does not create a campaign, program, or enrollment. |
+| `workforce_role_capability_texts` | Free-text capability demand owned by its workforce role. Pending until a person links a global skill. Reviewer identity is service-checked, not a composite user key. |
+| `workforce_strategy_notes` | Human pipeline-strategy notes. The database requires the role, assessment, and education partner to share the note's organization. Saving a note does not create a campaign, program, or enrollment. The author stays a service-checked user reference. |
 | `workforce_baselines` | Headcount, vacancies, attrition, retirement, and related assumptions. |
 | `workforce_forecasts` / `workforce_forecast_results` / `workforce_forecast_components` / `workforce_forecast_overrides` | Versioned 12/24/36-month demand models with configurable components and audited overrides. |
 | `workforce_supply_entries` | Expected supply by source type (internal, military, education, Talent Network, recruiting). |

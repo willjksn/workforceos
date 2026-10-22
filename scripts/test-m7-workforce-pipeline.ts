@@ -6,6 +6,7 @@ import { eq, inArray } from "drizzle-orm";
 
 import { getDb } from "../db";
 import {
+  auditEvents,
   candidateClearances,
   candidateCredentials,
   candidateJobMatches,
@@ -13,6 +14,7 @@ import {
   candidates,
   companies,
   companyLocations,
+  educationPartners,
   interviews,
   jobFamilies,
   jobs,
@@ -24,18 +26,37 @@ import {
   skillbridgeProfiles,
   skills,
   users,
+  workforceAssessments,
+  workforceRoleCapabilityTexts,
   workforceRoleJobs,
   workforceRoleSkills,
   workforceRoles,
+  workforceStrategyNotes,
 } from "../db/schema";
 import { CAPABILITY_TRANSLATION_SOURCE } from "../lib/military/capability-translation";
 import { ROLE_PERMISSIONS } from "../lib/rbac/permissions";
 import { assertDevSeedAllowed } from "../lib/seed/guards";
 import { WorkforceError } from "../lib/workforce/errors";
+import { addWorkforceCapabilityText, addWorkforceStrategyNote } from "../lib/workforce/pipeline-commands";
 import { loadWorkforceRolePipeline } from "../lib/workforce/pipeline-supply";
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
+}
+
+function errorText(error: unknown) {
+  const cause = error instanceof Error && "cause" in error ? error.cause : undefined;
+  return `${error instanceof Error ? error.message : String(error)} ${cause instanceof Error ? cause.message : ""}`;
+}
+
+async function expectDatabaseReject(run: () => Promise<unknown>, message: string) {
+  try {
+    await run();
+  } catch (error) {
+    if (/23503|foreign key|violates/i.test(errorText(error))) return;
+    console.error(error);
+  }
+  throw new Error(message);
 }
 
 async function main() {
@@ -89,6 +110,13 @@ async function main() {
     placed: randomUUID(),
     weak: randomUUID(),
   };
+  const roleB = randomUUID();
+  const companyB = randomUUID();
+  const jobB = randomUUID();
+  const assessmentA = randomUUID();
+  const assessmentB = randomUUID();
+  const partnerA = randomUUID();
+  const partnerB = randomUUID();
   const orgIds = [orgA, orgB];
   const candidateIds = Object.values(ids);
 
@@ -97,9 +125,13 @@ async function main() {
     await db.delete(interviews).where(inArray(interviews.candidateId, candidateIds));
     await db.delete(placements).where(inArray(placements.candidateId, candidateIds));
     await db.delete(candidateJobMatches).where(inArray(candidateJobMatches.organizationId, orgIds));
+    await db.delete(workforceStrategyNotes).where(inArray(workforceStrategyNotes.organizationId, orgIds));
+    await db.delete(workforceRoleCapabilityTexts).where(inArray(workforceRoleCapabilityTexts.roleId, [roleId, roleB]));
     await db.delete(workforceRoleJobs).where(inArray(workforceRoleJobs.organizationId, orgIds));
-    await db.delete(workforceRoleSkills).where(eq(workforceRoleSkills.roleId, roleId));
+    await db.delete(workforceRoleSkills).where(inArray(workforceRoleSkills.roleId, [roleId, roleB]));
     await db.delete(workforceRoles).where(inArray(workforceRoles.organizationId, orgIds));
+    await db.delete(workforceAssessments).where(inArray(workforceAssessments.organizationId, orgIds));
+    await db.delete(educationPartners).where(inArray(educationPartners.organizationId, orgIds));
     await db.delete(jobs).where(inArray(jobs.organizationId, orgIds));
     await db.delete(candidateCredentials).where(inArray(candidateCredentials.candidateId, candidateIds));
     await db.delete(candidateClearances).where(inArray(candidateClearances.candidateId, candidateIds));
@@ -108,6 +140,7 @@ async function main() {
     await db.delete(candidates).where(inArray(candidates.organizationId, orgIds));
     await db.delete(companyLocations).where(eq(companyLocations.id, locationA));
     await db.delete(companies).where(inArray(companies.organizationId, orgIds));
+    await db.delete(auditEvents).where(inArray(auditEvents.organizationId, orgIds));
     await db.delete(users).where(inArray(users.organizationId, orgIds));
     await db.delete(organizations).where(inArray(organizations.id, orgIds));
     await db.delete(militaryOccupationSkills).where(inArray(militaryOccupationSkills.militaryOccupationId, [approvedOccupation, pendingOccupation]));
@@ -430,6 +463,124 @@ async function main() {
 
     const [engagement] = await db.select().from(opportunityEngagements).where(eq(opportunityEngagements.matchId, matchIds.veteran));
     assert(engagement?.status === "reviewing", "reading supply did not change engagement status");
+
+    console.log("A–G — strategy note and job-link tenant constraints");
+    await db.insert(companies).values({ id: companyB, organizationId: orgB, name: "Other Harbor", clientStatus: "active" });
+    await db.insert(jobs).values({ id: jobB, organizationId: orgB, companyId: companyB, title: "Other tenant job", status: "open" });
+    await db.insert(workforceAssessments).values([
+      { id: assessmentA, organizationId: orgA, companyId: companyA, title: "Assessment A" },
+      { id: assessmentB, organizationId: orgB, companyId: companyB, title: "Assessment B" },
+    ]);
+    await db.insert(educationPartners).values([
+      { id: partnerA, organizationId: orgA, name: "College A", partnerType: "community_college" },
+      { id: partnerB, organizationId: orgB, name: "College B", partnerType: "community_college" },
+    ]);
+    await db.insert(workforceRoles).values({
+      id: roleB,
+      organizationId: orgB,
+      companyId: companyB,
+      title: "Other tenant role",
+    });
+    await expectDatabaseReject(
+      () => db.insert(workforceStrategyNotes).values({
+        organizationId: orgA,
+        roleId: roleB,
+        channel: "talent_network",
+        note: "cross-tenant role",
+      }),
+      "organization A cannot store a strategy note for organization B's role",
+    );
+    const [sameRoleNote] = await db.insert(workforceStrategyNotes).values({
+      organizationId: orgA,
+      roleId,
+      channel: "talent_network",
+      note: "same organization",
+    }).returning();
+    assert(sameRoleNote?.id, "same-organization strategy note inserts");
+    await expectDatabaseReject(
+      () => db.insert(workforceStrategyNotes).values({
+        organizationId: orgA,
+        roleId,
+        assessmentId: assessmentB,
+        channel: "talent_network",
+        note: "cross-tenant assessment",
+      }),
+      "organization A cannot attach organization B's assessment",
+    );
+    const [sameAssessment] = await db.insert(workforceStrategyNotes).values({
+      organizationId: orgA,
+      roleId,
+      assessmentId: assessmentA,
+      channel: "talent_network",
+      note: "same assessment",
+    }).returning();
+    assert(sameAssessment?.assessmentId === assessmentA, "same-organization assessment is accepted");
+    await expectDatabaseReject(
+      () => db.insert(workforceStrategyNotes).values({
+        organizationId: orgA,
+        roleId,
+        educationPartnerId: partnerB,
+        channel: "education_partner",
+        note: "cross-tenant partner",
+      }),
+      "organization A cannot attach organization B's education partner",
+    );
+    const [samePartner] = await db.insert(workforceStrategyNotes).values({
+      organizationId: orgA,
+      roleId,
+      educationPartnerId: partnerA,
+      channel: "education_partner",
+      note: "same partner",
+    }).returning();
+    assert(samePartner?.educationPartnerId === partnerA, "same-organization education partner is accepted");
+
+    const actor = { organizationId: orgA, userId: userA, roleSlugs: ["workforce-consultant"] };
+    let serviceRoleRejected = false;
+    try {
+      await addWorkforceStrategyNote({ actor, roleId: roleB, channel: "talent_network", note: "service cross role" });
+    } catch (error) {
+      serviceRoleRejected = error instanceof WorkforceError;
+    }
+    assert(serviceRoleRejected, "service command rejects another organization's role");
+    let servicePartnerRejected = false;
+    try {
+      await addWorkforceStrategyNote({
+        actor,
+        roleId,
+        channel: "education_partner",
+        note: "service cross partner",
+        educationPartnerId: partnerB,
+      });
+    } catch (error) {
+      servicePartnerRejected = error instanceof WorkforceError;
+    }
+    assert(servicePartnerRejected, "service command rejects another organization's education partner");
+
+    await expectDatabaseReject(
+      () => db.insert(workforceRoleJobs).values({
+        organizationId: orgA,
+        roleId,
+        jobId: jobB,
+      }),
+      "organization A cannot link organization B's job",
+    );
+    const [capabilityText] = await db.insert(workforceRoleCapabilityTexts).values({
+      roleId,
+      sourceText: "Panel wiring",
+    }).returning();
+    assert(capabilityText?.roleId === roleId, "capability text inserts for the same organization's role");
+    let capabilityRejected = false;
+    try {
+      await addWorkforceCapabilityText({ actor, roleId: roleB, sourceText: "other organization wording" });
+    } catch (error) {
+      capabilityRejected = error instanceof WorkforceError;
+    }
+    assert(capabilityRejected, "capability text for another organization's role is rejected");
+
+    const afterConstraints = await loadWorkforceRolePipeline({ organizationId: orgA, roleId, calculatedAt: asOf });
+    assert(afterConstraints.analysis.knownSupply === 12, "tenant constraints did not change known supply");
+    assert(afterConstraints.analysis.quantityGap === 8, "tenant constraints did not change the quantity gap");
+    assert(afterConstraints.analysis.militarySupply === 4, "tenant constraints did not change military supply");
 
     console.log("M7 development smoke passed.");
   } finally {

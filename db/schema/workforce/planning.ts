@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import {
   boolean,
   date,
+  foreignKey,
   index,
   integer,
   numeric,
@@ -96,6 +97,7 @@ export const workforceAssessments = pgTable("workforce_assessments", {
   index("workforce_assessments_approved_by_user_id_idx").on(table.approvedByUserId),
   index("workforce_assessments_supersedes_assessment_id_idx").on(table.supersedesAssessmentId),
   unique("workforce_assessments_company_version_uq").on(table.companyId, table.versionNumber),
+  unique("workforce_assessments_id_organization_uq").on(table.id, table.organizationId),
 ]);
 
 export const workforceAssessmentLocations = pgTable("workforce_assessment_locations", {
@@ -223,6 +225,9 @@ export const workforceRoleSkills = pgTable("workforce_role_skills", {
 /**
  * Free-text capability demand that is not yet a skill.
  * Pending and rejected rows do not count as capability demand.
+ * Ownership is the mandatory role. The row has no organization_id of its own.
+ * skills stays a global reference. reviewed_by_user_id follows the project-wide
+ * single-column user FK. Users have no (id, organization_id) unique key.
  */
 export const workforceRoleCapabilityTexts = pgTable("workforce_role_capability_texts", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -503,9 +508,14 @@ export const educationPartners = pgTable("education_partners", {
 }, (table) => [
   index("education_partners_organization_id_idx").on(table.organizationId),
   index("education_partners_company_id_idx").on(table.companyId),
+  unique("education_partners_id_organization_uq").on(table.id, table.organizationId),
 ]);
 
-/** A person's pipeline choice for a role. Inserting a note does not create a program. */
+/**
+ * A person's pipeline choice for a role. Inserting a note does not create a program.
+ * Role, assessment, and education partner must share organization_id.
+ * created_by_user_id stays a single-column user FK, matching M1–M6.
+ */
 export const workforceStrategyNotes = pgTable("workforce_strategy_notes", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
@@ -526,6 +536,21 @@ export const workforceStrategyNotes = pgTable("workforce_strategy_notes", {
   index("workforce_strategy_notes_assessment_id_idx").on(table.assessmentId),
   index("workforce_strategy_notes_partner_id_idx").on(table.educationPartnerId),
   index("workforce_strategy_notes_created_by_idx").on(table.createdByUserId),
+  foreignKey({
+    columns: [table.roleId, table.organizationId],
+    foreignColumns: [workforceRoles.id, workforceRoles.organizationId],
+    name: "workforce_strategy_notes_role_org_fk",
+  }).onDelete("cascade"),
+  foreignKey({
+    columns: [table.assessmentId, table.organizationId],
+    foreignColumns: [workforceAssessments.id, workforceAssessments.organizationId],
+    name: "workforce_strategy_notes_assessment_org_fk",
+  }).onDelete("set null"),
+  foreignKey({
+    columns: [table.educationPartnerId, table.organizationId],
+    foreignColumns: [educationPartners.id, educationPartners.organizationId],
+    name: "workforce_strategy_notes_partner_org_fk",
+  }).onDelete("set null"),
 ]);
 
 export const educationPartnerLocations = pgTable("education_partner_locations", {

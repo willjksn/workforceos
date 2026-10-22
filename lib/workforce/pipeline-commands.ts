@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
+  educationPartners,
   jobs,
   skills,
   workforceRoleCapabilityTexts,
@@ -234,6 +235,13 @@ export async function addWorkforceStrategyNote(input: {
   requirePerm(input.actor, "workforce.write");
   const role = await loadRole(input.actor, input.roleId);
   const db = getDb();
+  if (input.educationPartnerId) {
+    const [partner] = await db.select({ id: educationPartners.id }).from(educationPartners).where(and(
+      eq(educationPartners.id, input.educationPartnerId),
+      eq(educationPartners.organizationId, input.actor.organizationId),
+    )).limit(1);
+    if (!partner) throw new WorkforceError("Education partner not found");
+  }
   const [created] = await db.insert(workforceStrategyNotes).values({
     organizationId: input.actor.organizationId,
     roleId: role.id,
