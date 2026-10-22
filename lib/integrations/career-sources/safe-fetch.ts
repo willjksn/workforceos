@@ -1,8 +1,47 @@
 import { lookup } from "node:dns/promises";
+import * as http from "node:http";
+import type { IncomingMessage } from "node:http";
+import * as https from "node:https";
+import type { RequestOptions } from "node:https";
 import { isIP } from "node:net";
+import { Readable } from "node:stream";
 
-import { isBlockedHostname, isPrivateAddress, SafeFetchError } from "./network-guards";
+import { bareHostname, isBlockedHostname, isPrivateAddress, SafeFetchError } from "./network-guards";
 import { DISCOVERY_USER_AGENT, MAX_REDIRECTS, MAX_RESPONSE_BYTES, type DiscoveryDeps } from "./types";
+
+/**
+ * Node 24 bundles undici inside global fetch but does not expose `undici` or `node:undici`.
+ * `https.request` / `http.request` `lookup` is the socket DNS hook already in this runtime.
+ * The callback returns only addresses this process already accepted. It does not resolve again.
+ */
+export function pinnedConnectLookup(addresses: readonly string[]): NonNullable<RequestOptions["lookup"]> {
+  if (!addresses.length || addresses.some((address) => isPrivateAddress(address))) {
+    throw new SafeFetchError("The host resolves to a private or internal address.");
+  }
+  const records = addresses.map((address) => ({
+    address,
+    family: (isIP(address) === 6 ? 6 : 4) as 4 | 6,
+  }));
+  return ((hostname, options, callback) => {
+    const done = typeof options === "function" ? options : callback;
+    if (!done) return;
+    const all = typeof options === "object" && options !== null && "all" in options && Boolean(options.all);
+    if (all) {
+      done(null, records);
+      return;
+    }
+    done(null, records[0].address, records[0].family);
+  }) as NonNullable<RequestOptions["lookup"]>;
+}
+
+type PinnedRequestInit = RequestInit & {
+  lookup: NonNullable<RequestOptions["lookup"]>;
+};
+
+function defaultSocketRequest(url: URL, options: RequestOptions, callback: (incoming: IncomingMessage) => void) {
+  const request = url.protocol === "https:" ? https.request : http.request;
+  return request(url, options, callback);
+}
 
 const lastRequestAt = new Map<string, number>();
 
@@ -33,26 +72,30 @@ export async function assertPublicHttpUrl(raw: string, resolve: (hostname: strin
   if (addresses.some((address) => isPrivateAddress(address))) {
     throw new SafeFetchError("The host resolves to a private or internal address.");
   }
-  return url;
+  return { url, addresses };
 }
 
 export async function safeFetch(raw: string, deps: DiscoveryDeps = {}) {
-  const fetchImpl = deps.fetchImpl ?? fetch;
+  const fetchImpl = deps.fetchImpl;
   const resolve = deps.lookup ?? publicDnsLookup;
   const minIntervalMs = deps.minIntervalMs ?? 1000;
   let current = raw;
   for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
-    const url = await assertPublicHttpUrl(current, resolve);
+    const checked = await assertPublicHttpUrl(current, resolve);
+    const url = checked.url;
     await paceHost(url.hostname, minIntervalMs);
-    const response = await fetchImpl(url, {
+    const init: PinnedRequestInit = {
       method: "GET",
       redirect: "manual",
       headers: {
         accept: "application/json, text/html;q=0.8, */*;q=0.1",
         "user-agent": DISCOVERY_USER_AGENT,
+        host: url.host,
       },
       signal: AbortSignal.timeout(15_000),
-    });
+      lookup: pinnedConnectLookup(checked.addresses),
+    };
+    const response = fetchImpl ? await fetchImpl(url, init) : await nodePinnedFetch(url, init, deps.socketRequest ?? defaultSocketRequest);
     if (response.status >= 300 && response.status < 400) {
       const location = response.headers.get("location");
       if (!location) throw new SafeFetchError("Redirect had no destination.");
@@ -104,6 +147,39 @@ export async function originAllowsFetch(target: URL, deps: DiscoveryDeps) {
     const message = error instanceof Error ? error.message : "robots.txt could not be checked.";
     return { allowed: false, blocked: false, reason: message };
   }
+}
+
+async function nodePinnedFetch(
+  url: URL,
+  init: PinnedRequestInit,
+  socketRequest: NonNullable<DiscoveryDeps["socketRequest"]>,
+): Promise<Response> {
+  const headers = init.headers as Record<string, string>;
+  const options: RequestOptions = {
+    method: "GET",
+    headers,
+    lookup: init.lookup,
+    signal: init.signal ?? undefined,
+  };
+  if (url.protocol === "https:") {
+    options.servername = bareHostname(url.hostname);
+    options.rejectUnauthorized = true;
+  }
+  return new Promise((resolve, reject) => {
+    const req = socketRequest(url, options, (incoming) => {
+      const headerBag = new Headers();
+      for (const [key, value] of Object.entries(incoming.headers)) {
+        if (value === undefined) continue;
+        headerBag.set(key, Array.isArray(value) ? value.join(", ") : value);
+      }
+      resolve(new Response(Readable.toWeb(incoming) as ReadableStream<Uint8Array>, {
+        status: incoming.statusCode ?? 0,
+        headers: headerBag,
+      }));
+    });
+    req.on("error", reject);
+    req.end();
+  });
 }
 
 async function paceHost(host: string, minIntervalMs: number) {

@@ -36,6 +36,12 @@ export type CareerSourceConfig = {
 export type DiscoveryDeps = {
   fetchImpl?: typeof fetch;
   lookup?: (hostname: string) => Promise<string[]>;
+  /** Test seam. Production uses http.request / https.request with the pinned lookup. */
+  socketRequest?: (
+    url: URL,
+    options: import("node:https").RequestOptions,
+    callback: (response: import("node:http").IncomingMessage) => void,
+  ) => import("node:http").ClientRequest;
   minIntervalMs?: number;
 };
 

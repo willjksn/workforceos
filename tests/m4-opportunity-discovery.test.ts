@@ -1,5 +1,9 @@
+import { EventEmitter } from "node:events";
 import { readFileSync } from "node:fs";
+import type { IncomingMessage } from "node:http";
+import * as https from "node:https";
 import path from "node:path";
+import { Readable } from "node:stream";
 
 import { describe, expect, it, vi } from "vitest";
 
@@ -11,10 +15,72 @@ import { isPrivateAddress } from "../lib/integrations/career-sources/network-gua
 import { evaluateSourceAccess } from "../lib/integrations/career-sources/policy";
 import { planSourceSync } from "../lib/integrations/career-sources/plan";
 import { safeFetch } from "../lib/integrations/career-sources/safe-fetch";
-import { GREENHOUSE_ADAPTER_KEY, type NormalizedEmployerJob } from "../lib/integrations/career-sources/types";
+import { GREENHOUSE_ADAPTER_KEY, type DiscoveryDeps, type NormalizedEmployerJob } from "../lib/integrations/career-sources/types";
 import { ROLE_PERMISSIONS } from "../lib/rbac/permissions";
 
 const root = path.resolve(import.meta.dirname, "..");
+
+type CapturedRequest = {
+  href: string;
+  hostname: string;
+  servername?: string;
+  rejectUnauthorized?: boolean;
+  headers: https.RequestOptions["headers"];
+  lookup?: https.RequestOptions["lookup"];
+};
+
+function installPinnedSocket(responses: { status: number; headers?: Record<string, string>; body?: string }[]) {
+  const captured: CapturedRequest[] = [];
+  let index = 0;
+  const socketRequest = vi.fn((url: URL, options: https.RequestOptions, callback: (res: IncomingMessage) => void) => {
+    captured.push({
+      href: String(url),
+      hostname: url.hostname,
+      servername: options.servername,
+      rejectUnauthorized: options.rejectUnauthorized,
+      headers: options.headers,
+      lookup: options.lookup,
+    });
+    const planned = responses[Math.min(index, responses.length - 1)] ?? { status: 200, body: "" };
+    index += 1;
+    const req = new EventEmitter();
+    const end = () => {
+      const res = Readable.from([Buffer.from(planned.body ?? "")]) as IncomingMessage;
+      res.statusCode = planned.status;
+      res.headers = planned.headers ?? {};
+      callback(res);
+      return req;
+    };
+    Object.assign(req, { end, destroy: () => req });
+    return req;
+  });
+  return { captured, socketRequest: socketRequest as unknown as NonNullable<DiscoveryDeps["socketRequest"]> };
+}
+
+function rebindingLookup(answers: Record<string, string[]>) {
+  const calls: string[] = [];
+  const lookup = async (hostname: string) => {
+    calls.push(hostname);
+    const seen = calls.filter((item) => item === hostname).length;
+    if (seen > 1) return ["127.0.0.1"];
+    return answers[hostname] ?? ["203.0.113.10"];
+  };
+  return { lookup, calls };
+}
+
+async function pinnedAddresses(lookup: https.RequestOptions["lookup"], hostname: string) {
+  return new Promise<string[]>((resolve, reject) => {
+    if (!lookup) {
+      reject(new Error("connection has no pinned lookup"));
+      return;
+    }
+    lookup(hostname, { all: true }, ((error: NodeJS.ErrnoException | null, result: { address: string }[] | string) => {
+      if (error) reject(error);
+      else if (Array.isArray(result)) resolve(result.map((row) => row.address));
+      else resolve([String(result)]);
+    }) as never);
+  });
+}
 
 function job(overrides: Partial<NormalizedEmployerJob> = {}): NormalizedEmployerJob {
   return {
@@ -153,14 +219,26 @@ describe("M4 employer opportunity discovery", () => {
 
   it("rejects private addresses and redirects into private hosts before fetching them", async () => {
     expect(isPrivateAddress("127.0.0.1")).toBe(true);
+    expect(isPrivateAddress("127.8.8.8")).toBe(true);
     expect(isPrivateAddress("10.1.2.3")).toBe(true);
     expect(isPrivateAddress("192.168.1.20")).toBe(true);
     expect(isPrivateAddress("172.16.0.1")).toBe(true);
+    expect(isPrivateAddress("172.31.255.255")).toBe(true);
     expect(isPrivateAddress("169.254.169.254")).toBe(true);
+    expect(isPrivateAddress("100.64.0.1")).toBe(true);
+    expect(isPrivateAddress("100.127.1.1")).toBe(true);
     expect(isPrivateAddress("::1")).toBe(true);
     expect(isPrivateAddress("fe80::1")).toBe(true);
     expect(isPrivateAddress("fd00::1")).toBe(true);
+    expect(isPrivateAddress("fc00::1")).toBe(true);
+    expect(isPrivateAddress("::ffff:127.0.0.1")).toBe(true);
+    expect(isPrivateAddress("::ffff:10.1.2.3")).toBe(true);
+    expect(isPrivateAddress("::ffff:192.168.0.1")).toBe(true);
+    expect(isPrivateAddress("::ffff:172.16.0.1")).toBe(true);
+    expect(isPrivateAddress("::ffff:169.254.169.254")).toBe(true);
+    expect(isPrivateAddress("::ffff:a00:1")).toBe(true);
     expect(isPrivateAddress("8.8.8.8")).toBe(false);
+    expect(isPrivateAddress("203.0.113.10")).toBe(false);
 
     const fetchImpl = vi.fn(async () => new Response("no", { status: 200 }));
     await expect(safeFetch("http://127.0.0.1/latest/meta-data", { fetchImpl, lookup: publicLookup, minIntervalMs: 0 })).rejects.toThrow(/private|internal|public/i);
@@ -185,6 +263,124 @@ describe("M4 employer opportunity discovery", () => {
       minIntervalMs: 0,
     })).rejects.toThrow(/private|internal/i);
     expect(redirectFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("binds the socket to the validated public address and ignores a later private DNS answer", async () => {
+    const { captured, socketRequest } = installPinnedSocket([
+      { status: 200, body: "User-agent: *\nAllow: /\n" },
+      { status: 200, body: JSON.stringify({ jobs: [{ id: 7, title: "Tech", absolute_url: "https://boards.greenhouse.io/acme/jobs/7", location: { name: "Austin" }, content: "<p>Maintain equipment.</p>" }] }) },
+      { status: 200, body: "pinned" },
+    ]);
+    const discovered = await greenhouseAdapter.discover({
+      sourceType: "employer_api",
+      adapterKey: GREENHOUSE_ADAPTER_KEY,
+      careersUrl: "https://boards.greenhouse.io/acme",
+    }, { lookup: async () => ["203.0.113.10"], minIntervalMs: 0, socketRequest });
+    expect(discovered.ok).toBe(true);
+    expect(discovered.jobs[0]?.externalKey).toBe("7");
+    expect(captured.map((request) => request.hostname)).toEqual(["boards-api.greenhouse.io", "boards-api.greenhouse.io"]);
+    expect(await pinnedAddresses(captured[0]?.lookup, "boards-api.greenhouse.io")).toEqual(["203.0.113.10"]);
+    expect(await pinnedAddresses(captured[1]?.lookup, "boards-api.greenhouse.io")).toEqual(["203.0.113.10"]);
+
+    captured.length = 0;
+    const rebound = rebindingLookup({ "jobs.example": ["203.0.113.10"] });
+    const page = await safeFetch("https://jobs.example/jobs/1", { lookup: rebound.lookup, minIntervalMs: 0, socketRequest });
+    expect(page.body).toBe("pinned");
+    expect(rebound.calls).toEqual(["jobs.example"]);
+    expect(await pinnedAddresses(captured[0]?.lookup, "jobs.example")).toEqual(["203.0.113.10"]);
+    expect(captured[0]?.href.startsWith("https://jobs.example/")).toBe(true);
+  });
+
+  it("does not connect when validation returns a private, mixed, metadata, or IPv6 internal address", async () => {
+    const { socketRequest } = installPinnedSocket([{ status: 200, body: "no" }]);
+    await expect(safeFetch("https://jobs.example/role", {
+      lookup: async () => ["10.0.0.5"],
+      minIntervalMs: 0,
+      socketRequest,
+    })).rejects.toThrow(/private|internal/i);
+    await expect(safeFetch("https://jobs.example/role", {
+      lookup: async () => ["203.0.113.10", "192.168.0.4"],
+      minIntervalMs: 0,
+      socketRequest,
+    })).rejects.toThrow(/private|internal/i);
+    await expect(safeFetch("http://169.254.169.254/latest/meta-data", { minIntervalMs: 0, socketRequest })).rejects.toThrow(/private|internal|public/i);
+    await expect(safeFetch("http://metadata.google.internal/computeMetadata/v1/", { minIntervalMs: 0, socketRequest })).rejects.toThrow(/public|host/i);
+    await expect(safeFetch("http://metadata.google.com/", { minIntervalMs: 0, socketRequest })).rejects.toThrow(/public|host/i);
+    await expect(safeFetch("http://[::1]/", { minIntervalMs: 0, socketRequest })).rejects.toThrow(/private|internal|public/i);
+    await expect(safeFetch("http://[fe80::1]/", { minIntervalMs: 0, socketRequest })).rejects.toThrow(/private|internal|public/i);
+    await expect(safeFetch("http://[fd00::1]/", { minIntervalMs: 0, socketRequest })).rejects.toThrow(/private|internal|public/i);
+    await expect(safeFetch("https://jobs.example/v6", {
+      lookup: async () => ["fe80::1"],
+      minIntervalMs: 0,
+      socketRequest,
+    })).rejects.toThrow(/private|internal/i);
+    expect(socketRequest).not.toHaveBeenCalled();
+  });
+
+  it("validates each redirect hop and pins that hop's own public address", async () => {
+    const { captured, socketRequest } = installPinnedSocket([
+      { status: 302, headers: { location: "https://private.example/secret" } },
+      { status: 302, headers: { location: "https://b.example/jobs/2" } },
+      { status: 200, body: "arrived" },
+    ]);
+    await expect(safeFetch("https://a.example/jobs/1", {
+      lookup: async (hostname) => hostname === "private.example" ? ["10.1.2.3"] : ["203.0.113.10"],
+      minIntervalMs: 0,
+      socketRequest,
+    })).rejects.toThrow(/private|internal/i);
+    expect(captured).toHaveLength(1);
+    expect(captured[0]?.hostname).toBe("a.example");
+    expect(await pinnedAddresses(captured[0]?.lookup, "a.example")).toEqual(["203.0.113.10"]);
+
+    captured.length = 0;
+    const hops = rebindingLookup({ "a.example": ["203.0.113.10"], "b.example": ["203.0.113.20"] });
+    const page = await safeFetch("https://a.example/jobs/1", { lookup: hops.lookup, minIntervalMs: 0, socketRequest });
+    expect(page.status).toBe(200);
+    expect(page.body).toBe("arrived");
+    expect(page.url).toBe("https://b.example/jobs/2");
+    expect(captured.map((request) => request.hostname)).toEqual(["a.example", "b.example"]);
+    expect(await pinnedAddresses(captured[0]?.lookup, "a.example")).toEqual(["203.0.113.10"]);
+    expect(await pinnedAddresses(captured[1]?.lookup, "b.example")).toEqual(["203.0.113.20"]);
+    expect(hops.calls).toEqual(["a.example", "b.example"]);
+  });
+
+  it("keeps the original hostname for TLS and still allows a manual field confirm", async () => {
+    const { captured, socketRequest } = installPinnedSocket([{ status: 200, body: "ok" }]);
+    await safeFetch("https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true", {
+      lookup: async () => ["203.0.113.10"],
+      minIntervalMs: 0,
+      socketRequest,
+    });
+    expect(captured[0]?.hostname).toBe("boards-api.greenhouse.io");
+    expect(captured[0]?.servername).toBe("boards-api.greenhouse.io");
+    expect(captured[0]?.rejectUnauthorized).toBe(true);
+    expect(captured[0]?.href).not.toContain("203.0.113.10");
+    expect(JSON.stringify(captured[0]?.headers).toLowerCase()).not.toContain("authorization");
+    expect(JSON.stringify(captured[0]?.headers).toLowerCase()).not.toContain("cookie");
+    const host = captured[0]?.headers && "host" in captured[0].headers ? String(captured[0].headers.host) : "";
+    expect(host).toBe("boards-api.greenhouse.io");
+    expect(await pinnedAddresses(captured[0]?.lookup, "boards-api.greenhouse.io")).toEqual(["203.0.113.10"]);
+    const fetcher = readFileSync(path.join(root, "lib/integrations/career-sources/safe-fetch.ts"), "utf8");
+    expect(fetcher).toContain("https.request");
+    expect(fetcher).toContain("options.rejectUnauthorized = true");
+    expect(fetcher).not.toContain("rejectUnauthorized: false");
+    expect(fetcher).not.toContain("rejectUnauthorized = false");
+
+    const recruiting = readFileSync(path.join(root, "lib/recruiting/opportunity-discovery.ts"), "utf8");
+    const manual = recruiting.slice(
+      recruiting.indexOf("export async function importManualJob"),
+      recruiting.indexOf("export async function importCsvJobs"),
+    );
+    expect(manual).not.toContain("safeFetch");
+    const actions = readFileSync(path.join(root, "lib/actions/career-sources.ts"), "utf8");
+    const confirm = actions.slice(
+      actions.indexOf("export async function confirmManualJobAction"),
+      actions.indexOf("export async function previewCsvAction"),
+    );
+    for (const field of ["title", "externalKey", "sourceUrl", "location", "description"]) {
+      expect(confirm).toContain(field);
+    }
+    expect(confirm).not.toContain("safeFetch");
   });
 
   it("keeps career source health honest", () => {
