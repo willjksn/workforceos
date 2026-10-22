@@ -1,6 +1,6 @@
 # Decision Log
 
-Status: Binding architecture and product decisions (through DEC-AUTH-003, accepted DEC-PROD-001, DEC-PROD-002, and DEC-PROD-003). DEC-PROD-001 authorized M1, which is merged. DEC-PROD-002 records M2 field ownership, which is merged. DEC-PROD-003 records M3 capability translation, which is merged. DEC-PROD-004 records M4 public discovery, which is tested and awaiting founder merge. M5–M10 are not started.  
+Status: Binding architecture and product decisions (through DEC-AUTH-003, accepted DEC-PROD-001, DEC-PROD-002, and DEC-PROD-003). DEC-PROD-001 authorized M1, which is merged. DEC-PROD-002 records M2 field ownership, which is merged. DEC-PROD-003 records M3 capability translation, which is merged. DEC-PROD-004 records M4 public discovery, which is merged. M5–M10 are not started.  
 Database mirror: `decision_log` table, seeded from this file.
 
 ## DEC-DB-001 — PostgreSQL over Firebase
@@ -807,7 +807,7 @@ Database mirror: `decision_log` table, seeded from this file.
 
 - Date: 2026-10-22
 - Owner: Product Build
-- Status: accepted for the founder-requested M4 build. The M4 pull request awaits founder merge. M5–M10 stay not started.
+- Status: accepted. M4 is merged to `main` at `246b3a2575af3a902afebd883bdcd4ab9f1c7d61`. M5–M10 stay not started.
 - Decision: Public employer demand is discovered onto canonical `jobs` through `career_sources`. There is no EmployerOpportunity, ExternalOpportunity, ScrapedJob, or ResearchOpportunity table. CRM `opportunities` remain sales pursuits. The only automated adapter in M4 is the Greenhouse public job board API, adapter key `greenhouse_public_board`. Manual URL import and CSV import are the other two source paths. An operator cannot paste an arbitrary URL and start a crawler. Login-wall and unsupported hosts are blocked and are not fetched. A failed sync does not close jobs. A complete successful Greenhouse listing may close absent open postings without deleting them. Content identity is a normalized hash that ignores whitespace, trivial markup, and tracking query parameters. The safe fetcher rejects private, loopback, link-local, and metadata destinations, including redirects, and binds each connection to the public addresses that passed that check. A later DNS answer cannot replace the pin. TLS keeps the original hostname and certificate verification. Discovery does not send candidate records and does not change `candidate_job_matches`. No new permission slug is added. Recruiter still lacks `opportunities.read`. M4 does not call a model to invent qualifications, salary, or location.
 - Reason: Pier 24 needs employer demand from public sources without employer credentials. Greenhouse publishes a structured JSON board that does not require OAuth. HTML scraping of Workday-style sites is not an acceptable first adapter.
 - Affected modules: recruiting, integrations, company career sources, documentation
