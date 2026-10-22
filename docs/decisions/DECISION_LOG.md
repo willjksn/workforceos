@@ -1,6 +1,6 @@
 # Decision Log
 
-Status: Binding architecture and product decisions (through DEC-AUTH-003 and accepted DEC-PROD-001). DEC-PROD-001 authorizes Military + Workforce Core M1 only.  
+Status: Binding architecture and product decisions (through DEC-AUTH-003, accepted DEC-PROD-001, and DEC-PROD-002). DEC-PROD-001 authorized M1, which is merged. DEC-PROD-002 records M2 field ownership. M2 awaits founder merge. M3–M10 are not started.  
 Database mirror: `decision_log` table, seeded from this file.
 
 ## DEC-DB-001 — PostgreSQL over Firebase
@@ -782,4 +782,14 @@ Database mirror: `decision_log` table, seeded from this file.
 - Reason: The audit showed the schema can carry independent employer demand without a new person table or a new opportunity table. Founder approval is the gate that was waiting.
 - Affected modules: recruiting, military, talent, workforce, documentation
 - Reconsideration: M2 and later milestones each need their own acceptance. Reopening parked research or starting the brand migration requires a separate decision.
+
+## DEC-PROD-002 — Transition Talent Profile evidence ownership
+
+- Date: 2026-10-21
+- Owner: Product Build
+- Status: accepted for the founder-requested M2 build. The M2 pull request still awaits founder merge.
+- Decision: Current clearance lives on `candidate_clearances`, one row per Talent Network candidate. Historical clearance text stays on `candidate_military_experiences.clearance`. Compensation expectations stay on `candidates.compensation_expectations` and are not copied onto the transition profile. `skillbridge_profiles` branch, rank, pay grade, and occupation display remain a current snapshot. Tour history stays on `candidate_military_experiences`. Equipment, duties, and training are child rows of a tour, not global skills and not a learning system. Education and credentials are candidate-scoped and are not `education_partners`. Target roles stay free text plus an optional civilian occupation id and an optional job-family string. Profile completeness is derived and informational. No new permission slug is added. Recruiter still lacks `opportunities.read`.
+- Reason: The founder brief required one source of truth for clearance and compensation, structured evidence for later matching, and no second person record.
+- Affected modules: talent, military, skillbridge profile, documentation
+- Reconsideration: M3 may read this evidence. It does not move current clearance back onto the latest tour or turn equipment into the global skills catalog unless a later decision says so.
 

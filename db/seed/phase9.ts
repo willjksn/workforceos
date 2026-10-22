@@ -560,6 +560,7 @@ export async function seedPhase9Fixtures(db: ReturnType<typeof getDb>) {
       .limit(1);
     if (!existingExperience) {
       await db.insert(candidateMilitaryExperiences).values({
+        organizationId: INTERNAL_ORG_ID,
         candidateId: person.id,
         militaryOccupationId: person.occupationId,
         rank: "Petty Officer Second Class",

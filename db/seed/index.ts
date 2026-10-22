@@ -754,6 +754,7 @@ async function seedCatalogAndTalent(db: ReturnType<typeof getDb>) {
   await db
     .insert(candidateMilitaryExperiences)
     .values({
+      organizationId: INTERNAL_ORG_ID,
       candidateId: CANDIDATE_ID,
       militaryOccupationId: NAVY_EM_ID,
       notes: "Honorably discharged Electrician's Mate",

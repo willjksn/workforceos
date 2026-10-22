@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import {
   boolean,
+  foreignKey,
   index,
   integer,
   numeric,
@@ -84,6 +85,8 @@ export const skillbridgeProfiles = pgTable("skillbridge_profiles", {
     .default("no_preference"),
   idealEmployer: text("ideal_employer"),
   idealEmployerNotes: text("ideal_employer_notes"),
+  /** Current transition priorities. Broad interests stay on candidates.career_interests. */
+  careerPriorities: text("career_priorities"),
   candidateStatus: skillbridgeCandidateStatusEnum("candidate_status").notNull().default("new"),
   resumeStatus: skillbridgeResumeStatusEnum("resume_status").notNull().default("missing"),
   ownerUserId: uuid("owner_user_id").references(() => users.id, { onDelete: "set null" }),
@@ -96,6 +99,11 @@ export const skillbridgeProfiles = pgTable("skillbridge_profiles", {
   ...timestamps(),
 }, (table) => [
   unique("skillbridge_profiles_candidate_id_uq").on(table.candidateId),
+  foreignKey({
+    columns: [table.candidateId, table.organizationId],
+    foreignColumns: [candidates.id, candidates.organizationId],
+    name: "skillbridge_profiles_candidate_org_fk",
+  }).onDelete("restrict"),
   index("skillbridge_profiles_organization_id_idx").on(table.organizationId),
   index("skillbridge_profiles_candidate_id_idx").on(table.candidateId),
   index("skillbridge_profiles_military_occupation_id_idx").on(table.militaryOccupationId),
@@ -134,6 +142,8 @@ export const skillbridgeTargetRoles = pgTable("skillbridge_target_roles", {
   civilianOccupationId: uuid("civilian_occupation_id").references(() => civilianOccupations.id, {
     onDelete: "set null",
   }),
+  /** Optional job-family label for later matching. Not a job_families entity and not a matcher. */
+  jobFamily: text("job_family"),
   isPrimary: boolean("is_primary").notNull().default(false),
   ...timestamps(),
 }, (table) => [

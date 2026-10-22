@@ -8,7 +8,6 @@ import {
   addSkillBridgeOpportunityAction,
   advanceSkillBridgeStageAction,
 } from "@/lib/actions/skillbridge";
-import { applyResumeToCandidateAction } from "@/lib/actions/talent";
 import { requireAnyAppPermission } from "@/lib/auth/guard";
 import { can } from "@/lib/rbac/permissions";
 import { getSkillBridgeDetail } from "@/lib/skillbridge/service";
@@ -19,9 +18,10 @@ import { companies } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { PrimaryButton } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/display";
-import { ResumeViewer } from "../../../_components/resume-viewer";
 import { PageHeader, PageShell, formatDate, formatLabel } from "../../../_components/ui";
 import { MilitarySubnav } from "../../_components/military-subnav";
+import { TransitionProfileSections } from "./transition-profile-sections";
+import { completenessFromEvidence, loadTransitionEvidence } from "@/lib/military-talent/transition-evidence";
 
 const STAGES = [
   "candidate_identified",
@@ -48,8 +48,15 @@ export default async function SkillBridgeDetailPage({
   const { id } = await params;
   const canReadPii = can(principal, "candidate_pii.read");
   const canWrite = can(principal, "skillbridge.write");
+  const canWriteEvidence = can(principal, "candidates.write");
   const detail = await getSkillBridgeDetail(id, principal.organizationId, canReadPii);
   if (!detail) notFound();
+  const evidence = await loadTransitionEvidence(principal.organizationId, detail.card.candidate.id);
+  const completeness = completenessFromEvidence(evidence, detail.card.profile, {
+    preferredLocationCount: detail.card.preferredLocations.length,
+    targetRoleCount: detail.card.targetRoles.length,
+    hasResumeFile: Boolean(detail.resumeFile),
+  });
   const matches = await findSkillBridgeMatches({
     organizationId: principal.organizationId,
     profileId: id,
@@ -84,7 +91,7 @@ export default async function SkillBridgeDetailPage({
       <PageHeader
         eyebrow="Transition Talent Profile"
         title={detail.card.candidate.fullName}
-        description="Same Talent Network candidate. This is a military transition overlay, not ownership by a PierOne SkillBridge program. PierOne matches this person to employer/host-company opportunities."
+        description="One Talent Network candidate and one Transition Talent Profile. SkillBridge dates and approval are the pathway on this profile, not a second person."
         actions={
           <Link href={`/app/talent/${detail.card.candidate.id}`} className="text-sm text-navy underline">
             Open full candidate profile
@@ -92,59 +99,16 @@ export default async function SkillBridgeDetailPage({
         }
       />
       <MilitarySubnav active="/app/military/skillbridge" />
-
-      <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)]">
-        <section className="min-w-0">
-          <h2 className="section-title">Resume</h2>
-          {canReadPii && detail.resumeFile ? (
-            <div className="mt-3 space-y-3">
-              <ResumeViewer
-                file={detail.resumeFile}
-                meta={`${formatLabel(detail.card.profile.resumeStatus)} · ${formatDate(detail.resumeFile.createdAt)}`}
-              />
-              {can(principal, "candidates.write") ? (
-                <ActionForm action={applyResumeToCandidateAction} className="space-y-2">
-                  <input type="hidden" name="candidateId" value={detail.card.candidate.id} />
-                  <input type="hidden" name="redirectTo" value={`/app/military/skillbridge/${id}`} />
-                  <p className="text-sm text-muted-foreground">
-                    Fills blank Talent Network fields from this resume. Existing values are not overwritten.
-                  </p>
-                  <PrimaryButton>Fill empty fields from resume</PrimaryButton>
-                </ActionForm>
-              ) : null}
-            </div>
-          ) : detail.card.candidate.currentResumeFileId || detail.card.profile.resumeStatus !== "missing" ? (
-            <p className="mt-3 text-sm text-muted-foreground">
-              {canReadPii
-                ? "Resume metadata is missing. Re-upload from this profile if the file cannot be opened."
-                : "Resume on file is hidden without candidate contact access."}
-            </p>
-          ) : (
-            <p className="mt-3 text-sm text-muted-foreground">No resume on file.</p>
-          )}
-        </section>
-        <aside className="min-w-0 lg:sticky lg:top-6">
-          <dl className="grid gap-3">
-            <Item label="Branch / MOS" value={[detail.card.occupation?.branch, detail.card.occupation?.code ?? detail.card.profile.mosRateAfscDisplay].filter(Boolean).join(" · ")} />
-            <Item label="Rank" value={detail.card.profile.rankTitle ?? detail.card.profile.payGrade} />
-            <Item label="Installation" value={detail.card.installation?.name ?? detail.card.profile.currentDutyLocation} />
-            <Item label="EOS / End of service" value={formatDate(detail.card.profile.endOfServiceDate)} />
-            <Item label="ETS (Army / USMC)" value={formatDate(detail.card.profile.etsDate)} />
-            <Item label="EAOS (Navy)" value={formatDate(detail.card.profile.eaosDate)} />
-            <Item label="Separation" value={formatDate(detail.card.profile.separationDate)} />
-            <Item label="Retirement" value={formatDate(detail.card.profile.retirementDate)} />
-            <Item label="SkillBridge window start" value={formatDate(detail.card.profile.skillbridgeWindowStart)} />
-            <Item label="SkillBridge window end" value={formatDate(detail.card.profile.skillbridgeWindowEnd)} />
-            <Item label="Preferred location" value={detail.card.profile.preferredLocationPrimary} />
-            <Item label="Ideal employer" value={detail.card.profile.idealEmployer} />
-            <Item label="Resume status" value={formatLabel(detail.card.profile.resumeStatus)} />
-            <Item label="Last contact" value={formatDate(detail.card.profile.lastContactedAt)} />
-            <Item label="Next action" value={detail.card.profile.nextAction} />
-            <Item label="Next due" value={formatDate(detail.card.profile.nextActionDueAt)} />
-          </dl>
-          {detail.card.risks.length ? <p className="mt-4 text-sm text-warning">{detail.card.risks.join(" · ")}</p> : null}
-        </aside>
-      </div>
+      <TransitionProfileSections
+        profileId={id}
+        detail={detail}
+        evidence={evidence}
+        completeness={completeness}
+        canReadPii={canReadPii}
+        canWriteProfile={canWrite}
+        canWriteEvidence={canWriteEvidence}
+        canApplyResume={can(principal, "candidates.write")}
+      />
 
       <section className="mt-10">
         <h2 className="section-title">Employer / host-company opportunities</h2>
@@ -282,14 +246,5 @@ export default async function SkillBridgeDetailPage({
         ) : null}
       </section>
     </PageShell>
-  );
-}
-
-function Item({ label, value }: { label: string; value?: string | null }) {
-  return (
-    <div className="rounded-[8px] border border-card-border bg-card p-4">
-      <dt className="text-xs uppercase tracking-[0.08em] text-muted-foreground">{label}</dt>
-      <dd className="mt-1 text-navy">{value || "—"}</dd>
-    </div>
   );
 }

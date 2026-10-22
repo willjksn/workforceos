@@ -1,15 +1,20 @@
 import { relations, sql } from "drizzle-orm";
-import { boolean, index, integer, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import { boolean, foreignKey, index, integer, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 
 import { timestamps } from "../_common";
 import { organizations, users } from "../core";
 import { files } from "../system";
 import {
   candidateAvailabilityEnum,
+  clearanceLevelEnum,
+  clearanceStatusEnum,
   consentStatusEnum,
+  credentialStatusEnum,
+  educationCompletionStatusEnum,
   militaryStatusEnum,
   poolMembershipSourceEnum,
   privacyClassEnum,
+  profileEvidenceSourceEnum,
   talentPoolScopeEnum,
   talentPoolTypeEnum,
 } from "../enums";
@@ -55,6 +60,7 @@ export const candidates = pgTable("candidates", {
   index("candidates_org_military_status_idx").on(table.organizationId, table.militaryStatus),
   index("candidates_full_name_trgm_idx").using("gin", sql`${table.fullName} gin_trgm_ops`),
   index("candidates_current_title_trgm_idx").using("gin", sql`${table.currentTitle} gin_trgm_ops`),
+  unique("candidates_id_organization_uq").on(table.id, table.organizationId),
 ]);
 
 export const candidateExperiences = pgTable("candidate_experiences", {
@@ -137,6 +143,97 @@ export const candidateTalentPools = pgTable("candidate_talent_pools", {
   unique("candidate_talent_pools_candidate_pool_uq").on(table.candidateId, table.talentPoolId),
 ]);
 
+/**
+ * Person-level education. Works for military and non-military candidates.
+ * Not workforce `education_partners`.
+ */
+export const candidateEducation = pgTable("candidate_education", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  candidateId: uuid("candidate_id").notNull(),
+  institution: text("institution").notNull(),
+  degreeOrCredential: text("degree_or_credential").notNull(),
+  fieldOfStudy: text("field_of_study"),
+  completionStatus: educationCompletionStatusEnum("completion_status").notNull().default("unknown"),
+  completionDate: timestamp("completion_date", { withTimezone: true, mode: "date" }),
+  completionYear: integer("completion_year"),
+  source: profileEvidenceSourceEnum("source").notNull().default("recruiter"),
+  sourceReference: text("source_reference"),
+  humanVerified: boolean("human_verified").notNull().default(false),
+  confidence: integer("confidence"),
+  ...timestamps(),
+}, (table) => [
+  unique("candidate_education_id_organization_uq").on(table.id, table.organizationId),
+  foreignKey({
+    columns: [table.candidateId, table.organizationId],
+    foreignColumns: [candidates.id, candidates.organizationId],
+    name: "candidate_education_candidate_org_fk",
+  }).onDelete("cascade"),
+  index("candidate_education_organization_id_idx").on(table.organizationId),
+  index("candidate_education_candidate_id_idx").on(table.candidateId),
+]);
+
+/** Person-level credentials. Not a verification service and not a global skill row. */
+export const candidateCredentials = pgTable("candidate_credentials", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  candidateId: uuid("candidate_id").notNull(),
+  name: text("name").notNull(),
+  issuer: text("issuer"),
+  credentialId: text("credential_id"),
+  issuedAt: timestamp("issued_at", { withTimezone: true, mode: "date" }),
+  expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }),
+  status: credentialStatusEnum("status").notNull().default("unknown"),
+  source: profileEvidenceSourceEnum("source").notNull().default("recruiter"),
+  sourceReference: text("source_reference"),
+  humanVerified: boolean("human_verified").notNull().default(false),
+  confidence: integer("confidence"),
+  ...timestamps(),
+}, (table) => [
+  unique("candidate_credentials_id_organization_uq").on(table.id, table.organizationId),
+  foreignKey({
+    columns: [table.candidateId, table.organizationId],
+    foreignColumns: [candidates.id, candidates.organizationId],
+    name: "candidate_credentials_candidate_org_fk",
+  }).onDelete("cascade"),
+  index("candidate_credentials_organization_id_idx").on(table.organizationId),
+  index("candidate_credentials_candidate_id_idx").on(table.candidateId),
+]);
+
+/**
+ * Current clearance for the person. One row per candidate.
+ * Historical tour clearance stays on candidate_military_experiences.clearance.
+ * Source and human_verified do not mean Pier 24 verified the clearance.
+ */
+export const candidateClearances = pgTable("candidate_clearances", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  candidateId: uuid("candidate_id").notNull(),
+  clearanceLevel: clearanceLevelEnum("clearance_level").notNull().default("unknown"),
+  clearanceStatus: clearanceStatusEnum("clearance_status").notNull().default("unknown"),
+  lastKnownActiveDate: timestamp("last_known_active_date", { withTimezone: true, mode: "date" }),
+  source: profileEvidenceSourceEnum("source").notNull().default("candidate"),
+  sourceReference: text("source_reference"),
+  humanVerified: boolean("human_verified").notNull().default(false),
+  ...timestamps(),
+}, (table) => [
+  unique("candidate_clearances_candidate_id_uq").on(table.candidateId),
+  unique("candidate_clearances_id_organization_uq").on(table.id, table.organizationId),
+  foreignKey({
+    columns: [table.candidateId, table.organizationId],
+    foreignColumns: [candidates.id, candidates.organizationId],
+    name: "candidate_clearances_candidate_org_fk",
+  }).onDelete("cascade"),
+  index("candidate_clearances_organization_id_idx").on(table.organizationId),
+  index("candidate_clearances_candidate_id_idx").on(table.candidateId),
+]);
+
 export const candidatesRelations = relations(candidates, ({ one, many }) => ({
   organization: one(organizations, {
     fields: [candidates.organizationId],
@@ -145,6 +242,12 @@ export const candidatesRelations = relations(candidates, ({ one, many }) => ({
   experiences: many(candidateExperiences),
   skills: many(candidateSkills),
   poolMemberships: many(candidateTalentPools),
+  education: many(candidateEducation),
+  credentials: many(candidateCredentials),
+  clearance: one(candidateClearances, {
+    fields: [candidates.id],
+    references: [candidateClearances.candidateId],
+  }),
 }));
 
 export const candidateExperiencesRelations = relations(candidateExperiences, ({ one }) => ({
@@ -174,6 +277,27 @@ export const talentPoolRulesRelations = relations(talentPoolRules, ({ one }) => 
   talentPool: one(talentPools, {
     fields: [talentPoolRules.talentPoolId],
     references: [talentPools.id],
+  }),
+}));
+
+export const candidateEducationRelations = relations(candidateEducation, ({ one }) => ({
+  candidate: one(candidates, {
+    fields: [candidateEducation.candidateId],
+    references: [candidates.id],
+  }),
+}));
+
+export const candidateCredentialsRelations = relations(candidateCredentials, ({ one }) => ({
+  candidate: one(candidates, {
+    fields: [candidateCredentials.candidateId],
+    references: [candidates.id],
+  }),
+}));
+
+export const candidateClearancesRelations = relations(candidateClearances, ({ one }) => ({
+  candidate: one(candidates, {
+    fields: [candidateClearances.candidateId],
+    references: [candidates.id],
   }),
 }));
 

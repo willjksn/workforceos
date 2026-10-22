@@ -62,7 +62,12 @@ export async function createSkillBridgeProfile(input: {
   skillbridgeWindowEnd?: Date | null;
   preferredLocationPrimary?: string | null;
   preferredLocations?: Array<{ locationLabel: string; city?: string | null; region?: string | null; isPrimary?: boolean }>;
-  targetRoles?: Array<{ roleTitle: string; civilianOccupationId?: string | null; isPrimary?: boolean }>;
+  targetRoles?: Array<{
+    roleTitle: string;
+    civilianOccupationId?: string | null;
+    jobFamily?: string | null;
+    isPrimary?: boolean;
+  }>;
   idealEmployer?: string | null;
   idealEmployerKind?: "named_company" | "employer_category" | "industry" | "no_preference";
   idealIndustry?: string | null;
@@ -157,6 +162,7 @@ export async function createSkillBridgeProfile(input: {
       skillbridgeProfileId: profile.id,
       roleTitle: role.roleTitle,
       civilianOccupationId: role.civilianOccupationId ?? null,
+      jobFamily: role.jobFamily ?? null,
       isPrimary: role.isPrimary ?? false,
     });
   }
@@ -618,6 +624,12 @@ export async function listSkillBridgeCards(input: {
         currentResumeFileId: row.candidate.currentResumeFileId,
         email: input.canReadPii ? row.candidate.email : null,
         phone: input.canReadPii ? row.candidate.phone : null,
+        compensationExpectations: input.canReadPii ? row.candidate.compensationExpectations : null,
+        careerInterests: row.candidate.careerInterests,
+        relocationWillingness: row.candidate.relocationWillingness,
+        remotePreference: row.candidate.remotePreference,
+        militaryStatus: row.candidate.militaryStatus,
+        lastProfileReviewAt: row.candidate.lastProfileReviewAt,
       },
       occupation: row.occupation,
       installation: row.installation,

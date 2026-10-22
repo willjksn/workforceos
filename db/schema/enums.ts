@@ -195,6 +195,65 @@ export const militaryPresenceLevelEnum = pgEnum("military_presence_level", [
   "unknown",
 ]);
 
+/** Origin of Transition Talent Profile evidence. Not a clearance-verification verdict. */
+export const profileEvidenceSourceEnum = pgEnum("profile_evidence_source", [
+  "resume",
+  "candidate",
+  "recruiter",
+  "ai_extraction",
+  "military_occupation_mapping",
+]);
+
+export const clearanceLevelEnum = pgEnum("clearance_level", [
+  "unknown",
+  "none",
+  "confidential",
+  "secret",
+  "top_secret",
+  "ts_sci",
+]);
+
+/** Reported state only. WorkforceOS does not independently verify clearance. */
+export const clearanceStatusEnum = pgEnum("clearance_status", [
+  "unknown",
+  "reported_active",
+  "reported_inactive",
+  "expired",
+]);
+
+export const educationCompletionStatusEnum = pgEnum("education_completion_status", [
+  "unknown",
+  "in_progress",
+  "completed",
+  "incomplete",
+]);
+
+export const credentialStatusEnum = pgEnum("credential_status", [
+  "unknown",
+  "active",
+  "expired",
+  "revoked",
+]);
+
+export const militaryTrainingCategoryEnum = pgEnum("military_training_category", [
+  "technical",
+  "nuclear",
+  "leadership",
+  "cyber",
+  "maintenance",
+  "logistics",
+  "aviation",
+  "instructor",
+  "other",
+]);
+
+export const militaryEquipmentKindEnum = pgEnum("military_equipment_kind", [
+  "platform",
+  "system",
+  "equipment",
+  "tool",
+]);
+
 export const reviewStatusEnum = pgEnum("review_status", [
   "draft",
   "in_review",
