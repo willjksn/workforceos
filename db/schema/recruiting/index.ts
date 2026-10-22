@@ -22,6 +22,7 @@ import {
   clientVisibilityEnum,
   guaranteeStatusEnum,
   interviewStatusEnum,
+  careerSourceHealthEnum,
   careerSourceTypeEnum,
   jobContextTypeEnum,
   jobDemandHorizonEnum,
@@ -40,9 +41,8 @@ import { skills } from "../workforce";
 
 /**
  * Where an external employer-demand record came from.
- * This registry does not crawl, store credentials, or configure adapters.
- * Workday, iCIMS, Greenhouse, Lever, SuccessFactors, and Oracle are future
- * adapter keys, not rows in this table by themselves.
+ * Public discovery stores an adapter key and sync health. It does not store credentials.
+ * M4 automates only the Greenhouse public job board. Other categories stay manual or CSV.
  */
 export const careerSources = pgTable("career_sources", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -54,10 +54,14 @@ export const careerSources = pgTable("career_sources", {
   name: text("name").notNull(),
   baseUrl: text("base_url"),
   careersUrl: text("careers_url"),
+  /** Public adapter id such as greenhouse_public_board. Not a secret. */
+  adapterKey: text("adapter_key"),
+  healthStatus: careerSourceHealthEnum("health_status").notNull().default("not_yet_synced"),
   active: boolean("active").notNull().default(true),
   lastSuccessfulSyncAt: timestamp("last_successful_sync_at", { withTimezone: true, mode: "date" }),
   lastAttemptAt: timestamp("last_attempt_at", { withTimezone: true, mode: "date" }),
   lastError: text("last_error"),
+  lastDiscoveredCount: integer("last_discovered_count"),
   ...timestamps(),
 }, (table) => [
   unique("career_sources_id_organization_uq").on(table.id, table.organizationId),
@@ -74,6 +78,46 @@ export const careerSources = pgTable("career_sources", {
   index("career_sources_organization_id_idx").on(table.organizationId),
   index("career_sources_company_id_idx").on(table.companyId),
   index("career_sources_org_active_idx").on(table.organizationId, table.active),
+]);
+
+/** One discovery attempt. A failed run does not close jobs. */
+export const careerSourceSyncRuns = pgTable("career_source_sync_runs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  careerSourceId: uuid("career_source_id").notNull(),
+  status: text("status").notNull(),
+  trigger: text("trigger").notNull(),
+  listingComplete: boolean("listing_complete").notNull().default(false),
+  discoveredCount: integer("discovered_count").notNull().default(0),
+  newCount: integer("new_count").notNull().default(0),
+  changedCount: integer("changed_count").notNull().default(0),
+  unchangedCount: integer("unchanged_count").notNull().default(0),
+  closedCount: integer("closed_count").notNull().default(0),
+  errorCount: integer("error_count").notNull().default(0),
+  error: text("error"),
+  actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
+  startedAt: timestamp("started_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  finishedAt: timestamp("finished_at", { withTimezone: true, mode: "date" }),
+  ...timestamps(),
+}, (table) => [
+  foreignKey({
+    columns: [table.careerSourceId, table.organizationId],
+    foreignColumns: [careerSources.id, careerSources.organizationId],
+    name: "career_source_sync_runs_source_org_fk",
+  }).onDelete("restrict"),
+  index("career_source_sync_runs_organization_id_idx").on(table.organizationId),
+  index("career_source_sync_runs_career_source_id_idx").on(table.careerSourceId),
+  index("career_source_sync_runs_actor_user_id_idx").on(table.actorUserId),
+  check(
+    "career_source_sync_runs_status_chk",
+    sql`${table.status} in ('succeeded', 'failed', 'refused')`,
+  ),
+  check(
+    "career_source_sync_runs_trigger_chk",
+    sql`${table.trigger} in ('manual', 'schedule')`,
+  ),
 ]);
 
 export const jobs = pgTable("jobs", {
@@ -125,6 +169,10 @@ export const jobs = pgTable("jobs", {
   sourceUrl: text("source_url"),
   contentHash: text("content_hash"),
   closedAt: timestamp("closed_at", { withTimezone: true, mode: "date" }),
+  /** When a successful discovery last saw this posting. Not a match score. */
+  lastObservedAt: timestamp("last_observed_at", { withTimezone: true, mode: "date" }),
+  /** Verbatim public salary text from the source. Empty when the source shows none. */
+  publicCompensationText: text("public_compensation_text"),
   department: text("department"),
   postingVisibility: postingVisibilityEnum("posting_visibility").notNull().default("internal_only"),
   clientVisibility: clientVisibilityEnum("client_visibility").notNull().default("internal_only"),
@@ -458,6 +506,22 @@ export const careerSourcesRelations = relations(careerSources, ({ one, many }) =
   }),
   company: one(companies, { fields: [careerSources.companyId], references: [companies.id] }),
   jobs: many(jobs),
+  syncRuns: many(careerSourceSyncRuns),
+}));
+
+export const careerSourceSyncRunsRelations = relations(careerSourceSyncRuns, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [careerSourceSyncRuns.organizationId],
+    references: [organizations.id],
+  }),
+  careerSource: one(careerSources, {
+    fields: [careerSourceSyncRuns.careerSourceId],
+    references: [careerSources.id],
+  }),
+  actor: one(users, {
+    fields: [careerSourceSyncRuns.actorUserId],
+    references: [users.id],
+  }),
 }));
 
 export const jobsRelations = relations(jobs, ({ many, one }) => ({

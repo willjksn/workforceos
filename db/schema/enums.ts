@@ -1085,6 +1085,19 @@ export const careerSourceTypeEnum = pgEnum("career_source_type", [
   "csv",
 ]);
 
+/**
+ * Honest operating state for a career source.
+ * `live` is only for a structured adapter after a complete successful sync.
+ * A source that has never synced stays `not_yet_synced`.
+ */
+export const careerSourceHealthEnum = pgEnum("career_source_health", [
+  "not_yet_synced",
+  "live",
+  "manual",
+  "error",
+  "blocked",
+]);
+
 export const postingVisibilityEnum = pgEnum("posting_visibility", [
   "public",
   "unlisted",

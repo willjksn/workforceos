@@ -14,6 +14,8 @@ import { OPPORTUNITY_STAGES } from "@/lib/crm/stages";
 import { getCompanyGraph, listActivities } from "@/lib/repositories/crm";
 import { getCompanyWorkforceSnapshot } from "@/lib/repositories/workforce";
 import { listJobs } from "@/lib/repositories/recruiting";
+import { discoveryMetrics, listCompanyCareerSources } from "@/lib/recruiting/opportunity-discovery";
+import { AddCareerSourceForm, CareerSourceActions } from "./career-source-controls";
 import { listCompanyTalentCandidates } from "@/lib/repositories/talent";
 import { companyDeliverySnapshot } from "@/lib/delivery/engine";
 import { companyFinanceSnapshot } from "@/lib/finance/engine";
@@ -36,6 +38,7 @@ import {
 
 const CRM_TABS = ["overview", "contacts", "opportunities", "signals", "locations", "activity"] as const;
 const PLACEHOLDER_TABS = ["jobs", "legal", "finance", "projects", "talent", "workforce", "solutions", "proposals"] as const;
+const CAREER_TABS = ["career-sources"] as const;
 
 export default async function CompanyDetailPage({
   params,
@@ -47,7 +50,7 @@ export default async function CompanyDetailPage({
   const principal = await requireAppPermission("companies.read");
   const { id } = await params;
   const { tab: tabParam } = await searchParams;
-  const tab = [...CRM_TABS, ...PLACEHOLDER_TABS].includes(tabParam as never) ? tabParam! : "overview";
+  const tab = [...CRM_TABS, ...PLACEHOLDER_TABS, ...CAREER_TABS].includes(tabParam as never) ? tabParam! : "overview";
   const graph = await getCompanyGraph(id, principal.organizationId);
   if (!graph) notFound();
   const { company } = graph;
@@ -59,6 +62,14 @@ export default async function CompanyDetailPage({
     : [];
   const jobs = tab === "jobs" && can(principal, "jobs.read")
     ? (await listJobs(principal.organizationId, undefined, { companyId: company.id, pageSize: 50 })).items
+    : [];
+  const showCareerSources = tab === "career-sources" && can(principal, "jobs.read");
+  const careerSourceRows = showCareerSources
+    ? await listCompanyCareerSources(principal.organizationId, company.id)
+    : [];
+  const discovery = showCareerSources ? await discoveryMetrics(principal.organizationId) : null;
+  const sourcedJobs = showCareerSources
+    ? (await listJobs(principal.organizationId, undefined, { companyId: company.id, pageSize: 50 })).items.filter((row) => row.job.careerSourceId)
     : [];
   const companyTalent =
     tab === "talent" && can(principal, "candidates.read")
@@ -89,6 +100,7 @@ export default async function CompanyDetailPage({
     { id: "locations", label: "Locations" },
     { id: "activity", label: "Activity" },
     { id: "jobs", label: "Jobs" },
+    { id: "career-sources", label: "Career sources" },
     { id: "legal", label: "Legal" },
     { id: "finance", label: "Finance" },
     { id: "projects", label: "Projects" },
@@ -184,6 +196,7 @@ export default async function CompanyDetailPage({
           {company.notes ? <p className="mt-3 text-sm text-muted-foreground">{company.notes}</p> : null}
           <p className="mt-4 text-xs text-muted-foreground">
             Annual revenue is operating company size, not ownership or cap-table data. GTM tier and region mark the 90-day target-account list.
+            Public employer demand is recorded from Career sources. It is not a CRM opportunity.
           </p>
           {canWriteCompany ? (
             <div className="mt-6 max-w-xl rounded-[8px] border border-card-border bg-card p-4">
@@ -412,6 +425,74 @@ export default async function CompanyDetailPage({
         </section>
       ) : null}
 
+      {tab === "career-sources" ? (
+        <section className="mt-6 space-y-6">
+          {!can(principal, "jobs.read") ? (
+            <p className="text-sm text-muted-foreground">Career sources are hidden without jobs access.</p>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Public employer demand is stored as jobs. Matching is available after M5. Discovery does not email or contact anyone, and it does not need an employer ATS login.
+              </p>
+              {discovery ? (
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <Metric label="Employers monitored" value={discovery.employersMonitored} />
+                  <Metric label="Active sources" value={discovery.activeSources} />
+                  <Metric label="Jobs discovered" value={discovery.jobsDiscovered} />
+                  <Metric label="Source errors" value={discovery.sourceErrors} />
+                  <Metric label="New" value={discovery.newCount} />
+                  <Metric label="Changed" value={discovery.changedCount} />
+                  <Metric label="Closed" value={discovery.closedCount} />
+                </div>
+              ) : null}
+              {can(principal, "jobs.write") ? <AddCareerSourceForm companyId={company.id} /> : null}
+              {careerSourceRows.length === 0 ? <EmptyState>No career sources for this company.</EmptyState> : (
+                <ul className="space-y-4">
+                  {careerSourceRows.map(({ source, latestRun }) => (
+                    <li key={source.id} className="rounded-[8px] border border-card-border bg-card p-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="font-medium text-navy">{source.name}</h2>
+                        <StatusBadge tone={source.healthStatus === "live" ? "success" : source.healthStatus === "error" || source.healthStatus === "blocked" ? "danger" : "neutral"}>
+                          {healthLabel(source.healthStatus)}
+                        </StatusBadge>
+                        <span className="text-xs text-muted-foreground">{formatLabel(source.sourceType)}</span>
+                      </div>
+                      {source.careersUrl ? <p className="mt-1 text-sm text-muted-foreground">{source.careersUrl}</p> : null}
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Last attempt {formatDate(source.lastAttemptAt)} · Last success {formatDate(source.lastSuccessfulSyncAt)} · Discovered {source.lastDiscoveredCount ?? "—"}
+                      </p>
+                      {latestRun ? (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Last run {latestRun.status}: {latestRun.newCount} new, {latestRun.changedCount} changed, {latestRun.unchangedCount} unchanged, {latestRun.closedCount} closed, {latestRun.errorCount} errors
+                        </p>
+                      ) : null}
+                      {source.lastError ? <p className="mt-2 text-sm text-danger">{source.lastError}</p> : null}
+                      {can(principal, "jobs.write") ? (
+                        <CareerSourceActions companyId={company.id} sourceId={source.id} sourceType={source.sourceType} />
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div>
+                <h2 className="section-title">Discovered jobs</h2>
+                {sourcedJobs.length === 0 ? <EmptyState>No sourced jobs yet.</EmptyState> : (
+                  <ul className="mt-2 space-y-1 text-sm">
+                    {sourcedJobs.map(({ job }) => (
+                      <li key={job.id}>
+                        <Link className="underline" href={`/app/jobs/${job.id}`}>{job.title}</Link>
+                        {` · ${job.status}`}
+                        {job.externalKey ? ` · ${job.externalKey}` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </>
+          )}
+        </section>
+      ) : null}
+
       {tab === "jobs" ? (
         <section className="mt-6">
           {!can(principal, "jobs.read") ? (
@@ -622,4 +703,22 @@ export default async function CompanyDetailPage({
       ) : null}
     </PageShell>
   );
+}
+
+function Metric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-[8px] border border-card-border bg-card px-4 py-3">
+      <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">{label}</p>
+      <p className="mt-1 font-serif text-3xl font-semibold text-navy">{value}</p>
+    </div>
+  );
+}
+
+function healthLabel(health: string) {
+  if (health === "not_yet_synced") return "Not yet synced";
+  if (health === "live") return "Live";
+  if (health === "manual") return "Manual";
+  if (health === "error") return "Error";
+  if (health === "blocked") return "Blocked";
+  return health;
 }

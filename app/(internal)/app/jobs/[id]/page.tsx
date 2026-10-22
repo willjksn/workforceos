@@ -77,6 +77,11 @@ export default async function JobDetailPage({
           </a>
         ) : null}
       </div>
+      {workspace.job.jobContextType === "monitored_public" ? (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Public employer demand from a career source. Matching is available after M5. Discovery does not contact the employer.
+        </p>
+      ) : null}
       {workspace.job.description ? <p className="mt-4 text-sm text-muted-foreground">{workspace.job.description}</p> : null}
 
       <section className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -87,6 +92,9 @@ export default async function JobDetailPage({
               ? `${workspace.job.compensationMin ?? "—"}–${workspace.job.compensationMax ?? "—"}`
               : "—"}
           </p>
+          {workspace.job.publicCompensationText ? (
+            <p className="mt-1 text-xs text-muted-foreground">{workspace.job.publicCompensationText}</p>
+          ) : null}
         </Card>
         <Card>
           <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Internal matches</p>

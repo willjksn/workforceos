@@ -3,6 +3,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { getDb } from "../../db";
 import { careerSources, companies, jobs } from "../../db/schema";
 import { recordAuditEvent } from "../audit/record-audit-event";
+import { evaluateSourceAccess } from "../integrations/career-sources/policy";
 import type { JobContextType } from "../hiring/stages";
 
 export type CareerSourceType = (typeof careerSources.$inferInsert)["sourceType"];
@@ -31,11 +32,22 @@ export async function createCareerSource(input: {
   name: string;
   baseUrl?: string | null;
   careersUrl?: string | null;
+  adapterKey?: string | null;
   active?: boolean;
 }) {
   const db = getDb();
   const company = await companyInOrg(input.organizationId, input.companyId);
   if (!company) throw new EmployerDemandError("Company is not in this organization.");
+  const access = evaluateSourceAccess({
+    sourceType: input.sourceType,
+    adapterKey: input.adapterKey,
+    careersUrl: input.careersUrl,
+    baseUrl: input.baseUrl,
+  }, "test");
+  if (input.sourceType === "employer_api" && access.state !== "supported_structured") {
+    throw new EmployerDemandError(access.reason);
+  }
+  const blocked = access.state === "blocked";
   const [source] = await db
     .insert(careerSources)
     .values({
@@ -45,7 +57,10 @@ export async function createCareerSource(input: {
       name: input.name,
       baseUrl: input.baseUrl ?? null,
       careersUrl: input.careersUrl ?? null,
+      adapterKey: input.adapterKey ?? null,
       active: input.active ?? true,
+      healthStatus: blocked ? "blocked" : "not_yet_synced",
+      lastError: blocked ? access.reason : null,
     })
     .returning();
   await recordAuditEvent({
