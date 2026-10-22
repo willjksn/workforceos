@@ -176,6 +176,20 @@
       "when": 1792694784943,
       "tag": "0024_m6_routing_outreach",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1792709846023,
+      "tag": "0025_m7_workforce_pipeline",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1792712027300,
+      "tag": "0026_m7_strategy_note_tenant",
+      "breakpoints": true
     }
   ]
 }

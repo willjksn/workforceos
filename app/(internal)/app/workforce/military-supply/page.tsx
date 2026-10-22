@@ -18,7 +18,7 @@ export default async function MilitarySupplyPage() {
       <PageHeader
         eyebrow="Workforce"
         title="Military supply overlay"
-        description="Reuses Phase 3 mappings. Occupations, installations, and bridge training are not duplicated. Installation maps remain deferred."
+        description="Approved occupation mappings are potential channels, not a count of qualified people. Known military talent counts are on each workforce role and include only people already stored in this organization."
       />
       <WorkforceSubnav active="/app/workforce/military-supply" />
       <div className="mt-6 space-y-6">
@@ -29,7 +29,7 @@ export default async function MilitarySupplyPage() {
             <ul className="mt-2 text-sm">
               {overlay.occupations.map((occupation) => (
                 <li key={occupation.mappingId}>
-                  {formatLabel(occupation.branch)} {occupation.code} {occupation.title} · {occupation.recruitingPriority}
+                  {formatLabel(occupation.branch)} {occupation.code} {occupation.title} · channel priority {formatLabel(occupation.recruitingPriority)}
                   {occupation.reviewStatus !== "approved" ? " (not for hiring-manager copy)" : ""}
                 </li>
               ))}

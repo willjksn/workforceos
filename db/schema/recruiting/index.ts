@@ -38,6 +38,7 @@ import {
 import { services } from "../services";
 import { candidates } from "../talent";
 import { skills } from "../workforce";
+import { workforceRoles } from "../workforce/planning";
 
 /**
  * Where an external employer-demand record came from.
@@ -907,10 +908,53 @@ export const careerSourceSyncRunsRelations = relations(careerSourceSyncRuns, ({ 
   }),
 }));
 
+/**
+ * A planning role may correspond to zero, one, or many live jobs.
+ * The role is not merged into jobs. Closed jobs stay linked and are not current openings.
+ */
+export const workforceRoleJobs = pgTable("workforce_role_jobs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organizationId: uuid("organization_id").notNull().references(() => organizations.id, {
+    onDelete: "restrict",
+  }),
+  roleId: uuid("role_id").notNull(),
+  jobId: uuid("job_id").notNull(),
+  createdByUserId: uuid("created_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  ...timestamps(),
+}, (table) => [
+  unique("workforce_role_jobs_role_job_uq").on(table.roleId, table.jobId),
+  foreignKey({
+    columns: [table.roleId, table.organizationId],
+    foreignColumns: [workforceRoles.id, workforceRoles.organizationId],
+    name: "workforce_role_jobs_role_org_fk",
+  }).onDelete("cascade"),
+  foreignKey({
+    columns: [table.jobId, table.organizationId],
+    foreignColumns: [jobs.id, jobs.organizationId],
+    name: "workforce_role_jobs_job_org_fk",
+  }).onDelete("restrict"),
+  index("workforce_role_jobs_organization_id_idx").on(table.organizationId),
+  index("workforce_role_jobs_role_id_idx").on(table.roleId),
+  index("workforce_role_jobs_job_id_idx").on(table.jobId),
+  index("workforce_role_jobs_created_by_idx").on(table.createdByUserId),
+]);
+
+export const workforceRoleJobsRelations = relations(workforceRoleJobs, ({ one }) => ({
+  role: one(workforceRoles, {
+    fields: [workforceRoleJobs.roleId],
+    references: [workforceRoles.id],
+  }),
+  job: one(jobs, {
+    fields: [workforceRoleJobs.jobId],
+    references: [jobs.id],
+  }),
+}));
+
 export const jobsRelations = relations(jobs, ({ many, one }) => ({
   skills: many(jobSkills),
   requirements: many(jobRequirements),
   matches: many(candidateJobMatches),
+  workforceRoleLinks: many(workforceRoleJobs),
   searchProjects: many(searchProjects),
   company: one(companies, { fields: [jobs.companyId], references: [companies.id] }),
   careerSource: one(careerSources, {

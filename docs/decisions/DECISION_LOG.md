@@ -1,6 +1,6 @@
 # Decision Log
 
-Status: Binding architecture and product decisions (through DEC-AUTH-003, accepted DEC-PROD-001, DEC-PROD-002, DEC-PROD-003, DEC-PROD-004, and DEC-PROD-005). DEC-PROD-001 authorized M1, which is merged. DEC-PROD-002 records M2 field ownership, which is merged. DEC-PROD-003 records M3 capability translation, which is merged. DEC-PROD-004 records M4 public discovery, which is merged. DEC-PROD-005 records M5 opportunity matching, which is merged. DEC-PROD-006 records M6 routing and outreach, which is merged. M7–M10 are not started.  
+Status: Binding architecture and product decisions (through DEC-AUTH-003, accepted DEC-PROD-001, DEC-PROD-002, DEC-PROD-003, DEC-PROD-004, and DEC-PROD-005). DEC-PROD-001 authorized M1, which is merged. DEC-PROD-002 records M2 field ownership, which is merged. DEC-PROD-003 records M3 capability translation, which is merged. DEC-PROD-004 records M4 public discovery, which is merged. DEC-PROD-005 records M5 opportunity matching, which is merged. DEC-PROD-006 records M6 routing and outreach, which is merged. DEC-PROD-007 records M7 workforce pipeline integration, which is in review and not merged. M8–M10 are not started.  
 Database mirror: `decision_log` table, seeded from this file.
 
 ## DEC-DB-001 — PostgreSQL over Firebase
@@ -832,4 +832,14 @@ Database mirror: `decision_log` table, seeded from this file.
 - Reason: `candidate_engagements` has no organization, no match, and no routing history. Calling public outreach a submission would claim an authorized client packet. The pipeline enum cannot say both "Strong match" and "Not a fit" without mixing analysis and operations.
 - Affected modules: recruiting, CRM contacts, jobs, in-app notifications, documentation
 - Reconsideration: an external reviewer link, inbound email parsing, and outcome learning are later decisions. M9 may read these outcomes. It must not change this workflow by itself.
+
+## DEC-PROD-007 — Workforce planning reads shared capabilities and does not become a second matcher
+
+- Date: 2026-10-22
+- Owner: Product Build
+- Status: in review. M7 is not merged. M8–M10 stay not started.
+- Decision: Employer need for planning stays on `workforce_roles`. Live openings stay on `jobs`. A role may link to zero, one, or many jobs through `workforce_role_jobs`, and a closed job remains linked without counting as a current opening. Every job does not need a workforce role. Capability demand uses `skills` through `workforce_role_skills`. Unmapped wording stays on `workforce_role_capability_texts` until a person links it. That text is owned by its role and has no organization column of its own. Known supply is counted at read time from stored Talent Network rows that meet the M5 countable-skill rule. Military talent is one channel inside that count. Approved occupation mappings are reference channels, not people. `workforce_supply_entries` stay analyst estimates. Gap dimensions are quantity, capability, credential, timing, location, and pipeline. Health is `healthy`, `watch`, `gap`, or `critical` from those counts: critical when demand is greater than zero, known supply is under 25 percent of demand, and the active pipeline is empty. Strategy notes are human text and do not create campaigns, programs, or enrollments. A note's role, assessment, and education partner must share its organization at the database. `created_by_user_id` stays a single-column user reference because that is the existing convention and `users` has no composite tenant key. There is no second matcher and no materialized supply cache. The as-of time is the read time and the source is stored WorkforceOS records. No new permission is added. A recruiter can read a workforce plan and cannot administer one. A workforce planner does not receive `candidate_pii.read`.
+- Reason: Workforce Development and Military Talent need one capability vocabulary. A planning quantity is not an open requisition, and an occupation code is not a qualified candidate.
+- Affected modules: workforce planning, recruiting jobs, talent supply, documentation
+- Reconsideration: M8 may surface these counts in Scout. M9 may learn from outcomes. Neither may replace this read model or change M5 scoring by itself.
 

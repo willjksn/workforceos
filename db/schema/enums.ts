@@ -722,6 +722,27 @@ export const talentScarcityClassEnum = pgEnum("talent_scarcity_class", [
   "abundant",
 ]);
 
+/** Where a workforce-role quantity came from. It does not create a live job. */
+export const workforceDemandSourceEnum = pgEnum("workforce_demand_source", [
+  "current_jobs",
+  "workforce_plan",
+  "manual_employer_need",
+  "aggregated_role",
+]);
+
+/** A planning option a person can record. Saving a note does not launch the channel. */
+export const workforceStrategyChannelEnum = pgEnum("workforce_strategy_channel", [
+  "military_talent_network",
+  "talent_network",
+  "targeted_campaign",
+  "skillbridge_pathway",
+  "education_partner",
+  "training_pathway",
+  "evergreen_pool",
+  "increase_sourcing",
+  "review_requirements",
+]);
+
 export const billingTypeEnum = pgEnum("billing_type", [
   "placement_fee",
   "monthly_recurring",

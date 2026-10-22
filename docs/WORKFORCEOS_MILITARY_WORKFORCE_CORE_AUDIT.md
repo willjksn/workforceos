@@ -755,7 +755,7 @@ Founder decisions, accepted 2026-10-21 (`DEC-PROD-001`):
 
 M1 is the only milestone authorized by that acceptance.
 
-Update after the M1 merge: M1 is on `main` at `4004af7f365f10e56795991d951b0dc71c0175a9`. The founder then requested M2. M2 is merged to `main` at `ea9c37ece8488b6f64f91b254cb7d78b9e812f08`. M3 is merged to `main` at `2c19418e95b42169b6423f070bea202b00ece364`. M4 is merged to `main` at `246b3a2575af3a902afebd883bdcd4ab9f1c7d61`. M5 is merged to `main` at `e42a662d399171089a38e8e742637bf7163213ff`. M6 is merged to `main` at `85c10eeb0bf007709496f7a4de505c50697618ee`. M7–M10 are not started. Parked research at `1a356d3` stays unmerged.
+Update after the M1 merge: M1 is on `main` at `4004af7f365f10e56795991d951b0dc71c0175a9`. The founder then requested M2. M2 is merged to `main` at `ea9c37ece8488b6f64f91b254cb7d78b9e812f08`. M3 is merged to `main` at `2c19418e95b42169b6423f070bea202b00ece364`. M4 is merged to `main` at `246b3a2575af3a902afebd883bdcd4ab9f1c7d61`. M5 is merged to `main` at `e42a662d399171089a38e8e742637bf7163213ff`. M6 is merged to `main` at `85c10eeb0bf007709496f7a4de505c50697618ee`. M7 is in review and not merged. M8–M10 are not started. Parked research at `1a356d3` stays unmerged.
 
 M1 implementation, merged: `jobs` remains the demand record. `job_context_type` gained `monitored_public` and `exploratory` and kept `internal`, `client`, and `skillbridge`. Evergreen and future demand use `jobs.demand_horizon` (`current`, `evergreen`, `future`) so a monitored posting can also be evergreen. Direct-hire demand stays `skillbridge_eligible = false`. `career_sources` is a tenant-scoped registry with no credentials and no crawler. External identity is unique on `(career_source_id, external_key)`; manual jobs leave both empty. Description history stays `job_description_versions`. `skillbridge_profiles` was not renamed. Migrations `drizzle/0018_m1_employer_demand.sql` and `drizzle/0019_m1_career_source_company_fk.sql`.
 
@@ -787,4 +787,23 @@ Workflow audit for M6:
 | `opportunities` | DO NOT USE. Sales pursuits stay separate. |
 | Employer portal and external review links | DO NOT BUILD. A future token can follow the existing `/schedule/[token]` pattern. Unauthenticated candidate links are not added. |
 
-Client jobs can route to an authorized reviewer. Public and exploratory jobs show employer outreach unless a person records `jobs.authorized_employer_route`. Drafts use approved capabilities, explicit non-rejected skills, recorded credentials, and candidate-reported clearance wording. External send requires confirmation and `consent_status = granted`. A missing Resend configuration stays `NOT CONFIGURED` and offers copy or mark-sent. The weekday Inngest scan creates alerts only. M7–M10 and parked research are not started.
+Client jobs can route to an authorized reviewer. Public and exploratory jobs show employer outreach unless a person records `jobs.authorized_employer_route`. Drafts use approved capabilities, explicit non-rejected skills, recorded credentials, and candidate-reported clearance wording. External send requires confirmation and `consent_status = granted`. A missing Resend configuration stays `NOT CONFIGURED` and offers copy or mark-sent. The weekday Inngest scan creates alerts only.
+
+M7 implementation, in review (`DEC-PROD-007`): employer need → workforce role → capability demand → talent supply → gap → pipeline strategy. Military talent is one supply channel. The flow does not replace live `jobs`, and it does not start M8, M9, or M10. A strategy note's role, assessment, and education partner share its organization in the database. Capability text is owned by its role. User references stay service-checked, matching earlier milestones.
+
+Workforce model audit:
+
+| Object | Decision |
+| --- | --- |
+| `workforce_roles` | KEEP and extend. Planning demand: quantity, M1 horizon, 0–3 / 3–6 / 6–12 / 12–24 month bucket, source, clearance, and `job_family_id`. Free-text `job_family` stays. |
+| `workforce_role_skills` | KEEP and extend with `quantity_affected`. Requirements stay on canonical `skills`. |
+| `workforce_role_jobs` | ADD. Zero, one, or many live jobs. Closed jobs stay linked and are not current openings. |
+| `workforce_role_capability_texts` | ADD. Free text stays pending until a person links a skill. |
+| `workforce_strategy_notes` | ADD. Human planning notes. Saving one does not create a program. |
+| `jobs`, `skills`, `job_families`, `candidate_skills` | REUSE. No `workforce_skills_v2`, `military_capabilities`, or `pipeline_capabilities`. |
+| `candidate_job_matches`, `opportunity_engagements`, `interviews`, `placements` | REUSE for the funnel. M5 scoring and M6 status meanings stay unchanged. |
+| `education_partners` and training programs | REUSE as partnership options. They are not M2 candidate education and do not enroll anyone. |
+| `workforce_supply_entries` | KEEP as analyst estimates. Do not mix them into known Talent Network counts. |
+| `talentNetworkOverlayForRole` | DUPLICATE / REMOVE LATER. It counts organization-wide military people and is not this role supply. M7 does not delete it. |
+| Forecasts, scenarios, and `workforce_gaps` | KEEP. M7 does not add a forecasting engine. |
+| `evaluateOpportunityMatch` | KEEP unchanged. M7 does not add a workforce matcher. |

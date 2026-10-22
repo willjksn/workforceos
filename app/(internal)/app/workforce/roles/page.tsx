@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { createRoleAction } from "@/lib/actions/workforce";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { listCompaniesForSelect } from "@/lib/repositories/crm";
@@ -24,7 +26,10 @@ export default async function WorkforceRolesPage() {
       <DataTable columns={["Role", "Headcount", "Criticality", "Scarcity"]}>
         {rows.map((role) => (
           <tr key={role.id}>
-            <td>{role.title}{role.isFixture ? " (fixture)" : ""}</td>
+            <td>
+              <Link className="underline" href={`/app/workforce/roles/${role.id}`}>{role.title}</Link>
+              {role.isFixture ? " (fixture)" : ""}
+            </td>
             <td>{role.currentHeadcount}</td>
             <td>{formatLabel(role.criticality)}</td>
             <td>{formatLabel(role.talentScarcity)}</td>

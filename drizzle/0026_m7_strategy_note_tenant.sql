@@ -1,0 +1,5 @@
+ALTER TABLE "education_partners" ADD CONSTRAINT "education_partners_id_organization_uq" UNIQUE("id","organization_id");--> statement-breakpoint
+ALTER TABLE "workforce_assessments" ADD CONSTRAINT "workforce_assessments_id_organization_uq" UNIQUE("id","organization_id");--> statement-breakpoint
+ALTER TABLE "workforce_strategy_notes" ADD CONSTRAINT "workforce_strategy_notes_role_org_fk" FOREIGN KEY ("role_id","organization_id") REFERENCES "public"."workforce_roles"("id","organization_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "workforce_strategy_notes" ADD CONSTRAINT "workforce_strategy_notes_assessment_org_fk" FOREIGN KEY ("assessment_id","organization_id") REFERENCES "public"."workforce_assessments"("id","organization_id") ON DELETE set null ("assessment_id") ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "workforce_strategy_notes" ADD CONSTRAINT "workforce_strategy_notes_partner_org_fk" FOREIGN KEY ("education_partner_id","organization_id") REFERENCES "public"."education_partners"("id","organization_id") ON DELETE set null ("education_partner_id") ON UPDATE no action;

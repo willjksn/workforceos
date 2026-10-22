@@ -25,6 +25,7 @@ import { JobsSubnav } from "../_components/jobs-subnav";
 import { draftJobRequirementsAction, recalculateJobMatchesAction, reviewJobRequirementAction } from "@/lib/actions/opportunity-matching";
 import { listJobRequirementProfile, listJobTalentMatches } from "@/lib/recruiting/opportunity-matching";
 import { listJobEngagements } from "@/lib/recruiting/opportunity-engagement";
+import { workforceRolesForJob } from "@/lib/workforce/pipeline-supply";
 import { setAuthorizedRouteAction } from "@/lib/actions/opportunity-engagement";
 import { EngagementWorkflowList } from "../../_components/engagement-workflows";
 
@@ -38,6 +39,7 @@ export default async function JobDetailPage({
   const workspace = await getJobWorkspace(id, principal.organizationId);
   if (!workspace) notFound();
   const workflow = await getServiceBundle("professional-search");
+  const workforceRoles = await workforceRolesForJob(principal.organizationId, id);
   const canWrite = can(principal, "jobs.write");
   const canReadPii = can(principal, "candidate_pii.read");
   const skillCatalog = canWrite ? await listCanonicalSkills() : [];
@@ -113,6 +115,16 @@ export default async function JobDetailPage({
       {workspace.job.jobContextType === "monitored_public" ? (
         <p className="mt-2 text-xs text-muted-foreground">
           Public opportunity from a monitored career source. This is not a client relationship and it is not employer interest.
+        </p>
+      ) : null}
+      {workforceRoles.length ? (
+        <p className="mt-3 text-sm">
+          Workforce plan: {workforceRoles.map((role) => (
+            <Link key={role.roleId} className="mr-3 underline" href={`/app/workforce/roles/${role.roleId}`}>
+              {role.title} · {formatLabel(role.demandHorizon)} demand {role.demandQuantity}
+            </Link>
+          ))}
+          This link does not turn the plan quantity into an open job.
         </p>
       ) : null}
       {workspace.job.description ? <p className="mt-4 text-sm text-muted-foreground">{workspace.job.description}</p> : null}
