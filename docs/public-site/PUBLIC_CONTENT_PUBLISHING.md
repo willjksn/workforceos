@@ -16,7 +16,7 @@ This is a lightweight publishing layer, not a CMS.
 
 Jobs and SkillBridge public roles stay single-source in WorkforceOS `jobs` / `job_postings`. Featured rows reference those records. They do not duplicate website job pages.
 
-Public SkillBridge features are **published SkillBridge-eligible employer/host-company job postings** facilitated by PierOne, not PierOne-owned slots and not `skillbridge_opportunities` (those are candidate–employer operating records with Restricted PII).
+Public SkillBridge features are **published SkillBridge-eligible employer/host-company job postings** facilitated by Pier 24 Partners, not Pier 24 Partners-owned slots and not `skillbridge_opportunities` (those are candidate–employer operating records with Restricted PII).
 
 ## Roles and permissions
 

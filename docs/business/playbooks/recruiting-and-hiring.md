@@ -136,7 +136,7 @@ Internal Talent Network search must complete before external sourcing.
 
 | | |
 | --- | --- |
-| **WorkforceOS screen** | Onboarding `/app/onboarding`. This is candidate / new-hire onboarding (Phase 10). It is **not** PierOne employee Day 1–Week 4 (Phase H) and not `/onboarding/access` (deferred portal). |
+| **WorkforceOS screen** | Onboarding `/app/onboarding`. This is candidate / new-hire onboarding (Phase 10). It is **not** Pier 24 Partners employee Day 1–Week 4 (Phase H) and not `/onboarding/access` (deferred portal). |
 | **Required data** | Onboarding tasks. `employees` may link to `candidate_id`; the Talent Network record remains. |
 | **Owner** | Recruiter Standard, Senior Talent Partner |
 | **Access / permission** | `onboarding.read` / `onboarding.manage` / `onboarding.complete`; `employees.read` / `employees.manage` |

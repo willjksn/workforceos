@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 
 import { BrandMark } from "@/components/branding/brand-mark";
+import { COMPANY_NAME, COMPANY_POSITIONING, PRODUCT_IDENTITY, PRODUCT_NAME } from "@/lib/brand/identity";
 
 import { AuthControls } from "./auth-controls";
 
@@ -21,10 +22,10 @@ export default async function Home() {
         <AuthControls />
       </div>
       <div>
-        <p className="eyebrow">Internal operating system</p>
-        <h1 className="page-title mt-3">People. Workforce. Opportunity.</h1>
+        <p className="eyebrow">{PRODUCT_NAME}</p>
+        <h1 className="page-title mt-3">{COMPANY_NAME}</h1>
         <p className="mt-4 max-w-xl text-[16px] leading-7 text-muted-foreground">
-          WorkforceOS is the operating system behind PierOne Partners. Agents draft; people approve.
+          {PRODUCT_IDENTITY}. {COMPANY_POSITIONING} Agents draft; people approve.
         </p>
       </div>
       <div className="flex gap-3">

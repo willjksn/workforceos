@@ -97,7 +97,7 @@ Delivery project phases (`workforce-pipeline-assessment-delivery`): Discovery â†
 | | |
 | --- | --- |
 | **WorkforceOS screen** | Assessment `/app/workforce/assessments/[assessmentId]` (generate / submit / approve plan); Deliverables `/app/projects/deliverables`; Review Queue `/app/ai-operations/review`. |
-| **Required data** | Draft PierOne Workforce Pipeline Plan. Workflow: human approval before client delivery. |
+| **Required data** | Draft Pier 24 Partners Workforce Pipeline Plan. Workflow: human approval before client delivery. |
 | **Owner** | Workforce Consultant (`workforce.approve`) |
 | **Access / permission** | `workforce.approve`; `deliverables.approve` |
 | **Approval** | Required. Agents cannot approve their own material output. |

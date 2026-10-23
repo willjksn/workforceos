@@ -5,16 +5,16 @@ import { SERVICES } from "@/lib/content";
 import { Container, CtaLink, PageHero, Section } from "@/components/ui";
 
 export const metadata: Metadata = {
-  title: "Solutions",
-  description: "Five PierOne Partners solutions for hiring, military talent, talent acquisition performance, fractional talent leadership, and workforce pipelines.",
+  title: "Services",
+  description: "Five Pier 24 Partners services for hiring, military talent, talent acquisition performance, fractional talent leadership, and workforce pipelines.",
 };
 
 export default function WhatWeDoPage() {
   return (
     <main>
-      <PageHero eyebrow="Solutions" title="Five solutions. One workforce practice." size="narrow">
+      <PageHero eyebrow="Services" title="Five services. One workforce practice." size="narrow">
         <p className="mt-6 text-[17px] leading-8 text-white/80">
-          PierOne Partners is a workforce and talent solutions firm. These are the commercial offerings. Internal
+          Pier 24 Partners is a workforce and talent solutions firm. These are the commercial offerings. Internal
           recruiting, Military Talent pathway operations, and workforce intelligence support the work; they are not five extra
           public products.
         </p>
@@ -41,7 +41,7 @@ export default function WhatWeDoPage() {
             ))}
           </ol>
           <div className="mt-12">
-            <CtaLink href="/contact">Work With PierOne</CtaLink>
+            <CtaLink href="/contact">Work With Pier 24 Partners</CtaLink>
           </div>
         </Container>
       </Section>

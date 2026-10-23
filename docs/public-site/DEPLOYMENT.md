@@ -1,17 +1,19 @@
-# PierOne public website deployment
+# Public website deployment
+
+The public brand is Pier 24 Partners. M10 does not rename the repository, the Vercel project, or DNS. The public Vercel project remains `pierone-public`. Production hosts remain `pieronepartners.com` and `app.pieronepartners.com`.
 
 ## Vercel projects
 
 | Project | Git repo | Root directory | Production branch | Production origin |
 | --- | --- | --- | --- | --- |
 | WorkforceOS | `willjksn/workforceos` | repository root | `main` (when cut over) | `https://app.pieronepartners.com` |
-| PierOne Website | `willjksn/workforceos` | `sites/pierone` | same Git; independent Vercel project | `https://pieronepartners.com` |
+| `pierone-public` | `willjksn/workforceos` | `sites/pierone` | same Git; independent Vercel project | `https://pieronepartners.com` |
 
 Do not point both Vercel projects at the same Root Directory. Do not relocate the WorkforceOS `app/` directory to create this split.
 
 ## Public website environment
 
-Set on the PierOne Website Vercel project only:
+Set on the `pierone-public` Vercel project only:
 
 | Variable | Purpose |
 | --- | --- |

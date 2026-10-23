@@ -36,7 +36,7 @@ export default async function MilitaryCandidatesPage({
       <PageHeader
         eyebrow="Military talent"
         title="Transitioning talent"
-        description="Transitioning service members and other military talent in the Talent Network. These are the same candidate records used in recruiting — not a PierOne SkillBridge program roster."
+        description="Transitioning service members and other military talent in the Talent Network. These are the same candidate records used in recruiting — not a Pier 24 Partners SkillBridge program roster."
       />
       <MilitarySubnav active="/app/military/candidates" />
       {focus === "none" ? (

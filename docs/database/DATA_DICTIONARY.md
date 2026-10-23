@@ -66,8 +66,8 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | `decision_log` | Architectural decisions. |
 | `system_settings` | Seed/version metadata. |
 | `semantic_documents` | Embeddings for later semantic search. |
-| `user_training_progress` | Lightweight Academy completion (`user_id`, `module_slug`, `status`, timestamps). Unique on `(user_id, module_slug)`. Required vs Not Required is computed from effective permissions in code, not stored here. Completion does not grant permissions. Not an LMS. PierOne staff cadence lives in `staff_onboarding`, not this table. |
-| `staff_onboarding` | PierOne employee Day 1–Week 4 cadence. Unique on `user_id`. Created at Admin invite with cadence `day_1`. Distinct from ATS hire `onboarding_instances`. Week 4 review timestamps do not grant permissions. Organizations are not cascade-deleted. |
+| `user_training_progress` | Lightweight Academy completion (`user_id`, `module_slug`, `status`, timestamps). Unique on `(user_id, module_slug)`. Required vs Not Required is computed from effective permissions in code, not stored here. Completion does not grant permissions. Not an LMS. Pier 24 Partners staff cadence lives in `staff_onboarding`, not this table. |
+| `staff_onboarding` | Pier 24 Partners employee Day 1–Week 4 cadence. Unique on `user_id`. Created at Admin invite with cadence `day_1`. Distinct from ATS hire `onboarding_instances`. Week 4 review timestamps do not grant permissions. Organizations are not cascade-deleted. |
 | `staff_onboarding_equipment` | Lightweight systems checklist (laptop, Clerk login, email, WorkforceOS access). Unique on `(onboarding_id, item_key)`. Not a procurement system. |
 | `staff_policy_acknowledgements` | Timestamped staff policy acknowledgements (at least `security_candidate_privacy`). Unique on `(user_id, policy_key)`. Not a legal CMS. |
 
@@ -163,7 +163,7 @@ Schema source of truth: [SCHEMA_SPEC.md](./SCHEMA_SPEC.md) and `db/schema/`.
 | `skillbridge_profiles` | Transition Talent Profile overlay on a Talent Network candidate (unique `candidate_id`). Physical table name retained. Separation, ETS, EAOS, availability, SkillBridge pathway dates and approval, transition location and relocation, target industry and employer, career priorities, owner, and follow-up. Rank and occupation columns are the current display snapshot. Not a second person table. `(candidate_id, organization_id)` references `candidates (id, organization_id)`. |
 | `skillbridge_preferred_locations` | Transition Profile preferred locations. Physical table name retained. |
 | `skillbridge_target_roles` | Transition Profile target roles. Free-text title, optional `civilian_occupation_id`, and optional `job_family` text. Not a matcher. |
-| `skillbridge_opportunities` | Employer / host-company opportunities: many-to-many candidate–employer pipeline rows with stage. SkillBridge-eligible is an opportunity type, not PierOne program ownership. |
+| `skillbridge_opportunities` | Employer / host-company opportunities: many-to-many candidate–employer pipeline rows with stage. SkillBridge-eligible is an opportunity type, not Pier 24 Partners program ownership. |
 | `skillbridge_opportunity_stage_history` | Prior stages retained; current stage lives on the opportunity. |
 | `skillbridge_notes` | Operating notes on a profile/opportunity. Timeline also reuses `activities`. |
 | `skillbridge_documents` | Metadata links to `files` (resume/certs). No binaries in PostgreSQL. Resume status is missing/outdated/current/needs_review. |
@@ -202,7 +202,7 @@ Workforce roles are planning-level. They do not duplicate recruiting `jobs`. For
 | `skills_gap_analyses` | Individual, aggregate, or military-transition skill gap output. |
 | `workforce_scenarios` / `workforce_scenario_inputs` / `workforce_scenario_outputs` | Planning scenarios. Not guaranteed forecasts. |
 | `workforce_recommendations` | AI or analyst drafts. Client-facing use requires human approval. |
-| `workforce_pipeline_plans` | Expanded Phase 4 WPA deliverable (PierOne HTML). Human approval before client delivery. |
+| `workforce_pipeline_plans` | Expanded Phase 4 WPA deliverable (Pier 24 Partners HTML). Human approval before client delivery. |
 | `workforce_roadmap_items` | 0–90 day through 12–24 month actions; may link to existing `project_tasks`. |
 | `workforce_kpis` / `workforce_risks` | Stored KPI and risk records. Financial KPIs are omitted without source data. |
 | `labor_market_source_metadata` / `labor_market_observations` | Integration Hub source status and labeled fixtures. Never invent BLS/Census/O\*NET values. |
@@ -248,7 +248,7 @@ Workforce roles are planning-level. They do not duplicate recruiting `jobs`. For
 | `background_checks` / `drug_screens` | Provider-neutral pre-employment rows. Restricted. |
 | `offers` | Existing recruiting offers plus `application_id` and `version`. |
 | `employees` | Employment bridge to `candidate_id`. Not payroll. |
-| `onboarding_templates` / `onboarding_instances` / `onboarding_tasks` | New-hire checklists. Distinct from PierOne staff Academy onboarding. |
+| `onboarding_templates` / `onboarding_instances` / `onboarding_tasks` | New-hire checklists. Distinct from Pier 24 Partners staff Academy onboarding. |
 | `public_access_tokens` | Hashed tokens for interview self-schedule, hire onboarding (`/onboarding/access`), and read-only application status. Not a client SaaS login. |
 | `report_export_schedules` / `report_export_jobs` | Operator-scheduled non-PII CSV jobs. Not a BI platform. |
 | `transactional_email_events` | Resend/mock send log. |

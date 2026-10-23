@@ -10,7 +10,7 @@ import { workforceOsPublic } from "@/lib/workforceos/client";
 export const metadata: Metadata = {
   title: "SkillBridge-Eligible Opportunities",
   description:
-    "Explore employer and host-company SkillBridge-eligible opportunities facilitated by PierOne. PierOne is the intermediary, not automatically the SkillBridge host. Placement is not guaranteed.",
+    "Explore employer and host-company SkillBridge-eligible opportunities facilitated by Pier 24 Partners. Pier 24 Partners is the intermediary, not automatically the SkillBridge host. Placement is not guaranteed.",
 };
 
 export const revalidate = 60;
@@ -31,7 +31,7 @@ export default async function SkillBridgePage() {
               </h1>
               <p className="mt-6 text-[17px] leading-8 text-white/80">
                 SkillBridge is one possible transition pathway. Featured roles are employer or host-company
-                opportunities that PierOne surfaces. PierOne is generally not the SkillBridge host. Opportunities depend
+                opportunities that Pier 24 Partners surfaces. Pier 24 Partners is generally not the SkillBridge host. Opportunities depend
                 on employer needs and service/command approval.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
@@ -52,14 +52,14 @@ export default async function SkillBridgePage() {
           <FeaturedJobStrip
             jobs={content.featuredSkillBridge}
             heading="Featured SkillBridge-Eligible Opportunities"
-            intro="These are employer or host-company SkillBridge-eligible opportunities facilitated by PierOne, not PierOne-owned SkillBridge slots."
+            intro="These are employer or host-company SkillBridge-eligible opportunities facilitated by Pier 24 Partners, not Pier 24 Partners-owned SkillBridge slots."
           />
           <Heading>What this is — and is not</Heading>
           <ul className="mt-6 max-w-3xl space-y-4 text-[16px] leading-7 text-muted">
-            <li>PierOne finds transitioning service members, builds transition talent profiles, and matches them to employer opportunities.</li>
+            <li>Pier 24 Partners finds transitioning service members, builds transition talent profiles, and matches them to employer opportunities.</li>
             <li>SkillBridge internships and related opportunities depend on a host company/employer and on service/command approval.</li>
-            <li>Joining the Military Talent Network does not enroll you in a PierOne SkillBridge program or guarantee a placement.</li>
-            <li>PierOne does not guarantee placement, employment, SkillBridge approval, or conversion to a civilian job.</li>
+            <li>Joining the Military Talent Network does not enroll you in a Pier 24 Partners SkillBridge program or guarantee a placement.</li>
+            <li>Pier 24 Partners does not guarantee placement, employment, SkillBridge approval, or conversion to a civilian job.</li>
           </ul>
           <p className="mt-8 text-sm text-muted">
             Transitioning service members:{" "}

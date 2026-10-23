@@ -387,7 +387,7 @@ Only inside the **five launch services** and existing spines. AI accelerates dra
 
 **Recruiting / search execution:** internal Talent Network search commentary, job-specific match notes, outreach drafts, stalled-search alerts, candidate summaries (PII-stripped unless permitted), interview-feedback reminders. No auto-reject, no auto-submit, no offer issue.
 
-**Military Talent (intermediary):** mapping drafts, skills translation, employer-opportunity match notes, hiring-manager briefs, SkillBridge-window follow-up drafts. Humans connect, submit, and approve mappings. Do not present PierOne as the SkillBridge host.
+**Military Talent (intermediary):** mapping drafts, skills translation, employer-opportunity match notes, hiring-manager briefs, SkillBridge-window follow-up drafts. Humans connect, submit, and approve mappings. Do not present Pier 24 Partners as the SkillBridge host.
 
 **Workforce / Fractional / TA Performance / Pipeline Assessment:** gap interpretation and roadmap drafts from **stored** assessment data only. No invented BLS/Census/O\*NET statistics.
 
@@ -403,7 +403,7 @@ Only inside the **five launch services** and existing spines. AI accelerates dra
 - Unsupervised reject / hire / submit / price / send / contract / legal / adverse action / invoice
 - Auto-won opportunities, auto-executed contracts, auto-closed projects
 - Fabricated labor-market or commercial terms
-- A sixth launch service or SkillBridge-as-PierOne-program
+- A sixth launch service or SkillBridge-as-Pier 24 Partners-program
 - Recruiter access to the commercial GTM pipeline via Scout
 - Background-check or drug-screen auto-adjudication
 - Privacy deletion or PII export by an agent
@@ -470,7 +470,7 @@ Only inside the **five launch services** and existing spines. AI accelerates dra
 | Recruiter cost / commercial leak | Never grant `agents.manage` or `opportunities.read` to Recruiter. Scout respects domain RBAC. |
 | Review Queue vs domain approve | Today `agents.read` can decide. Tighten to domain permissions to avoid ops approving mappings they should not. |
 | Scout LLM jailbreak | Assist may only return closed Zod families; SQL patterns stay rejected; two parse failures → reject. |
-| Military language | DEC-MIL-005 intermediary model. Do not let prompts say PierOne hosts SkillBridge. |
+| Military language | DEC-MIL-005 intermediary model. Do not let prompts say Pier 24 Partners hosts SkillBridge. |
 | Five-service drift | Workflows from approved DB records; RAG cannot invent a sixth offer. |
 | Cost estimate fiction | Current $3/$15 is misleading. Prefer `cost_unknown` until a rate table exists. |
 | Provider key in client | Server-only `lib/env.ts`. No `NEXT_PUBLIC_` AI keys. |

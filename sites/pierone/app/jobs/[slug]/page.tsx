@@ -49,7 +49,7 @@ export default async function JobPage({ params }: { params: Promise<{ slug: stri
     employmentType: job.employmentType ?? undefined,
     hiringOrganization: {
       "@type": "Organization",
-      name: job.companyDisplay ?? "PierOne Partners",
+      name: job.companyDisplay ?? "Pier 24 Partners",
     },
     jobLocation: job.location
       ? {
@@ -83,7 +83,7 @@ export default async function JobPage({ params }: { params: Promise<{ slug: stri
           {job.skillbridgeEligible ? (
             <p className="mt-4 max-w-2xl text-sm text-white/75">
               {job.skillbridgeDisclaimer ??
-                "This is a SkillBridge-eligible employer or host-company opportunity facilitated by PierOne. PierOne is not automatically the host. Participation depends on the employer and approval requirements. Applying does not guarantee approval or employment."}
+                "This is a SkillBridge-eligible employer or host-company opportunity facilitated by Pier 24 Partners. Pier 24 Partners is not automatically the host. Participation depends on the employer and approval requirements. Applying does not guarantee approval or employment."}
             </p>
           ) : null}
         </Container>

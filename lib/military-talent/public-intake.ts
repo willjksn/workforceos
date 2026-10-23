@@ -244,7 +244,7 @@ export async function persistMilitaryTalentIntake(input: MilitaryTalentPayload &
     engagementType: "other",
     channel: "website",
     subject: "Military Talent Network submission",
-    summary: "Submitted from the PierOne public website without a specific job application.",
+    summary: "Submitted from the Pier 24 Partners public website without a specific job application.",
     direction: "inbound",
     userId: ownerUserId,
   });

@@ -8,7 +8,7 @@ import { IMAGES } from "@/lib/images";
 export const metadata: Metadata = {
   title: "Military Talent",
   description:
-    "Join the PierOne Military Talent Network, or work with PierOne to match transitioning service members to employer and SkillBridge-eligible opportunities. Placement is not guaranteed.",
+    "Join the Pier 24 Partners Military Talent Network, or work with Pier 24 Partners to match transitioning service members to employer and SkillBridge-eligible opportunities. Placement is not guaranteed.",
 };
 
 export default function MilitaryTalentPage() {
@@ -23,7 +23,7 @@ export default function MilitaryTalentPage() {
               Connecting transitioning service members with civilian employers.
             </h1>
             <p className="mt-6 max-w-xl text-[17px] leading-8 text-white/80">
-              PierOne is the intermediary. We help translate military experience, identify potential employer matches,
+              Pier 24 Partners is the intermediary. We help translate military experience, identify potential employer matches,
               and connect transitioning talent with civilian and SkillBridge-eligible opportunities. We are not
               automatically the SkillBridge host, and joining does not guarantee a placement.
             </p>
@@ -67,7 +67,7 @@ export default function MilitaryTalentPage() {
               <Eyebrow>For employers</Eyebrow>
               <Heading>Find military talent. Build a pipeline.</Heading>
               <p className="mt-4 text-[16px] leading-7 text-muted">
-                PierOne helps employers see military occupations, skills, geography, and transition timing against real
+                Pier 24 Partners helps employers see military occupations, skills, geography, and transition timing against real
                 workforce demand. SkillBridge is one possible pathway when a host company, timing, and approval
                 requirements align.
               </p>
@@ -89,7 +89,7 @@ export default function MilitaryTalentPage() {
               ["Occupation translation", "Army MOS, Navy Rating, Air Force AFSC, Marine MOS, Coast Guard Rating, and applicable Space Force classifications can be mapped to civilian work."],
               ["Civilian skill alignment", "Translation includes skills, likely gaps, and bridge considerations rather than title matching alone."],
               ["Installation and geography", "Talent markets often sit near installations. Mapping that geography is part of a serious military hiring plan."],
-              ["SkillBridge-eligible opportunities", "SkillBridge can be relevant where a host employer, timing, and approval requirements align. PierOne facilitates matching; the employer/host company owns the opportunity. Approval is never guaranteed."],
+              ["SkillBridge-eligible opportunities", "SkillBridge can be relevant where a host employer, timing, and approval requirements align. Pier 24 Partners facilitates matching; the employer/host company owns the opportunity. Approval is never guaranteed."],
               ["Transition pipelines", "Separating and retiring service members move on known windows. Pipeline design uses those windows without promising conversion."],
             ].map(([title, body]) => (
               <article key={title} className="border-t border-border pt-6">
@@ -100,7 +100,7 @@ export default function MilitaryTalentPage() {
           </div>
           <div className="mt-16 grid gap-10 lg:grid-cols-2">
             <div>
-              <Heading>Talk to PierOne</Heading>
+              <Heading>Talk to Pier 24 Partners</Heading>
               <p className="mt-3 text-muted">Employer inquiry for military talent strategy, matching, and pipeline design.</p>
             </div>
             <InquiryForm defaultService="military-talent-opportunity-assessment" pagePath="/military-talent" />

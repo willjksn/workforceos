@@ -57,7 +57,7 @@ export default async function PublicContentPage({
       <PageHeader
         eyebrow="Public website"
         title="Public content"
-        description="Control featured jobs, SkillBridge-eligible employer opportunities, hiring banners, and temporary announcements without redeploying pieronepartners.com. Featured SkillBridge items are host-company/employer postings facilitated by PierOne, not PierOne-owned slots. Stable brand copy stays in the website codebase."
+        description="Control featured jobs, SkillBridge-eligible employer opportunities, hiring banners, and temporary announcements without redeploying pieronepartners.com. Featured SkillBridge items are host-company/employer postings facilitated by Pier 24 Partners, not Pier 24 Partners-owned slots. Stable brand copy stays in the website codebase."
         actions={
           canManage ? (
             <ButtonLink href="/app/public-content/new">New item</ButtonLink>

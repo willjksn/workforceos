@@ -168,7 +168,7 @@ export default async function ApplicationDetailPage({ params }: { params: Promis
             <ActionForm action={startOnboardingAction}>
               <input type="hidden" name="applicationId" value={detail.application.id} />
               <p className="mb-2 text-xs text-muted-foreground">
-                Issues a signed hire-onboarding token for /onboarding/access. Distinct from PierOne staff Academy onboarding.
+                Issues a signed hire-onboarding token for /onboarding/access. Distinct from Pier 24 Partners staff Academy onboarding.
               </p>
               <PrimaryButton>Start onboarding</PrimaryButton>
             </ActionForm>

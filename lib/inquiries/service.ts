@@ -82,7 +82,7 @@ async function matchCompany(input: { organizationId: string; website?: string | 
         website: `https://${host}`,
         companyType: "prospect",
         clientStatus: "prospect",
-        notes: "Created from PierOne public website inquiry. Domain match was unique.",
+        notes: "Created from Pier 24 Partners public website inquiry. Domain match was unique.",
       })
       .returning();
     await recordAuditEvent({
@@ -235,7 +235,7 @@ export async function submitWebsiteInquiry(input: InquiryPayload & { ip?: string
     organizationId,
     activityType: "system",
     subject: "Website inquiry submitted",
-    details: `${firstName} ${lastName} submitted a PierOne website inquiry for ${input.serviceInterest}.`,
+    details: `${firstName} ${lastName} submitted a Pier 24 Partners website inquiry for ${input.serviceInterest}.`,
     createdByUserId: ownerUserId,
     companyId: companyMatch.companyId,
     contactId: contactMatch.contactId,
@@ -386,7 +386,7 @@ export async function convertInquiryToOpportunity(input: {
       ownerUserId: inquiry.ownerUserId ?? input.actorUserId,
       primaryContactId: inquiry.contactId,
       problemStatement: inquiry.challenge,
-      notes: "Converted from PierOne public website inquiry. Human qualification required.",
+      notes: "Converted from Pier 24 Partners public website inquiry. Human qualification required.",
     })
     .returning();
   await db

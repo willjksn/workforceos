@@ -21,7 +21,7 @@ export default async function OnboardingPage({
       <PageHeader
         eyebrow="Hiring"
         title="Onboarding"
-        description="ATS hire onboarding. Distinct from PierOne staff Academy onboarding at /app/academy/onboarding. New hires can complete their own tasks at /onboarding/access with a signed token."
+        description="ATS hire onboarding. Distinct from Pier 24 Partners staff Academy onboarding at /app/academy/onboarding. New hires can complete their own tasks at /onboarding/access with a signed token."
       />
       {issued ? <p className="mt-3 text-sm text-teal">Hire access link issued: {issued}</p> : null}
       <p className="mt-4 text-sm">New hires starting: {metrics.newHiresStarting}</p>

@@ -34,7 +34,7 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
                 <p className="mt-3">{service.problem}</p>
               </section>
               <section>
-                <h2 className="font-serif text-2xl text-navy">What PierOne does</h2>
+                <h2 className="font-serif text-2xl text-navy">What Pier 24 Partners does</h2>
                 <p className="mt-3">{service.whatWeDo}</p>
               </section>
               <section>

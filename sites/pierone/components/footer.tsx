@@ -3,7 +3,7 @@ import { SERVICES } from "@/lib/content";
 
 const columns = [
   {
-    title: "Solutions",
+    title: "Services",
     links: [
       ...SERVICES.map((service) => ({ href: `/services/${service.slug}`, label: service.name })),
     ],
@@ -23,7 +23,7 @@ const columns = [
       { href: "/about", label: "About" },
       { href: "/industries", label: "Industries" },
       { href: "/insights", label: "Insights" },
-      { href: "/contact", label: "Work With PierOne" },
+      { href: "/contact", label: "Work With Pier 24 Partners" },
     ],
   },
   {
@@ -62,7 +62,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-6 flex flex-col gap-2 border-t border-white/15 pt-4 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} PierOne Partners. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Pier 24 Partners. All rights reserved.</p>
           <p className="flex flex-wrap gap-x-4 gap-y-1">
             <a href="/privacy" className="hover:text-white">
               Privacy

@@ -75,7 +75,7 @@ export const CADENCE_LABELS: Record<CadenceId, string> = {
 
 export const CADENCE_SUMMARIES: Record<CadenceId, string> = {
   leadership: "Weekly pipeline review from stored opportunities, delivery, Military Talent, cash, and derived risks.",
-  operations: "Delivery, overdue work, PierOne staff onboarding, contracts, and open commitments.",
+  operations: "Delivery, overdue work, Pier 24 Partners staff onboarding, contracts, and open commitments.",
   talent: "Jobs, Talent Network, submissions, interviews, aging, and placements.",
   military: "Transition Talent Profiles, SkillBridge pathway windows, unmatched talent, and employer/host matches.",
   finance: "Operating invoices, AR aging, cash received, and expected revenue. Not a general ledger.",
@@ -224,7 +224,7 @@ export const RHYTHM_WIDGET_DEFS: RhythmWidgetDef[] = [
   {
     id: "staffing",
     cadence: "operations",
-    question: "Which PierOne staff onboarding records are still open or past the Week 4 elapsed window?",
+    question: "Which Pier 24 Partners staff onboarding records are still open or past the Week 4 elapsed window?",
     href: "/app/admin/users",
     windowHint: `Open staff cadence, or past the ${STAFF_WEEK4_ELAPSED_DAYS}-day Week 4 window. Not a temp-staffing product.`,
     anyPermission: ["admin.users"],
@@ -413,7 +413,7 @@ export const RHYTHM_WIDGET_DEFS: RhythmWidgetDef[] = [
     cadence: "gtm",
     question: "How many military employer conversations are open?",
     href: "/app/military/opportunities",
-    windowHint: "Military Talent Opportunity Assessment opportunities, plus SkillBridge-eligible employer/host matches when permitted. PierOne is the intermediary.",
+    windowHint: "Military Talent Opportunity Assessment opportunities, plus SkillBridge-eligible employer/host matches when permitted. Pier 24 Partners is the intermediary.",
     anyPermission: ["opportunities.read"],
     commercial: true,
   },

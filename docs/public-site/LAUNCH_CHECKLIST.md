@@ -1,4 +1,4 @@
-# PierOne public website launch checklist
+# Pier 24 Partners public website launch checklist
 
 Canonical host: `https://pieronepartners.com`. WorkforceOS: `https://app.pieronepartners.com`.
 
@@ -15,7 +15,7 @@ Canonical host: `https://pieronepartners.com`. WorkforceOS: `https://app.pierone
 - [ ] Inquiry, application, and military-talent acknowledgement tests to safe inboxes
 - [ ] `PUBLIC_SITE_INTEGRATION_SECRET` = `WORKFORCEOS_SITE_SECRET`; production unsigned writes rejected
 - [ ] HMAC tests: valid / invalid / wrong secret / stale / tampered body / spoofed Origin / spoofed Referer / unsigned production / multipart field and resume tamper
-- [ ] PierOne Website Vercel project: Root Directory `sites/pierone`
+- [ ] Pier 24 Partners Website Vercel project: Root Directory `sites/pierone`
 - [ ] Existing WorkforceOS Vercel project unchanged at repo root
 - [ ] Preview website cannot write to production
 - [ ] `PUBLIC_SITE_ALLOWED_ORIGINS` is an explicit allowlist (no `*`)

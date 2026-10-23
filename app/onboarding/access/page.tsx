@@ -21,7 +21,7 @@ export default async function HireOnboardingAccessPage({
       <main className="min-h-full bg-[#F7F8F9] px-6 py-16 text-[#102A3A]">
         <h1 className="font-serif text-3xl">Hire onboarding</h1>
         <p className="mt-4 text-sm text-[#6B7280]">
-          This page is for new-hire tasks with a signed token. It is not PierOne staff Academy onboarding and does not use
+          This page is for new-hire tasks with a signed token. It is not Pier 24 Partners staff Academy onboarding and does not use
           /app.
         </p>
       </main>
@@ -36,7 +36,7 @@ export default async function HireOnboardingAccessPage({
           <p className="text-xs uppercase tracking-[0.18em] text-[#4E7B8C]">New-hire onboarding</p>
           <h1 className="mt-3 font-serif text-4xl">{context.jobTitle}</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-white/80">
-            Hello {context.firstName}. These are hire tasks only. This is not PierOne staff training at /app/academy/onboarding.
+            Hello {context.firstName}. These are hire tasks only. This is not Pier 24 Partners staff training at /app/academy/onboarding.
           </p>
         </header>
         <section className="mx-auto max-w-xl space-y-4 px-6 py-10">

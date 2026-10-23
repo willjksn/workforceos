@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### M10 — Pier 24 Partners brand migration
+
+- User-facing company name is Pier 24 Partners. WorkforceOS remains the product: WorkforceOS by Pier 24 Partners.
+- Public offers, SkillBridge-as-a-pathway, Public opportunity, and CRM Opportunities are unchanged in meaning.
+- Repository, Vercel project `pierone-public`, hosts, HMAC headers, and `pierone_public_website` stay. No database migration.
+
 ### AI launch simplification — 2026-09-10
 
 - OpenAI is the production AI provider for launch (FAST / STANDARD / REASONING). Gemini availability fallback remains supported by the architecture but is deferred until post-launch validation.

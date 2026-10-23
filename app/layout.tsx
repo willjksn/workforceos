@@ -2,6 +2,8 @@ import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 
+import { COMPANY_NAME, COMPANY_POSITIONING, PRODUCT_IDENTITY, PRODUCT_NAME } from "@/lib/brand/identity";
+
 import "./globals.css";
 
 const inter = Inter({
@@ -18,8 +20,18 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "WorkforceOS · PierOne Partners",
-  description: "Internal operating system for PierOne Partners workforce and talent operations.",
+  title: PRODUCT_IDENTITY,
+  description: `${PRODUCT_NAME} is the internal operating platform for ${COMPANY_NAME}. ${COMPANY_POSITIONING}`,
+  openGraph: {
+    title: PRODUCT_IDENTITY,
+    description: COMPANY_POSITIONING,
+    siteName: PRODUCT_NAME,
+  },
+  twitter: {
+    card: "summary",
+    title: PRODUCT_IDENTITY,
+    description: COMPANY_POSITIONING,
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

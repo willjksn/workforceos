@@ -6,7 +6,7 @@ Do not hardcode these hosts in application logic. Use `NEXT_PUBLIC_SITE_URL`, `N
 
 | Host | Record | Target |
 | --- | --- | --- |
-| `pieronepartners.com` | A / ALIAS / CNAME per Vercel | PierOne Website project |
+| `pieronepartners.com` | A / ALIAS / CNAME per Vercel | `pierone-public` Vercel project. Public brand is Pier 24 Partners. Do not rename the project or this host in M10. |
 | `www.pieronepartners.com` | CNAME or redirect | apex `pieronepartners.com` |
 | `app.pieronepartners.com` | CNAME | WorkforceOS Vercel project |
 

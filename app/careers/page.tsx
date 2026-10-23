@@ -9,10 +9,10 @@ export default async function CareersPage() {
   return (
     <main className="min-h-full bg-[#F7F8F9] text-[#102A3A]">
       <header className="border-b border-[#DCE2E7] bg-[#0E2D4A] px-6 py-10 text-white">
-        <p className="text-xs uppercase tracking-[0.18em] text-[#4E7B8C]">PierOne Partners</p>
+        <p className="text-xs uppercase tracking-[0.18em] text-[#4E7B8C]">Pier 24 Partners</p>
         <h1 className="mt-3 font-serif text-4xl">Careers</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-white/80">
-          Open roles at PierOne Partners and selected client and SkillBridge-eligible employer opportunities. Applying does not guarantee an interview. Transitioning service members can also join the Military Talent Network without applying to a specific job.
+          Open roles at Pier 24 Partners and selected client and SkillBridge-eligible employer opportunities. Applying does not guarantee an interview. Transitioning service members can also join the Military Talent Network without applying to a specific job.
         </p>
       </header>
       <section className="mx-auto max-w-4xl px-6 py-10">

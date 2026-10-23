@@ -667,7 +667,7 @@ async function executeAuthorizedCommand(input: {
         data: {
           contentType: "homepage_banner",
           title: "We're hiring",
-          body: "PierOne is recruiting talent. Applying does not guarantee an interview.",
+          body: "Pier 24 Partners is recruiting talent. Applying does not guarantee an interview.",
           ctaLabel: "View open roles",
           ctaUrl: "/careers",
           linkedJobId: jobId,

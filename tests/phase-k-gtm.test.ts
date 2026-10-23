@@ -180,7 +180,7 @@ describe("Phase K 90-day GTM", () => {
     expect(article?.stepByStep.join(" ")).toMatch(/DEC-RBAC-001/);
     expect(article?.stepByStep.join(" ")).toMatch(/DEC-WEB-004/);
     expect(article?.stepByStep.join(" ")).not.toMatch(/Military Talent Specialist/);
-    expect(article?.stepByStep.join(" ")).not.toMatch(/PierOne SkillBridge program/);
+    expect(article?.stepByStep.join(" ")).not.toMatch(/Pier 24 Partners SkillBridge program/);
     expect(isScoutExternalSendEnabled()).toBe(false);
   });
 });

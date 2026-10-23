@@ -327,7 +327,7 @@ async function main() {
   await generateDemandForecasts({ actor, assessmentId: linked.id });
   await calculateWorkforceGaps({ actor, assessmentId: linked.id });
   const pipelinePlan = await createWorkforcePipelinePlan({ actor, assessmentId: linked.id });
-  assert(pipelinePlan.htmlBody?.includes("PierOne"), "Plan should use PierOne report layout");
+  assert(pipelinePlan.htmlBody?.includes("Pier 24 Partners"), "Plan should use Pier 24 Partners report layout");
 
   console.log("TEST 19 — Approved roadmap creates project tasks");
   const submitted = await submitWorkforcePlanForApproval({ actor, planId: pipelinePlan.id });

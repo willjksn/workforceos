@@ -191,7 +191,7 @@ function ScoutDrawer({
             <p id="scout-title" className="font-serif text-2xl leading-none">
               Scout
             </p>
-            <p className="mt-2 text-[11px] uppercase tracking-[0.14em] text-white/70">WorkforceOS Intelligence</p>
+            <p className="mt-2 text-[11px] uppercase tracking-[0.14em] text-white/70">WorkforceOS Scout</p>
             <p className="mt-2 truncate text-xs text-white/80">This page · {pageLabel}</p>
           </div>
           <div className="flex items-center gap-2">

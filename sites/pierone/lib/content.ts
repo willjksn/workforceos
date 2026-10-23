@@ -1,15 +1,16 @@
-export const SITE_NAME = "PierOne Partners";
+export const SITE_NAME = "Pier 24 Partners";
 export const SITE_TAGLINE =
   "We help organizations build the workforce they need today and prepare for the workforce they will need tomorrow.";
 export const SITE_POSITIONING =
-  "PierOne Partners helps organizations solve immediate talent needs while building stronger future workforce pipelines.";
+  "Pier 24 Partners helps organizations solve immediate talent needs while building stronger future workforce pipelines.";
 
 export const BRAND_TAGLINE = "TALENT. WORKFORCE. OPPORTUNITY.";
 
 export const PRIMARY_NAV = [
   { href: "/", label: "Home" },
-  { href: "/what-we-do", label: "Solutions", hasMenu: true },
+  { href: "/what-we-do", label: "Services", hasMenu: true },
   { href: "/military-talent", label: "Military Talent" },
+  { href: "/industries", label: "Industries" },
   { href: "/careers", label: "Careers" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
@@ -35,11 +36,11 @@ export const SERVICES = [
     problem:
       "Critical professional and technical roles stay open when intake is vague, sourcing is fragmented, and hiring teams lack a disciplined search process.",
     whatWeDo:
-      "PierOne runs retained or project search with a structured intake, an internal Talent Network search first, then targeted sourcing, screening, candidate presentation, interview support, and offer/placement coordination.",
+      "Pier 24 Partners runs retained or project search with a structured intake, an internal Talent Network search first, then targeted sourcing, screening, candidate presentation, interview support, and offer/placement coordination.",
     clientReceives:
       "A defined search process, qualified candidates presented against the agreed brief, and support through interviews and offer. This is not high-volume temporary staffing.",
     whoFor:
-      "Employers hiring for professional, technical, and hard-to-fill roles where quality of fit matters more than speed alone.",
+      "Employers hiring technical, professional, engineering, operations, supply chain, technology, and leadership roles where quality of fit matters more than volume.",
     engagement:
       "Typically opportunity discovery, search intake, confidential search execution, and placement support under a defined search agreement.",
   },
@@ -47,13 +48,13 @@ export const SERVICES = [
     slug: "military-talent-opportunity-assessment",
     code: "military-talent-opportunity-assessment" as const,
     name: "Military Talent Opportunity Assessment",
-    short: "Identify where military talent can strengthen a workforce.",
+    short: "Employer-side analysis of where military talent may support the workforce.",
     problem:
-      "Employers often know they want military talent but cannot see which roles, locations, and pipelines actually fit.",
+      "Employers often know they want military talent but cannot see which roles, capabilities, channels, and barriers actually matter.",
     whatWeDo:
-      "PierOne analyzes job families, translates military occupations and skills into civilian work, maps relevant installations and talent markets, and matches transitioning service members to employer opportunities — including SkillBridge-eligible host-company roles where they are relevant. PierOne is the intermediary, not automatically the SkillBridge host.",
+      "Pier 24 Partners looks at where military talent could support the workforce, which job families and capabilities are relevant, which military talent channels may align, what current and pipeline demand exists, and which barriers must be addressed. The firm is the intermediary. This assessment does not place SkillBridge interns and does not make Pier 24 Partners the SkillBridge host.",
     clientReceives:
-      "An actionable military talent strategy grounded in occupation translation, geography, and employer matching. SkillBridge participation depends on a host employer, timing, and service/command approval. PierOne does not guarantee approvals, placements, or conversions.",
+      "An actionable military talent strategy grounded in occupation translation, geography, and employer matching. SkillBridge participation depends on a host employer, timing, and service/command approval. Pier 24 Partners does not guarantee approvals, placements, or conversions.",
     whoFor:
       "Organizations exploring military hiring, SkillBridge-eligible host opportunities, or regional talent adjacent to installations.",
     engagement:
@@ -67,9 +68,9 @@ export const SERVICES = [
     problem:
       "Hiring slows when TA process, capacity, measurement, and ownership are unclear.",
     whatWeDo:
-      "PierOne evaluates current talent acquisition processes, identifies bottlenecks, reviews recruiting performance, and recommends a future-state operating model with a practical roadmap.",
+      "Pier 24 Partners reviews process, conversion, candidate experience, sourcing, response and accountability, workflow, technology, metrics, and the operating model, then recommends a practical path.",
     clientReceives:
-      "Findings, prioritized recommendations, and a roadmap. WorkforceOS may be used internally to operate the work; it is not sold as a public ATS marketplace.",
+      "Findings, prioritized recommendations, and a roadmap. WorkforceOS may support delivery when it is useful. It is not required for every assessment and it is not a public ATS.",
     whoFor:
       "Leaders who need an honest read of TA performance before adding headcount or tools.",
     engagement:
@@ -79,13 +80,13 @@ export const SERVICES = [
     slug: "fractional-talent-partner",
     code: "fractional-talent-partner" as const,
     name: "Fractional Talent Partner",
-    short: "Embedded talent leadership with defined scope and cadence.",
+    short: "Embedded talent leadership and capacity within a defined scope.",
     problem:
-      "Growing organizations need recruiting leadership and operating rhythm without a full-time executive hire.",
+      "Growing organizations need talent leadership and operating rhythm without a full-time executive hire.",
     whatWeDo:
-      "PierOne embeds talent leadership within a defined scope and capacity: recruiting operations, hiring support, reporting, and a regular operating cadence. Scope is never unlimited recruiting.",
+      "Pier 24 Partners embeds talent leadership for strategy, sourcing, recruiting execution, program management, military talent, process improvement, and workforce pipeline coordination. Scope and cadence are defined.",
     clientReceives:
-      "Named capacity, agreed workstreams, and reporting. This is an engagement model, not temporary staffing or payroll.",
+      "Named capacity, agreed workstreams, and reporting. This is embedded talent leadership, not hourly staffing labor, temporary staffing, or payroll.",
     whoFor:
       "Organizations that need senior talent support for a defined period or workload.",
     engagement:
@@ -99,7 +100,7 @@ export const SERVICES = [
     problem:
       "Leaders feel future workforce risk but lack a structured view of demand, supply, military overlay, and pipeline options.",
     whatWeDo:
-      "PierOne assesses demand and supply for critical roles, labor markets, military talent where relevant, skills gaps, and pipeline scenarios, then recommends a pipeline strategy.",
+      "Pier 24 Partners looks at future demand, capability requirements, known supply, gaps, pipeline health, talent channels, and workforce risk, then recommends a strategy. The public offer does not expose the internal analysis method.",
     clientReceives:
       "A structured workforce pipeline view and recommended actions. Forecasts are estimates with stated assumptions, not guarantees.",
     whoFor:

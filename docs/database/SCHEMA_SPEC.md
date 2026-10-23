@@ -144,7 +144,7 @@ Hiring tables are in `db/schema/hiring/` and `drizzle/0010_*`. Do not edit `0000
 - Required vs Not Required is not a stored column. It is computed from effective permissions in `lib/academy/training.ts`.
 - Completion must not grant roles or permissions.
 
-## Phase H PierOne staff onboarding
+## Phase H Pier 24 Partners staff onboarding
 
 - Migration `drizzle/0015_dizzy_wrecker.sql` adds `users.manager_id` (nullable self-FK, `ON DELETE SET NULL`, indexed, check `users_manager_not_self`) and tables `staff_onboarding`, `staff_onboarding_equipment`, and `staff_policy_acknowledgements`.
 - `staff_onboarding.organization_id` uses `ON DELETE restrict`. Do not cascade-delete organizations.

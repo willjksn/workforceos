@@ -19,9 +19,9 @@ export const metadata: Metadata = {
 };
 
 const stages = [
-  { name: "Solve", summary: "Immediate workforce needs", body: "Structured search and talent support for the roles that cannot wait." },
-  { name: "Build", summary: "Talent pipelines and workforce capability", body: "Military talent strategy, pipeline design, and workforce planning for what comes next." },
-  { name: "Operate", summary: "Sustained recruiting and workforce support", body: "Fractional talent leadership and operating cadence when the work needs to keep moving." },
+  { name: "Solve", summary: "Understand the workforce problem.", body: "Clarify the hiring, capability, and pipeline constraint before proposing work." },
+  { name: "Build", summary: "Create the talent and pipeline solution.", body: "Design the search, military talent path, or workforce pipeline that fits that problem." },
+  { name: "Operate", summary: "Run and improve the solution.", body: "Keep the work moving, see what happens, and adjust with the employer." },
 ];
 
 export const revalidate = 60;
@@ -41,12 +41,12 @@ export default async function HomePage() {
               Build the workforce you need today — and the pipeline you’ll need tomorrow.
             </h1>
             <p className="mt-6 max-w-lg text-[17px] leading-8 text-white/80">
-              PierOne Partners helps organizations solve immediate talent needs while building stronger long-term
+              Pier 24 Partners helps organizations solve immediate talent needs while building stronger long-term
               workforce pipelines through search, military talent strategy, and workforce planning.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <CtaLink href="/contact" variant="inverse">
-                Work With PierOne
+                Work With Pier 24 Partners
               </CtaLink>
               <CtaLink href="/careers" variant="ghostOnNavy">
                 Explore Careers
@@ -74,7 +74,7 @@ export default async function HomePage() {
           <Heading>Immediate hiring needs and future pipelines are the same problem on different clocks.</Heading>
           <p className="mt-6 text-[17px] leading-8 text-muted">
             Organizations must fill roles now while preparing for the workforce they will need next. Those two clocks
-            often run in separate conversations. PierOne connects them: search and talent operations for today, and
+            often run in separate conversations. Pier 24 Partners connects them: search and talent operations for today, and
             structured workforce and military talent strategy for tomorrow.
           </p>
         </Container>
@@ -83,7 +83,7 @@ export default async function HomePage() {
       <Section tone="white">
         <Container>
           <Eyebrow>Solutions</Eyebrow>
-          <Heading>Five ways PierOne helps.</Heading>
+          <Heading>Five ways Pier 24 Partners helps.</Heading>
           <ol className="mt-10 divide-y divide-border border-y border-border">
             {SERVICES.map((service, index) => (
               <li key={service.slug}>
@@ -113,9 +113,9 @@ export default async function HomePage() {
             <Eyebrow>Military talent</Eyebrow>
             <Heading>Military experience is workforce experience.</Heading>
             <p className="mt-5 text-[17px] leading-8 text-muted">
-              PierOne translates military occupations and skills into civilian work, maps installation talent geography,
+              Pier 24 Partners translates military occupations and skills into civilian work, maps installation talent geography,
               and matches transitioning service members to employer and SkillBridge-eligible host-company opportunities
-              where they actually fit. PierOne is the intermediary, not automatically the SkillBridge host. The work is
+              where they actually fit. Pier 24 Partners is the intermediary, not automatically the SkillBridge host. The work is
               disciplined matching, not a guarantee of approval or hire.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -130,7 +130,7 @@ export default async function HomePage() {
 
       <Section tone="navy">
         <Container>
-          <Eyebrow className="text-[#9fc0cb]">How PierOne works</Eyebrow>
+          <Eyebrow className="text-[#9fc0cb]">How Pier 24 Partners works</Eyebrow>
           <Heading className="text-white">Solve. Build. Operate.</Heading>
           <ol className="mt-10 grid gap-0 md:grid-cols-3">
             {stages.map((stage, index) => (
@@ -170,7 +170,7 @@ export default async function HomePage() {
           <Eyebrow>Industries</Eyebrow>
           <Heading>Where workforce constraints show up clearly.</Heading>
           <p className="mt-4 max-w-2xl text-sm text-muted">
-            Emphasis areas, not a claim that PierOne currently serves named clients in each industry.
+            Emphasis areas, not a claim that Pier 24 Partners currently serves named clients in each industry.
           </p>
           <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {INDUSTRY_TILES.filter((tile) => tile.emphasis === "primary").map((tile) => (
@@ -207,7 +207,7 @@ export default async function HomePage() {
           <h2 className="mt-3 max-w-2xl font-serif text-3xl font-semibold md:text-5xl">Your next opportunity may start here.</h2>
           <p className="mt-4 max-w-2xl text-white/80">
             Open roles are published from WorkforceOS. Applying does not guarantee an interview. SkillBridge-eligible
-            roles are employer or host-company opportunities facilitated by PierOne; approval and placement are not
+            roles are employer or host-company opportunities facilitated by Pier 24 Partners; approval and placement are not
             guaranteed.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
@@ -228,7 +228,7 @@ export default async function HomePage() {
             <FeaturedJobStrip
               jobs={content.featuredSkillBridge}
               heading="Featured SkillBridge-Eligible Opportunities"
-              intro="Employer or host-company SkillBridge-eligible opportunities facilitated by PierOne."
+              intro="Employer or host-company SkillBridge-eligible opportunities facilitated by Pier 24 Partners."
             />
             <IndustryCampaign campaigns={content.campaigns} />
           </Container>
@@ -237,14 +237,14 @@ export default async function HomePage() {
 
       <Section tone="white">
         <Container size="narrow">
-          <Eyebrow>Work with PierOne</Eyebrow>
+          <Eyebrow>Work with Pier 24 Partners</Eyebrow>
           <Heading>If you are building a workforce, start a conversation.</Heading>
           <p className="mt-4 text-muted">
             Search, military talent strategy, talent acquisition performance, fractional leadership, or pipeline
             assessment — tell us the constraint.
           </p>
           <div className="mt-8">
-            <CtaLink href="/contact">Work With PierOne</CtaLink>
+            <CtaLink href="/contact">Work With Pier 24 Partners</CtaLink>
           </div>
         </Container>
       </Section>

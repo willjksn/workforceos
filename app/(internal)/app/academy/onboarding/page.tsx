@@ -18,7 +18,7 @@ export default async function AcademyStaffOnboardingPage() {
       <PageHeader
         eyebrow="WorkforceOS Academy"
         title="Employee onboarding"
-        description="PierOne staff path: invite → access bundles → Day 1 checklist → required Academy → Week 4 human review. This is not the ATS hire queue at /app/onboarding. Completing training does not grant permissions."
+        description="Pier 24 Partners staff path: invite → access bundles → Day 1 checklist → required Academy → Week 4 human review. This is not the ATS hire queue at /app/onboarding. Completing training does not grant permissions."
         actions={<AcademyHelp articleSlug="employee-onboarding" />}
         metadata={
           <p>

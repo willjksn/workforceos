@@ -71,7 +71,7 @@ export function draftSkillBridgeMessage(input: {
 
   const body =
     input.audience === "employer"
-      ? `I am sharing a transitioning service member brief for ${input.candidateName}. Military background: ${occupation}. Civilian translation (approved/on file): ${translation}. Relevant recorded skills: ${skills}. Transition / SkillBridge window: ${windowLabel}. Preferred location: ${location}. Target role: ${role}. PierOne is the intermediary; the employer/host company owns any SkillBridge opportunity. This draft uses stored WorkforceOS records only and is not an employment guarantee.`
+      ? `I am sharing a transitioning service member brief for ${input.candidateName}. Military background: ${occupation}. Civilian translation (approved/on file): ${translation}. Relevant recorded skills: ${skills}. Transition / SkillBridge window: ${windowLabel}. Preferred location: ${location}. Target role: ${role}. Pier 24 Partners is the intermediary; the employer/host company owns any SkillBridge opportunity. This draft uses stored WorkforceOS records only and is not an employment guarantee.`
       : `Hi ${input.candidateName.split(" ")[0]}, checking in on your military transition timeline (${windowLabel}). ${input.occupationTitle ? `We have ${occupation} on file` : "We have the military occupation recorded on this profile"}${input.companyName ? ` and ${company} / ${role}` : ""}. This is a draft for human review and will not send until you confirm.`;
 
   return {
@@ -134,7 +134,7 @@ export function draftEmployerBrief(input: {
     strengths ? `Recorded strengths: ${strengths}.` : null,
     gaps ? `Potential gaps on file: ${gaps}.` : null,
     input.recruiterNotes ? `Recruiter notes: ${input.recruiterNotes}.` : null,
-    "PierOne is the intermediary; the employer/host company owns any SkillBridge-eligible opportunity.",
+    "Pier 24 Partners is the intermediary; the employer/host company owns any SkillBridge-eligible opportunity.",
     "This draft uses stored WorkforceOS records only, requires human review, and is not an employment guarantee.",
     "Use the stored resume file when present. Do not invent a quality score.",
   ]

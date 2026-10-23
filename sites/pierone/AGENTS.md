@@ -2,7 +2,7 @@
 
 This version has breaking changes. Read the relevant guide in `node_modules/next/dist/docs/` before writing code.
 
-PierOne public website. Do not import Drizzle, Clerk, or WorkforceOS internal modules. Call WorkforceOS only through `lib/workforceos/client.ts`.
+Pier 24 Partners public website. Do not import Drizzle, Clerk, or WorkforceOS internal modules. Call WorkforceOS only through `lib/workforceos/client.ts`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

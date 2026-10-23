@@ -11,12 +11,12 @@ export const OPERATING_CONCEPTS = {
   },
   employerOpportunityVsJob: {
     title: "Employer opportunity vs job",
-    body: "An employer opportunity is a host/employer SkillBridge-eligible opening PierOne facilitates. A job is a recruiting search assignment. Matching can start before a public posting exists.",
+    body: "An employer opportunity is a host/employer SkillBridge-eligible opening Pier 24 Partners facilitates. A job is a recruiting search assignment. Matching can start before a public posting exists.",
     academySlug: "operating-concepts",
   },
   programVsProjectVsEngagement: {
     title: "Program vs project vs engagement",
-    body: "A delivery project is consulting work after an executed contract. A search project is the internal-first work on a job. An engagement is the commercial relationship (opportunity → proposal → contract). SkillBridge is a pathway type, not a PierOne-owned program.",
+    body: "A delivery project is consulting work after an executed contract. A search project is the internal-first work on a job. An engagement is the commercial relationship (opportunity → proposal → contract). SkillBridge is a pathway type, not a Pier 24 Partners-owned program.",
     academySlug: "operating-concepts",
   },
   solutionVsProposalVsSow: {

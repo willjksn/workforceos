@@ -52,7 +52,7 @@ Do not implement unsupported APIs. Do not require credentials to boot the app.
 
 A provider can be added, disabled, or replaced by implementing the adapter contract. Core tables continue to store WorkforceOS records only.
 
-## PierOne public website
+## Pier 24 Partners public website
 
 The public website is not an Integration Hub provider. It is a first-party client of `/api/public/v1` (jobs, applications, inquiries, military talent, public content). Production HMAC (`PUBLIC_SITE_INTEGRATION_SECRET` / `WORKFORCEOS_SITE_SECRET`) authenticates website-server writes. Origin/Referer cannot skip HMAC. Development may omit the secret. Resend remains the transactional EmailProvider. Object storage remains StorageProvider (S3/R2 compatible).
 

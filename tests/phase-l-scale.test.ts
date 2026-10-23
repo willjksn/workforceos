@@ -79,7 +79,7 @@ describe("Phase L post-launch scale", () => {
     expect(read("lib/hiring/self-schedule.ts")).toMatch(/interview_self_schedule/);
     expect(read("app/schedule/[token]/page.tsx")).toMatch(/getSelfScheduleContext\(token\)/);
     expect(read("app/onboarding/access/page.tsx")).toMatch(/if \(!token\)/);
-    expect(read("app/onboarding/access/page.tsx")).toMatch(/not PierOne staff/);
+    expect(read("app/onboarding/access/page.tsx")).toMatch(/not Pier 24 Partners staff/);
     expect(read("app/(internal)/app/academy/onboarding/page.tsx")).not.toMatch(/hire_onboarding/);
   });
 
@@ -148,7 +148,7 @@ describe("Phase L post-launch scale", () => {
     expect(sql).toMatch(/report_export_schedules/);
     expect(sql).toMatch(/ets_date/);
     expect(sql).toMatch(/ON DELETE restrict/);
-    expect(read("app/onboarding/access/page.tsx")).toMatch(/not PierOne staff training at \/app\/academy\/onboarding/);
+    expect(read("app/onboarding/access/page.tsx")).toMatch(/not Pier 24 Partners staff training at \/app\/academy\/onboarding/);
     expect(read("app/(internal)/app/academy/onboarding/page.tsx")).toMatch(/staff|Day 1|Week 4/i);
   });
 });

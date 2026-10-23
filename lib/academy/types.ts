@@ -26,7 +26,7 @@ export type AcademySectionId = (typeof ACADEMY_SECTIONS)[number];
 
 export const ACADEMY_SECTION_LABELS: Record<AcademySectionId, string> = {
   "getting-started": "Getting Started",
-  "operating-model": "PierOne Operating Model",
+  "operating-model": "Pier 24 Partners Operating Model",
   "access-quick-starts": "Access Quick Starts",
   "user-manual": "User Manual",
   "service-playbooks": "Service Delivery Playbooks",

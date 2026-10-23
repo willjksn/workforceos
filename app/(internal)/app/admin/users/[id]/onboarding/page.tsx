@@ -24,7 +24,7 @@ export default async function AdminUserOnboardingPage({
         <PageHeader
           eyebrow="Admin · People"
           title={`${snapshot.user.fullName} · staff onboarding`}
-          description="PierOne employee cadence. Distinct from Talent → Onboarding (ATS client hire). Title ≠ Access. Week 4 review does not grant permissions."
+          description="Pier 24 Partners employee cadence. Distinct from Talent → Onboarding (ATS client hire). Title ≠ Access. Week 4 review does not grant permissions."
           actions={<AcademyHelp articleSlug="employee-onboarding" />}
           metadata={
             <p>

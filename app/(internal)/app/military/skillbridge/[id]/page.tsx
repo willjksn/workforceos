@@ -132,7 +132,7 @@ export default async function SkillBridgeDetailPage({
       <section className="mt-10">
         <h2 className="section-title">Employer / host-company opportunities</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          PierOne is the intermediary. The company below is the employer or SkillBridge host. A public job posting is not required.
+          Pier 24 Partners is the intermediary. The company below is the employer or SkillBridge host. A public job posting is not required.
         </p>
         <div className="mt-3 space-y-3">
           {detail.opportunities.map((row) => (

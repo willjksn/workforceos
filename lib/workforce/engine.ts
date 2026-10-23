@@ -1395,7 +1395,7 @@ export async function createRoadmapProjectTasks(input: {
       .values({
         phaseId: phase.id,
         name: item.action,
-        description: `${item.period}: PierOne / client workforce roadmap action`,
+        description: `${item.period}: Pier 24 Partners / client workforce roadmap action`,
         status: "not_started",
         ownerUserId: input.actor.userId,
         completionCriteria: item.kpi ?? null,

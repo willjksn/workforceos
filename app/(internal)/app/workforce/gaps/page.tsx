@@ -33,7 +33,7 @@ export default async function WorkforceGapsPage() {
           ))}
         </DataTable>
       </div>
-      <p className="mt-4 text-sm text-muted-foreground">Heatmap uses PierOne navy/warning tones only. Bright decorative colors are not used.</p>
+      <p className="mt-4 text-sm text-muted-foreground">Heatmap uses navy and warning tones only. Bright decorative colors are not used.</p>
     </PageShell>
   );
 }

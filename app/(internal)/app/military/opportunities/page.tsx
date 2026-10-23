@@ -17,7 +17,7 @@ export default async function EmployerOpportunitiesPage() {
       <PageHeader
         eyebrow="Military talent"
         title="Employer opportunities"
-        description="Host-company and employer matching records for transitioning talent. PierOne facilitates the match; the employer/host company owns the opportunity. This is not a recruiting job."
+        description="Host-company and employer matching records for transitioning talent. Pier 24 Partners facilitates the match; the employer/host company owns the opportunity. This is not a recruiting job."
         actions={<AcademyHelp articleSlug="module-military" />}
       />
       <ConceptNote concept="employerOpportunityVsJob" />
