@@ -252,6 +252,16 @@ Canonical flow: employer need → workforce role → capability demand → talen
 - Known supply is computed on read. A person counts once. A translation capability counts only when `review_status = approved`. An explicit skill counts unless rejected. Archived, privacy-deleted, and do-not-contact people are excluded from known supply. Availability uses stored candidate availability and stored transition dates. Location uses city, region, preferred locations, and recorded relocation willingness. Credentials count only when `status = active` and the name overlaps the role text. Clearance uses the candidate-reported row and is labeled as not independently verified.
 - Health is `critical` when demand is greater than zero, known supply is under 25 percent of that demand, and the active pipeline is empty. Otherwise a quantity gap is `gap`, a timing, location, credential, or clearance constraint is `watch`, and a covered role is `healthy`. There is no supply cache. `calculated_at` is the read time.
 
+## Military + Workforce Core M9 outcome learning
+
+Outcome learning is advisory (`DEC-PROD-009`). It does not automatically modify matching, mappings, requirements, candidate eligibility, or routing.
+
+- Migration `drizzle/0027_m9_outcome_learning.sql` is additive. It does not rewrite `0000`–`0026`. It adds `outcome_learning_recommendations` only. `drizzle/meta/0027_snapshot.json` continues from `0026_snapshot.json` and is the only new object in that snapshot. The journal entry, SQL file, and snapshot agree. A follow-up `npx drizzle-kit generate` reported no schema changes and did not emit another migration. There is no training table and no materialized outcome cache. Aggregates are grouped SQL at read time. The as-of time is the read time.
+- A recommendation row is organization-scoped. `reviewed_by_user_id` uses `ON DELETE set null`. The organization foreign key uses `ON DELETE restrict`. Indexes cover `organization_id`, `reviewed_by_user_id`, and `(organization_id, time_window, review_state)`.
+- Canonical outcomes stay on the source rows. `candidate_job_matches.match_category` is not rewritten. Employer Not a Fit, no response, candidate decline, and recruiter not-viable stay distinct. Pending and rejected capabilities are not positive evidence. Compensation factors are excluded from the learning query.
+- Review states are `new`, `reviewing`, `accepted_as_note`, `dismissed`, and `needs_more_data`. `accepted_as_note` records a human acknowledgement. It is not a matcher, mapping, or requirement change.
+- No new permission. Outcome reads use `reports.read`. Candidate-level drilldown is not part of the aggregate page. Passive reads are not audited. Review actions write `outcome_recommendation.reviewing`, `outcome_recommendation.accepted_as_note`, `outcome_recommendation.dismissed`, or `outcome_recommendation.needs_more_data`.
+
 ## Phase L scale tables
 
 - Migration `drizzle/0017_quiet_scale.sql` adds `skillbridge_profiles.ets_date` / `eaos_date`, `public_access_tokens`, `report_export_schedules`, and `report_export_jobs`. Organization FKs use `ON DELETE restrict`.

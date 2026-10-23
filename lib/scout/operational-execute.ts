@@ -3,6 +3,9 @@ import { listCandidateOpportunityMatches, listJobTalentMatches } from "../recrui
 import { listEngagementQueue, setEngagementFollowUp } from "../recruiting/opportunity-engagement";
 import { opportunityContextLabel } from "../recruiting/opportunity-match";
 import { can, type Principal } from "../rbac/permissions";
+import { loadOutcomeReport, type OutcomeReport } from "../outcome-learning/load";
+import { bandLabel } from "../outcome-learning/thresholds";
+import { contextLabel } from "../outcome-learning/vocabulary";
 import { loadWorkforcePortfolio, loadWorkforceRolePipeline } from "../workforce/pipeline-supply";
 import type { ScoutCommandDto } from "./parse-intent";
 import { stripScoutPii } from "./pii";
@@ -49,6 +52,7 @@ export type OperationalPorts = {
   portfolio: typeof loadWorkforcePortfolio;
   rolePipeline: typeof loadWorkforceRolePipeline;
   setFollowUp: typeof setEngagementFollowUp;
+  learning: typeof loadOutcomeReport;
 };
 
 const defaultPorts: OperationalPorts = {
@@ -65,6 +69,7 @@ const defaultPorts: OperationalPorts = {
   portfolio: loadWorkforcePortfolio,
   rolePipeline: loadWorkforceRolePipeline,
   setFollowUp: setEngagementFollowUp,
+  learning: loadOutcomeReport,
 };
 
 function empty(message: string, links: OperationalTurn["links"] = []): OperationalTurn {
@@ -329,6 +334,10 @@ async function dispatch(input: {
       })),
     );
   }
+  if (commandId.startsWith("learning.")) {
+    const report = await ports.learning({ organizationId: org, now, window: "90d" });
+    return learningTurn(commandId, report, dto.subjectName);
+  }
   if (commandId === "workforce.largest_gaps" || commandId === "workforce.critical_roles" || commandId === "workforce.scarce_capabilities") {
     const portfolio = await ports.portfolio(org, now);
     const roles = [...portfolio.roles].sort((left, right) => right.quantityGap - left.quantityGap);
@@ -370,6 +379,93 @@ async function dispatch(input: {
     asOf: analysis.calculatedAt,
     roleTitle: pipeline.role.title,
   }), [{ href: `/app/workforce/roles/${named.one.id}`, label: "Open workforce role" }]);
+}
+
+function learningTurn(commandId: OperationalCommandId, report: OutcomeReport, subjectName?: string): OperationalTurn {
+  const window = report.windowLabel;
+  const asOf = report.asOf;
+  if (commandId === "learning.match_performance") {
+    const lines = report.matchPerformance
+      .filter((row) => row.category === "strong_match" || row.category === "possible_match" || row.category === "developmental_match")
+      .map((row) => `${contextLabel(row.context)} ${row.label}: ${row.interview.text} reached interview. Sample size ${row.sample}. ${bandLabel(row.band)}.`);
+    const message = lines.length
+      ? `In ${window}, as of ${asOf}. ${lines.join(" ")} Source: candidate_job_matches joined to opportunity_engagements. Client routing and public outreach are separate.`
+      : `In ${window}, as of ${asOf}, there are 0 stored match outcomes. Sample size 0. Source: candidate_job_matches.`;
+    return empty(message, [{ href: "/app/reports/outcome-learning", label: "Open outcome learning" }]);
+  }
+  if (commandId === "learning.nofit_gaps") {
+    const gaps = report.factorSignals.filter((row) => row.group === "documented_gap" && row.outcome === "employer_not_a_fit");
+    if (gaps.length === 0) {
+      return empty(`In ${window}, as of ${asOf}, no documented gap meets the 5-outcome threshold. ${report.withheldFactorLabels} comparisons are below it. Sample size is the outcome denominator. Source: candidate_job_match_factors.`);
+    }
+    return listTurn(
+      `In ${window}, as of ${asOf}. Source: candidate_job_match_factors. Each line includes its sample size.`,
+      gaps.slice(0, SCOUT_RESULT_LIMIT).map((row) => card({
+        type: "record",
+        id: row.label,
+        title: row.label,
+        href: "/app/reports/outcome-learning",
+        meta: `${row.text} Sample size ${row.denominator}. ${bandLabel(row.band)}.`,
+        fields: {},
+      })),
+    );
+  }
+  if (commandId === "learning.mapping_placements") {
+    const rows = [...report.mappingSignals].sort((left, right) => right.placements - left.placements || right.matches - left.matches);
+    if (rows.length === 0) {
+      return empty(`In ${window}, as of ${asOf}, no military mapping has organization outcome counts. Sample size 0. Source: military_occupation_skills and approved candidate capabilities.`);
+    }
+    return listTurn(
+      `In ${window}, as of ${asOf}. Source: approved candidate capabilities that cite a military mapping. Counts do not change review status.`,
+      rows.slice(0, SCOUT_RESULT_LIMIT).map((row) => card({
+        type: "record",
+        id: row.mappingId,
+        title: `${row.occupationCode} → ${row.skillName}`,
+        href: "/app/military/review",
+        meta: `${row.candidates} people, ${row.matches} matches, ${row.interviews} interviews, ${row.placements} placements, ${row.noFit} Not a Fit. Sample size ${Math.max(row.matches, row.candidates)}. ${bandLabel(row.band)}.`,
+        fields: {},
+      })),
+    );
+  }
+  if (commandId === "learning.pipeline_leak") {
+    const funnels = report.funnels.filter((row) => row.program === "all" && row.jobFamily === "All reviewed families" && row.sample > 0);
+    const lines = funnels.map((row) => `${contextLabel(row.context)}: ${row.match} matches, ${row.viable} viable, ${row.engagement} engagements, ${row.interest} employer interest, ${row.interview} interviews, ${row.placement} placements. Sample size ${row.sample}.`);
+    return empty(`${lines.length ? `In ${window}, as of ${asOf}. ${lines.join(" ")}` : `In ${window}, as of ${asOf}, there is no stored funnel. Sample size 0.`} Source: candidate_job_matches and opportunity_engagements. The two contexts are not one conversion rate.`, [
+      { href: "/app/reports/outcome-learning", label: "Open outcome learning" },
+    ]);
+  }
+  if (commandId === "learning.slow_employers") {
+    const rows = report.employerMetrics
+      .filter((row) => row.responseSamples >= 5 && row.responseHours != null)
+      .sort((left, right) => (right.responseHours ?? 0) - (left.responseHours ?? 0));
+    if (rows.length === 0) {
+      return empty(`In ${window}, as of ${asOf}, no employer has 5 stored response times. Sample size is under 5. Source: opportunity_engagement_routes. This is not an employer score.`);
+    }
+    return listTurn(
+      `In ${window}, as of ${asOf}. Source: opportunity_engagement_routes. Average hours are shown only with a sample of at least 5. Not an employer score.`,
+      rows.slice(0, SCOUT_RESULT_LIMIT).map((row) => card({
+        type: "company",
+        id: row.companyId,
+        title: row.companyName,
+        href: `/app/companies/${row.companyId}`,
+        meta: `${contextLabel(row.context)}. ${row.responseHours} hours. Sample size ${row.responseSamples}.`,
+        fields: {},
+      })),
+    );
+  }
+  const family = (subjectName ?? "").trim().toLowerCase();
+  const match = report.funnels.find((row) => (
+    row.context === "client_routing"
+    && row.program === "all"
+    && row.jobFamily.toLowerCase().includes(family)
+    && family.length > 0
+  ));
+  if (!match) {
+    return empty(`In ${window}, as of ${asOf}, there is no reviewed job family matching “${subjectName ?? ""}” with stored client outcomes. Sample size 0. Source: approved job_family requirements.`);
+  }
+  return empty(`In ${window}, as of ${asOf}, ${match.jobFamily} client routing reached interview on ${match.interview} of ${match.match}. Sample size ${match.sample}. ${bandLabel(match.band)}. Source: candidate_job_matches and opportunity_engagements.`, [
+    { href: "/app/reports/outcome-learning", label: "Open outcome learning" },
+  ]);
 }
 
 function listTurn(message: string, cards: ScoutResultCard[], links: OperationalTurn["links"] = []): OperationalTurn {

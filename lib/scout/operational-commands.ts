@@ -30,6 +30,12 @@ export const operationalCommandIds = [
   "workforce.scarce_capabilities",
   "workforce.military_supply",
   "workforce.occupation_channels",
+  "learning.match_performance",
+  "learning.nofit_gaps",
+  "learning.mapping_placements",
+  "learning.pipeline_leak",
+  "learning.slow_employers",
+  "learning.family_interview_rate",
 ] as const;
 
 export type OperationalCommandId = (typeof operationalCommandIds)[number];
@@ -298,6 +304,66 @@ export const OPERATIONAL_COMMANDS: Record<OperationalCommandId, OperationalComma
     "{ subjectName?: string, workforceRoleId?: uuid }",
     "Known military supply counts people. Occupation channels are listed separately.",
   ),
+  "learning.match_performance": read(
+    "learning.match_performance",
+    "How Strong, Possible, and Developmental matches are performing",
+    "SHOW_DASHBOARD",
+    "outcome_learning",
+    ["scout.use", "reports.read"],
+    "M9 outcome learning over candidate_job_matches and opportunity_engagements",
+    "{}",
+    "Interview counts and sample size for each match category, with client routing and public outreach separated. No candidate contact details.",
+  ),
+  "learning.nofit_gaps": read(
+    "learning.nofit_gaps",
+    "Documented gaps that appear most often on employer Not a Fit outcomes",
+    "SHOW_DASHBOARD",
+    "outcome_learning",
+    ["scout.use", "reports.read"],
+    "M9 factor aggregation",
+    "{}",
+    "Up to 25 gap labels with numerator, denominator, and time window. No match-weight change.",
+  ),
+  "learning.mapping_placements": read(
+    "learning.mapping_placements",
+    "Military mappings with the most placement evidence",
+    "SHOW_DASHBOARD",
+    "outcome_learning",
+    ["scout.use", "reports.read"],
+    "M9 mapping outcome counts",
+    "{}",
+    "Up to 25 mappings with usage, matches, interviews, placements, and Not a Fit counts.",
+  ),
+  "learning.pipeline_leak": read(
+    "learning.pipeline_leak",
+    "Where the stored pipeline drops between stages",
+    "SHOW_DASHBOARD",
+    "outcome_learning",
+    ["scout.use", "reports.read"],
+    "M9 funnel aggregation",
+    "{}",
+    "Client and public funnels with sample size. No candidate ranking.",
+  ),
+  "learning.slow_employers": read(
+    "learning.slow_employers",
+    "Employers with the slowest stored response time",
+    "SHOW_DASHBOARD",
+    "outcome_learning",
+    ["scout.use", "reports.read"],
+    "M9 route timing aggregation",
+    "{}",
+    "Up to 25 companies with response sample size. Not an employer score.",
+  ),
+  "learning.family_interview_rate": read(
+    "learning.family_interview_rate",
+    "Interview rate for a job family",
+    "SHOW_DASHBOARD",
+    "outcome_learning",
+    ["scout.use", "reports.read"],
+    "M9 job-family funnel",
+    "{ subjectName: string }",
+    "Interview count and denominator for one reviewed job family.",
+  ),
   "workforce.occupation_channels": read(
     "workforce.occupation_channels",
     "Military occupation channels for a workforce role",
@@ -361,6 +427,16 @@ export function matchOperationalPrompt(prompt: string): OperationalMatch | null 
     if (!/\bdraft\b/.test(text)) return from("ops.m6_handoff");
   }
   if (/\bset (an? |the )?(internal )?follow-?up\b/.test(text)) return from("ops.set_follow_up");
+
+  if (/\bstrong matches?\b/.test(text) && /\bperform/.test(text)) return from("learning.match_performance");
+  if (/\bgaps?\b/.test(text) && /\bno fit\b/.test(text)) return from("learning.nofit_gaps");
+  if (/\bmilitary mappings?\b/.test(text) && /\bplacement\b/.test(text)) return from("learning.mapping_placements");
+  if (/\bpipeline\b/.test(text) && /\b(leak|leaking)\b/.test(text)) return from("learning.pipeline_leak");
+  if (/\bslowest response\b/.test(text) || (/\bemployers?\b/.test(text) && /\bresponse time\b/.test(text))) {
+    return from("learning.slow_employers");
+  }
+  const interviewRate = raw.match(/interview rate for (.+?)(?: roles?)?\??$/i);
+  if (interviewRate?.[1]) return from("learning.family_interview_rate", { subjectName: cleanName(interviewRate[1]) });
 
   const why = raw.match(/why does (.+?) match (.+?)\??$/i);
   if (why?.[1] && why[2]) return from("match.explain", { subjectName: cleanName(why[1]), objectName: cleanName(why[2]) });

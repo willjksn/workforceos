@@ -190,6 +190,13 @@
       "when": 1792712027300,
       "tag": "0026_m7_strategy_note_tenant",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1792723200000,
+      "tag": "0027_m9_outcome_learning",
+      "breakpoints": true
     }
   ]
 }

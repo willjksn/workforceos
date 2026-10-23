@@ -5,6 +5,7 @@ const ITEMS = [
   { href: "/app/workforce/roles", label: "Roles" },
   { href: "/app/workforce/assessments", label: "Assessments" },
   { href: "/app/workforce/military-supply", label: "Military Supply" },
+  { href: "/app/reports/outcome-learning", label: "Outcome learning" },
 ] as const;
 
 export function WorkforceSubnav({ active }: { active: string }) {
