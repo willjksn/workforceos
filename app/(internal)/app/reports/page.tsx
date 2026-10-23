@@ -15,6 +15,14 @@ export default async function ReportsIndexPage() {
         description="Each report answers one operating question from saved records. You cannot build custom dashboards here. Weekly operating reviews live on Command Center cadence boards."
       />
       <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <Link href="/app/reports/outcome-learning">
+          <Card>
+            <p className="font-medium text-navy">What is working in matches and engagements?</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Outcome learning. Advisory counts from stored matches and engagements. It does not change matching, mappings, or routing.
+            </p>
+          </Card>
+        </Link>
         <Link href="/app?cadence=leadership">
           <Card>
             <p className="font-medium text-navy">Can we run this week&apos;s operating review?</p>

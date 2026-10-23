@@ -24,6 +24,9 @@ import { ButtonLink } from "@/components/ui/button";
 import { JobsSubnav } from "../_components/jobs-subnav";
 import { draftJobRequirementsAction, recalculateJobMatchesAction, reviewJobRequirementAction } from "@/lib/actions/opportunity-matching";
 import { listJobRequirementProfile, listJobTalentMatches } from "@/lib/recruiting/opportunity-matching";
+import { loadRequirementCounts } from "@/lib/outcome-learning/load";
+import { bandLabel, evidenceBand } from "@/lib/outcome-learning/thresholds";
+import { windowBounds } from "@/lib/outcome-learning/windows";
 import { listJobEngagements } from "@/lib/recruiting/opportunity-engagement";
 import { workforceRolesForJob } from "@/lib/workforce/pipeline-supply";
 import { setAuthorizedRouteAction } from "@/lib/actions/opportunity-engagement";
@@ -38,6 +41,9 @@ export default async function JobDetailPage({
   const { id } = await params;
   const workspace = await getJobWorkspace(id, principal.organizationId);
   if (!workspace) notFound();
+  const outcomeWindow = windowBounds("90d", new Date());
+  const requirementOutcomes = await loadRequirementCounts(principal.organizationId, outcomeWindow.start, outcomeWindow.end, id);
+  const outcomeByRequirement = new Map(requirementOutcomes.map((row) => [row.requirementId, row]));
   const workflow = await getServiceBundle("professional-search");
   const workforceRoles = await workforceRolesForJob(principal.organizationId, id);
   const canWrite = can(principal, "jobs.write");
@@ -169,6 +175,7 @@ export default async function JobDetailPage({
             <li key={row.id}>
               {row.name} · {formatLabel(row.requirementType)} · {formatLabel(row.reviewStatus)}
               {row.sourceText ? ` · “${row.sourceText}”` : ""}
+              <RequirementOutcomeNote signal={outcomeByRequirement.get(row.id)} />
               {canWrite && row.reviewStatus !== "approved" ? (
                 <ActionForm action={reviewJobRequirementAction} className="mt-1">
                   <input type="hidden" name="jobId" value={workspace.job.id} />
@@ -183,6 +190,7 @@ export default async function JobDetailPage({
             <li key={row.id}>
               {formatLabel(row.kind)} · {row.label} · {formatLabel(row.requirementType)} · {formatLabel(row.reviewStatus)}
               {row.sourceText ? ` · “${row.sourceText}”` : ""}
+              <RequirementOutcomeNote signal={outcomeByRequirement.get(row.id)} />
               {canWrite && row.reviewStatus !== "approved" ? (
                 <ActionForm action={reviewJobRequirementAction} className="mt-1">
                   <input type="hidden" name="jobId" value={workspace.job.id} />
@@ -402,6 +410,26 @@ export default async function JobDetailPage({
         )}
       </section>
     </PageShell>
+  );
+}
+
+function RequirementOutcomeNote({
+  signal,
+}: {
+  signal: {
+    gapNoFit: number;
+    alignedPlacements: number;
+    noFitOnJob: number;
+  } | undefined;
+}) {
+  if (!signal || (signal.gapNoFit === 0 && signal.alignedPlacements === 0)) return null;
+  const sample = Math.max(signal.noFitOnJob, signal.alignedPlacements, signal.gapNoFit);
+  return (
+    <span className="mt-1 block text-muted-foreground">
+      Last 90 days: documented gap in {signal.gapNoFit} employer Not a Fit outcomes
+      {signal.noFitOnJob ? ` (${signal.noFitOnJob} Not a Fit outcomes on this job)` : ""}.
+      Appears with {signal.alignedPlacements} placements. {bandLabel(evidenceBand(sample))}. Sample size {sample}. This does not change the requirement.
+    </span>
   );
 }
 
