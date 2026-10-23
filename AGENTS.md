@@ -15,6 +15,7 @@ You are working in WorkforceOS, an internal operating system for a Workforce & T
 Read these canonical documents instead of inventing architecture:
 
 - `docs/architecture/WORKFORCEOS_MASTER_SPEC.md`
+- `docs/architecture/PIER24_PARTNERS_BASELINE.md` (post-modernization architecture summary; M1–M10 are complete)
 - `docs/business/SERVICE_CATALOG.md`
 - `docs/business/PIERONE_OPERATING_MANUAL.md` (Pier 24 Partners company operating model; not the deploy playbook)
 - `docs/business/SERVICE_PLAYBOOKS.md` (ten service delivery playbooks mapped to live screens)

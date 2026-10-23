@@ -6,7 +6,7 @@ Canonical: this file is the architecture source of truth for implementation.
 
 ## Purpose
 
-WorkforceOS is an internal operating system for a Workforce & Talent Solutions firm. It is not a generic ATS and not a public SaaS platform in V1. How Pier 24 Partners operates (SOLVE → BUILD → OPERATE, mapped to screens) is `docs/business/PIERONE_OPERATING_MANUAL.md` — not the deploy/recover playbook. Repeatable service delivery maps are `docs/business/SERVICE_PLAYBOOKS.md`.
+WorkforceOS is an internal operating system for a Workforce & Talent Solutions firm. It is not a generic ATS and not a public SaaS platform in V1. How Pier 24 Partners operates (SOLVE → BUILD → OPERATE, mapped to screens) is `docs/business/PIERONE_OPERATING_MANUAL.md` — not the deploy/recover playbook. The post-modernization architecture summary is `docs/architecture/PIER24_PARTNERS_BASELINE.md`. M1–M10 are complete. Repeatable service delivery maps are `docs/business/SERVICE_PLAYBOOKS.md`.
 
 It will eventually manage company CRM, Talent CRM, recruiting/search, military talent translation, workforce development, legal document operations, finance/AR workflow, integrations, background AI agents, audit history, approvals, and institutional knowledge.
 

@@ -1,6 +1,6 @@
 # Pier 24 Partners baseline
 
-Status: current-state summary after M10. Awaiting founder merge. This is not a historical milestone record.
+Status: post-modernization baseline. M1–M10 are complete. M10 is on `main` at `9c6462747ca5ebf412150ef7d89c0b5fb239e86c` (PR #11, approved head `5a71e1fea88e0e0482cbb9611bfdca698756852f`). This file is the current-state architecture summary. It is not a historical milestone record. Do not open M11, M12, or M13 as a continuation of this program.
 
 ## Commercial architecture
 
@@ -36,7 +36,7 @@ Primary sectors: Energy & Utilities, Advanced Manufacturing, Infrastructure, and
 
 ## System capabilities
 
-Talent Network, Transition Talent Profile, Military Capability Translation, Opportunity Discovery, Opportunity Matching, Routing & Outreach, Workforce Pipeline, Command Center, Scout, and Outcome Learning.
+Talent Network, Military Talent Network, Transition Talent Profile, Military Capability Translation, Opportunity Discovery, Opportunity Matching, Routing & Outreach, Workforce Pipeline, Command Center, Scout, and Outcome Learning.
 
 `jobs` remain employer demand. CRM opportunities remain commercial pursuits. A monitored public job is a Public opportunity. SkillBridge is one pathway. Direct hire remains equally valid. Public copy does not guarantee placement, interview, employer response, SkillBridge approval, employment, or conversion.
 
@@ -60,6 +60,22 @@ User-facing company naming, the app-shell wordmark, public-site positioning, ema
 
 No M10 database migration. Migrations `0025`, `0026`, and `0027` were not applied to production by this work.
 
-The live wordmark is the existing P mark plus the text Pier 24 Partners. Legacy PierOne PNG lockups remain in the repo and are not rendered. A designer-exported Pier 24 Partners lockup file is still required.
+The live wordmark is the existing P mark plus the text Pier 24 Partners. Legacy PierOne PNG lockups remain in the repo and are not rendered.
 
 Stored knowledge rows already in a database are not rewritten. Seed source text is updated for a future seed only.
+
+## Milestone map
+
+M1 canonical employer demand. M2 Transition Talent Profile. M3 Military Capability Translation. M4 Opportunity Discovery. M5 bidirectional opportunity matching. M6 routing, outreach, and response accountability. M7 workforce pipeline integration. M8 Command Center, Scout, and navigation consolidation. M9 advisory outcome learning. M10 Pier 24 Partners brand migration.
+
+## Normal backlog
+
+These are not modernization phases and they did not block M10:
+
+- Designer-exported Pier 24 Partners lockup
+- Founder-approved About and founder bios
+- Counsel-approved privacy and legal-entity wording
+- Optional cleanup of stored display rows that still show older PierOne branding
+- Technical names that stay until a separate decision: Vercel project `pierone-public`, directory `sites/pierone`, `pieronepartners.com` hosts, `x-pierone-site-*` headers, and package or source keys
+
+Production migration activation for `0025`, `0026`, and `0027` is a separate founder-controlled operation. This merge did not apply them.

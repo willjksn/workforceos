@@ -4,6 +4,7 @@
 
 ### M10 — Pier 24 Partners brand migration
 
+- Merged to `main` at `9c6462747ca5ebf412150ef7d89c0b5fb239e86c` (PR #11). M1–M10 are complete. Current-state summary: `docs/architecture/PIER24_PARTNERS_BASELINE.md`.
 - User-facing company name is Pier 24 Partners. WorkforceOS remains the product: WorkforceOS by Pier 24 Partners.
 - Public offers, SkillBridge-as-a-pathway, Public opportunity, and CRM Opportunities are unchanged in meaning.
 - Repository, Vercel project `pierone-public`, hosts, HMAC headers, and `pierone_public_website` stay. No database migration.

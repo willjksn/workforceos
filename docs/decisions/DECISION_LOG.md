@@ -1,6 +1,6 @@
 # Decision Log
 
-Status: Binding architecture and product decisions (through DEC-AUTH-003, accepted DEC-PROD-001, DEC-PROD-002, DEC-PROD-003, DEC-PROD-004, and DEC-PROD-005). DEC-PROD-001 authorized M1, which is merged. DEC-PROD-002 records M2 field ownership, which is merged. DEC-PROD-003 records M3 capability translation, which is merged. DEC-PROD-004 records M4 public discovery, which is merged. DEC-PROD-005 records M5 opportunity matching, which is merged. DEC-PROD-006 records M6 routing and outreach, which is merged. DEC-PROD-007 records M7 workforce pipeline integration, which is merged. DEC-PROD-008 records M8 command center and Scout consolidation, which is merged. DEC-PROD-009 records M9 outcome learning, which is merged. DEC-PROD-010 records the M10 brand migration, which is awaiting founder merge.  
+Status: Binding architecture and product decisions (through DEC-AUTH-003, accepted DEC-PROD-001, DEC-PROD-002, DEC-PROD-003, DEC-PROD-004, and DEC-PROD-005). DEC-PROD-001 authorized M1, which is merged. DEC-PROD-002 records M2 field ownership, which is merged. DEC-PROD-003 records M3 capability translation, which is merged. DEC-PROD-004 records M4 public discovery, which is merged. DEC-PROD-005 records M5 opportunity matching, which is merged. DEC-PROD-006 records M6 routing and outreach, which is merged. DEC-PROD-007 records M7 workforce pipeline integration, which is merged. DEC-PROD-008 records M8 command center and Scout consolidation, which is merged. DEC-PROD-009 records M9 outcome learning, which is merged. DEC-PROD-010 records the M10 brand migration, which is merged. M1–M10 are complete. The post-modernization summary is `docs/architecture/PIER24_PARTNERS_BASELINE.md`.  
 Database mirror: `decision_log` table, seeded from this file.
 
 ## DEC-DB-001 — PostgreSQL over Firebase
@@ -867,7 +867,7 @@ Database mirror: `decision_log` table, seeded from this file.
 
 - Date: 2026-10-22
 - Owner: Product Build
-- Status: awaiting founder merge. M10 does not change M1–M9 behavior.
+- Status: accepted. M10 is merged to `main` at `9c6462747ca5ebf412150ef7d89c0b5fb239e86c` (PR #11, approved head `5a71e1fea88e0e0482cbb9611bfdca698756852f`). M1–M10 are complete. The modernization program is closed. Later work uses the normal product roadmap. M10 does not change M1–M9 behavior.
 - Decision: Pier 24 Partners is the workforce and talent solutions firm. Pier24 Solutions remains the separate AI and business-technology company. WorkforceOS stays the internal operating platform, presented as WorkforceOS by Pier 24 Partners. Public offers stay the five existing services. SkillBridge stays one pathway. The operating model is SOLVE, BUILD, OPERATE. User-facing company naming, metadata, and current product docs use Pier 24 Partners. Repository name, Vercel project `pierone-public`, hosts, HMAC header names, inquiry source `pierone_public_website`, schema names, historical decision text, changelog history, and stored database rows stay. No migration. No sender-domain or DNS change. The live mark is the existing P geometry plus a text wordmark until a designer exports a Pier 24 lockup.
 - Reason: Operators and the public site were still introducing the firm as PierOne after the commercial name was Pier 24 Partners.
 - Affected modules: app shell, public site, email copy, metadata, current documentation
