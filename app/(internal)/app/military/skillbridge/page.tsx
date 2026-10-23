@@ -48,7 +48,7 @@ export default async function SkillBridgeDashboardPage({
       <PageHeader
         eyebrow="Military talent"
         title="Pathway operations"
-        description="SkillBridge is one pathway inside Military Talent operations, not a PierOne-owned program. Profiles are Transition Talent overlays on Talent Network candidates. PierOne is the intermediary; host companies and employers own SkillBridge-eligible opportunities."
+        description="SkillBridge is one pathway inside Military Talent operations, not a Pier 24 Partners-owned program. Profiles are Transition Talent overlays on Talent Network candidates. Pier 24 Partners is the intermediary; host companies and employers own SkillBridge-eligible opportunities."
       />
       <MilitarySubnav active="/app/military/skillbridge" />
       {can(principal, "skillbridge.manage") || can(principal, "military.review") ? (

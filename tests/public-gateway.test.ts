@@ -104,7 +104,7 @@ function applicationForm(input?: { firstName?: string; slug?: string; resume?: F
 }
 
 describe("public gateway HMAC", () => {
-  it("matches the PierOne public-site signed payload", () => {
+  it("matches the Pier 24 Partners public-site signed payload", () => {
     const timestamp = "1710000000000";
     const requestId = "11111111-1111-4111-8111-111111111111";
     const bodyHash = sha256Hex(BODY);

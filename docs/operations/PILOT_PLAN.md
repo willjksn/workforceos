@@ -45,7 +45,7 @@ Use a handful of real transitioning service members. For each:
 - Confirm Military Talent queue owner-scoping
 - Confirm the top-bar bell shows in-app notifications after the follow-up scan (daily cron `0 13 * * *` UTC, or a manual Inngest event)
 
-Do not create a second SkillBridge person database. One candidate, one Transition Talent Profile (`skillbridge_profiles`) row. SkillBridge is a pathway, not a PierOne-owned program.
+Do not create a second SkillBridge person database. One candidate, one Transition Talent Profile (`skillbridge_profiles`) row. SkillBridge is a pathway, not a Pier 24 Partners-owned program.
 
 ## Week 3 — Scout + recruiting match
 

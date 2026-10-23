@@ -14,9 +14,9 @@ export default function MilitaryTalentJoinPage() {
     <main>
       <PageHero eyebrow="Military Talent Network" title="Build Your Transition Profile" size="narrow">
         <p className="mt-4 text-[17px] leading-8 text-white/80">
-          Join the PierOne Military Talent Network. PierOne helps translate your military experience, identify potential
+          Join the Pier 24 Partners Military Talent Network. Pier 24 Partners helps translate your military experience, identify potential
           employer matches, and connect you with civilian and SkillBridge-eligible opportunities. You do not need a
-          specific job opening to join. This is not an application to a PierOne SkillBridge program, and it does not
+          specific job opening to join. This is not an application to a Pier 24 Partners SkillBridge program, and it does not
           guarantee matching, SkillBridge approval, or employment.
         </p>
       </PageHero>

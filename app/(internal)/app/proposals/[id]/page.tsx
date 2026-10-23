@@ -47,7 +47,7 @@ export default async function ProposalDetailPage({
       {current?.pricing || current?.pricingAmount ? <FinanceSpine activeHref="/app/proposals" /> : null}
       {current ? (
         <article className="mt-6 space-y-5 rounded-[8px] border border-card-border bg-card p-6 shadow-[var(--shadow-sm)]">
-          <p className="eyebrow">PierOne Partners</p>
+          <p className="eyebrow">Pier 24 Partners</p>
           {[
             ["Executive summary", current.executiveSummary],
             ["Client problem", current.clientProblem],
@@ -56,7 +56,7 @@ export default async function ProposalDetailPage({
             ["Deliverables", current.deliverables],
             ["Timeline", current.timeline],
             ["Client responsibilities", current.clientResponsibilities],
-            ["PierOne responsibilities", current.firmResponsibilities],
+            ["Pier 24 Partners responsibilities", current.firmResponsibilities],
             ["KPIs", current.kpis],
             ["Pricing", current.pricing ?? current.pricingAmount],
             ["Payment terms", current.paymentTerms],

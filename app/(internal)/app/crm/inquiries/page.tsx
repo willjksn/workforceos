@@ -35,7 +35,7 @@ export default async function WebsiteInquiriesPage({
       </FilterBar>
       {rows.length === 0 ? (
         <EmptyState title="No website inquiries.">
-          Public employer inquiries appear here after they pass validation on the PierOne website.
+          Public employer inquiries appear here after they pass validation on the Pier 24 Partners website.
         </EmptyState>
       ) : (
         <DataTable columns={["Company", "Contact", "Service", "Status", "Submitted"]}>

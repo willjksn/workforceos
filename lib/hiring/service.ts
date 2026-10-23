@@ -353,7 +353,7 @@ export async function publishJob(input: {
   const companyDisplay =
     clientVisibility === "confidential" || clientVisibility === "internal_only"
       ? input.companyDisplay ?? "Confidential client"
-      : input.companyDisplay ?? company?.name ?? "PierOne Partners";
+      : input.companyDisplay ?? company?.name ?? "Pier 24 Partners";
   const [posting] = await db
     .insert(jobPostings)
     .values({

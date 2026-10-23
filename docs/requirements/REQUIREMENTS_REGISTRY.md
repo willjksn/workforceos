@@ -352,11 +352,11 @@ Remaining work: `docs/operations/MASTER_COMPLETION_LEDGER.md`.
 
 ### WFOS-MIL-009
 
-- Title: PierOne is the military-talent intermediary, not a generic SkillBridge host program
+- Title: Pier 24 Partners is the military-talent intermediary, not a generic SkillBridge host program
 - Module: military
 - Priority: locked
 - Status: approved
-- Acceptance: Public and internal language treats PierOne as the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is a pathway/opportunity type, not a sixth launch service. Copy must not imply a PierOne-owned SkillBridge program, automatic host status, guaranteed placement, or that every military-talent profile is an application to PierOne. Operator-facing access copy uses Military Talent Partner, not Military Talent Specialist. Canonical flow is Transitioning Service Member → Military Talent Network → Transition Talent Profile → Skills Translation → Employer Opportunity Search / Development → Employer Match → Employer Engagement → Interview → SkillBridge / Direct Hire / Other Transition Pathway → Placement → Conversion.
+- Acceptance: Public and internal language treats Pier 24 Partners as the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is a pathway/opportunity type, not a sixth launch service. Copy must not imply a Pier 24 Partners-owned SkillBridge program, automatic host status, guaranteed placement, or that every military-talent profile is an application to Pier 24 Partners. Operator-facing access copy uses Military Talent Partner, not Military Talent Specialist. Canonical flow is Transitioning Service Member → Military Talent Network → Transition Talent Profile → Skills Translation → Employer Opportunity Search / Development → Employer Match → Employer Engagement → Interview → SkillBridge / Direct Hire / Other Transition Pathway → Placement → Conversion.
 
 ### WFOS-HIRE-001
 
@@ -384,7 +384,7 @@ Remaining work: `docs/operations/MASTER_COMPLETION_LEDGER.md`.
 
 ### WFOS-HIRE-004
 
-- Title: Approved jobs may be published to the PierOne public careers site
+- Title: Approved jobs may be published to the Pier 24 Partners public careers site
 - Module: hiring
 - Priority: locked
 - Status: approved
@@ -481,7 +481,7 @@ Remaining work: `docs/operations/MASTER_COMPLETION_LEDGER.md`.
 
 ### WFOS-WEB-001
 
-- Title: PierOne public website must remain separately deployable from WorkforceOS
+- Title: Pier 24 Partners public website must remain separately deployable from WorkforceOS
 - Module: public-site
 - Priority: locked
 - Status: approved
@@ -537,7 +537,7 @@ Remaining work: `docs/operations/MASTER_COMPLETION_LEDGER.md`.
 
 ### WFOS-WEB-008
 
-- Title: Transitioning service members may join PierOne's Military Talent Network without applying to a specific job
+- Title: Transitioning service members may join Pier 24 Partners' Military Talent Network without applying to a specific job
 - Module: public-site
 - Priority: locked
 - Status: approved

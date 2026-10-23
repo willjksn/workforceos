@@ -1,6 +1,6 @@
-# PierOne public website image plan
+# Pier 24 Partners public website image plan
 
-Placeholder photography lives in `sites/pierone/public/images/placeholders/`. Slots are defined in `sites/pierone/lib/images.ts`. Every slot is marked `replacementNeeded: true` until PierOne licenses production photography.
+Placeholder photography lives in `sites/pierone/public/images/placeholders/`. Slots are defined in `sites/pierone/lib/images.ts`. Every slot is marked `replacementNeeded: true` until Pier 24 Partners licenses production photography.
 
 The logo concept board is **reference only**. It is not used as a website image. Logo variants are in `sites/pierone/public/brand/` and `components/brand/logo.tsx`.
 
@@ -35,7 +35,7 @@ License status for current files: **Unsplash placeholders — replace before pro
 
 | File | Use | Production note |
 | --- | --- | --- |
-| `/brand/logo-icon.svg` | Icon mark | Matches WorkforceOS `PierOneMark` path |
+| `/brand/logo-icon.svg` | Icon mark | Matches the WorkforceOS `BrandIcon` path |
 | `/brand/logo-horizontal.svg` | Static lockup fallback | Prefer React `Logo` on the website |
 | `/brand/logo-stacked.svg` | Footer/print fallback | Prefer React `Logo variant="stacked"` |
 | `/brand/logo-monochrome.svg` | Mono icon | Slate `#6B7280` |

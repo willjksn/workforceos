@@ -4,7 +4,7 @@ Run only after P0 blockers pass and production domains resolve. Use **clearly fa
 
 ## Employer inquiry
 
-1. Open `https://pieronepartners.com/contact` (or Work With PierOne).
+1. Open `https://pieronepartners.com/contact` (or Work With Pier 24 Partners).
 2. Submit a fake company inquiry to a safe inbox.
 3. Confirm website success state.
 4. Confirm WorkforceOS `/app/crm/inquiries` shows the intake (not an automatic opportunity).
@@ -23,12 +23,12 @@ Run only after P0 blockers pass and production domains resolve. Use **clearly fa
 
 ## Military Talent / SkillBridge
 
-1. Submit a fake transition profile from `/military-talent/join` (not framed as a PierOne SkillBridge program).
+1. Submit a fake transition profile from `/military-talent/join` (not framed as a Pier 24 Partners SkillBridge program).
 2. Confirm Candidate + Transition Talent Profile reuse (no duplicate person). Matching can begin without a preexisting job.
 3. Confirm acknowledgement email (no placement/interview/approval promise).
 4. Recruiter with `candidate_pii.read` can open the resume from `/app/military/skillbridge/[id]` or `/app/talent/[id]` via `/api/files/[fileId]`.
 5. Scout: “Show transitioning service members submitted today.”
-6. Create or use a fake SkillBridge-eligible employer opportunity with an explicit host company. Confirm PierOne is not implied as the host.
+6. Create or use a fake SkillBridge-eligible employer opportunity with an explicit host company. Confirm Pier 24 Partners is not implied as the host.
 
 ## Security spot-checks
 

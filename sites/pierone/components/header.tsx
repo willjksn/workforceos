@@ -33,7 +33,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-white">
       <div className="mx-auto flex h-[84px] max-w-6xl items-center justify-between gap-8 px-6">
-        <Link href="/" aria-label="PierOne Partners home" className="shrink-0">
+        <Link href="/" aria-label="Pier 24 Partners home" className="shrink-0">
           <Logo variant="horizontal" />
         </Link>
         <nav aria-label="Primary" className="hidden items-center gap-7 text-[13px] font-medium text-navy xl:flex">
@@ -93,9 +93,9 @@ export function Header() {
         <div className="flex items-center gap-3">
           <Link
             href="/contact"
-            className="hidden rounded-[6px] bg-navy px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-teal sm:inline-flex"
+            className="hidden rounded-[6px] bg-navy px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-teal xl:inline-flex"
           >
-            Work With PierOne
+            Work with us
           </Link>
           <button
             type="button"
@@ -155,7 +155,7 @@ export function Header() {
               className="mt-3 inline-flex rounded-[6px] bg-navy px-4 py-2.5 text-sm font-medium text-white"
               onClick={() => setMenuOpen(false)}
             >
-              Work With PierOne
+              Work With Pier 24 Partners
             </Link>
           </nav>
         </div>

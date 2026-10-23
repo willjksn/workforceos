@@ -97,13 +97,13 @@ Scout is the persistent in-app assistant (tooltip: Open Scout). It is a right-si
 
 ## Military Talent pathway operations
 
-PierOne is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is one pathway at `/app/military/skillbridge`, not a PierOne-owned program. Operator access bundle: Military Talent Partner.
+Pier 24 Partners is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is one pathway at `/app/military/skillbridge`, not a Pier 24 Partners-owned program. Operator access bundle: Military Talent Partner.
 
 Canonical flow: Transitioning Service Member → Military Talent Network → Transition Talent Profile → Skills Translation → Employer Opportunity Search / Development → Employer Match → Employer Engagement → Interview → SkillBridge / Direct Hire / Other Transition Pathway → Placement → Conversion.
 
 - Create a Transition Talent Profile against an existing candidate (`skillbridge_profiles`). Do not create a second person. A public job posting is not required first.
-- Employer opportunities (`skillbridge_opportunities`) must name a host company/employer. PierOne facilitates the match.
-- The Military Talent queue is the owner's overdue follow-ups, windows, missing resumes, and employer feedback — not a PierOne SkillBridge program dashboard. Managers with `skillbridge.manage` can switch to the global queue.
+- Employer opportunities (`skillbridge_opportunities`) must name a host company/employer. Pier 24 Partners facilitates the match.
+- The Military Talent queue is the owner's overdue follow-ups, windows, missing resumes, and employer feedback — not a Pier 24 Partners SkillBridge program dashboard. Managers with `skillbridge.manage` can switch to the global queue.
 - Alert thresholds are `skillbridge_alert_rules` (not hardcoded). Inngest `workforceos/skillbridge-follow-up-scan` and `workforceos/skillbridge-match` populate in-app notifications.
 - Humans connect or submit to employers. Scout/agent drafts of briefs and emails stay drafts. Employer briefs are reviewable prose, not raw JSON.
 - In-app Academy is not available yet. Use approved knowledge playbooks and this playbook.

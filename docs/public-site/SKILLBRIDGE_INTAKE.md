@@ -1,10 +1,10 @@
 # Military Talent Network intake
 
-PierOne is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is a possible pathway, not a PierOne-owned program.
+Pier 24 Partners is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is a possible pathway, not a Pier 24 Partners-owned program.
 
 ## Job application
 
-A SkillBridge-eligible public job uses the same application API. WorkforceOS attaches or creates a `skillbridge_profiles` (Transition Talent Profile) row for the Candidate as Phase 10 defines. The public job must identify the employer/host company; it must not imply PierOne is automatically the host.
+A SkillBridge-eligible public job uses the same application API. WorkforceOS attaches or creates a `skillbridge_profiles` (Transition Talent Profile) row for the Candidate as Phase 10 defines. The public job must identify the employer/host company; it must not imply Pier 24 Partners is automatically the host.
 
 ## Join without a job
 
@@ -21,4 +21,4 @@ Flow:
 
 A public job posting is not required before a transitioning service member can join the Military Talent Network.
 
-Copy on public pages must not promise SkillBridge approval, placement, or conversion, and must not describe a "PierOne SkillBridge program." Preferred public concepts: Join the Military Talent Network, Build Your Transition Profile, Explore Military Talent Opportunities, Explore SkillBridge-Eligible Opportunities, Find Military Talent.
+Copy on public pages must not promise SkillBridge approval, placement, or conversion, and must not describe a "Pier 24 Partners SkillBridge program." Preferred public concepts: Join the Military Talent Network, Build Your Transition Profile, Explore Military Talent Opportunities, Explore SkillBridge-Eligible Opportunities, Find Military Talent.

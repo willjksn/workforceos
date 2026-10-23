@@ -11,7 +11,7 @@ export const permissionOverrideEffectEnum = pgEnum("permission_override_effect",
   "deny",
 ]);
 
-/** PierOne staff onboarding cadence — tracked state, not a calendar. Distinct from ATS hire onboarding. */
+/** Pier 24 Partners staff onboarding cadence — tracked state, not a calendar. Distinct from ATS hire onboarding. */
 export const staffOnboardingCadenceEnum = pgEnum("staff_onboarding_cadence", [
   "day_1",
   "week_1",
@@ -1038,7 +1038,7 @@ export const skillbridgeAlertRuleCodeEnum = pgEnum("skillbridge_alert_rule_code"
   "window_ending_soon",
 ]);
 
-/** Tokenized public ATS links. Not PierOne staff Academy onboarding. Not a client SaaS login. */
+/** Tokenized public ATS links. Not Pier 24 Partners staff Academy onboarding. Not a client SaaS login. */
 export const publicAccessTokenPurposeEnum = pgEnum("public_access_token_purpose", [
   "interview_self_schedule",
   "hire_onboarding",

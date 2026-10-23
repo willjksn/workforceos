@@ -57,7 +57,7 @@ export function renderWorkforcePlanHtml(input: WorkforcePlanReport) {
   .notice { font-size: 13px; color: #5c6570; border-top: 1px solid #d9d3c7; padding-top: 16px; margin-top: 32px; }
 </style></head>
 <body>
-  <p class="brand">PierOne Partners · Workforce Pipeline Plan</p>
+  <p class="brand">Pier 24 Partners · Workforce Pipeline Plan</p>
   <h1>${escapeHtml(input.title)}</h1>
   <p>${escapeHtml(input.client)} · ${escapeHtml(new Date().toLocaleDateString())}</p>
   ${sections

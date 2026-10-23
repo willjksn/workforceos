@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** Public DTO contract. Not a Drizzle row. Safe for the PierOne website. */
+/** Public DTO contract. Not a Drizzle row. Safe for the Pier 24 Partners website. */
 
 export const SERVICE_INTEREST = [
   "professional-search",

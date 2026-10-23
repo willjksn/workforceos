@@ -592,7 +592,7 @@ export function renderProposalHtml(input: {
   p, li { line-height: 1.5; }
 </style></head>
 <body>
-  <p class="brand">PierOne Partners</p>
+  <p class="brand">Pier 24 Partners</p>
   <h1>${escapeHtml(input.title)}</h1>
   <p>${escapeHtml(input.client || "Client")} · ${escapeHtml(input.date ?? new Date().toLocaleDateString())}</p>
   <h2>Scope</h2><p>${escapeHtml(input.scope)}</p>

@@ -49,7 +49,7 @@ export async function seedPhase10Fixtures(db: ReturnType<typeof getDb>) {
         location: "Charlotte, NC",
         employmentType: "full_time",
         workplaceType: "on_site",
-        companyDisplay: job.context === "client" ? "Confidential client" : "PierOne Partners",
+        companyDisplay: job.context === "client" ? "Confidential client" : "Pier 24 Partners",
         visibility: "public",
         clientVisibility: job.context === "client" ? "confidential" : "public",
         publicStatus: "published",

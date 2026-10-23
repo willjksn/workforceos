@@ -1,14 +1,14 @@
-# PierOne Partners operating manual
+# Pier 24 Partners operating manual
 
 Status: Phase F canonical company manual (2026-09-09)  
-Audience: PierOne operators and service owners  
-This document describes how **PierOne Partners the company** operates in WorkforceOS. It is not a deploy, recover, or PITR guide. Engineering runbooks stay in `docs/operations/WORKFORCEOS_OPERATING_PLAYBOOK.md`.
+Audience: Pier 24 Partners operators and service owners  
+This document describes how **Pier 24 Partners** operates in WorkforceOS. It is not a deploy, recover, or PITR guide. Engineering runbooks stay in `docs/operations/WORKFORCEOS_OPERATING_PLAYBOOK.md`.
 
 Service names, military language, and access rules follow `docs/business/SERVICE_CATALOG.md`, `docs/workflows/SERVICE_WORKFLOWS.md`, DEC-MIL-005, DEC-RBAC-001, and DEC-AUTH-002. Do not invent a sixth launch service. Material process rules live in approved `service_versions` / `service_workflows` records — this manual maps those steps to screens; it does not replace the workflow tables.
 
 ## Who we are
 
-PierOne Partners is a **Workforce & Talent Solutions** firm. We help employers solve immediate talent needs and build stronger future workforce pipelines. We are not a temp staffing agency, payroll company, public job marketplace, or SkillBridge host program.
+Pier 24 Partners is a **Workforce & Talent Solutions** firm. We help employers solve immediate talent needs and build stronger future workforce pipelines. We are not a temp staffing agency, payroll company, public job marketplace, or SkillBridge host program.
 
 WorkforceOS is the internal operating system for that work. PierOnePartners.com is the public front door. Chat is not the system of record.
 
@@ -45,13 +45,13 @@ Live access bundle names (not job titles):
 
 Do not call the military access bundle **Military Talent Specialist**. The live slug is `military-talent-partner`. `military-talent-specialist` is a one-release alias only (DEC-MIL-005, DEC-AUTH-002).
 
-People and bundles: `/app/admin/users` (Team & Access). Access bundles and access review are tabs on that screen (`/app/admin/roles`, `/app/admin/access-review`). New PierOne employees follow **staff onboarding** at `/app/academy/onboarding` (admin view: `/app/admin/users/[id]/onboarding`). That cadence is Day 1–Week 4 and is **not** the ATS hire queue at `/app/onboarding`. Academy article: Employee onboarding. Completing training does not grant permissions.
+People and bundles: `/app/admin/users` (Team & Access). Access bundles and access review are tabs on that screen (`/app/admin/roles`, `/app/admin/access-review`). New Pier 24 Partners employees follow **staff onboarding** at `/app/academy/onboarding` (admin view: `/app/admin/users/[id]/onboarding`). That cadence is Day 1–Week 4 and is **not** the ATS hire queue at `/app/onboarding`. Academy article: Employee onboarding. Completing training does not grant permissions.
 
 ## Five offers
 
 These are the five launch services. Display names are canonical for operators and the public site. Do not rename an offer without a Decision Log entry. Do not add a sixth.
 
-| Display name | Code | Notes | What PierOne sells |
+| Display name | Code | Notes | What Pier 24 Partners sells |
 | --- | --- | --- | --- |
 | **Professional & Technical Search** | `professional-search` | Slug and workflow keys stay `professional-search` (DEC-SVC-005). Public path `/services/professional-technical-search`. | Retained or project search. Internal Talent Network first, then approved external sources. |
 | **Military Talent Opportunity Assessment** | `military-talent-opportunity-assessment` | Public path matches the display name. | Assess whether a client need can be served through military talent translation. SkillBridge is a pathway type inside this practice, not a separate service. |
@@ -63,8 +63,8 @@ Internal catalog: `/app/services` and `/app/services/[code]`. Public copy lives 
 
 ## Locked principles
 
-- PierOne is the **intermediary** between transitioning service members and employer/host-company opportunities. PierOne is generally **not** the SkillBridge host (DEC-MIL-005).
-- SkillBridge is a pathway/opportunity type, not a PierOne-owned program and not a sixth launch service.
+- Pier 24 Partners is the **intermediary** between transitioning service members and employer/host-company opportunities. Pier 24 Partners is generally **not** the SkillBridge host (DEC-MIL-005).
+- SkillBridge is a pathway/opportunity type, not a Pier 24 Partners-owned program and not a sixth launch service.
 - SkillBridge people are existing Talent Network candidates. Do not duplicate a candidate per employer or job.
 - New jobs search the **internal Talent Network before external sourcing** (WFOS-TAL-002).
 - Material AI recommendations need provenance. Material client-facing AI outputs need **human approval**. Agents cannot approve their own material output.
@@ -171,7 +171,7 @@ This is the commercial spine. Recruiter Standard does **not** own this spine (DE
 
 #### Leadership cadence
 
-PierOne weekly pipeline review runs inside WorkforceOS, not a slide deck. Managing Partner and other authorized bundles open **Command Center → Leadership**. Operations, Talent, Military Talent, Finance, and GTM reviews are sibling boards on the same page. Academy: Weekly operating review.
+Pier 24 Partners weekly pipeline review runs inside WorkforceOS, not a slide deck. Managing Partner and other authorized bundles open **Command Center → Leadership**. Operations, Talent, Military Talent, Finance, and GTM reviews are sibling boards on the same page. Academy: Weekly operating review.
 
 #### 90-day GTM cadence
 
@@ -272,7 +272,7 @@ This is search and hiring execution. Recruiter Standard owns this path. Internal
 
 ### 10. Onboarding
 
-- **WorkforceOS screen:** **Onboarding** `/app/onboarding`. This is candidate / new-hire onboarding (Phase 10). It is **not** PierOne employee Day 1–Week 4 access training (Phase H) and not `/onboarding/access` (deferred portal).
+- **WorkforceOS screen:** **Onboarding** `/app/onboarding`. This is candidate / new-hire onboarding (Phase 10). It is **not** Pier 24 Partners employee Day 1–Week 4 access training (Phase H) and not `/onboarding/access` (deferred portal).
 - **Owner / access:** Recruiter Standard, Senior Talent Partner (`onboarding.read` / manage).
 - **Approval:** Tasks complete in-app without a candidate portal. Transactional email uses the email provider when configured; Scout cannot send it.
 - **Next:** Silver-medalist / rediscovery preservation for people not hired; guarantee window for placed search.
@@ -295,7 +295,7 @@ Operator access bundle: **Military Talent Partner**. Senior Talent Partner and R
 
 ### 2. Military Talent Network
 
-- **WorkforceOS screen:** **Military Talent** `/app/military` plus **Transitioning Talent** `/app/military/candidates`. These are Talent Network people, not a PierOne SkillBridge roster.
+- **WorkforceOS screen:** **Military Talent** `/app/military` plus **Transitioning Talent** `/app/military/candidates`. These are Talent Network people, not a Pier 24 Partners SkillBridge roster.
 - **Owner / access:** Military Talent Partner (primary), Recruiter Standard, Senior Talent Partner.
 - **Approval:** None to record membership. Do not duplicate the candidate per employer.
 - **Scout:** `SEARCH` Military Talent. `SHOW_DASHBOARD` on `/app/military`.
@@ -336,7 +336,7 @@ Operator access bundle: **Military Talent Partner**. Senior Talent Partner and R
 ### 7. Employer Engagement
 
 - **WorkforceOS screen:** Same Transition Talent Profile `/app/military/skillbridge/[id]` (employer brief and message drafts) and **Employer Opportunities** `/app/military/opportunities`.
-- **Owner / access:** Military Talent Partner. PierOne facilitates; the employer owns the opportunity.
+- **Owner / access:** Military Talent Partner. Pier 24 Partners facilitates; the employer owns the opportunity.
 - **Approval:** Employer briefs and message drafts require human review. Scout cannot send them.
 - **Scout:** `DRAFT` (review/copy). `CREATE_FOLLOW_UP`. No external send.
 - **Next:** Interview.
@@ -351,9 +351,9 @@ Operator access bundle: **Military Talent Partner**. Senior Talent Partner and R
 
 ### 9. SkillBridge / Direct Hire / Other
 
-- **WorkforceOS screen:** **Pathway operations** `/app/military/skillbridge` and profile `/app/military/skillbridge/[id]` (stages through SkillBridge approval/active, or hired/nurture/closed). This is not a PierOne SkillBridge program dashboard.
+- **WorkforceOS screen:** **Pathway operations** `/app/military/skillbridge` and profile `/app/military/skillbridge/[id]` (stages through SkillBridge approval/active, or hired/nurture/closed). This is not a Pier 24 Partners SkillBridge program dashboard.
 - **Owner / access:** Military Talent Partner (`skillbridge.manage` for queue-wide views).
-- **Approval:** SkillBridge participation depends on a host employer, timing, and service/command approval. PierOne does not guarantee approvals, placements, or conversions.
+- **Approval:** SkillBridge participation depends on a host employer, timing, and service/command approval. Pier 24 Partners does not guarantee approvals, placements, or conversions.
 - **Scout:** `SEARCH` / `UPDATE` stage with confirmation. `DRAFT` stay internal.
 - **Next:** Placement.
 
@@ -368,7 +368,7 @@ Operator access bundle: **Military Talent Partner**. Senior Talent Partner and R
 ### 11. Conversion
 
 - **WorkforceOS screen:** Pathway profile `/app/military/skillbridge/[id]` (`conversion_review` → `hired`). Analytics: `/app/military/analytics`. The person stays in the Talent Network (`/app/talent/[id]`).
-- **Owner / access:** Military Talent Partner. Conversion to full-time employment is an employer decision PierOne supports, not a PierOne hire by default.
+- **Owner / access:** Military Talent Partner. Conversion to full-time employment is an employer decision Pier 24 Partners supports, not a Pier 24 Partners hire by default.
 - **Approval:** Humans record conversion. Do not drop the Talent Network candidate.
 - **Scout:** `SEARCH` / `SUMMARIZE` / `CREATE_FOLLOW_UP`.
 - **Next:** Remain on the Talent Network for rediscovery; commercial expansion uses the client flow if the employer buys another of the five offers.
@@ -410,4 +410,4 @@ Repeatable delivery maps live in `docs/business/SERVICE_PLAYBOOKS.md` and `docs/
 - Architecture: `docs/architecture/WORKFORCEOS_MASTER_SPEC.md`
 - Remaining work: `docs/operations/MASTER_COMPLETION_LEDGER.md`
 - Deploy / recover / PITR: `docs/operations/WORKFORCEOS_OPERATING_PLAYBOOK.md`
-- In-app Academy (Help & Training): `/app/academy`. This manual remains the company operating model. Academy articles cite this file and the playbooks; they do not replace them. Training states follow effective access, not title. Completion does not grant permissions. PierOne staff Day 1–Week 4 onboarding lives at `/app/academy/onboarding` and the Employee onboarding Academy article.
+- In-app Academy (Help & Training): `/app/academy`. This manual remains the company operating model. Academy articles cite this file and the playbooks; they do not replace them. Training states follow effective access, not title. Completion does not grant permissions. Pier 24 Partners staff Day 1–Week 4 onboarding lives at `/app/academy/onboarding` and the Employee onboarding Academy article.

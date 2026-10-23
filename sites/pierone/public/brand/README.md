@@ -1,15 +1,7 @@
-# PierOne public brand files
+# Public brand files
 
-The header uses the official horizontal lockup without the tiny tagline:
+The header, footer, and icon use `components/brand/logo.tsx`: the existing P mark plus a **Pier 24 Partners** text wordmark.
 
-- `logo-lockup.png` — icon + PierOne + PARTNERS (header)
+`logo-lockup.png`, `logo-horizontal.png`, and `logo-horizontal-alt.png` are legacy PierOne raster lockups. The site does not render them. A designer-exported Pier 24 Partners lockup file is not in the repository.
 
-Footer and small icon uses still use the WorkforceOS mark path for navy backgrounds:
-
-- `logo-icon.svg` — icon only
-- `logo-stacked.svg` / reconstructed stacked lockup in `components/brand/logo.tsx` for navy footer
-- `logo-monochrome.svg` — slate icon
-
-Do not display the full brand concept board as a website image.
-
-Replace `logo-horizontal.png` with a designer-exported SVG when available. Do not invent a new icon.
+SVG titles in this folder say Pier 24 Partners. The P geometry is the existing mark, not a newly drawn logo.

@@ -6,7 +6,7 @@ import { INDUSTRY_TILES } from "@/lib/images";
 
 export const metadata: Metadata = {
   title: "Industries",
-  description: "Industry emphasis for PierOne workforce and talent work. Listed industries are focus areas, not a client roster.",
+  description: "Industry emphasis for Pier 24 Partners workforce and talent work. Listed industries are focus areas, not a client roster.",
 };
 
 export default function IndustriesPage() {
@@ -14,7 +14,7 @@ export default function IndustriesPage() {
     <main>
       <PageHero eyebrow="Industries" title="Where workforce constraints show up clearly." size="narrow">
         <p className="mt-4 text-[17px] leading-8 text-white/80">
-          These are emphasis areas, not a claim that PierOne currently serves named clients in each industry.
+          These are emphasis areas, not a claim that Pier 24 Partners currently serves named clients in each industry.
         </p>
       </PageHero>
       <Section>
@@ -38,7 +38,7 @@ export default function IndustriesPage() {
             ))}
           </ul>
           <div className="mt-10">
-            <CtaLink href="/contact">Work With PierOne</CtaLink>
+            <CtaLink href="/contact">Work With Pier 24 Partners</CtaLink>
           </div>
         </Container>
       </Section>

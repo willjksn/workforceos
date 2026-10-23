@@ -8,7 +8,7 @@ Do not use WorkforceOS Public Content as a general website editor. About, servic
 
 Public site pages omit a section when no active content is returned. They must not fail.
 
-Do not describe PierOne as a high-volume staffing agency, as a generic SkillBridge host program, or promise SkillBridge approval or placement.
+Do not describe Pier 24 Partners as a high-volume staffing agency, as a generic SkillBridge host program, or promise SkillBridge approval or placement.
 
 Five public services only:
 

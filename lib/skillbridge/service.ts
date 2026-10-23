@@ -781,7 +781,7 @@ export async function listEmployerOpportunityCards(organizationId: string) {
     hostCompanyName: row.company.name,
     roleTitle: row.job?.title ?? null,
     skillbridgeEligible: Boolean(row.job?.skillbridgeEligible || row.job?.jobContextType === "skillbridge"),
-    intermediaryNote: "PierOne is the intermediary. The host company/employer is the opportunity owner.",
+    intermediaryNote: "Pier 24 Partners is the intermediary. The host company/employer is the opportunity owner.",
   }));
 }
 

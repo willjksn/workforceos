@@ -81,12 +81,12 @@ export function InquiryForm({
         <Field label="Approximate timeline (optional)" name="timeline" />
         <Field label="Number/type of roles (optional)" name="roleCount" />
         <Field label="Location (optional)" name="location" />
-        <Field label="How did you hear about PierOne? (optional)" name="referralSource" />
+        <Field label="How did you hear about Pier 24 Partners? (optional)" name="referralSource" />
       </div>
       <label className="flex items-start gap-2 text-sm text-muted">
         <input required type="checkbox" name="consent" className="mt-1" />
         <span>
-          I understand this inquiry will be stored by PierOne Partners to respond to this request. See the{" "}
+          I understand this inquiry will be stored by Pier 24 Partners to respond to this request. See the{" "}
           <a className="underline" href="/privacy">
             Privacy Policy
           </a>

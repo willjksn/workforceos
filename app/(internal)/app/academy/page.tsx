@@ -47,7 +47,7 @@ export default async function AcademyIndexPage() {
       <PageHeader
         eyebrow="WorkforceOS Academy"
         title="Help & Training"
-        description="Approved operating knowledge for PierOne employees. Training is required from your effective access, not from job title. Completing a module does not grant permissions."
+        description="Approved operating knowledge for Pier 24 Partners employees. Training is required from your effective access, not from job title. Completing a module does not grant permissions."
       />
 
       <section className="mt-8">

@@ -197,7 +197,7 @@ const MORE: NavGroup[] = [
       { href: "/app/admin/users", label: "Team & Access", icon: "users", permission: "admin.users" },
       { href: "/app/alerts", label: "Alerts", icon: "bell", anyPermission: ["alerts.read", "reports.read"] },
       { href: "/app/academy", label: "Help & Training", icon: "help", title: "Academy", anyPermission: ["knowledge.read", "scout.use"] },
-      { href: "/app/academy/onboarding", label: "Staff onboarding", icon: "sprout", title: "PierOne employee onboarding", anyPermission: ["knowledge.read", "scout.use"] },
+      { href: "/app/academy/onboarding", label: "Staff onboarding", icon: "sprout", title: "Pier 24 Partners employee onboarding", anyPermission: ["knowledge.read", "scout.use"] },
     ],
   },
 ];

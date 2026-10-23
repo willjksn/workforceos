@@ -4,7 +4,7 @@ import { Container, Heading, PageHero, Section } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Insights",
-  description: "PierOne insights. Articles will be published here when approved.",
+  description: "Pier 24 Partners insights. Articles will be published here when approved.",
 };
 
 export default function InsightsPage() {

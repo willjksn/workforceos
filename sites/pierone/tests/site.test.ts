@@ -15,7 +15,7 @@ import {
   workforceOsWriteUrl,
 } from "../lib/workforceos/hmac";
 
-describe("PierOne public website", () => {
+describe("Pier 24 Partners public website", () => {
   it("defines five commercial services", () => {
     expect(SERVICES).toHaveLength(5);
     expect(SERVICES.map((row) => row.code)).toEqual([
@@ -53,7 +53,7 @@ describe("PierOne public website", () => {
 
   it("keeps primary navigation uncluttered", () => {
     const labels = PRIMARY_NAV.map((item) => item.label);
-    expect(labels).toEqual(["Home", "Solutions", "Military Talent", "Careers", "About", "Contact"]);
+    expect(labels).toEqual(["Home", "Services", "Military Talent", "Industries", "Careers", "About", "Contact"]);
     expect(labels).not.toContain("Insights");
     expect(labels).not.toContain("What We Do");
     expect(labels).not.toContain("Workforce Development");
@@ -86,7 +86,7 @@ describe("PierOne public website", () => {
   });
 });
 
-describe("PierOne WorkforceOS HMAC signing", () => {
+describe("Pier 24 Partners WorkforceOS HMAC signing", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
   });
@@ -155,7 +155,7 @@ describe("PierOne WorkforceOS HMAC signing", () => {
   });
 });
 
-describe("PierOne public error mapping", () => {
+describe("Pier 24 Partners public error mapping", () => {
   it("maps HTML and object errors to a safe public message", async () => {
     const { publicSafeErrorMessage, readPublicJsonError, PUBLIC_SERVICE_UNAVAILABLE } = await import("../lib/public-errors");
     expect(publicSafeErrorMessage("<html>Login</html>")).toBe(PUBLIC_SERVICE_UNAVAILABLE);

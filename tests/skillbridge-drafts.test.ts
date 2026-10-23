@@ -25,7 +25,7 @@ describe("SkillBridge drafts", () => {
     });
     expect(brief.body).toContain("Test Transition Candidate");
     expect(brief.body).toContain("Electrician's Mate");
-    expect(brief.body).toContain("PierOne is the intermediary");
+    expect(brief.body).toContain("Pier 24 Partners is the intermediary");
     expect(brief.body).not.toContain("{");
     expect(brief.sendAllowed).toBe(false);
     expect(brief.humanReviewRequired).toBe(true);

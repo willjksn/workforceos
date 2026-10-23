@@ -6,7 +6,7 @@ import { organizations, users } from "../core";
 import { staffOnboardingCadenceEnum } from "../enums";
 
 /**
- * PierOne staff onboarding — distinct from ATS hire `onboarding_instances`.
+ * Pier 24 Partners staff onboarding — distinct from ATS hire `onboarding_instances`.
  * Cadence is tracked state, not a calendar. Completing training or Week 4
  * review never grants roles or permissions.
  */

@@ -122,10 +122,10 @@ describe("Phase J management operating rhythms", () => {
     ].join("\n");
     expect(corpus).toMatch(/Military Talent/);
     expect(corpus).toMatch(/SkillBridge pathway|pathway type|SkillBridge alert constant/);
-    expect(corpus).not.toMatch(/PierOne SkillBridge program/);
+    expect(corpus).not.toMatch(/Pier 24 Partners SkillBridge program/);
     expect(corpus).not.toMatch(/Military Talent Specialist/);
     expect(`${article?.stepByStep.join(" ")} ${article?.commonMistakes.join(" ")}`).toMatch(
-      /pathway type|intermediary|PierOne-owned/,
+      /pathway type|intermediary|Pier 24 Partners-owned/,
     );
     expect(SKILLBRIDGE_WINDOW_DAYS).toBe(90);
     expect(STALE_RECORD_DAYS).toBe(14);
@@ -196,7 +196,7 @@ describe("Phase J management operating rhythms", () => {
     const article = getAcademyArticle("weekly-operating-review");
     expect(article?.title).toBe("Weekly operating review");
     expect(article?.stepByStep.join(" ")).toMatch(/DEC-RBAC-001/);
-    expect(article?.stepByStep.join(" ")).not.toMatch(/PierOne SkillBridge program/);
+    expect(article?.stepByStep.join(" ")).not.toMatch(/Pier 24 Partners SkillBridge program/);
     expect(isScoutExternalSendEnabled()).toBe(false);
   });
 });

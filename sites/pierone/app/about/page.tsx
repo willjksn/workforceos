@@ -6,7 +6,7 @@ import { IMAGES } from "@/lib/images";
 
 export const metadata: Metadata = {
   title: "About",
-  description: "PierOne Partners is a workforce and talent solutions firm. Team biographies are held for review.",
+  description: "Pier 24 Partners is a workforce and talent solutions firm. Team biographies are held for review.",
 };
 
 export default function AboutPage() {
@@ -22,7 +22,7 @@ export default function AboutPage() {
                 Workforce expertise with operating discipline.
               </h1>
               <p className="mt-6 text-[17px] leading-8 text-white/80">
-                PierOne Partners helps organizations solve immediate talent needs while building stronger future
+                Pier 24 Partners helps organizations solve immediate talent needs while building stronger future
                 workforce pipelines. The work is advisory and search-oriented.
               </p>
             </div>
@@ -34,7 +34,7 @@ export default function AboutPage() {
         <Container size="narrow">
           <Heading>Philosophy</Heading>
           <p className="mt-4 text-[16px] leading-7 text-muted">
-            Immediate hiring needs and future pipelines are the same problem on different clocks. PierOne connects
+            Immediate hiring needs and future pipelines are the same problem on different clocks. Pier 24 Partners connects
             search, military talent strategy, and workforce planning so those clocks are not treated as separate
             businesses. This is not high-volume temporary staffing, payroll, or a public job marketplace.
           </p>

@@ -1,6 +1,6 @@
 # Public careers
 
-WorkforceOS publishes approved jobs for PierOne Partners. This is not a public job marketplace.
+WorkforceOS publishes approved jobs for Pier 24 Partners. This is not a public job marketplace.
 
 ## URLs
 

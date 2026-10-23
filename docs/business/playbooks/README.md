@@ -1,4 +1,4 @@
-# PierOne service delivery playbooks
+# Pier 24 Partners service delivery playbooks
 
 Status: Phase G (2026-09-09)  
 Short index: [`docs/business/SERVICE_PLAYBOOKS.md`](../SERVICE_PLAYBOOKS.md)
@@ -10,7 +10,7 @@ Engineering deploy / recover / PITR: [`docs/operations/WORKFORCEOS_OPERATING_PLA
 
 ## Five launch services only
 
-Playbooks 1–5 are the sellable offers. Playbook 6 is **Military Talent pathway operations** (SkillBridge-eligible work on existing Talent Network people). It is not a sixth client offer and not a PierOne-owned SkillBridge program (DEC-MIL-005).
+Playbooks 1–5 are the sellable offers. Playbook 6 is **Military Talent pathway operations** (SkillBridge-eligible work on existing Talent Network people). It is not a sixth client offer and not a Pier 24 Partners-owned SkillBridge program (DEC-MIL-005).
 
 Display name **Professional & Technical Search**; slug `professional-search` (DEC-SVC-005). Same offer — not a sixth service.
 

@@ -511,7 +511,7 @@ export const candidateDedupeFlags = pgTable("candidate_dedupe_flags", {
   index("candidate_dedupe_flags_organization_id_idx").on(table.organizationId),
 ]);
 
-/** Tokenized public ATS links. Not a client SaaS login and not PierOne staff Academy onboarding. */
+/** Tokenized public ATS links. Not a client SaaS login and not Pier 24 Partners staff Academy onboarding. */
 export const publicAccessTokens = pgTable("public_access_tokens", {
   id: uuid("id").defaultRandom().primaryKey(),
   organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "restrict" }),

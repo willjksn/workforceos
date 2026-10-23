@@ -12,7 +12,7 @@ const STEPS = [
   ["Skills Translation", "Map military occupation, rank, leadership, and training to civilian value using stored, reviewed mappings."],
   ["Employer Opportunity Search / Development", "Search and develop host-company/employer opportunities. The employer is explicit."],
   ["Employer Match", "Compare the Transition Talent Profile to employer/host-company opportunities."],
-  ["Employer Engagement", "Introduce qualified talent. PierOne is the intermediary, not automatically the SkillBridge host."],
+  ["Employer Engagement", "Introduce qualified talent. Pier 24 Partners is the intermediary, not automatically the SkillBridge host."],
   ["Interview", "Support interviews between the service member and the employer."],
   ["SkillBridge / Direct Hire / Other Pathway", "Track SkillBridge-eligible, direct-hire, or other transition pathway decisions. Approval is never assumed."],
   ["Placement", "Record placement start with an explicit host company/employer."],
@@ -26,7 +26,7 @@ export default async function MilitaryOverviewPage() {
       <PageHeader
         eyebrow="Military talent"
         title="Military Talent operations"
-        description="PierOne is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is a transition pathway and opportunity type — not a PierOne-owned SkillBridge program."
+        description="Pier 24 Partners is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is a transition pathway and opportunity type — not a Pier 24 Partners-owned SkillBridge program."
         actions={<AcademyHelp articleSlug="module-military" />}
       />
       <MilitarySubnav active="/app/military" />

@@ -1,7 +1,7 @@
 # Military Transition / SkillBridge-eligible operations
 
 Name: **Military Transition / SkillBridge-eligible operations**  
-Kind: **internal pathway operations** — not a sixth client offer and not a PierOne-owned SkillBridge program
+Kind: **internal pathway operations** — not a sixth client offer and not a Pier 24 Partners-owned SkillBridge program
 
 Cites: DEC-MIL-005, `docs/business/SERVICE_CATALOG.md` (Military Talent operating path), `docs/workflows/SERVICE_WORKFLOWS.md` (Phase 9 overlay), `docs/business/PIERONE_OPERATING_MANUAL.md` (canonical military flow). Do not invent MOS maps or pathway stages.
 
@@ -11,7 +11,7 @@ Canonical flow (locked):
 
 Transitioning Service Member → Military Talent Network → Transition Talent Profile → Skills Translation → Employer Opportunity Search / Development → Employer Match → Employer Engagement → Interview → SkillBridge / Direct Hire / Other Transition Pathway → Placement → Conversion.
 
-SkillBridge people are existing Talent Network candidates. Do not duplicate a candidate per employer. PierOne is the intermediary and is generally **not** the SkillBridge host. Operator access bundle: **Military Talent Partner**.
+SkillBridge people are existing Talent Network candidates. Do not duplicate a candidate per employer. Pier 24 Partners is the intermediary and is generally **not** the SkillBridge host. Operator access bundle: **Military Talent Partner**.
 
 ## Step map
 
@@ -33,7 +33,7 @@ SkillBridge people are existing Talent Network candidates. Do not duplicate a ca
 | | |
 | --- | --- |
 | **WorkforceOS screen** | Military Talent `/app/military`; Transitioning Talent `/app/military/candidates` |
-| **Required data** | These are Talent Network people, not a PierOne SkillBridge roster. |
+| **Required data** | These are Talent Network people, not a Pier 24 Partners SkillBridge roster. |
 | **Owner** | Military Talent Partner (primary) |
 | **Access / permission** | `military.read`, `skillbridge.read` |
 | **Approval** | None to record membership. Do not duplicate per employer. |
@@ -98,7 +98,7 @@ SkillBridge people are existing Talent Network candidates. Do not duplicate a ca
 | | |
 | --- | --- |
 | **WorkforceOS screen** | `/app/military/skillbridge/[id]` (employer brief and message drafts) and `/app/military/opportunities` |
-| **Required data** | PierOne facilitates; the employer owns the opportunity. |
+| **Required data** | Pier 24 Partners facilitates; the employer owns the opportunity. |
 | **Owner** | Military Talent Partner |
 | **Access / permission** | `skillbridge.write` |
 | **Approval** | Employer briefs and message drafts require human review. Scout cannot send. |
@@ -123,11 +123,11 @@ SkillBridge people are existing Talent Network candidates. Do not duplicate a ca
 
 | | |
 | --- | --- |
-| **WorkforceOS screen** | `/app/military/skillbridge` and `/app/military/skillbridge/[id]` (stages through SkillBridge approval/active, or hired/nurture/closed). This is not a PierOne SkillBridge program dashboard. |
+| **WorkforceOS screen** | `/app/military/skillbridge` and `/app/military/skillbridge/[id]` (stages through SkillBridge approval/active, or hired/nurture/closed). This is not a Pier 24 Partners SkillBridge program dashboard. |
 | **Required data** | Host employer, timing, and service/command approval when SkillBridge applies. |
 | **Owner** | Military Talent Partner (`skillbridge.manage` for queue-wide views) |
 | **Access / permission** | `skillbridge.write` / `skillbridge.manage` |
-| **Approval** | PierOne does not guarantee approvals, placements, or conversions. |
+| **Approval** | Pier 24 Partners does not guarantee approvals, placements, or conversions. |
 | **Scout prompt** | `SEARCH` / `UPDATE` stage (confirm). `DRAFT` stays internal. |
 | **Deliverable** | Pathway stage on the overlay |
 | **Next step** | Placement |
@@ -153,7 +153,7 @@ SkillBridge people are existing Talent Network candidates. Do not duplicate a ca
 | **Required data** | Employer decision. Do not drop the Talent Network candidate. |
 | **Owner** | Military Talent Partner |
 | **Access / permission** | `skillbridge.write`; `candidates.read` |
-| **Approval** | Humans record conversion. Conversion to full-time employment is an employer decision PierOne supports, not a PierOne hire by default. |
+| **Approval** | Humans record conversion. Conversion to full-time employment is an employer decision Pier 24 Partners supports, not a Pier 24 Partners hire by default. |
 | **Scout prompt** | `SEARCH` / `SUMMARIZE` / `CREATE_FOLLOW_UP`. |
 | **Deliverable** | Conversion stage; candidate remains rediscoverable |
 | **Next step** | Remain on the Talent Network. If the employer buys another of the five offers, use the commercial spine — do not invent a sixth service. |

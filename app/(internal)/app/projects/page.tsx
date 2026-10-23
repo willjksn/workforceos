@@ -22,7 +22,7 @@ export default async function ProjectsPage({
       <PageHeader
         eyebrow="Projects"
         title={filter ? `${formatLabel(filter)} projects` : "Delivery projects"}
-        description="Consulting delivery after an executed contract. Internal searches stay on Jobs. SkillBridge is a pathway type, not a PierOne-owned program."
+        description="Consulting delivery after an executed contract. Internal searches stay on Jobs. SkillBridge is a pathway type, not a Pier 24 Partners-owned program."
         actions={<AcademyHelp articleSlug="module-projects" />}
       />
       <ConceptNote concept="programVsProjectVsEngagement" />

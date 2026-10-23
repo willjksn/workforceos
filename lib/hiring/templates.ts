@@ -8,13 +8,13 @@ export function brandedEmail(input: { heading: string; bodyHtml: string; footer?
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#F7F8F9;padding:24px 0;">
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #DCE2E7;">
-        <tr><td style="background:${NAVY};padding:20px 28px;color:#ffffff;font-family:Georgia,'Cormorant Garamond',serif;font-size:22px;">PierOne Partners</td></tr>
+        <tr><td style="background:${NAVY};padding:20px 28px;color:#ffffff;font-family:Georgia,'Cormorant Garamond',serif;font-size:22px;">Pier 24 Partners</td></tr>
         <tr><td style="padding:28px;">
           <h1 style="margin:0 0 16px;font-family:Georgia,'Cormorant Garamond',serif;font-size:24px;color:${NAVY};">${input.heading}</h1>
           <div style="font-size:15px;line-height:1.6;color:#102A3A;">${input.bodyHtml}</div>
         </td></tr>
         <tr><td style="padding:16px 28px;border-top:1px solid #DCE2E7;color:#6B7280;font-size:12px;">
-          ${input.footer ?? "This message was sent by WorkforceOS on behalf of PierOne Partners. It does not guarantee an interview or employment."}
+          ${input.footer ?? "This message was sent by WorkforceOS on behalf of Pier 24 Partners. It does not guarantee an interview or employment."}
           <div style="margin-top:8px;color:${TEAL};">pieronepartners.com</div>
         </td></tr>
       </table>
@@ -74,10 +74,10 @@ export function onboardingWelcomeEmail(input: { firstName: string; startDate?: s
     ? `<p>Complete your new-hire tasks here (no WorkforceOS login): <a href="${escapeHtml(input.accessUrl)}">${escapeHtml(input.accessUrl)}</a></p>`
     : "";
   return {
-    subject: "Onboarding welcome — PierOne Partners",
+    subject: "Onboarding welcome — Pier 24 Partners",
     html: brandedEmail({
       heading: "Welcome",
-      bodyHtml: `<p>Hello ${escapeHtml(input.firstName)},</p><p>Your onboarding tasks are ready${input.startDate ? ` for a start date of ${escapeHtml(input.startDate)}` : ""}.</p>${access}<p>This is hire onboarding, not PierOne staff Academy training.</p>`,
+      bodyHtml: `<p>Hello ${escapeHtml(input.firstName)},</p><p>Your onboarding tasks are ready${input.startDate ? ` for a start date of ${escapeHtml(input.startDate)}` : ""}.</p>${access}<p>This is hire onboarding, not Pier 24 Partners staff Academy training.</p>`,
     }),
     text: `Welcome. Your onboarding tasks are ready.${input.accessUrl ? ` Complete them at ${input.accessUrl}` : ""}`,
   };
@@ -162,7 +162,7 @@ export function drugScreenNextStepEmail(input: { firstName: string }) {
 
 export function onboardingReminderEmail(input: { firstName: string; taskTitle: string }) {
   return {
-    subject: "Onboarding reminder — PierOne Partners",
+    subject: "Onboarding reminder — Pier 24 Partners",
     html: brandedEmail({
       heading: "Onboarding reminder",
       bodyHtml: `<p>Hello ${escapeHtml(input.firstName)},</p><p>This is a reminder that <strong>${escapeHtml(input.taskTitle)}</strong> is still open.</p>`,
@@ -173,7 +173,7 @@ export function onboardingReminderEmail(input: { firstName: string; taskTitle: s
 
 export function startDateReminderEmail(input: { firstName: string; startDate: string }) {
   return {
-    subject: "Start date reminder — PierOne Partners",
+    subject: "Start date reminder — Pier 24 Partners",
     html: brandedEmail({
       heading: "Start date reminder",
       bodyHtml: `<p>Hello ${escapeHtml(input.firstName)},</p><p>Your recorded start date is ${escapeHtml(input.startDate)}.</p>`,
@@ -183,30 +183,30 @@ export function startDateReminderEmail(input: { firstName: string; startDate: st
 }
 
 export function skillbridgePublicDisclaimer() {
-  return "This is a SkillBridge-eligible employer or host-company opportunity facilitated by PierOne. PierOne is not automatically the host. Participation is subject to applicable service and command approval and employer requirements. Applying does not guarantee placement, approval, or employment.";
+  return "This is a SkillBridge-eligible employer or host-company opportunity facilitated by Pier 24 Partners. Pier 24 Partners is not automatically the host. Participation is subject to applicable service and command approval and employer requirements. Applying does not guarantee placement, approval, or employment.";
 }
 
 export function inquiryAcknowledgementEmail(input: { firstName: string }) {
-  const heading = "Thank you for contacting PierOne Partners";
+  const heading = "Thank you for contacting Pier 24 Partners";
   const bodyHtml = `<p>Hello ${escapeHtml(input.firstName)},</p>
-<p>We received your message. A member of the PierOne team will review it and follow up if there is a fit.</p>
+<p>We received your message. A member of the Pier 24 Partners team will review it and follow up if there is a fit.</p>
 <p>This acknowledgement does not confirm an engagement or a meeting.</p>`;
   return {
-    subject: "Thank you for contacting PierOne Partners",
-    html: brandedEmail({ heading, bodyHtml, footer: "This message was sent by WorkforceOS on behalf of PierOne Partners." }),
-    text: `Hello ${input.firstName}, we received your message. A member of the PierOne team will review it.`,
+    subject: "Thank you for contacting Pier 24 Partners",
+    html: brandedEmail({ heading, bodyHtml, footer: "This message was sent by WorkforceOS on behalf of Pier 24 Partners." }),
+    text: `Hello ${input.firstName}, we received your message. A member of the Pier 24 Partners team will review it.`,
   };
 }
 
 export function militaryTalentAcknowledgementEmail(input: { firstName: string }) {
-  const heading = "Thanks for joining the PierOne Military Talent Network";
+  const heading = "Thanks for joining the Pier 24 Partners Military Talent Network";
   const bodyHtml = `<p>Hello ${escapeHtml(input.firstName)},</p>
-<p>Thanks for joining the PierOne Military Talent Network. We received your Transition Talent Profile. Our team may use your military experience, career goals, location preferences, and transition timing to identify potential employer and SkillBridge-eligible opportunities.</p>
-<p>Joining the network does not enroll you in a PierOne SkillBridge program and does not guarantee a SkillBridge approval, an interview, placement, or employment. PierOne is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is one possible pathway when a host employer, timing, and approval requirements align.</p>`;
+<p>Thanks for joining the Pier 24 Partners Military Talent Network. We received your Transition Talent Profile. Our team may use your military experience, career goals, location preferences, and transition timing to identify potential employer and SkillBridge-eligible opportunities.</p>
+<p>Joining the network does not enroll you in a Pier 24 Partners SkillBridge program and does not guarantee a SkillBridge approval, an interview, placement, or employment. Pier 24 Partners is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is one possible pathway when a host employer, timing, and approval requirements align.</p>`;
   return {
-    subject: "Thanks for joining the PierOne Military Talent Network",
+    subject: "Thanks for joining the Pier 24 Partners Military Talent Network",
     html: brandedEmail({ heading, bodyHtml }),
-    text: `Hello ${input.firstName}, thanks for joining the PierOne Military Talent Network. We received your Transition Talent Profile. Our team may use your military experience, career goals, location preferences, and transition timing to identify potential employer and SkillBridge-eligible opportunities. This does not enroll you in a PierOne SkillBridge program and does not guarantee placement, interview, SkillBridge approval, or employment.`,
+    text: `Hello ${input.firstName}, thanks for joining the Pier 24 Partners Military Talent Network. We received your Transition Talent Profile. Our team may use your military experience, career goals, location preferences, and transition timing to identify potential employer and SkillBridge-eligible opportunities. This does not enroll you in a Pier 24 Partners SkillBridge program and does not guarantee placement, interview, SkillBridge approval, or employment.`,
   };
 }
 

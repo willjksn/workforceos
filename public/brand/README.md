@@ -1,16 +1,15 @@
-# PierOne Partners brand assets
+# Brand files
 
-Source of truth: `pierone-brand-sheet.jpg` (supplied brand board).
+Live product identity is the React wordmark in `components/branding/brand-mark.tsx`: the existing P mark plus the text **Pier 24** / **Partners**. Product name underneath the sidebar mark is WorkforceOS.
 
-The in-app mark is the stylized **P** from that sheet: two rectangular piers, a bridge-arch band, and a filled bowl, with a navy-to-teal gradient. Do not substitute a different icon or a text-only wordmark.
+The SVG and PNG files in this folder are legacy PierOne wordmark exports. The app shell does not display them. A designer-exported Pier 24 Partners lockup is not in the repository. Do not treat these files as the final Pier 24 lockup.
 
-| File | Use |
+Navy `#0F2D4A`, teal `#4E7B8C`, and slate `#6B7280` are the existing tokens. M10 did not replace the design system.
+
+| File | Status |
 | --- | --- |
-| `pierone-brand-sheet.jpg` | Source brand board |
-| `pierone-icon.svg` | Icon-only mark (sidebar, favicon, in-app `BrandMark`) |
-| `pierone-icon.png` | Raster of the icon-only mark |
-| `pierone-primary-logo.svg` | Horizontal lockup |
-| `pierone-stacked-logo.svg` | Centered stacked lockup |
-| `pierone-monochrome.svg` | Single-color stacked lockup |
-
-Replace these vectors if official outline/EPS files become available. Navy on the sheet is `#0F2D4A`; teal is `#4E7B8C`; slate is `#6B7280`.
+| `pierone-icon.svg` | Interim P mark geometry. Accessible title updated. Still used as the favicon path via `app/icon.svg`. |
+| `pierone-icon.png` | Legacy raster. Not shown in the app shell. |
+| `pierone-primary-logo.svg` | Legacy PierOne horizontal export. Not shown. |
+| `pierone-stacked-logo.svg` | Legacy stacked export. Not shown. |
+| `pierone-monochrome.svg` | Legacy stacked export. Visible wordmark text is now “Pier 24”. Not shown in the app shell. |

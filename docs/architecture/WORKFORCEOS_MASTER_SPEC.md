@@ -6,11 +6,11 @@ Canonical: this file is the architecture source of truth for implementation.
 
 ## Purpose
 
-WorkforceOS is an internal operating system for a Workforce & Talent Solutions firm. It is not a generic ATS and not a public SaaS platform in V1. How PierOne Partners the company operates (SOLVE → BUILD → OPERATE, mapped to screens) is `docs/business/PIERONE_OPERATING_MANUAL.md` — not the deploy/recover playbook. Repeatable service delivery maps are `docs/business/SERVICE_PLAYBOOKS.md`.
+WorkforceOS is an internal operating system for a Workforce & Talent Solutions firm. It is not a generic ATS and not a public SaaS platform in V1. How Pier 24 Partners operates (SOLVE → BUILD → OPERATE, mapped to screens) is `docs/business/PIERONE_OPERATING_MANUAL.md` — not the deploy/recover playbook. Repeatable service delivery maps are `docs/business/SERVICE_PLAYBOOKS.md`.
 
 It will eventually manage company CRM, Talent CRM, recruiting/search, military talent translation, workforce development, legal document operations, finance/AR workflow, integrations, background AI agents, audit history, approvals, and institutional knowledge.
 
-Phase 1 built the technical foundation. Phase 4 activates service engines, proposals, contracts, and project delivery. Phase 5 expands Workforce Pipeline Assessment into workforce development and intelligence. Phase 6 activates operational finance and Integration Hub business adapters. Phase 7 activates AI operations, prompt versioning, the Review Queue, named automation, and approved knowledge retrieval. Phase 8 finishes executive reporting, the Command Center, operational alerts, data quality, and production hardening. Phase 9 adds Scout (the persistent in-app assistant) and Military Talent pathway operations. SkillBridge is one pathway/opportunity type inside that practice, not a PierOne-owned program. Phase 10 extends WorkforceOS into PierOne careers, applicant tracking, pre-employment, offers, and new-hire onboarding. It is not a public job marketplace and not a payroll/benefits HRIS. Do not start Phase 11 unless explicitly asked.
+Phase 1 built the technical foundation. Phase 4 activates service engines, proposals, contracts, and project delivery. Phase 5 expands Workforce Pipeline Assessment into workforce development and intelligence. Phase 6 activates operational finance and Integration Hub business adapters. Phase 7 activates AI operations, prompt versioning, the Review Queue, named automation, and approved knowledge retrieval. Phase 8 finishes executive reporting, the Command Center, operational alerts, data quality, and production hardening. Phase 9 adds Scout (the persistent in-app assistant) and Military Talent pathway operations. SkillBridge is one pathway/opportunity type inside that practice, not a Pier 24 Partners-owned program. Phase 10 extends WorkforceOS into Pier 24 Partners careers, applicant tracking, pre-employment, offers, and new-hire onboarding. It is not a public job marketplace and not a payroll/benefits HRIS. Do not start Phase 11 unless explicitly asked.
 
 ## Product boundaries
 
@@ -43,7 +43,7 @@ Firebase and Firestore are prohibited.
 
 ## Application structure
 
-The repository uses a root-level `app/` directory from the original Next.js scaffold. Keep that layout unless a documented decision changes it. The PierOne public website is a second Next.js app at `sites/pierone` (DEC-WEB-002). It does not import `db/` or Drizzle.
+The repository uses a root-level `app/` directory from the original Next.js scaffold. Keep that layout unless a documented decision changes it. The Pier 24 Partners public website is a second Next.js app at `sites/pierone` (DEC-WEB-002). It does not import `db/` or Drizzle.
 
 Server-only modules live under `db/` and `lib/`. Client components must not import database, environment secrets, or authorization internals.
 
@@ -154,14 +154,14 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 
 ## Military Talent operations (Phase 9)
 
-- PierOne is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is a transition pathway and opportunity type within Military Talent operations, not a PierOne-owned generic SkillBridge program. PierOne is generally not the SkillBridge host. Operator-facing access bundle: Military Talent Partner (`military-talent-partner`; one-release alias `military-talent-specialist`).
+- Pier 24 Partners is the intermediary between transitioning service members and employer/host-company opportunities. SkillBridge is a transition pathway and opportunity type within Military Talent operations, not a Pier 24 Partners-owned generic SkillBridge program. Pier 24 Partners is generally not the SkillBridge host. Operator-facing access bundle: Military Talent Partner (`military-talent-partner`; one-release alias `military-talent-specialist`).
 - Canonical flow: Transitioning Service Member → Military Talent Network → Transition Talent Profile → Skills Translation → Employer Opportunity Search / Development → Employer Match → Employer Engagement → Interview → SkillBridge / Direct Hire / Other Transition Pathway → Placement → Conversion.
 - Transitioning people are existing Talent Network `candidates`. `skillbridge_profiles` are a 1:1 Transition Talent Profile overlay. UI language may say Transition Talent Profile while the physical table name stays `skillbridge_profiles`. Do not duplicate a candidate per employer or job. A public job posting is not required before someone can join the Military Talent Network.
 - Preferred locations and target roles are junction tables. Employer connections are `skillbridge_opportunities` (UI: Employer / host-company opportunities) with stage history. Filtered fields are relational columns, not JSONB.
 - Resume status is `missing | outdated | current | needs_review` — not a quality score. Files use the existing storage abstraction; binaries stay out of PostgreSQL.
 - Matching is Transition Talent Profile ↔ employer opportunity using skills, military occupation, translated civilian role, location, timing, SkillBridge window, certifications, clearance when required, industry, and preferences. It reuses the existing job-match architecture. Humans connect or submit. Employer briefs and message drafts require human review.
 - Follow-up, window, no-opportunity, employer-feedback, resume-missing, and conversion rules live in configurable `skillbridge_alert_rules`. Inngest runs scans. In-app notifications are the delivery channel.
-- Metrics and Military Talent queue counts come from stored rows only. The queue is pathway follow-ups for assigned talent, not a PierOne SkillBridge program dashboard. Permissions: `skillbridge.read`, `skillbridge.write`, `skillbridge.manage`, `skillbridge.export`. Restricted PII rules still apply. In-app Academy is `/app/academy` (nav: Help & Training). Training is by effective access; completion does not grant permissions.
+- Metrics and Military Talent queue counts come from stored rows only. The queue is pathway follow-ups for assigned talent, not a Pier 24 Partners SkillBridge program dashboard. Permissions: `skillbridge.read`, `skillbridge.write`, `skillbridge.manage`, `skillbridge.export`. Restricted PII rules still apply. In-app Academy is `/app/academy` (nav: Help & Training). Training is by effective access; completion does not grant permissions.
 - Development fixtures include labeled transitioning talent. Production seed (`db:seed:prod`) loads alert-rule defaults only, not those people.
 
 ## Careers, ATS, and onboarding (Phase 10)
@@ -178,7 +178,7 @@ Phase 1 built the technical foundation. Phase 2 added operating UI for CRM, Tale
 
 ## Related documents
 
-- [PIERONE_OPERATING_MANUAL.md](../business/PIERONE_OPERATING_MANUAL.md) — how PierOne Partners the company operates (SOLVE → BUILD → OPERATE); not deploy/recover
+- [PIERONE_OPERATING_MANUAL.md](../business/PIERONE_OPERATING_MANUAL.md) — how Pier 24 Partners operates (SOLVE → BUILD → OPERATE); not deploy/recover
 - [SERVICE_PLAYBOOKS.md](../business/SERVICE_PLAYBOOKS.md) — ten delivery playbooks mapped to live screens
 - [SERVICE_CATALOG.md](../business/SERVICE_CATALOG.md)
 - [SERVICE_WORKFLOWS.md](../workflows/SERVICE_WORKFLOWS.md)

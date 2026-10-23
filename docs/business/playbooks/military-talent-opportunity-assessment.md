@@ -8,7 +8,7 @@ Cites: `docs/business/SERVICE_CATALOG.md`, `docs/workflows/SERVICE_WORKFLOWS.md`
 
 This playbook is the **client assessment engagement**. Pathway operations for transitioning people are [Military Transition / SkillBridge-eligible operations](military-transition-pathway.md) — not a sixth sellable service. Do not invent MOS maps, installations, or mapping rules. Load stored, reviewed mappings.
 
-SkillBridge is a pathway/opportunity type inside this practice, not a PierOne-owned program.
+SkillBridge is a pathway/opportunity type inside this practice, not a Pier 24 Partners-owned program.
 
 Legal package (approved workflow): required MSA, Military Talent Assessment SOW, NDA; conditional DPA.
 
@@ -135,7 +135,7 @@ Delivery project phases (`military-talent-assessment-delivery`): Discovery → J
 
 ## Locked rules
 
-- PierOne is the intermediary, generally not the SkillBridge host (DEC-MIL-005).
+- Pier 24 Partners is the intermediary, generally not the SkillBridge host (DEC-MIL-005).
 - Do not invent mapping rules (DEC-MIL-001).
 - Do not duplicate a candidate per employer.
 - Operator bundle for mapping/pathway work: **Military Talent Partner**, not Specialist.

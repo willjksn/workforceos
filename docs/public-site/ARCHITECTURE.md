@@ -1,7 +1,7 @@
-# PierOne public website architecture
+# Pier 24 Partners public website architecture
 
 Status: accepted  
-This is not Phase 11 of WorkforceOS. It is the public business front door for PierOne Partners.
+This is not Phase 11 of WorkforceOS. It is the public business front door for Pier 24 Partners.
 
 ## Surfaces
 
@@ -14,7 +14,7 @@ This is not Phase 11 of WorkforceOS. It is the public business front door for Pi
 
 ```
 Browser
-  → PierOne public website (Next.js, separately deployable)
+  → Pier 24 Partners public website (Next.js, separately deployable)
     → WorkforceOS Public Gateway `/api/public/v1/*`
       → WorkforceOS service layer
         → Neon PostgreSQL

@@ -1,4 +1,4 @@
-# PierOne public website + WorkforceOS production activation
+# Pier 24 Partners public website + WorkforceOS production activation
 
 Status: in progress — **NO-GO** until P0 blockers below are cleared.  
 This is not Phase 11. Do not recreate Neon, Clerk, or the existing WorkforceOS Vercel project.
@@ -10,7 +10,7 @@ This is not Phase 11. Do not recreate Neon, Clerk, or the existing WorkforceOS V
 | Public website | `sites/pierone` (separate Vercel project) | `https://pieronepartners.com` (canonical). `www` redirects to apex. |
 | WorkforceOS | repository root (existing Vercel project) | `https://app.pieronepartners.com` |
 
-Browser → PierOne website server → signed request → `https://app.pieronepartners.com/api/public/v1/...` → service layer → Neon.
+Browser → Pier 24 Partners website server → signed request → `https://app.pieronepartners.com/api/public/v1/...` → service layer → Neon.
 
 The browser must not receive Neon credentials, `PUBLIC_SITE_INTEGRATION_SECRET` / `WORKFORCEOS_SITE_SECRET`, or privileged internal routes.
 
@@ -33,7 +33,7 @@ Treat the current Neon `production` branch as the **development database**. Do n
 
 1. Private production R2/S3 (`STORAGE_PROVIDER=s3` plus `S3_*`).
 2. Resend sending domain verified (SPF/DKIM/DMARC as Resend reports).
-3. Two Vercel projects: PierOne Website (`Root Directory = sites/pierone`) and existing WorkforceOS (root).
+3. Two Vercel projects: Pier 24 Partners Website (`Root Directory = sites/pierone`) and existing WorkforceOS (root).
 4. `pieronepartners.com` DNS on the website project.
 5. `app.pieronepartners.com` DNS on WorkforceOS.
 6. Clean production Neon (no Harbor / Taylor Ellis fixtures). Create `development` and `preview` branches; cut production over to a protected branch seeded only with `db:seed:prod`.

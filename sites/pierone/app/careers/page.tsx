@@ -10,7 +10,7 @@ import { workforceOsPublic } from "@/lib/workforceos/client";
 
 export const metadata: Metadata = {
   title: "Careers",
-  description: "Open roles published by PierOne Partners. Applying does not guarantee an interview.",
+  description: "Open roles published by Pier 24 Partners. Applying does not guarantee an interview.",
 };
 
 export const revalidate = 60;

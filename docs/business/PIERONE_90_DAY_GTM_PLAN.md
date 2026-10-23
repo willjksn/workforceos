@@ -1,4 +1,4 @@
-# PierOne Partners 90-day GTM / launch operations plan
+# Pier 24 Partners 90-day GTM / launch operations plan
 
 Status: Phase K (2026-09-09)  
 Audience: Managing Partner, Senior Talent Partner, Operations, and other commercial owners  
@@ -22,7 +22,7 @@ Display names are canonical for operators and the public site. The search offer 
 | Fractional Talent Partner | `fractional-talent-partner` | Scoped fractional talent leadership. Not temp staffing or payroll. |
 | Workforce Pipeline Assessment | `workforce-pipeline-assessment` | Demand, supply, gaps, human-approved plan. |
 
-Do not sell temp staffing, payroll, a public marketplace, or cap-table work. SkillBridge is a **pathway type** inside Military Talent operations, not a sixth offer and not a PierOne-owned host program.
+Do not sell temp staffing, payroll, a public marketplace, or cap-table work. SkillBridge is a **pathway type** inside Military Talent operations, not a sixth offer and not a Pier 24 Partners-owned host program.
 
 ### Focus industries (locked for this plan)
 
@@ -67,7 +67,7 @@ Dates are operating windows, not a second calendar product. Record work on exist
 2. Run Southeast outbound against Tier 1 first, then Tier 2. National recruiting opens or works jobs only after a human-owned opportunity exists for one of the five services.
 3. Qualify website inquiries on `/app/crm/inquiries`. Convert to an opportunity only after a human decides — never auto-create.
 4. Book discovery. Do not skip to proposal.
-5. Start employer conversations for Military Talent Opportunity Assessment where the need is SkillBridge-eligible or direct-hire military talent. PierOne is the **intermediary**, not the host.
+5. Start employer conversations for Military Talent Opportunity Assessment where the need is SkillBridge-eligible or direct-hire military talent. Pier 24 Partners is the **intermediary**, not the host.
 
 ### Days 31–60 — Convert conversations
 
@@ -139,13 +139,13 @@ Each row cites the operating manual / playbook screen. Chat is not the system of
 
 | | |
 | --- | --- |
-| **Motion** | Talk to employers about SkillBridge-eligible or direct-hire military talent needs. PierOne is the intermediary, generally **not** the SkillBridge host. |
+| **Motion** | Talk to employers about SkillBridge-eligible or direct-hire military talent needs. Pier 24 Partners is the intermediary, generally **not** the SkillBridge host. |
 | **WorkforceOS screens** | Opportunity with `serviceCode=military-talent-opportunity-assessment` (`/app/opportunities`). Employer/host matches: `/app/military/opportunities`. Pathway ops: `/app/military/skillbridge` (Playbook 6 — not a sixth offer). |
 | **Owner / access** | Senior Talent Partner owns the commercial assessment. Military Talent Partner runs pathway matching. Recruiter Standard does not own the commercial opportunity. |
 | **Playbook** | Playbook 2 (Military Talent Opportunity Assessment). Playbook 6 (pathway ops). |
 | **Scout** | `SEARCH` opportunities / employer opportunities. `FIND_MATCHES` on a Transition Talent Profile. Do not invent MOS maps. |
 | **KPI on GTM board** | Open Military Talent Opportunity Assessment opportunities, plus open employer/host matches when the operator has `military.read` / `skillbridge.read`. |
-| **Do not** | Duplicate a candidate per employer. Call SkillBridge a PierOne-owned program. Use the retired Specialist title in new prose. |
+| **Do not** | Duplicate a candidate per employer. Call SkillBridge a Pier 24 Partners-owned program. Use the retired Specialist title in new prose. |
 
 ### Proposal conversion
 

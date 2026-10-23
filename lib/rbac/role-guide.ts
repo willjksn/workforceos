@@ -61,7 +61,7 @@ export const ROLE_GUIDE: Record<
   "military-talent-partner": {
     audience: "Military talent practice",
     access:
-      "Transition Talent Profiles, employer/host-company opportunities, SkillBridge-eligible pathway work, and military-to-civilian mapping. No admin screens. SkillBridge is a pathway type, not a PierOne-owned program.",
+      "Transition Talent Profiles, employer/host-company opportunities, SkillBridge-eligible pathway work, and military-to-civilian mapping. No admin screens. SkillBridge is a pathway type, not a Pier 24 Partners-owned program.",
   },
   "read-only": {
     audience: "Reviewers",
