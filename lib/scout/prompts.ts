@@ -1,4 +1,11 @@
 export function suggestedScoutPrompts(module: string, entityType: string | null) {
+  if (module === "command_center") {
+    return [
+      "Show overdue employer follow-ups.",
+      "Where are our largest workforce gaps?",
+      "What public opportunities were discovered recently?",
+    ];
+  }
   if (entityType === "candidate" || module === "talent") {
     return [
       "Find matching jobs",

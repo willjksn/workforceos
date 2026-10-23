@@ -8,6 +8,8 @@ export type ScoutPageContext = {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const ENTITY_ROUTES: Array<{ prefix: string; entityType: string; module: string }> = [
+  { prefix: "/app/jobs/engagements/", entityType: "engagement", module: "recruiting" },
+  { prefix: "/app/workforce/roles/", entityType: "workforce_role", module: "workforce" },
   { prefix: "/app/public-content/", entityType: "public_content_item", module: "public_content" },
   { prefix: "/app/military/skillbridge/", entityType: "skillbridge_profile", module: "skillbridge" },
   { prefix: "/app/crm/inquiries/", entityType: "website_inquiry", module: "crm" },

@@ -19,6 +19,7 @@ import { scoutOperatingRhythmSummary } from "../reporting/operating-rhythms";
 import { scoutCommand } from "./commands";
 import { isScoutSendPathEnabled, rejectScoutSend as denyScoutSend } from "./send";
 import type { ScoutPageContext } from "./page-context";
+import { executeOperationalScoutCommand } from "./operational-execute";
 import { parseScoutIntent, type ScoutCommandDto } from "./parse-intent";
 import { executeScoutSearch, type ScoutResultCard } from "./search";
 
@@ -192,6 +193,7 @@ export async function confirmScoutAction(input: { principal: Principal; actionId
   const executed = await executeAuthorizedCommand({
     principal: input.principal,
     dto,
+    confirmed: true,
     pageContext: {
       pathname: "/app",
       module: "app",
@@ -229,7 +231,15 @@ async function executeAuthorizedCommand(input: {
   principal: Principal;
   dto: ScoutCommandDto;
   pageContext: ScoutPageContext;
+  confirmed?: boolean;
 }): Promise<Omit<ScoutTurnResult, "sessionId">> {
+  if (input.dto.commandId) {
+    return executeOperationalScoutCommand({
+      principal: input.principal,
+      dto: input.dto,
+      confirmed: input.confirmed === true,
+    });
+  }
   const canReadPii = can(input.principal, "candidate_pii.read");
   if (input.dto.family === "SEARCH" || input.dto.family === "FIND_MATCHES" || input.dto.family === "SHOW_RECORD") {
     if (input.dto.family === "SHOW_RECORD") {

@@ -39,6 +39,11 @@ const LABELS: Record<string, string> = {
   "data-quality": "Data quality",
   "access-review": "Access review",
   reports: "Reports",
+  scout: "Scout",
+  more: "More",
+  review: "Needs Review",
+  engagements: "Follow-ups",
+  "career-sources": "Career Sources",
   alerts: "Alerts",
   approvals: "Approvals",
 };
@@ -74,7 +79,7 @@ export function TopBar({
     <header className="sticky top-0 z-20 flex h-14 items-center gap-4 border-b border-border bg-surface/95 px-4 backdrop-blur sm:px-6">
       <button
         type="button"
-        className="rounded-[6px] p-2 text-navy lg:hidden"
+        className="rounded-[6px] p-2 text-navy md:hidden"
         onClick={onMenuClick}
         aria-label="Open navigation"
       >

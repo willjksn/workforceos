@@ -11,7 +11,7 @@ import {
   requiredTrainingSlugs,
 } from "../lib/academy/training";
 import { academyArticleHref } from "../lib/academy/types";
-import { navGroupsForPrincipal } from "../components/navigation/nav-config";
+import { moreGroupsForPrincipal, navGroupsForPrincipal } from "../components/navigation/nav-config";
 import { applyPermissionOverrides, ROLE_PERMISSIONS, type Principal } from "../lib/rbac/permissions";
 import { parseScoutIntent } from "../lib/scout/parse-intent";
 import { isScoutExternalSendEnabled } from "../lib/scout/execute";
@@ -109,10 +109,14 @@ describe("Phase E Academy", () => {
     const recruiterLinks = navGroupsForPrincipal(principalFor("recruiter")).flatMap((group) =>
       group.items.map((item) => item.href),
     );
-    expect(recruiterLinks).toContain("/app/academy");
+    const moreLinks = moreGroupsForPrincipal(principalFor("recruiter")).flatMap((group) =>
+      group.items.map((item) => item.href),
+    );
+    expect(moreLinks).toContain("/app/academy");
     expect(recruiterLinks).not.toContain("/app/ai-operations");
     expect(recruiterLinks).not.toContain("/app/ai-operations/knowledge");
-    const item = navGroupsForPrincipal(principalFor("recruiter"))
+    expect(moreLinks).not.toContain("/app/ai-operations/knowledge");
+    const item = moreGroupsForPrincipal(principalFor("recruiter"))
       .flatMap((group) => group.items)
       .find((entry) => entry.href === "/app/academy");
     expect(item?.label).toBe("Help & Training");

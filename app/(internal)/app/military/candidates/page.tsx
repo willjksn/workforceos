@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { militaryCandidateFocusIds } from "@/lib/command-center/load";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { presentCandidate } from "@/lib/privacy/present-candidate";
 import { listMilitaryCandidates } from "@/lib/repositories/military";
@@ -15,9 +16,19 @@ function availabilityTone(value: string) {
   return "neutral" as const;
 }
 
-export default async function MilitaryCandidatesPage() {
+export default async function MilitaryCandidatesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ workflow?: string; profile?: string }>;
+}) {
   const principal = await requireAppPermission("military.read");
-  const rows = await listMilitaryCandidates(principal.organizationId);
+  const { workflow, profile } = await searchParams;
+  const focus = workflow === "none" ? "none" : profile === "incomplete" ? "incomplete" : undefined;
+  const [rows, focusIds] = await Promise.all([
+    listMilitaryCandidates(principal.organizationId),
+    militaryCandidateFocusIds(principal.organizationId, focus),
+  ]);
+  const visible = focusIds ? rows.filter((row) => focusIds.has(row.candidate.id)) : rows;
   const canReadPii = can(principal, "candidate_pii.read");
 
   return (
@@ -28,13 +39,19 @@ export default async function MilitaryCandidatesPage() {
         description="Transitioning service members and other military talent in the Talent Network. These are the same candidate records used in recruiting — not a PierOne SkillBridge program roster."
       />
       <MilitarySubnav active="/app/military/candidates" />
-      {rows.length === 0 ? (
-        <EmptyState title="No military-linked candidates.">
+      {focus === "none" ? (
+        <p className="mt-4 text-sm text-muted-foreground">Showing Transition Profiles with no open engagement. Each name is the same Talent Network person.</p>
+      ) : null}
+      {focus === "incomplete" ? (
+        <p className="mt-4 text-sm text-muted-foreground">Showing Transition Profiles that are missing separation or end-of-service timing and a preferred location.</p>
+      ) : null}
+      {visible.length === 0 ? (
+        <EmptyState title={focus ? "No items need attention." : "No military-linked candidates."}>
           These people are the same Talent Network records used in recruiting—not a second database.
         </EmptyState>
       ) : (
         <DataTable columns={["Candidate", "Branch / occupation", "Rank", "Location", "Availability"]}>
-          {rows.map((row) => (
+          {visible.map((row) => (
             <tr key={row.candidate.id}>
               <td>
                 <Link className="font-medium text-navy" href={`/app/talent/${row.candidate.id}`}>

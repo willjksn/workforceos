@@ -31,13 +31,26 @@ export default async function MilitaryOverviewPage() {
       />
       <MilitarySubnav active="/app/military" />
       <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <OverviewCard href="/app/military/candidates" title="Transitioning Talent" body="Talent Network candidates with military experience. Same person record used in recruiting." />
-        <OverviewCard href="/app/military/opportunities" title="Employer Opportunities" body="Host-company and employer matching records. PierOne facilitates; the employer is explicit." />
-        <OverviewCard href="/app/military/skillbridge" title="Pathway operations" body="SkillBridge-eligible windows, approvals, placements, and conversion — one pathway inside Military Talent operations." />
-        <OverviewCard href="/app/military/translator" title="Skills Translator" body="Translate military occupations and skills into civilian workforce value." />
-        <OverviewCard href="/app/military/occupations" title="Occupation Library" body="MOS, Rating, and AFSC mappings used in matching." />
-        <OverviewCard href="/app/military/analytics" title="Analytics" body="Stored counts for windows, unmatched talent, placements, and conversion." />
+        <OverviewCard href="/app/talent?channel=military" title="Talent Network" body="The same candidate records. Military talent is a channel, not a second person." />
+        <OverviewCard href="/app/military/candidates" title="Transition Talent Profiles" body="The profile extends the candidate with service, timing, and preferences." />
+        <OverviewCard href="/app/military/translator" title="Capability Translation" body="The canonical translator. Crosswalk and reverse lookup stay available as specialist tools." />
+        <OverviewCard href="/app/military/review" title="Mapping Review" body="Pending occupation mappings and person capabilities. The originating agent cannot approve." />
+        <OverviewCard href="/app/workforce/military-supply" title="Military Supply" body="Known military people inside a workforce plan. Occupation channels are not people." />
+        <OverviewCard href="/app/military/skillbridge" title="Pathway operations" body="SkillBridge windows are one pathway on the Transition Talent Profile." />
       </div>
+      <section className="mt-8">
+        <h2 className="text-sm font-medium text-navy">Specialist tools</h2>
+        <p className="mt-1 text-sm text-muted-foreground">These routes stay available. They are not a second translator.</p>
+        <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+          <li><Link className="underline" href="/app/military/occupations">Occupation library</Link></li>
+          <li><Link className="underline" href="/app/military/crosswalk">Crosswalk</Link></li>
+          <li><Link className="underline" href="/app/military/reverse">Reverse lookup</Link></li>
+          <li><Link className="underline" href="/app/military/installations">Installations</Link></li>
+          <li><Link className="underline" href="/app/military/installation-mapping">Installation mapping</Link></li>
+          <li><Link className="underline" href="/app/military/bridge-training">Bridge training</Link></li>
+          <li><Link className="underline" href="/app/military/analytics">Analytics</Link></li>
+        </ul>
+      </section>
       <section className="mt-10">
         <h2 className="section-title">Canonical flow</h2>
         <ol className="mt-4 grid gap-3 md:grid-cols-2">

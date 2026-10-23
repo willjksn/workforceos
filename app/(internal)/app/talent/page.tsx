@@ -36,12 +36,17 @@ function availabilityTone(value: string) {
 export default async function TalentPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; joined?: string; channel?: string }>;
 }) {
   const principal = await requireAppPermission("candidates.read");
   const canReadPii = can(principal, "candidate_pii.read");
-  const { q, page } = await searchParams;
-  const result = await searchActiveCandidates(principal.organizationId, q, undefined, { page });
+  const { q, page, joined, channel } = await searchParams;
+  const joinedSince = joined === "week" ? new Date(Date.now() - 7 * 86_400_000) : undefined;
+  const result = await searchActiveCandidates(principal.organizationId, q, undefined, {
+    page,
+    joinedSince,
+    militaryOnly: channel === "military",
+  });
   const rows = result.items.map((candidate) => presentCandidate(candidate, canReadPii));
 
   return (
@@ -58,6 +63,8 @@ export default async function TalentPage({
         }
       />
       <ConceptNote concept="candidateVsApplication" />
+      {joined === "week" ? <p className="mt-4 text-sm text-muted-foreground">Showing people created in the last 7 days.</p> : null}
+      {channel === "military" ? <p className="mt-4 text-sm text-muted-foreground">Showing Talent Network members who have a Transition Talent Profile. Same person record.</p> : null}
       <FilterBar>
         <SearchForm action="/app/talent" q={q} placeholder="Search name or title" className="" />
       </FilterBar>
