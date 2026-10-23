@@ -35,9 +35,7 @@ export default async function CareersPage() {
               <HorizonRule className="mt-5" />
               <h1 className="mt-6 font-serif text-4xl font-semibold tracking-tight text-white">Open roles</h1>
               <p className="mt-4 max-w-xl text-[17px] leading-8 text-white/80">
-                Roles appear here only when WorkforceOS marks them public and open. Closing a job in WorkforceOS removes
-                it from this list without a website deploy. Applying does not guarantee an interview. Transitioning
-                service members can also{" "}
+                Applying does not guarantee an interview. Transitioning service members can also{" "}
                 <a className="underline" href="/military-talent/join">
                   join the Military Talent Network
                 </a>{" "}
