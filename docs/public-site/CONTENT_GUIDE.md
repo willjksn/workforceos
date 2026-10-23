@@ -18,7 +18,7 @@ The public site leads with three services:
 
 Talent Acquisition Performance Assessment and Fractional Talent Partner stay in the service catalog and keep their URLs. They are not in the public menu, homepage, footer, or contact choices.
 
-Primary industries include Honeywell Technologies as a market focus, not as a claim of a current client engagement.
+Primary industries include Technology. Do not name Honeywell, or any other company, as an industry.
 
 Insights stay empty until approved articles exist.
 

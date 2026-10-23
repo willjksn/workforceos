@@ -34,7 +34,7 @@ Talent Acquisition Performance Assessment and Fractional Talent Partner remain i
 
 SkillBridge operations, applicant processing, interviewing, onboarding, military translation, public opportunity discovery, candidate matching, research, sourcing, Scout, and WorkforceOS support delivery. They are not additional public offers.
 
-Primary sectors: Energy & Utilities, Advanced Manufacturing, Infrastructure, Industrial / Technical Operations, and Honeywell Technologies. Honeywell Technologies is a named market focus, not a claim of a current engagement. Secondary sectors: Data Centers, Aerospace & Defense, Engineering, and Supply Chain & Logistics. Geography is not hard-coded through the product.
+Primary sectors: Energy & Utilities, Advanced Manufacturing, Infrastructure, Industrial / Technical Operations, and Technology. Do not name a company as an industry. Secondary sectors: Data Centers, Aerospace & Defense, Engineering, and Supply Chain & Logistics. Geography is not hard-coded through the product.
 
 ## System capabilities
 

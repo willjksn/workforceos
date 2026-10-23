@@ -119,7 +119,7 @@ export const PRIMARY_INDUSTRIES = [
   "Advanced Manufacturing",
   "Infrastructure",
   "Industrial & Technical Operations",
-  "Honeywell Technologies",
+  "Technology",
 ] as const;
 
 export const SECONDARY_INDUSTRIES = [

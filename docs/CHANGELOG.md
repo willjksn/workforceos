@@ -2,11 +2,11 @@
 
 ## Unreleased
 
-### Public focus — three services and Honeywell Technologies
+### Public focus — three services and Technology
 
 - The public menu, homepage, services page, footer, and contact choices lead with Professional & Technical Search, Military Talent Opportunity Assessment, and Workforce Pipeline Assessment.
 - Talent Acquisition Performance Assessment and Fractional Talent Partner keep their pages. They are no longer featured.
-- Honeywell Technologies is a primary industry focus, not a claim of a current client engagement.
+- The primary industry label is Technology. The public site does not name Honeywell. Its photo is separate from Industrial & Technical Operations.
 
 ### M10 — Pier 24 Partners brand migration
 

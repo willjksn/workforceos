@@ -66,7 +66,8 @@ describe("Pier 24 Partners public website", () => {
     ]);
     expect(SOLUTIONS_NAV.map((item) => item.label)).not.toContain("Talent Acquisition Performance Assessment");
     expect(SOLUTIONS_NAV.map((item) => item.label)).not.toContain("Fractional Talent Partner");
-    expect(PRIMARY_INDUSTRIES).toContain("Honeywell Technologies");
+    expect(PRIMARY_INDUSTRIES).toContain("Technology");
+    expect(PRIMARY_INDUSTRIES.join(" ")).not.toMatch(/Honeywell/);
     expect(SERVICES.map((row) => row.code)).not.toContain("skillbridge");
     expect(SERVICES.map((row) => row.code)).not.toContain("dual-career");
   });
