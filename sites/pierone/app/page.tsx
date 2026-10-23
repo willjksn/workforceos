@@ -169,9 +169,6 @@ export default async function HomePage() {
         <Container>
           <Eyebrow>Industries</Eyebrow>
           <Heading>Where workforce constraints show up clearly.</Heading>
-          <p className="mt-4 max-w-2xl text-sm text-muted">
-            Emphasis areas, not a claim that Pier 24 Partners currently serves named clients in each industry.
-          </p>
           <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {INDUSTRY_TILES.filter((tile) => tile.emphasis === "primary").map((tile) => (
               <li key={tile.name} className="group relative overflow-hidden rounded-[6px]">
