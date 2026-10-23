@@ -28,6 +28,11 @@ export function AppShell({
           <AppSidebar groups={groups} />
         </div>
       </aside>
+      <aside className="hidden w-14 shrink-0 md:block lg:hidden">
+        <div className="sticky top-0 h-screen">
+          <AppSidebar groups={groups} variant="rail" />
+        </div>
+      </aside>
       {open ? (
         <div className="fixed inset-0 z-40 lg:hidden">
           <button

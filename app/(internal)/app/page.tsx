@@ -1,5 +1,6 @@
 import { AcademyHelp } from "@/components/academy/academy-help";
 import { CadenceBoard } from "@/components/command-center/cadence-board";
+import { OperationalBoard } from "@/components/command-center/operational-board";
 import { MetricCard, TabNav } from "@/components/ui/display";
 import { buttonClassName } from "@/components/ui/button";
 import {
@@ -15,6 +16,7 @@ import { requireCurrentPrincipal } from "@/lib/auth/session";
 import { moneyString } from "@/lib/finance/money";
 import { can } from "@/lib/rbac/permissions";
 import { labelForAccessBundle } from "@/lib/rbac/role-guide";
+import { getOperationalCommandCenter } from "@/lib/command-center/load";
 import { getExecutiveCommandCenter } from "@/lib/reporting/executive";
 import {
   CADENCE_LABELS,
@@ -37,10 +39,10 @@ function ratio(value: number | null) {
 export default async function CommandCenterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ cadence?: string }>;
+  searchParams: Promise<{ cadence?: string; view?: string }>;
 }) {
   const principal = await requireCurrentPrincipal();
-  const { cadence: cadenceParam } = await searchParams;
+  const { cadence: cadenceParam, view } = await searchParams;
   const cadence = isCadenceId(cadenceParam) ? cadenceParam : null;
   const availableCadences = visibleCadenceIds(principal);
   const canOpportunities = can(principal, "opportunities.read");
@@ -98,6 +100,32 @@ export default async function CommandCenterPage({
             <a className="font-medium text-teal hover:underline" href="/app/reports">Reports</a>.
           </p>
         ) : null}
+      </PageShell>
+    );
+  }
+
+  if (view !== "business") {
+    const board = await getOperationalCommandCenter(principal);
+    return (
+      <PageShell wide>
+        <PageHeader
+          eyebrow="WorkforceOS"
+          title="Command Center"
+          description="What needs attention, what changed, and where to act. Counts come from stored Talent, Jobs, engagements, and workforce plans. Jobs are employer demand. CRM opportunities stay commercial pursuits and are not listed here."
+          metadata={`${accessLabel} · ${new Date(board.generatedAt).toLocaleString()}`}
+          actions={
+            <div className="flex flex-wrap items-center gap-2">
+              <AcademyHelp articleSlug="module-command-center" />
+              {canOpportunities || canFinance ? (
+                <a className={buttonClassName("secondary")} href="/app?view=business">
+                  Business snapshot
+                </a>
+              ) : null}
+            </div>
+          }
+        />
+        <TabNav items={tabItems} activeId={activeId} />
+        <OperationalBoard board={board} />
       </PageShell>
     );
   }

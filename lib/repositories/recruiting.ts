@@ -1,4 +1,4 @@
-import { and, count, desc, eq, ilike, inArray, isNull } from "drizzle-orm";
+import { and, count, desc, eq, gte, ilike, inArray, isNull, lt, sql } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
@@ -33,7 +33,15 @@ function numeric(value: number) {
 export async function listJobs(
   organizationId: string,
   query?: string,
-  paging?: ListPageQuery & { companyId?: string },
+  paging?: ListPageQuery & {
+    companyId?: string;
+    contextType?: "client" | "internal" | "skillbridge" | "monitored_public" | "exploratory";
+    requirementsReview?: boolean;
+    staleMatch?: boolean;
+    matchesNone?: boolean;
+    createdSince?: Date;
+    changedSince?: Date;
+  },
 ): Promise<
   ListPage<{
     job: typeof jobs.$inferSelect;
@@ -53,6 +61,43 @@ export async function listJobs(
     isNull(jobs.archivedAt),
     search ? ilike(jobs.title, `%${search}%`) : undefined,
     paging?.companyId ? eq(jobs.companyId, paging.companyId) : undefined,
+    paging?.contextType ? eq(jobs.jobContextType, paging.contextType) : undefined,
+    paging?.createdSince ? gte(jobs.createdAt, paging.createdSince) : undefined,
+    paging?.changedSince ? and(gte(jobs.updatedAt, paging.changedSince), lt(jobs.createdAt, paging.changedSince)) : undefined,
+    paging?.requirementsReview
+      ? sql`(
+          exists (
+            select 1 from job_requirements jr
+            where jr.job_id = ${jobs.id}
+              and jr.organization_id = ${jobs.organizationId}
+              and jr.review_status in ('pending', 'needs_review')
+          )
+          or exists (
+            select 1 from job_skills js
+            where js.job_id = ${jobs.id}
+              and js.review_status in ('pending', 'needs_review')
+          )
+        )`
+      : undefined,
+    paging?.staleMatch
+      ? sql`exists (
+          select 1 from candidate_job_matches m
+          where m.job_id = ${jobs.id}
+            and m.organization_id = ${jobs.organizationId}
+            and m.freshness = 'stale'
+        )`
+      : undefined,
+    paging?.matchesNone
+      ? and(
+          inArray(jobs.status, ["open", "search_active"]),
+          sql`not exists (
+            select 1 from candidate_job_matches m
+            where m.job_id = ${jobs.id}
+              and m.organization_id = ${jobs.organizationId}
+              and m.match_category = 'strong_match'
+          )`,
+        )
+      : undefined,
   );
   const [totalRow] = await db.select({ value: count() }).from(jobs).where(filters);
   const total = Number(totalRow?.value ?? 0);

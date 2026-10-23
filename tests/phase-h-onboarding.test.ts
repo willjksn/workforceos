@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { getAcademyArticle } from "../lib/academy/catalog";
 import { academyScoutCards } from "../lib/academy/scout";
 import { updateAcademyTrainingAction } from "../lib/actions/academy";
-import { navGroupsForPrincipal } from "../components/navigation/nav-config";
+import { moreGroupsForPrincipal } from "../components/navigation/nav-config";
 import { ROLE_PERMISSIONS, type Principal } from "../lib/rbac/permissions";
 import { parseScoutIntent } from "../lib/scout/parse-intent";
 import { isScoutExternalSendEnabled } from "../lib/scout/execute";
@@ -141,7 +141,7 @@ describe("Phase H staff onboarding", () => {
     expect(article?.stepByStep.join(" ")).toMatch(/Military Talent Partner/);
     expect(article?.stepByStep.join(" ")).not.toMatch(/Military Talent Specialist/);
     expect(article?.stepByStep.join(" ")).toMatch(/does not assign bundles/);
-    const recruiterLinks = navGroupsForPrincipal(principalFor("recruiter")).flatMap((group) =>
+    const recruiterLinks = moreGroupsForPrincipal(principalFor("recruiter")).flatMap((group) =>
       group.items.map((item) => item.href),
     );
     expect(recruiterLinks).toContain("/app/academy/onboarding");

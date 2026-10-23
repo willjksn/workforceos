@@ -15,7 +15,7 @@ import {
 } from "../lib/rbac/permissions";
 import { ACCESS_BUNDLE_LABELS } from "../lib/rbac/role-guide";
 import { assignableRoleSlugs, assertAccessBundlesAllowed } from "../lib/rbac/assign-role";
-import { navGroupsForPrincipal } from "../components/navigation/nav-config";
+import { moreGroupsForPrincipal, navGroupsForPrincipal } from "../components/navigation/nav-config";
 
 function principalFor(role: keyof typeof ROLE_PERMISSIONS, extra: Partial<Principal> = {}): Principal {
   return {
@@ -90,8 +90,10 @@ describe("Phase 12 flexible access", () => {
     expect(can(user, "agents.read")).toBe(true);
     expect(can(user, "agents.manage")).toBe(false);
     const links = navGroupsForPrincipal(user).flatMap((group) => group.items.map((item) => item.href));
-    expect(links).toContain("/app/ai-operations/review");
+    const more = moreGroupsForPrincipal(user).flatMap((group) => group.items.map((item) => item.href));
+    expect(more).toContain("/app/ai-operations/review");
     expect(links).not.toContain("/app/ai-operations");
+    expect(more).not.toContain("/app/ai-operations");
     expect(links).not.toContain("/app/ai-operations/costs");
   });
 

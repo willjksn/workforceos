@@ -1,4 +1,4 @@
-import { and, count, desc, eq, ilike, inArray, isNull, lt, or } from "drizzle-orm";
+import { and, count, desc, eq, gte, ilike, inArray, isNull, lt, or, sql } from "drizzle-orm";
 
 import { getDb } from "../../db";
 import {
@@ -274,7 +274,7 @@ export async function searchActiveCandidates(
   organizationId: string,
   query?: string,
   availability?: typeof candidates.$inferSelect.availability,
-  paging?: ListPageQuery,
+  paging?: ListPageQuery & { joinedSince?: Date; militaryOnly?: boolean },
 ): Promise<ListPage<typeof candidates.$inferSelect>> {
   const db = getDb();
   const search = sanitizeSearchQuery(query);
@@ -289,6 +289,14 @@ export async function searchActiveCandidates(
           ilike(candidates.fullName, `%${search}%`),
           ilike(candidates.currentTitle, `%${search}%`),
         )
+      : undefined,
+    paging?.joinedSince ? gte(candidates.createdAt, paging.joinedSince) : undefined,
+    paging?.militaryOnly
+      ? sql`exists (
+          select 1 from skillbridge_profiles sp
+          where sp.candidate_id = ${candidates.id}
+            and sp.organization_id = ${candidates.organizationId}
+        )`
       : undefined,
   );
   const [totalRow] = await db.select({ value: count() }).from(candidates).where(filters);

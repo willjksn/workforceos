@@ -54,7 +54,7 @@ export default async function MilitaryReviewPage() {
           ))}
         </div>
       )}
-      <h2 className="mt-8 section-title">Candidate capabilities</h2>
+      <h2 id="candidate-capabilities" className="mt-8 section-title">Candidate capabilities</h2>
       {capabilities.candidateRows.length === 0 ? (
         <EmptyState title="No pending candidate capabilities in this organization.">
           Person-specific drafts stay pending until a recruiter or reviewer approves them.

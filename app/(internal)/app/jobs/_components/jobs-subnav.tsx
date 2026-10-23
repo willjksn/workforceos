@@ -1,8 +1,9 @@
 import { TabNav } from "@/components/ui/display";
 
 const ITEMS = [
-  { href: "/app/jobs", label: "Jobs" },
+  { href: "/app/jobs", label: "All Jobs" },
   { href: "/app/jobs/engagements", label: "Follow-ups" },
+  { href: "/app/jobs/career-sources", label: "Career Sources" },
   { href: "/app/jobs?view=headcount", label: "Headcount requests" },
   { href: "/app/jobs?view=searches", label: "Internal searches" },
 ] as const;

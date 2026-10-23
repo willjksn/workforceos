@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { isRegisteredCommand, type ScoutCommandFamily } from "./commands";
+import { matchOperationalPrompt, operationalCommand } from "./operational-commands";
 import type { ScoutPageContext } from "./page-context";
 
 const SQL_PATTERN =
@@ -67,6 +68,13 @@ export const scoutCommandDtoSchema = z.object({
   ownerUserId: z.string().uuid().optional(),
   followUpAt: z.string().datetime().optional(),
   note: z.string().trim().max(2000).optional(),
+  commandId: z.string().trim().max(80).optional(),
+  subjectName: z.string().trim().max(200).optional(),
+  objectName: z.string().trim().max(200).optional(),
+  skill: z.string().trim().max(120).optional(),
+  waitingDays: z.number().int().positive().max(365).optional(),
+  engagementId: z.string().uuid().optional(),
+  workforceRoleId: z.string().uuid().optional(),
   dashboard: z.enum(["skillbridge", "queue", "daily_brief", "command_center", "gtm"]).optional(),
 });
 
@@ -121,6 +129,37 @@ export function parseScoutIntent(prompt: string, pageContext?: ScoutPageContext 
         code: "unknown_command",
       };
     }
+  }
+
+  const operational = matchOperationalPrompt(raw);
+  if (operational) {
+    const definition = operationalCommand(operational.id);
+    if (!definition) {
+      return {
+        ok: false,
+        error: `Command ${operational.id} is not in the Scout registry.`,
+        code: "unknown_command",
+      };
+    }
+    const dto: ScoutCommandDto = {
+      family: definition.family,
+      entity: definition.entity,
+      commandId: operational.id,
+      subjectName: operational.subjectName,
+      objectName: operational.objectName,
+      skill: operational.skill,
+      waitingDays: operational.waitingDays,
+      filters: operational.skill ? { skill: operational.skill } : undefined,
+      candidateId: pageContext?.entityType === "candidate" ? pageContext.entityId ?? undefined : undefined,
+      jobId: pageContext?.entityType === "job" ? pageContext.entityId ?? undefined : undefined,
+      engagementId: pageContext?.entityType === "engagement" ? pageContext.entityId ?? undefined : undefined,
+      workforceRoleId: pageContext?.entityType === "workforce_role" ? pageContext.entityId ?? undefined : undefined,
+    };
+    const parsed = scoutCommandDtoSchema.safeParse(dto);
+    if (!parsed.success) {
+      return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid Scout command.", code: "invalid" };
+    }
+    return { ok: true, dto: parsed.data, summary: definition.intent };
   }
 
   const text = raw.toLowerCase();

@@ -13,7 +13,7 @@ import {
 import { FINANCE_SPINE } from "../lib/ia/concepts";
 import { LEGAL_TEMPLATE_APPROVED_LABEL, LEGAL_TEMPLATE_DRAFT_LABEL, legalTemplateUseLabel } from "../lib/legal/labels";
 import { REPORT_QUESTIONS } from "../lib/reporting/filters";
-import { navGroupsForPrincipal } from "../components/navigation/nav-config";
+import { moreGroupsForPrincipal, navGroupsForPrincipal } from "../components/navigation/nav-config";
 import { ROLE_PERMISSIONS, type Principal } from "../lib/rbac/permissions";
 
 const root = path.resolve(__dirname, "..");
@@ -117,11 +117,13 @@ describe("leftover IA", () => {
     );
     expect(recruiter).not.toContain("/app/ai-operations");
     expect(recruiter).not.toContain("/app/ai-operations/costs");
-    expect(recruiter).toContain("/app/ai-operations/review");
+    const more = moreGroupsForPrincipal(principalFor("recruiter")).flatMap((group) => group.items.map((item) => item.href));
+    expect(more).toContain("/app/ai-operations/review");
+    expect(more).not.toContain("/app/ai-operations");
     expect(ROLE_PERMISSIONS.recruiter).toContain("agents.read");
     expect(ROLE_PERMISSIONS.recruiter).not.toContain("agents.manage");
     expect(ROLE_PERMISSIONS.recruiter).not.toContain("opportunities.read");
-    const admin = navGroupsForPrincipal(principalFor("managing-partner")).find((group) => group.label === "Admin");
+    const admin = moreGroupsForPrincipal(principalFor("managing-partner")).find((group) => group.label === "Admin");
     expect(admin?.items.some((item) => item.label === "AI & Automation" && item.href === "/app/ai-operations")).toBe(
       true,
     );

@@ -4,6 +4,7 @@ import { createJobAction } from "@/lib/actions/recruiting";
 import { requireAppPermission } from "@/lib/auth/guard";
 import { listCompaniesForSelect, listContacts } from "@/lib/repositories/crm";
 import { listCanonicalSkills, listJobs } from "@/lib/repositories/recruiting";
+import { opportunityContextLabel } from "@/lib/recruiting/opportunity-match";
 import { can } from "@/lib/rbac/permissions";
 import { AcademyHelp } from "@/components/academy/academy-help";
 import { ConceptNote } from "@/components/ia/concept-note";
@@ -31,12 +32,33 @@ import { JobsSubnav } from "./_components/jobs-subnav";
 export default async function JobsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string; view?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    page?: string;
+    view?: string;
+    context?: string;
+    requirements?: string;
+    match?: string;
+    matches?: string;
+    window?: string;
+    changed?: string;
+  }>;
 }) {
   const principal = await requireAppPermission("jobs.read");
-  const { q, page, view } = await searchParams;
+  const { q, page, view, context, requirements, match, matches, window, changed } = await searchParams;
   const jobsView = view === "headcount" || view === "searches" ? view : undefined;
-  const result = await listJobs(principal.organizationId, q, { page });
+  const contexts = ["client", "internal", "skillbridge", "monitored_public", "exploratory"] as const;
+  const contextType = contexts.find((item) => item === context);
+  const weekAgo = new Date(Date.now() - 7 * 86_400_000);
+  const result = await listJobs(principal.organizationId, q, {
+    page,
+    contextType,
+    requirementsReview: requirements === "review",
+    staleMatch: match === "stale",
+    matchesNone: matches === "none",
+    createdSince: window === "week" ? weekAgo : undefined,
+    changedSince: changed === "week" ? weekAgo : undefined,
+  });
   const rows = result.items;
   const canWrite = can(principal, "jobs.write");
   const companies = canWrite ? await listCompaniesForSelect(principal.organizationId) : [];
@@ -60,13 +82,21 @@ export default async function JobsPage({
       <FilterBar>
         <SearchForm action="/app/jobs" q={q} placeholder="Search job title" className="" />
       </FilterBar>
+      {contextType === "monitored_public" ? (
+        <p className="mt-3 text-sm text-muted-foreground">
+          Showing public opportunities. A public opportunity is employer demand discovered from a career source. It is not a CRM opportunity and it is not an authorized client route.
+        </p>
+      ) : null}
+      {requirements === "review" ? (
+        <p className="mt-3 text-sm text-muted-foreground">Showing jobs with requirements that still need review.</p>
+      ) : null}
       {rows.length === 0 ? (
         <EmptyState title="No jobs match.">
           Adjust the search or create a job when you have write access.
         </EmptyState>
       ) : (
         <DataTable
-          columns={["Title", "Company", "Location", "Status", "Priority", "Pipeline", "Days open"]}
+          columns={["Title", "Demand", "Company", "Location", "Status", "Priority", "Pipeline", "Days open"]}
         >
           {rows.map((row) => (
             <tr key={row.job.id}>
@@ -75,6 +105,7 @@ export default async function JobsPage({
                   {row.job.title}
                 </Link>
               </td>
+              <td>{opportunityContextLabel(row.job.jobContextType)}</td>
               <td>{row.companyName ?? "—"}</td>
               <td>{row.job.locationLabel ?? "—"}</td>
               <td>
