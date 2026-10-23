@@ -2,7 +2,7 @@ import { createHmac } from "node:crypto";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { PRIMARY_INDUSTRIES, PRIMARY_NAV, SERVICES, SOLUTIONS_NAV } from "../lib/content";
+import { INDUSTRY_SUMMARIES, PRIMARY_INDUSTRIES, PRIMARY_NAV, SECONDARY_INDUSTRIES, SERVICES, SOLUTIONS_NAV } from "../lib/content";
 import { inquiryPayloadSchema, publicContentResponseSchema, EMPTY_PUBLIC_CONTENT } from "../lib/contracts";
 import { IMAGES } from "../lib/images";
 import {
@@ -68,6 +68,9 @@ describe("Pier 24 Partners public website", () => {
     expect(SOLUTIONS_NAV.map((item) => item.label)).not.toContain("Fractional Talent Partner");
     expect(PRIMARY_INDUSTRIES).toContain("Technology");
     expect(PRIMARY_INDUSTRIES.join(" ")).not.toMatch(/Honeywell/);
+    for (const name of [...PRIMARY_INDUSTRIES, ...SECONDARY_INDUSTRIES]) {
+      expect(INDUSTRY_SUMMARIES[name]?.length).toBeGreaterThan(40);
+    }
     expect(SERVICES.map((row) => row.code)).not.toContain("skillbridge");
     expect(SERVICES.map((row) => row.code)).not.toContain("dual-career");
   });

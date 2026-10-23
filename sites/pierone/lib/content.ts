@@ -129,6 +129,27 @@ export const SECONDARY_INDUSTRIES = [
   "Supply Chain & Logistics",
 ] as const;
 
+export const INDUSTRY_SUMMARIES: Record<(typeof PRIMARY_INDUSTRIES)[number] | (typeof SECONDARY_INDUSTRIES)[number], string> = {
+  "Energy & Utilities":
+    "Employers in generation, transmission, distribution, and plant operations need technical people who can keep the system running. Pier 24 Partners can search for current openings and look ahead at roles that take years to develop.",
+  "Advanced Manufacturing":
+    "Production, maintenance, quality, and technical roles depend on fit with the process and the equipment. The work is targeted search and pipeline planning, not high-volume staffing.",
+  Infrastructure:
+    "Field, civil, and utility roles are tied to projects that have to keep moving. Pier 24 Partners can support the openings in front of an employer and the skilled roles that take longer to fill.",
+  "Industrial & Technical Operations":
+    "Maintenance, controls, and plant operations roles reward people who know the equipment. Military experience may be relevant when it shows what someone has operated, certified, and led, not only a military job title.",
+  Technology:
+    "Technical and professional roles where industrial systems, software, and operations technology meet. This is a workforce focus. Pier 24 Partners is not a technology company.",
+  "Data Centers":
+    "Facilities, critical-environment, and operations roles that keep a data center running. Fit depends on the employer's environment, certifications, and the work itself.",
+  "Aerospace & Defense":
+    "Engineering, maintenance, and technical operations roles in aerospace and defense. Military talent may align with some of this work. Pier 24 Partners is not a military-only firm, and no placement is guaranteed.",
+  Engineering:
+    "Professional and technical engineering roles where the discipline, the brief, and the work environment have to match. Search is built around that fit.",
+  "Supply Chain & Logistics":
+    "Planning, operations, and technical logistics roles that keep materials and product moving. The work can be an immediate search or a look at the roles an employer will need next.",
+};
+
 export function serviceBySlug(slug: string) {
   return SERVICES.find((service) => service.slug === slug) ?? null;
 }

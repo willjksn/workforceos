@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 
-import { BrandImage } from "@/components/media/brand-image";
+import { IndustryGrid } from "@/components/industries/industry-grid";
 import { Container, CtaLink, Heading, PageHero, Section } from "@/components/ui";
+import { INDUSTRY_SUMMARIES } from "@/lib/content";
 import { INDUSTRY_TILES } from "@/lib/images";
 
 export const metadata: Metadata = {
@@ -20,23 +21,15 @@ export default function IndustriesPage() {
       <Section>
         <Container>
           <Heading>Primary emphasis</Heading>
-          <ul className="mt-8 grid gap-5 md:grid-cols-2">
-            {INDUSTRY_TILES.filter((tile) => tile.emphasis === "primary").map((tile) => (
-              <li key={tile.name} className="overflow-hidden rounded-[6px] border border-border bg-white">
-                <BrandImage image={tile.image} overlay radius={false} sizes="(min-width: 768px) 40vw, 100vw" />
-                <div className="px-5 py-4 font-serif text-xl text-navy">{tile.name}</div>
-              </li>
-            ))}
-          </ul>
+          <IndustryGrid
+            tiles={INDUSTRY_TILES.filter((tile) => tile.emphasis === "primary")}
+            summaries={INDUSTRY_SUMMARIES}
+          />
           <Heading className="mt-14">Secondary emphasis</Heading>
-          <ul className="mt-8 grid gap-5 md:grid-cols-2">
-            {INDUSTRY_TILES.filter((tile) => tile.emphasis === "secondary").map((tile) => (
-              <li key={tile.name} className="overflow-hidden rounded-[6px] border border-border bg-white">
-                <BrandImage image={tile.image} overlay radius={false} sizes="(min-width: 768px) 40vw, 100vw" />
-                <div className="px-5 py-4 text-navy">{tile.name}</div>
-              </li>
-            ))}
-          </ul>
+          <IndustryGrid
+            tiles={INDUSTRY_TILES.filter((tile) => tile.emphasis === "secondary")}
+            summaries={INDUSTRY_SUMMARIES}
+          />
           <div className="mt-10">
             <CtaLink href="/contact">Work With Pier 24 Partners</CtaLink>
           </div>
