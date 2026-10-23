@@ -1,28 +1,27 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { SERVICES } from "@/lib/content";
+import { FEATURED_SERVICES } from "@/lib/content";
 import { Container, CtaLink, PageHero, Section } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Services",
-  description: "Five Pier 24 Partners services for hiring, military talent, talent acquisition performance, fractional talent leadership, and workforce pipelines.",
+  description: "Three Pier 24 Partners services: professional and technical search, military talent opportunity assessment, and workforce pipeline assessment.",
 };
 
 export default function WhatWeDoPage() {
   return (
     <main>
-      <PageHero eyebrow="Services" title="Five services. One workforce practice." size="narrow">
+      <PageHero eyebrow="Services" title="Three services. One workforce practice." size="narrow">
         <p className="mt-6 text-[17px] leading-8 text-white/80">
-          Pier 24 Partners is a workforce and talent solutions firm. These are the commercial offerings. Internal
-          recruiting, Military Talent pathway operations, and workforce intelligence support the work; they are not five extra
-          public products.
+          Pier 24 Partners is a workforce and talent solutions firm. These are the services we lead with. Search,
+          military talent, and workforce pipelines are the public focus.
         </p>
       </PageHero>
       <Section>
         <Container>
           <ol className="divide-y divide-border border-y border-border">
-            {SERVICES.map((service, index) => (
+            {FEATURED_SERVICES.map((service, index) => (
               <li key={service.slug}>
                 <Link
                   href={`/services/${service.slug}`}

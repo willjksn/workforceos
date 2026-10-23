@@ -10,13 +10,15 @@ Public site pages omit a section when no active content is returned. They must n
 
 Do not describe Pier 24 Partners as a high-volume staffing agency, as a generic SkillBridge host program, or promise SkillBridge approval or placement.
 
-Five public services only:
+The public site leads with three services:
 
 1. Professional & Technical Search
 2. Military Talent Opportunity Assessment
-3. Talent Acquisition Performance Assessment
-4. Fractional Talent Partner
-5. Workforce Pipeline Assessment
+3. Workforce Pipeline Assessment
+
+Talent Acquisition Performance Assessment and Fractional Talent Partner stay in the service catalog and keep their URLs. They are not in the public menu, homepage, footer, or contact choices.
+
+Primary industries include Honeywell Technologies as a market focus, not as a claim of a current client engagement.
 
 Insights stay empty until approved articles exist.
 

@@ -19,18 +19,11 @@ export const PRIMARY_NAV = [
 /** @deprecated Use PRIMARY_NAV. Kept for older imports. */
 export const NAV = PRIMARY_NAV;
 
-export const SOLUTIONS_NAV = [
-  { href: "/services/professional-technical-search", label: "Professional & Technical Search" },
-  { href: "/services/military-talent-opportunity-assessment", label: "Military Talent Opportunity Assessment" },
-  { href: "/services/talent-acquisition-performance-assessment", label: "Talent Acquisition Performance Assessment" },
-  { href: "/services/fractional-talent-partner", label: "Fractional Talent Partner" },
-  { href: "/services/workforce-pipeline-assessment", label: "Workforce Pipeline Assessment" },
-] as const;
-
 export const SERVICES = [
   {
     slug: "professional-technical-search",
     code: "professional-search" as const,
+    featured: true,
     name: "Professional & Technical Search",
     short: "Structured search for difficult professional and technical roles.",
     problem:
@@ -47,6 +40,7 @@ export const SERVICES = [
   {
     slug: "military-talent-opportunity-assessment",
     code: "military-talent-opportunity-assessment" as const,
+    featured: true,
     name: "Military Talent Opportunity Assessment",
     short: "Employer-side analysis of where military talent may support the workforce.",
     problem:
@@ -63,6 +57,7 @@ export const SERVICES = [
   {
     slug: "talent-acquisition-performance-assessment",
     code: "ta-performance-assessment" as const,
+    featured: false,
     name: "Talent Acquisition Performance Assessment",
     short: "Evaluate recruiting operations and recommend a future-state path.",
     problem:
@@ -79,6 +74,7 @@ export const SERVICES = [
   {
     slug: "fractional-talent-partner",
     code: "fractional-talent-partner" as const,
+    featured: false,
     name: "Fractional Talent Partner",
     short: "Embedded talent leadership and capacity within a defined scope.",
     problem:
@@ -95,6 +91,7 @@ export const SERVICES = [
   {
     slug: "workforce-pipeline-assessment",
     code: "workforce-pipeline-assessment" as const,
+    featured: true,
     name: "Workforce Pipeline Assessment",
     short: "Demand, supply, skills gaps, and pipeline strategy for critical roles.",
     problem:
@@ -110,11 +107,19 @@ export const SERVICES = [
   },
 ] as const;
 
+export const FEATURED_SERVICES = SERVICES.filter((service) => service.featured);
+
+export const SOLUTIONS_NAV = FEATURED_SERVICES.map((service) => ({
+  href: `/services/${service.slug}`,
+  label: service.name,
+}));
+
 export const PRIMARY_INDUSTRIES = [
   "Energy & Utilities",
   "Advanced Manufacturing",
   "Infrastructure",
   "Industrial & Technical Operations",
+  "Honeywell Technologies",
 ] as const;
 
 export const SECONDARY_INDUSTRIES = [

@@ -2,7 +2,7 @@ import { createHmac } from "node:crypto";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { PRIMARY_NAV, SERVICES, SOLUTIONS_NAV } from "../lib/content";
+import { PRIMARY_INDUSTRIES, PRIMARY_NAV, SERVICES, SOLUTIONS_NAV } from "../lib/content";
 import { inquiryPayloadSchema, publicContentResponseSchema, EMPTY_PUBLIC_CONTENT } from "../lib/contracts";
 import { IMAGES } from "../lib/images";
 import {
@@ -16,7 +16,7 @@ import {
 } from "../lib/workforceos/hmac";
 
 describe("Pier 24 Partners public website", () => {
-  it("defines five commercial services", () => {
+  it("keeps five service records and features three publicly", () => {
     expect(SERVICES).toHaveLength(5);
     expect(SERVICES.map((row) => row.code)).toEqual([
       "professional-search",
@@ -58,14 +58,15 @@ describe("Pier 24 Partners public website", () => {
     expect(labels).not.toContain("What We Do");
     expect(labels).not.toContain("Workforce Development");
     expect(SOLUTIONS_NAV.map((item) => item.label)).not.toContain("Workforce Development");
-    expect(SOLUTIONS_NAV).toHaveLength(5);
+    expect(SOLUTIONS_NAV).toHaveLength(3);
     expect(SOLUTIONS_NAV.map((item) => item.label)).toEqual([
       "Professional & Technical Search",
       "Military Talent Opportunity Assessment",
-      "Talent Acquisition Performance Assessment",
-      "Fractional Talent Partner",
       "Workforce Pipeline Assessment",
     ]);
+    expect(SOLUTIONS_NAV.map((item) => item.label)).not.toContain("Talent Acquisition Performance Assessment");
+    expect(SOLUTIONS_NAV.map((item) => item.label)).not.toContain("Fractional Talent Partner");
+    expect(PRIMARY_INDUSTRIES).toContain("Honeywell Technologies");
     expect(SERVICES.map((row) => row.code)).not.toContain("skillbridge");
     expect(SERVICES.map((row) => row.code)).not.toContain("dual-career");
   });

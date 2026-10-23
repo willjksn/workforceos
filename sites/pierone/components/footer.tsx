@@ -1,11 +1,11 @@
 import { Logo } from "@/components/brand/logo";
-import { SERVICES } from "@/lib/content";
+import { FEATURED_SERVICES } from "@/lib/content";
 
 const columns = [
   {
     title: "Services",
     links: [
-      ...SERVICES.map((service) => ({ href: `/services/${service.slug}`, label: service.name })),
+      ...FEATURED_SERVICES.map((service) => ({ href: `/services/${service.slug}`, label: service.name })),
     ],
   },
   {

@@ -120,6 +120,14 @@ export const IMAGES = {
     replacementNeeded: true,
     searchTerms: ["industrial operations technician", "plant operations", "technical maintenance professional"],
   },
+  industryHoneywell: {
+    src: "/images/placeholders/industry-operations.jpg",
+    alt: "Industrial controls and building technology environment associated with Honeywell Technologies",
+    category: "Honeywell Technologies",
+    aspect: "3/2",
+    replacementNeeded: true,
+    searchTerms: ["industrial controls", "building automation", "process technology Honeywell"],
+  },
   industryDataCenters: {
     src: "/images/placeholders/industry-data-centers.jpg",
     alt: "Data center technical environment",
@@ -159,6 +167,7 @@ export const INDUSTRY_TILES = [
   { name: "Advanced Manufacturing", image: IMAGES.industryManufacturing, emphasis: "primary" as const },
   { name: "Infrastructure", image: IMAGES.industryInfrastructure, emphasis: "primary" as const },
   { name: "Industrial & Technical Operations", image: IMAGES.industryOperations, emphasis: "primary" as const },
+  { name: "Honeywell Technologies", image: IMAGES.industryHoneywell, emphasis: "primary" as const },
   { name: "Data Centers", image: IMAGES.industryDataCenters, emphasis: "secondary" as const },
   { name: "Aerospace & Defense", image: IMAGES.industryAerospace, emphasis: "secondary" as const },
   { name: "Engineering", image: IMAGES.industryEngineering, emphasis: "secondary" as const },

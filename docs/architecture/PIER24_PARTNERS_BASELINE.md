@@ -24,15 +24,17 @@ OPERATE — run and improve the solution.
 
 ## Commercial offers
 
+The public site leads with:
+
 1. Professional & Technical Search
 2. Military Talent Opportunity Assessment
-3. Talent Acquisition Performance Assessment
-4. Fractional Talent Partner
-5. Workforce Pipeline Assessment
+3. Workforce Pipeline Assessment
+
+Talent Acquisition Performance Assessment and Fractional Talent Partner remain in the catalog and at their existing URLs. They are not featured in public navigation.
 
 SkillBridge operations, applicant processing, interviewing, onboarding, military translation, public opportunity discovery, candidate matching, research, sourcing, Scout, and WorkforceOS support delivery. They are not additional public offers.
 
-Primary sectors: Energy & Utilities, Advanced Manufacturing, Infrastructure, and Industrial / Technical Operations. Secondary sectors: Data Centers, Aerospace & Defense, Engineering, and Supply Chain & Logistics. Geography is not hard-coded through the product.
+Primary sectors: Energy & Utilities, Advanced Manufacturing, Infrastructure, Industrial / Technical Operations, and Honeywell Technologies. Honeywell Technologies is a named market focus, not a claim of a current engagement. Secondary sectors: Data Centers, Aerospace & Defense, Engineering, and Supply Chain & Logistics. Geography is not hard-coded through the product.
 
 ## System capabilities
 

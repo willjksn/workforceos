@@ -15,6 +15,7 @@ export default function IndustriesPage() {
       <PageHero eyebrow="Industries" title="Where workforce constraints show up clearly." size="narrow">
         <p className="mt-4 text-[17px] leading-8 text-white/80">
           These are emphasis areas, not a claim that Pier 24 Partners currently serves named clients in each industry.
+          Honeywell Technologies is a market focus, not a statement of a current engagement.
         </p>
       </PageHero>
       <Section>

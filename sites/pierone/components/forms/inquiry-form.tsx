@@ -2,9 +2,20 @@
 
 import { useState } from "react";
 
-import { SERVICE_INTEREST } from "@/lib/contracts";
+import { SERVICE_INTEREST, type ServiceInterest } from "@/lib/contracts";
 import { readPublicJsonError } from "@/lib/public-errors";
 import { buttonPrimaryClass, fieldClass } from "@/components/ui-classes";
+
+const FOCUS_INTEREST: ServiceInterest[] = [
+  "professional-search",
+  "military-talent-opportunity-assessment",
+  "workforce-pipeline-assessment",
+  "other",
+];
+
+function interestOptions(defaultService: ServiceInterest): ServiceInterest[] {
+  return FOCUS_INTEREST.includes(defaultService) ? FOCUS_INTEREST : [defaultService, ...FOCUS_INTEREST];
+}
 
 const LABELS: Record<(typeof SERVICE_INTEREST)[number], string> = {
   "professional-search": "Professional & Technical Search",
@@ -66,7 +77,7 @@ export function InquiryForm({
       <label className="block text-sm">
         What can we help with?
         <select name="serviceInterest" defaultValue={defaultService} className={fieldClass}>
-          {SERVICE_INTEREST.map((code) => (
+          {interestOptions(defaultService).map((code) => (
             <option key={code} value={code}>
               {LABELS[code]}
             </option>

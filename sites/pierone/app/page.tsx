@@ -9,7 +9,7 @@ import {
   SiteAnnouncement,
 } from "@/components/content/public-content";
 import { Container, CtaLink, Eyebrow, Heading, HorizonRule, Section } from "@/components/ui";
-import { SERVICES, SITE_TAGLINE } from "@/lib/content";
+import { FEATURED_SERVICES, SITE_TAGLINE } from "@/lib/content";
 import { IMAGES, INDUSTRY_TILES } from "@/lib/images";
 import { workforceOsPublic } from "@/lib/workforceos/client";
 
@@ -82,10 +82,10 @@ export default async function HomePage() {
 
       <Section tone="white">
         <Container>
-          <Eyebrow>Solutions</Eyebrow>
-          <Heading>Five ways Pier 24 Partners helps.</Heading>
+          <Eyebrow>Services</Eyebrow>
+          <Heading>Three ways Pier 24 Partners helps.</Heading>
           <ol className="mt-10 divide-y divide-border border-y border-border">
-            {SERVICES.map((service, index) => (
+            {FEATURED_SERVICES.map((service, index) => (
               <li key={service.slug}>
                 <Link
                   href={`/services/${service.slug}`}
@@ -170,9 +170,9 @@ export default async function HomePage() {
           <Eyebrow>Industries</Eyebrow>
           <Heading>Where workforce constraints show up clearly.</Heading>
           <p className="mt-4 max-w-2xl text-sm text-muted">
-            Emphasis areas, not a claim that Pier 24 Partners currently serves named clients in each industry.
+            Emphasis areas, not a client roster. Honeywell Technologies is a market focus, not a current engagement.
           </p>
-          <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {INDUSTRY_TILES.filter((tile) => tile.emphasis === "primary").map((tile) => (
               <li key={tile.name} className="group relative overflow-hidden rounded-[6px]">
                 <BrandImage image={tile.image} overlay radius={false} sizes="(min-width: 1024px) 22vw, 50vw" />
@@ -240,8 +240,7 @@ export default async function HomePage() {
           <Eyebrow>Work with Pier 24 Partners</Eyebrow>
           <Heading>If you are building a workforce, start a conversation.</Heading>
           <p className="mt-4 text-muted">
-            Search, military talent strategy, talent acquisition performance, fractional leadership, or pipeline
-            assessment — tell us the constraint.
+            Search, military talent strategy, or a workforce pipeline — tell us the constraint.
           </p>
           <div className="mt-8">
             <CtaLink href="/contact">Work With Pier 24 Partners</CtaLink>
